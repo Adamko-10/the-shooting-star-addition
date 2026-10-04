@@ -4,6 +4,8 @@ An **unofficial**, fan-made addon for [The Shooting Star [Demo]](https://www.cur
 by rimuru_dev. It adds a new skill to the Stellar Remote: **SS-05 · Halley**, a comet called down onto your
 crosshair.
 
+**Download:** [The Shooting Star Addition on CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition)
+
 ![SS-05 Halley in game](docs/screenshots/overview.jpg)
 
 > **Compatibility:** made and tested for **The Shooting Star [Demo] 1.2.2** on **NeoForge, Minecraft 1.21.1** only.
@@ -38,8 +40,8 @@ land round it.
 
 1. Minecraft **1.21.1** with **NeoForge 21.1.x**.
 2. **The Shooting Star [Demo] 1.2.2** (its NeoForge 1.21.1 file).
-3. `shooting_star_addition-1.0.0.jar` in the same `mods` folder. On a server, it goes on the server **and** on every
-   player's client.
+3. `shooting_star_addition-1.0.0.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
+   in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
 
 In game: hold the Stellar Remote, press **O** (or pick SS-05 in the remote's menu, **H**), aim at the ground and
 right-click. The key can be changed in Controls or from the remote's menu like the others.
