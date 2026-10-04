@@ -1,0 +1,12 @@
+# Gradle and IDE output
+.gradle/
+build/
+out/
+run/
+runs/
+.idea/
+*.iml
+.vscode/
+bin/
+# The Shooting Star's jar is the user's own copy, not part of this project
+libs/*.jar

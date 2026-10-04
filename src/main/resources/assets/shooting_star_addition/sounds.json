@@ -1,0 +1,90 @@
+{
+  "halley_mark": {
+    "subtitle": "subtitles.shooting_star_addition.halley_mark",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:halley_mark"
+      }
+    ]
+  },
+  "halley_countdown": {
+    "subtitle": "subtitles.shooting_star_addition.halley_countdown",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:halley_countdown"
+      }
+    ]
+  },
+  "halley_sight": {
+    "subtitle": "subtitles.shooting_star_addition.halley_sight",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:halley_sight"
+      }
+    ]
+  },
+  "halley_approach": {
+    "subtitle": "subtitles.shooting_star_addition.halley_approach",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:halley_approach"
+      }
+    ]
+  },
+  "halley_boom": {
+    "subtitle": "subtitles.shooting_star_addition.halley_boom",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:halley_boom"
+      }
+    ]
+  },
+  "halley_touchdown": {
+    "subtitle": "subtitles.shooting_star_addition.halley_touchdown",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:halley_touchdown"
+      }
+    ]
+  },
+  "halley_plough": {
+    "subtitle": "subtitles.shooting_star_addition.halley_plough",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:halley_plough"
+      }
+    ]
+  },
+  "halley_impact": {
+    "subtitle": "subtitles.shooting_star_addition.halley_impact",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:halley_impact"
+      }
+    ]
+  },
+  "halley_frost": {
+    "subtitle": "subtitles.shooting_star_addition.halley_frost",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:halley_frost"
+      }
+    ]
+  },
+  "halley_hum": {
+    "subtitle": "subtitles.shooting_star_addition.halley_hum",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:halley_hum"
+      }
+    ]
+  },
+  "halley_evac": {
+    "subtitle": "subtitles.shooting_star_addition.halley_evac",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:halley_evac"
+      }
+    ]
+  }
+}

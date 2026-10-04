@@ -1,0 +1,20 @@
+{
+  "key.shooting_star_demo.stellar_remote.halley": "The Shooting Star: SS-05 Halley",
+  "skill.shooting_star_demo.stellar_remote.halley.desc": "Flip the cover and press the button. Your crosshair is marked in ice-blue and an approach corridor is projected out across the land beyond it, and SS-05 Halley — a comet called down out of its orbit — rises over the horizon with its tails stretched across the sky. Fifteen seconds later it comes down as a fireball at the far end of the corridor, ploughs a frozen trench back toward you and detonates on the mark: a crater of blue ice with the comet's heart left standing in it and rays of frost thrown out over the land round it. Everything in the trench and the crater dies, you too if you stand there (in creative you are lifted clear), and past the crater the shock wave still throws, hurts and freezes whatever it meets.",
+  "block.shooting_star_addition.comet_heart": "Comet Heart",
+  "block.shooting_star_addition.comet_trail": "Frozen Comet Trail",
+  "death.attack.shooting_star_addition.halley_wake": "%1$s was frozen in a comet's wake",
+  "death.attack.shooting_star_addition.halley_wake.player": "%1$s was frozen in the wake of %2$s's comet",
+  "death.attack.shooting_star_addition.halley_wake.item": "%1$s was frozen in the wake of %2$s's comet, called down with %3$s",
+  "subtitles.shooting_star_addition.halley_mark": "Approach corridor projected onto the land",
+  "subtitles.shooting_star_addition.halley_countdown": "Comet strike countdown",
+  "subtitles.shooting_star_addition.halley_sight": "A comet rises over the horizon",
+  "subtitles.shooting_star_addition.halley_approach": "The comet roars in",
+  "subtitles.shooting_star_addition.halley_boom": "Sonic boom",
+  "subtitles.shooting_star_addition.halley_touchdown": "The comet strikes the ground",
+  "subtitles.shooting_star_addition.halley_plough": "The comet ploughs the land",
+  "subtitles.shooting_star_addition.halley_impact": "The comet detonates",
+  "subtitles.shooting_star_addition.halley_frost": "Frost spreads over the land",
+  "subtitles.shooting_star_addition.halley_hum": "The comet heart hums",
+  "subtitles.shooting_star_addition.halley_evac": "Evac teleport"
+}

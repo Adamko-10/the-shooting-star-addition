@@ -1,0 +1,117 @@
+// The Shooting Star Addition: an unofficial addon for The Shooting Star (NeoForge 1.21.1), built with ModDevGradle.
+//
+//   1. Put The Shooting Star's jar in libs/ (any file named the-shooting-star*.jar).
+//   2. ./gradlew build        -> build/libs/shooting_star_addition-<version>.jar
+//      ./gradlew runClient    -> a dev game with The Shooting Star and this addon loaded
+//
+// Versions live in gradle.properties.
+plugins {
+    id 'java-library'
+    id 'idea'
+    // any ModDevGradle 2.0.x works for NeoForge 1.21.1
+    id 'net.neoforged.moddev' version '2.0.+'
+}
+
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
+}
+
+version = mod_version
+group = mod_group_id
+
+base {
+    archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+repositories {
+    mavenLocal()
+}
+
+neoForge {
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+            programArgument '--nogui'
+        }
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.INFO
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+// The Shooting Star is compiled against but never shipped inside this jar (its licence is All Rights Reserved).
+var shootingStar = fileTree(dir: 'libs', include: 'the-shooting-star*.jar')
+
+dependencies {
+    compileOnly shootingStar
+}
+
+// The dev runs load mods from run/mods, so The Shooting Star is copied there before every run.
+var copyShootingStar = tasks.register('copyShootingStar', Copy) {
+    from shootingStar
+    into layout.projectDirectory.dir('run/mods')
+}
+tasks.matching { it.name.startsWith('run') }.configureEach {
+    dependsOn copyShootingStar
+}
+
+tasks.named('compileJava') {
+    doFirst {
+        if (shootingStar.isEmpty()) {
+            throw new GradleException("Put The Shooting Star's jar (the-shooting-star*.jar) in libs/ first - see libs/README.txt")
+        }
+    }
+}
+
+// neoforge.mods.toml is filled in from gradle.properties.
+var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    var replaceProperties = [
+        minecraft_version_range    : minecraft_version_range,
+        neo_version_range          : neo_version_range,
+        loader_version_range       : loader_version_range,
+        shooting_star_mod_id       : shooting_star_mod_id,
+        shooting_star_version_range: shooting_star_version_range,
+        mod_id                     : mod_id,
+        mod_name                   : mod_name,
+        mod_license                : mod_license,
+        mod_version                : mod_version,
+        mod_authors                : mod_authors,
+        mod_description            : mod_description,
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from 'src/main/templates'
+    into 'build/generated/sources/modMetadata'
+}
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

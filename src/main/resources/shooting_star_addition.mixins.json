@@ -1,0 +1,14 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "dev.ss05.halley.compat.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "FxManagerMixin",
+    "PlayerModelMixin",
+    "RemoteRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}
