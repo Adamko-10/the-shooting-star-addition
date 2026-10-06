@@ -86,5 +86,21 @@
         "name": "shooting_star_addition:halley_evac"
       }
     ]
+  },
+  "halley_dusk": {
+    "subtitle": "subtitles.shooting_star_addition.halley_dusk",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:halley_dusk"
+      }
+    ]
+  },
+  "halley_burst": {
+    "subtitle": "subtitles.shooting_star_addition.halley_burst",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:halley_burst"
+      }
+    ]
   }
 }

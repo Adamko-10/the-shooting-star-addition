@@ -1,0 +1,27 @@
+{
+  "vertex": "shooting_star_addition:halley_sky",
+  "fragment": "shooting_star_addition:halley_sky",
+  "attributes": [
+    "Position"
+  ],
+  "samplers": [],
+  "uniforms": [
+    { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+    { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+    { "name": "SkyClock", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "Night", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "Stars", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "Aurora", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "Veil", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "Halo", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "Flash", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "CometDir", "type": "float", "count": 3, "values": [ 0.0, 1.0, 0.0 ] },
+    { "name": "CometGlow", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "CometHeat", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "TailDir", "type": "float", "count": 3, "values": [ 0.0, 1.0, 0.0 ] },
+    { "name": "LightDir", "type": "float", "count": 3, "values": [ 0.0, 1.0, 0.0 ] },
+    { "name": "LightUp", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "Seed", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "Layer", "type": "float", "count": 1, "values": [ 0.0 ] }
+  ]
+}

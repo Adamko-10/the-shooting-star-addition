@@ -4,6 +4,8 @@
   "package": "dev.ss05.halley.compat.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "ClientLevelMixin",
+    "ClientLevelTimeMixin",
     "FxManagerMixin",
     "PlayerModelMixin",
     "RemoteRendererMixin"

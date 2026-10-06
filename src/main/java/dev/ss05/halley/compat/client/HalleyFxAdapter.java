@@ -90,6 +90,7 @@ final class HalleyFxAdapter extends SpellFx {
     @Override
     public void hud(GuiGraphics graphics, Frame frame) {
         HalleyHud.world(graphics, this.fx, frame.partial(), Overlay.width(graphics));
+        HalleyHud.marker(graphics, this.fx, frame.partial(), Overlay.width(graphics), Overlay.height(graphics));
     }
 
     /** SS-05's screen effects written into the remote's post-processing settings for this frame. */

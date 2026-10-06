@@ -8,9 +8,9 @@ crosshair.
 
 ![SS-05 Halley in game](docs/screenshots/overview.jpg)
 
-> **Compatibility:** made and tested for **The Shooting Star [Demo] 1.2.2** on **NeoForge, Minecraft 1.21.1** only.
-> The Shooting Star itself also comes for Forge, Fabric and other Minecraft versions; this addon does not. It will
-> most likely only work with that one version of the mod, on that one mod loader. See
+> **Compatibility:** made for **The Shooting Star [Demo] 1.2.2** on **NeoForge, Minecraft 1.21.1**, and it works
+> with **The Shooting Star 1.3** too. The Shooting Star itself also comes for Forge, Fabric and other Minecraft
+> versions; this addon does not: it only works on NeoForge 1.21.1. See
 > [Will it work with future versions?](#will-it-work-with-future-versions-of-the-shooting-star) below.
 
 ## SS-05 · Halley
@@ -21,11 +21,24 @@ as a fireball, touches down at the far end of the corridor, ploughs a frozen tre
 the mark — leaving an icy crater with the comet's glowing heart standing in it, and rays of frost thrown out over the
 land round it.
 
+- **The sky goes dark as it comes in**: stars come out, the band of the galaxy, an aurora, and the comet blazes
+  across them with its tails, lighting up the air round it. The fireball outshines the stars as it comes down, the
+  blast lights up the night, and then the air fills with ice: a pale haze with a halo, sun dogs and a light pillar
+  round the sun (or the moon), clearing as the crystals settle.
+- **You can't miss it**: outside the cutscene the comet is drawn bigger, and an arrow at the edge of the screen points
+  at it while it's out of view.
+- **Works with shader packs** (Iris, e.g. Complementary): with one on, SS-05 paints its comet and sky onto textures
+  and draws them the way the pack expects, and the dark sky becomes the pack's own night: the sky's clock races through
+  a dusk into the night as the comet comes in, and on through a dawn after the impact. Only what you see changes, never
+  the world's actual time.
+- Pieces break off the comet and burst in the sky, the fireball sheds sparks and throws lens flares, ice is thrown
+  out of the crater on long arcs, glowing cracks race across the land, a wall of snow rides the shock front, and the
+  comet heart shines a beam into the sky.
 - Joins the Stellar Remote like the built-in skills: its own key (**O** by default), menu card and description, HUD
   card, cooldown and recharge display.
 - Its own cutscene (skippable with the remote's cutscene key), with impact frames, flashes and camera shake in the
   remote's style, and the remote's cover, button and screen animate for it.
-- Eleven new sounds, and two new blocks: the **Comet Heart** and the **Frozen Comet Trail**.
+- Thirteen new sounds, and two new blocks: the **Comet Heart** and the **Frozen Comet Trail**.
 - Everything in the trench and the crater is erased, the way the remote's other skills erase their strike zones (you
   too if you stand there; in creative you are lifted clear). Past the crater, the shock wave throws, hurts and
   freezes whatever it meets.
@@ -35,12 +48,13 @@ land round it.
 |---|---|---|
 | ![](docs/screenshots/01-mark-and-corridor.jpg) | ![](docs/screenshots/03-fireball.jpg) | ![](docs/screenshots/04-plough.jpg) |
 | ![](docs/screenshots/05-detonation.jpg) | ![](docs/screenshots/06-comet-heart.jpg) | ![](docs/screenshots/07-crater.jpg) |
+| ![The dark sky and the aurora, in third person](docs/screenshots/10-night-sky.jpg) | ![The ice halo and sun dogs after the impact](docs/screenshots/11-ice-halo.jpg) | ![With a shader pack (Complementary)](docs/screenshots/12-shader-pack.jpg) |
 
 ## Installing
 
 1. Minecraft **1.21.1** with **NeoForge 21.1.x**.
-2. **The Shooting Star [Demo] 1.2.2** (its NeoForge 1.21.1 file).
-3. `shooting_star_addition-1.0.0.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
+2. **The Shooting Star [Demo] 1.2.2 or 1.3** (its NeoForge 1.21.1 file).
+3. `shooting_star_addition-1.1.0.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
 
 In game: hold the Stellar Remote, press **O** (or pick SS-05 in the remote's menu, **H**), aim at the ground and
@@ -65,6 +79,19 @@ right-click. The key can be changed in Controls or from the remote's menu like t
 
 The server's values are sent with every strike, so every client films exactly the crater the server cuts.
 
+## Looks — `config/shooting_star_addition-client.toml`
+
+Each player can set these for themselves; they only change what you see.
+
+| Setting          | Default | What it does |
+|------------------|---------|--------------|
+| `sky`            | true    | The sky goes dark while the comet comes in, and hazy with ice after the impact. |
+| `darken_land`    | true    | The land dims under that dark sky, so the comet's light stands out. |
+| `extra_effects`  | true    | Fragments, sparks, ice from the crater, cracks, the shock wall, the heart's beam, glittering air. |
+| `world_flashes`  | true    | The whole world lights up for an instant at touchdown and impact. Turn off if flashing light bothers you. |
+| `comet_marker`   | true    | The arrow at the edge of the screen pointing at the comet while it's out of view. |
+| `shader_packs`   | AUTO    | How it's drawn with a shader pack: `AUTO` switches to the shader-pack way whenever Iris has a pack on, `ALWAYS` uses it all the time, `NEVER` doesn't (the comet and the sky then won't show under a shader pack). |
+
 ## Will it work with future versions of The Shooting Star?
 
 Honestly: maybe, maybe not. The Shooting Star has no official way for other mods to add skills, so this addon
@@ -72,7 +99,7 @@ attaches itself to some of its internals (the remote's skill list, its effect sy
 The Shooting Star is updated often. That means:
 
 - **Small updates** that don't touch those parts should keep working: the addon accepts The Shooting Star 1.2 and
-  anything newer.
+  anything newer, and 1.3 works.
 - **Updates that change those parts** won't crash your game. The addon checks everything before it attaches, and if
   something has moved it switches SS-05 off, logs why, and tells server operators in chat. It stays off until this
   addon is updated. The optional touches (the remote's cover animation, the cutscene overlay, the raised arm) quietly
@@ -84,7 +111,7 @@ The Shooting Star is updated often. That means:
 
 ## Plans
 
-This is version 1.0. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
+This is version 1.1. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
 Shooting Star and keep improving it: more skills for the Stellar Remote, balancing and polish from your feedback,
 and versions for other loaders and Minecraft versions if there's demand. Bug reports, ideas and feedback are very
 welcome in the issues.
@@ -121,7 +148,10 @@ Only the files in `compat/` touch The Shooting Star; nothing else imports it. So
    themselves off if their target moved:
    - the remote's cover/button/screen not animating for SS-05 → `RemoteRendererMixin` (`strikeTime`);
    - no SS-05 overlay on the cutscene → `FxManagerMixin` (`renderFilmHud`);
-   - the caster's arm not raising (vanilla target, very unlikely to change) → `PlayerModelMixin`.
+   - the caster's arm not raising (vanilla target, very unlikely to change) → `PlayerModelMixin`;
+   - the land not dimming under the dark sky (vanilla target, very unlikely to change) → `ClientLevelMixin`;
+   - with a shader pack on, the sky not going to night (vanilla target, very unlikely to change) →
+     `ClientLevelTimeMixin`.
 6. **A new built-in skill takes the O key** → change `DEFAULT_KEY` in `world/HalleyInfo.java`.
 
 If the remote gains more built-in skills, SS-05 simply joins after them.
@@ -135,6 +165,9 @@ If the remote gains more built-in skills, SS-05 simply joins after them.
 | What it does to the world | `world/HalleyStrike.java` (block palettes at the top) |
 | Name, colour, default key | `world/HalleyInfo.java`; description and key name in `assets/shooting_star_addition/lang/en_us.json` |
 | The look: colours, comet size, tails | top of `client/render/CometVisuals.java`; shapes in `halley_glow.fsh` |
+| The extras: fragments, ice from the crater, cracks, shock wall, beam | top of `client/render/CometExtras.java` |
+| The sky: when it darkens, the aurora, the haze | `sky()` in `client/HalleyFx.java` (timing); `halley_sky.fsh` (the look) |
+| Shader packs (Iris) | `client/render/ShaderPacks.java` (when), `GlowAtlas.java` (the painted shapes), `paint()` in `client/sky/HalleySky.java` |
 | Sounds, particles, screen effects, HUD | `client/HalleyFx.java`, `client/HalleyHud.java` |
 | The cutscene | `client/film/HalleyStoryboard.java` (one block per shot) |
 | Textures, menu card, thumbnail, sounds themselves | `art/` (generator scripts — see `art/README.md`) |
@@ -151,6 +184,7 @@ src/main/java/dev/ss05/halley/
   content/               blocks, sounds, damage type
   world/                 what the strike does to the world (server)
   client/                what it looks and sounds like (renderer, effects, HUD, cutscene)
+  client/sky/            the sky during a strike (night, aurora, the ice haze)
 src/main/resources/      shader, textures, sounds, language file, data
 src/main/templates/      neoforge.mods.toml (filled in from gradle.properties)
 art/                     scripts that generate the textures, thumbnail and sounds

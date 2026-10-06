@@ -13,6 +13,10 @@ public final class Shapes {
     public static final int DISC = 7;
     public static final int DASH = 8;
     public static final int SHOCK = 9;
+    /** A lens flare: a long, thin line across the screen (draw it with {@link GlowBatch#rect}). */
+    public static final int FLARE = 10;
+    /** A wall of snow and light standing on the ground: x along it, y up it (draw it with {@link GlowBatch#wall}). */
+    public static final int WALL = 11;
 
     /** GLOW variant: only the haze, without the white-hot core. */
     public static final int HAZE = 1;

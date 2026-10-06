@@ -82,6 +82,35 @@ public final class GlowBatch {
     }
 
     /**
+     * A camera-facing square drawn {@code pull} blocks nearer the camera than {@code at}, shrunk so it looks exactly the
+     * same on screen. Depth-tested there, ground close round the light (a trench wall) no longer cuts it off, but
+     * anything near the camera (the player, in third person) still stands in front of it.
+     */
+    public void billboardPulled(Vec3 at, double pull, double size, int shape, int variant, int rgb, float strength, double rotation) {
+        Vec3 view = at.subtract(this.camera);
+        double d = view.length();
+        if (d < 1.0E-3) {
+            return;
+        }
+        double near = Math.max(d - pull, Math.min(d, 6.0));
+        double k = near / d;
+        this.billboard(this.camera.add(view.scale(k)), size * k, shape, variant, rgb, strength, rotation);
+    }
+
+    /** A rectangle lying flat on the screen, {@code halfWidth} across it and {@code halfHeight} up it (lens flares). */
+    public void rect(Vec3 at, double halfWidth, double halfHeight, int shape, int variant, int rgb, float strength) {
+        this.quad(at.x, at.y, at.z, this.right.x * halfWidth, this.right.y * halfWidth, this.right.z * halfWidth,
+            this.up.x * halfHeight, this.up.y * halfHeight, this.up.z * halfHeight, shape, variant, rgb, strength);
+    }
+
+    /** An upright quad standing between two points on the ground, {@code height} tall (uv x along it, y up it). */
+    public void wall(Vec3 a, Vec3 b, double height, int shape, int variant, int rgb, float strength) {
+        double h = height * 0.5;
+        this.quad((a.x + b.x) * 0.5, (a.y + b.y) * 0.5 + h, (a.z + b.z) * 0.5, (b.x - a.x) * 0.5, (b.y - a.y) * 0.5, (b.z - a.z) * 0.5,
+            0.0, h, 0.0, shape, variant, rgb, strength);
+    }
+
+    /**
      * The on-screen angle of a world direction seen from {@code at}, so a billboard's +y can be turned to point
      * along it (0 = straight up the screen... measured from +x).
      */

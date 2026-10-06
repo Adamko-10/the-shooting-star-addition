@@ -3,6 +3,7 @@ package dev.ss05.halley.content;
 import dev.ss05.halley.HalleyAddon;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.level.block.Block;
@@ -55,6 +56,8 @@ public final class HalleyContent {
     public static final DeferredHolder<SoundEvent, SoundEvent> FROST = sound("halley_frost");
     public static final DeferredHolder<SoundEvent, SoundEvent> HUM = sound("halley_hum");
     public static final DeferredHolder<SoundEvent, SoundEvent> EVAC = sound("halley_evac");
+    public static final DeferredHolder<SoundEvent, SoundEvent> DUSK = sound("halley_dusk");
+    public static final DeferredHolder<SoundEvent, SoundEvent> BURST = sound("halley_burst");
 
     /** Damage from the shock wave outside the crater (inside it, things are erased the way the other skills erase). */
     public static final ResourceKey<DamageType> WAKE = ResourceKey.create(Registries.DAMAGE_TYPE, HalleyAddon.id("halley_wake"));
@@ -67,6 +70,9 @@ public final class HalleyContent {
     }
 
     public static void register(IEventBus modBus) {
+        // before it was named, the addon's id was ss05_halley: worlds played with that build keep their comet hearts
+        BLOCKS.addAlias(ResourceLocation.fromNamespaceAndPath("ss05_halley", "comet_heart"), COMET_HEART.getId());
+        BLOCKS.addAlias(ResourceLocation.fromNamespaceAndPath("ss05_halley", "comet_trail"), COMET_TRAIL.getId());
         BLOCKS.register(modBus);
         SOUNDS.register(modBus);
     }

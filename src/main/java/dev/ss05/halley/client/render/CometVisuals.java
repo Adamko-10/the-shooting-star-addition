@@ -19,6 +19,11 @@ public final class CometVisuals {
     /** Whether there is land drawn at a point (the client only has the chunks near the player). */
     public interface Land {
         boolean has(double x, double z);
+
+        /** The first air above the ground at (x, z), or NaN where it isn't known. */
+        default double surface(double x, double z) {
+            return Double.NaN;
+        }
     }
 
     // ---- Colours. -------------------------------------------------------------------------------------------------
@@ -104,6 +109,12 @@ public final class CometVisuals {
         return this.heartBase != null;
     }
 
+    /** The top of the heart's main spike, or null when there is no heart. */
+    @Nullable
+    public Vec3 heartTip() {
+        return this.heartTip;
+    }
+
     /** The direction the comet's tails stream in before it enters the atmosphere. */
     public Vec3 tailDirection() {
         return this.ionDir;
@@ -114,8 +125,10 @@ public final class CometVisuals {
      *
      * @param marks     the ground marks, once sampled (null before)
      * @param markRange how far from the camera the land is drawn (marks beyond it would float over nothing)
+     * @param film      how much of the screen the caster's cutscene has (0..1): outside it the comet is drawn bigger,
+     *                  since nobody is framing it with a long lens
      */
-    public void draw(GlowBatch world, GlowBatch light, double t, @Nullable GroundMarks marks, double markRange, Land land) {
+    public void draw(GlowBatch world, GlowBatch light, double t, @Nullable GroundMarks marks, double markRange, Land land, float film) {
         if (t < 0.0 || t > this.plan.duration) {
             return;
         }
@@ -123,7 +136,7 @@ public final class CometVisuals {
             this.marks(world, t, marks, markRange, land);
         }
         if (t >= HalleyPlan.SIGHT && t <= HalleyPlan.TOUCHDOWN) {
-            this.approach(world, light, t);
+            this.approach(world, light, t, 1.0 + 0.9 * (1.0 - film));
         }
         if (t > HalleyPlan.TOUCHDOWN) {
             this.skyTrail(world, t);
@@ -249,14 +262,14 @@ public final class CometVisuals {
 
     // ---- The approach: sighting, the tails, the entry. -------------------------------------------------------------
 
-    private void approach(GlowBatch world, GlowBatch light, double t) {
+    private void approach(GlowBatch world, GlowBatch light, double t, double boost) {
         Vec3 head = this.plan.comet(t);
         double d = head.distanceTo(world.camera());
         float on = smooth((t - HalleyPlan.SIGHT) / 30.0);
         float near = (float) Mth.clamp(1.0 - d / 5000.0, 0.0, 1.0);
-        double coma = Math.max(COMA, d * COMA_MIN_ANGLE);
-        double nucleus = Math.max(NUCLEUS, d * NUCLEUS_MIN_ANGLE);
-        double glint = Math.max(COMA * 1.2, d * GLINT_MIN_ANGLE);
+        double coma = Math.max(COMA, d * COMA_MIN_ANGLE * boost);
+        double nucleus = Math.max(NUCLEUS, d * NUCLEUS_MIN_ANGLE * boost);
+        double glint = Math.max(COMA * 1.2, d * GLINT_MIN_ANGLE * boost);
 
         // the tails, which thin out once the comet is inside the atmosphere
         float tails = on * (1.0F - smooth((t - (HalleyPlan.ENTRY - 10)) / 35.0));
@@ -279,6 +292,8 @@ public final class CometVisuals {
         world.billboard(head, coma, Shapes.GLOW, 0, PALE, 0.9F * on, 0.0);
         world.billboard(head, nucleus, Shapes.GLOW, 0, WHITE, on, 0.0);
         world.billboard(head, glint, Shapes.GLINT, 0, PALE, (0.6F + 0.35F * near) * on, this.spin + t * 0.004);
+        // a line of glare across the screen through it, as a bright light makes in a camera lens
+        world.rect(head, coma * 7.0, coma * 0.24, Shapes.FLARE, 0, ION, 0.22F * on * (0.5F + 0.5F * near));
 
         // entry: the air in front of it turns to plasma
         double since = t - HalleyPlan.ENTRY;
@@ -289,6 +304,7 @@ public final class CometVisuals {
             light.billboard(head.add(heading.scale(coma * 0.3)), coma * 1.5, Shapes.BOW, 0, HEAT, 0.55F * sheath, angle);
             light.billboard(head, coma * 1.2, Shapes.BOW, 0, PALE, 0.35F * sheath, angle);
             light.billboard(head, coma * 1.8, Shapes.GLOW, 0, HEAT, 0.4F * sheath, 0.0);
+            world.rect(head, coma * 12.0, coma * 0.35, Shapes.FLARE, 0, HEAT, 0.35F * sheath);
 
             // the fireball's trail: the stretch of sky it has burned through since entry
             double flown = Math.max(1.0, this.entryDistance - HalleyPlan.distanceToGo(t));
@@ -331,6 +347,7 @@ public final class CometVisuals {
         double k = since / 30.0;
         // the blast where it struck: a flash, a ring racing out over the land, a spout of ice thrown up
         light.billboard(p.add(0.0, 8.0, 0.0), 70.0 * (1.0 + k), Shapes.GLOW, 0, PALE, 1.4F * (float) Math.exp(-since / 4.0), 0.0);
+        light.rect(p.add(0.0, 8.0, 0.0), 900.0, 12.0, Shapes.FLARE, 0, PALE, 1.0F * (float) Math.exp(-since / 5.0));
         if (land.has(p.x, p.z)) {
             double ring = 6.0 + width * 5.0 * Math.sqrt(k);
             for (int i = 0; i < 3; i++) {
@@ -349,11 +366,12 @@ public final class CometVisuals {
         double angle = light.screenAngle(head, heading);
         float flicker = 0.9F + 0.1F * (float) Math.sin(t * 2.7);
 
-        // the nucleus, ploughing
-        light.billboard(head, 24.0, Shapes.GLOW, 0, ICE, 0.55F * flicker, 0.0);
-        light.billboard(head, 10.0, Shapes.GLOW, 0, PALE, 0.9F * flicker, 0.0);
-        light.billboard(head, 34.0, Shapes.GLINT, 0, PALE, 0.6F, this.spin + t * 0.05);
-        light.billboard(head.add(heading.scale(4.0)), 13.0, Shapes.BOW, 0, PALE, 0.4F, angle);
+        // the nucleus, ploughing: seen over the trench's walls, but not through the caster standing in front of it
+        double pull = 45.0;
+        world.billboardPulled(head, pull, 24.0, Shapes.GLOW, 0, ICE, 0.55F * flicker, 0.0);
+        world.billboardPulled(head, pull, 10.0, Shapes.GLOW, 0, PALE, 0.9F * flicker, 0.0);
+        world.billboardPulled(head, pull, 34.0, Shapes.GLINT, 0, PALE, 0.6F, this.spin + t * 0.05);
+        world.billboardPulled(head.add(heading.scale(4.0)), pull, 13.0, Shapes.BOW, 0, PALE, 0.4F, angle);
 
         // its wake back down the trench
         double behind = Math.min(this.plan.ploughed(t) + 10.0, 110.0);
@@ -414,6 +432,7 @@ public final class CometVisuals {
         // the flash, and the fireball of vaporised ice
         if (a < 40.0) {
             light.billboard(c.add(0.0, radius * 0.3, 0.0), radius * 3.0, Shapes.GLOW, 0, PALE, 1.6F * (float) Math.exp(-a / 4.0), 0.0);
+            light.rect(c.add(0.0, radius * 0.3, 0.0), radius * 26.0, radius * 0.32, Shapes.FLARE, 0, PALE, 1.3F * (float) Math.exp(-a / 6.0));
             double ball = radius * (0.35 + 0.95 * (1.0 - Math.exp(-a / 5.0)));
             Vec3 middle = c.add(0.0, ball * 0.35, 0.0);
             light.billboard(middle, ball, Shapes.DISC, 0, PALE, 0.9F * (float) Math.exp(-a / 9.0), 0.0);

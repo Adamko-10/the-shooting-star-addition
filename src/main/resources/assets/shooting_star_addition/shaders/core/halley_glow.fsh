@@ -8,6 +8,8 @@
 // transparency pass still blends it (it ignores fully transparent pixels).
 uniform vec4 ColorModulator;
 uniform float GameTime;
+// 1 while painting the shapes onto a texture for shader packs (client/render/GlowAtlas)
+uniform float Bake;
 
 in vec2 texCoord0;
 in vec4 vertexColor;
@@ -24,6 +26,8 @@ const float RETICLE = 6.0;
 const float DISC = 7.0;
 const float DASH = 8.0;
 const float SHOCK = 9.0;
+const float FLARE = 10.0;
+const float WALL = 11.0;
 
 float sq(float x) {
     return x * x;
@@ -136,6 +140,20 @@ void main() {
     } else if (shape < DASH + 0.5) {
         vec2 a = abs(p);
         light = (1.0 - smoothstep(0.6, 1.0, a.x)) * exp(-a.y * a.y * 6.0);
+    } else if (shape > FLARE - 0.5 && shape < FLARE + 0.5) {
+        // a lens flare: a thin line across the screen with a soft glow along it and a hot core
+        vec2 a = abs(p);
+        float line = exp(-a.y * a.y * 40.0) * pow(1.0 - a.x, 1.6);
+        float soft = exp(-a.y * a.y * 5.0) * pow(1.0 - a.x, 3.0) * 0.3;
+        float core = exp(-(a.x * a.x * 70.0 + a.y * a.y * 6.0)) * 0.9;
+        light = (line + soft + core) * (1.0 - smoothstep(0.85, 1.0, a.y));
+    } else if (shape > WALL - 0.5 && shape < WALL + 0.5) {
+        // a wall of snow thrown up by the shock front: x along it, y = -1 at the ground .. 1 at the top
+        float h = (p.y + 1.0) * 0.5;
+        float top = 0.5 + 0.4 * fbm(vec2(p.x * 2.5 + variant * 3.7, seconds * 0.9));
+        float body = (1.0 - smoothstep(top - 0.3, top, h)) * (0.5 + 0.7 * fbm(vec2(p.x * 6.0 + variant * 3.7, h * 5.0 - seconds * 2.0)));
+        float base = exp(-h * 7.0) * 0.7;
+        light = (body * (1.0 - 0.5 * h) + base) * (1.0 - smoothstep(0.97, 1.0, abs(p.x)));
     } else {
         // a shock front: a bright, ragged ring
         // ragged by noise sampled round a circle (no seam where the angle wraps)
@@ -144,6 +162,12 @@ void main() {
         float ring = exp(-sq((d - 0.9 - rag) / 0.035));
         float wash = 0.35 * smoothstep(0.35, 0.9, d) * (1.0 - smoothstep(0.88, 0.96, d));
         light = (ring + wash) * (1.0 - smoothstep(0.97, 1.0, d));
+    }
+
+    if (Bake > 0.5) {
+        // the light alone, softly clipped into 0..1 (a texture can't hold more), and where there is any
+        fragColor = vec4(vec3(1.0 - exp(-light)), clamp(light * 50.0, 0.0, 1.0));
+        return;
     }
 
     float strength = vertexColor.a * light;

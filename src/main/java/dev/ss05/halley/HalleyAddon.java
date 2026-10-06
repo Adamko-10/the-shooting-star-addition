@@ -2,6 +2,7 @@ package dev.ss05.halley;
 
 import com.mojang.logging.LogUtils;
 import dev.ss05.halley.client.HalleyClient;
+import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.content.HalleyContent;
 import net.minecraft.ChatFormatting;
@@ -25,6 +26,7 @@ import org.slf4j.Logger;
  * <ul>
  *   <li>{@code compat/}  — the ONLY code that touches The Shooting Star. When that mod updates, start there.</li>
  *   <li>{@link HalleyConfig} — every number you might want to tune (also written to config/shooting_star_addition-common.toml).</li>
+ *   <li>{@link HalleyClientConfig} — how it looks on each player's screen (config/shooting_star_addition-client.toml).</li>
  *   <li>{@link HalleyPlan} — the timeline and the shape of the strike, shared by the server and the client film.</li>
  *   <li>{@code world/} — what the strike does to the world (server side).</li>
  *   <li>{@code client/} — what it looks and sounds like (client side).</li>
@@ -50,6 +52,7 @@ public final class HalleyAddon {
         }));
 
         if (dist.isClient()) {
+            container.registerConfig(ModConfig.Type.CLIENT, HalleyClientConfig.SPEC);
             HalleyClient.init(modBus);
         }
 

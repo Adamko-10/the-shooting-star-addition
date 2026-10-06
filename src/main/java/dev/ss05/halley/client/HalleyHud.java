@@ -1,7 +1,9 @@
 package dev.ss05.halley.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import dev.ss05.halley.HalleyPlan;
+import dev.ss05.halley.client.render.CometRenderer;
 import java.util.Locale;
 import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
@@ -53,6 +55,59 @@ public final class HalleyHud {
         String clock = String.format(Locale.ROOT, "T-%05.2f", Math.max(0.0F, (p.impact - t) / 20.0F));
         bracketed(g, font, title, w / 2, 26, a << 24 | colour, 1.5F);
         centered(g, font, clock, w / 2, 44, 0xFFFFFFFF, 1.25F);
+    }
+
+    /**
+     * Outside the film, while the comet is coming in: an arrow at the edge of the screen pointing at it whenever it is
+     * out of view, so nobody misses it.
+     */
+    public static void marker(GuiGraphics g, HalleyFx fx, float partial, int w, int h) {
+        HalleyPlan p = fx.plan;
+        float t = fx.time(partial);
+        Minecraft minecraft = Minecraft.getInstance();
+        if (t < HalleyPlan.SIGHT + 10.0F || t >= HalleyPlan.TOUCHDOWN || fx.filmWeight() > 0.05F || minecraft.player == null
+            || !HalleyClientConfig.cometMarker()) {
+            return;
+        }
+        Vec3 me = minecraft.player.position();
+        if (Math.hypot(me.x - p.target.x, me.z - p.target.z) > 1500.0) {
+            return;
+        }
+        Vec3 comet = p.comet(t);
+        float[] at = CometRenderer.toScreen(comet);
+        if (at == null || at[2] < 0.5F && Math.abs(at[0]) < 0.94F && Math.abs(at[1]) < 0.9F) {
+            return;
+        }
+        // the way to turn, on screen (y up), and where that meets a frame just inside the screen's edge
+        double angle = Math.atan2(at[1] * h, at[0] * w);
+        double c = Math.cos(angle);
+        double s = Math.sin(angle);
+        double rx = w * 0.5 - 30.0;
+        double ry = h * 0.5 - 30.0;
+        double reach = Math.min(rx / Math.max(Math.abs(c), 1.0E-4), ry / Math.max(Math.abs(s), 1.0E-4));
+        float x = (float) (w * 0.5 + c * reach);
+        float y = (float) (h * 0.5 - s * reach);
+        int a = (int) (255.0F * (0.6F + 0.4F * (float) Math.abs(Math.sin(t * 0.25))));
+        int ink = a << 24 | ICE;
+
+        PoseStack pose = g.pose();
+        pose.pushPose();
+        pose.translate(x, y, 0.0F);
+        pose.mulPose(Axis.ZP.rotation((float) -angle));
+        // an arrowhead pointing outward, with a short tail
+        for (int i = 0; i < 14; i++) {
+            g.fill(i - 14, -(14 - i), i - 13, 14 - i, ink);
+        }
+        g.fill(-24, -2, -14, 2, ink);
+        pose.popPose();
+
+        Font font = minecraft.font;
+        String range = String.format(Locale.ROOT, at[2] > 0.5F ? "%.1f KM · BEHIND YOU" : "%.1f KM",
+            comet.distanceTo(HalleyFx.camera()) / 1000.0);
+        float lx = (float) Mth.clamp(x - c * 48.0, 60.0, w - 60.0);
+        float ly = (float) Mth.clamp(y + s * 40.0, 20.0, h - 30.0);
+        centered(g, font, "1P/HALLEY", (int) lx, (int) ly - 12, ink, 1.25F);
+        centered(g, font, range, (int) lx, (int) ly + 1, (int) (a * 0.7F) << 24 | PALE, 1.0F);
     }
 
     /** The caster's film: an uplink overlay with the comet's telemetry. */

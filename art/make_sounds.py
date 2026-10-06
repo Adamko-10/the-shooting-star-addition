@@ -308,6 +308,44 @@ def evac():
     finish('halley_evac', out, peak=0.87, fade_out=0.1)
 
 
+# ---- Dusk: the sky goes dark as the uplink locks on. A long fall in the deep, the air drawing in, a cold choir. -------
+def dusk():
+    seconds = 5.5
+    total = t_axis(seconds)
+    k = total / seconds
+    # the floor drops out: a sub tone sliding down an octave
+    fall = np.sin(2 * np.pi * np.cumsum(70.0 * 2.0 ** (-k * 1.2)) / SR) * env(total, 0.6, 2.8, 1.2) * 0.8
+    # the air drawing in: noise swelling and closing, like a breath held
+    air = sweep_lowpass(noise(seconds), 4500, 260, curve=0.8) * env(total, 1.8, 2.2, 1.1) * 0.5
+    # a cold choir fading in as the stars come out: detuned voices, slowly beating
+    voices = np.zeros(len(total))
+    for f, g in ((220.0, 0.30), (220.9, 0.25), (329.6, 0.22), (330.4, 0.18), (440.0, 0.14), (493.9, 0.10), (659.3, 0.07)):
+        voices += np.sin(2 * np.pi * f * total + 3.0 * np.sin(2 * np.pi * 0.21 * total)) * g
+    voices = lowpass(voices, 2400) * np.clip((total - 1.0) / 2.5, 0, 1) * np.clip((seconds - total) / 1.2, 0, 1) * 0.55
+    out = fall + air + voices
+    for _ in range(14):
+        tg = t_axis(1.2)
+        place(out, np.sin(2 * np.pi * rng.uniform(2200, 5200) * tg) * np.exp(-tg / 0.25) * np.clip(tg / 0.02, 0, 1) * rng.uniform(0.02, 0.05),
+              rng.uniform(2.0, 4.6))
+    finish('halley_dusk', reverb(out, 2.4, 0.35)[:int(SR * seconds)], peak=0.75, fade_out=0.6)
+
+
+# ---- A fragment bursts high up: a sharp crack, a spray of crackles, thunder rolling away. -------------------------------
+def burst():
+    seconds = 3.0
+    total = t_axis(seconds)
+    out = np.zeros(len(total))
+    tc = t_axis(0.05)
+    place(out, lowpass(noise(0.05) * np.exp(-tc / 0.007), 4000) * 1.0, 0.0)
+    tb = t_axis(0.5)
+    place(out, np.sin(2 * np.pi * 55 * tb) * np.exp(-tb / 0.15) * 0.7, 0.0)
+    for _ in range(40):
+        tk = t_axis(0.03)
+        place(out, highpass(noise(0.03), 1500) * np.exp(-tk / 0.004) * rng.uniform(0.05, 0.25), 0.08 + rng.exponential(0.35))
+    roll = lowpass(brown(seconds), 140) * env(total, 0.05, 0.25, 0.9) * 0.6
+    finish('halley_burst', reverb(out + roll, 1.8, 0.3)[:int(SR * seconds)], peak=0.85, fade_out=0.3, drive=1.4)
+
+
 if __name__ == '__main__':
-    for make in (mark, countdown, sight, approach, boom, touchdown, plough, impact, frost, hum, evac):
+    for make in (mark, countdown, sight, approach, boom, touchdown, plough, impact, frost, hum, evac, dusk, burst):
         make()

@@ -2,9 +2,11 @@ package dev.ss05.halley.client;
 
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.HalleyPlan;
+import dev.ss05.halley.client.render.CometExtras;
 import dev.ss05.halley.client.render.CometVisuals;
 import dev.ss05.halley.client.render.GlowBatch;
 import dev.ss05.halley.client.render.GroundMarks;
+import dev.ss05.halley.client.sky.SkyLook;
 import dev.ss05.halley.content.HalleyContent;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -23,6 +25,7 @@ import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -47,6 +50,8 @@ public final class HalleyFx {
     private static final int APPROACH_SOUND = 130;
     /** Ice crackling out over the land, after the detonation. */
     private static final int FROST_SOUND = 12;
+    /** The sky starts to go dark (HalleyFx.sky) and its sound plays. */
+    private static final int SKY_SOUND = 12;
     /** The heart's hum repeats this often (the sound is a little longer, so it never drops out). */
     private static final int HUM_EVERY = 100;
     /** Sound crosses about 17 blocks a tick (340 m/s), so far-off booms land after their flash... */
@@ -102,6 +107,7 @@ public final class HalleyFx {
     /** True on the caster's own client. */
     public final boolean mine;
     public final CometVisuals visuals;
+    public final CometExtras extras;
     private final Host host;
     private final RandomSource random;
     private final List<SoundInstance> filmSounds = new ArrayList<>();
@@ -113,6 +119,8 @@ public final class HalleyFx {
     private boolean filmed;
     private boolean removed;
     private int age;
+    /** How far the clock has to be wound on from the real time for the middle of the night (0: it's night already). */
+    private final long toNight;
 
     public HalleyFx(Host host, int casterId, Vec3 origin, Vec3 target, float yaw, long seed, int[] data) {
         Minecraft minecraft = Minecraft.getInstance();
@@ -124,8 +132,11 @@ public final class HalleyFx {
         this.random = RandomSource.create(seed ^ 0x5EED_05L);
         int minY = minecraft.level == null ? -64 : minecraft.level.getMinBuildHeight();
         this.visuals = new CometVisuals(this.plan, minY);
+        this.extras = new CometExtras(this.plan);
         ParticleStatus status = minecraft.options.particles().get();
         this.particles = status == ParticleStatus.ALL ? 1.0F : status == ParticleStatus.DECREASED ? 0.45F : 0.12F;
+        long day = minecraft.level == null ? 6000L : Math.floorMod(minecraft.level.getDayTime(), 24000L);
+        this.toNight = day >= 13000L && day < 23000L ? 0L : Math.floorMod(18000L - day, 24000L);
         ACTIVE.add(this);
     }
 
@@ -228,6 +239,57 @@ public final class HalleyFx {
         if (camera.distanceTo(this.plan.target) < PARTICLE_RANGE + this.plan.params.trenchLength()) {
             this.particles(level, t);
         }
+        if (t == HalleyPlan.TOUCHDOWN) {
+            this.worldFlash(level, camera, this.plan.touchdown, 2);
+        }
+        if (t == this.plan.impact) {
+            this.worldFlash(level, camera, this.plan.target, 3);
+        }
+        if (HalleyClientConfig.extraEffects()) {
+            this.extras(level, t, camera);
+        }
+    }
+
+    /** The whole world lights up for an instant, as it does under lightning (the land, not just the screen). */
+    private void worldFlash(ClientLevel level, Vec3 camera, Vec3 at, int ticks) {
+        if (HalleyClientConfig.worldFlashes() && camera.distanceTo(at) < 1400.0) {
+            level.setSkyFlashTime(Math.max(level.getSkyFlashTime(), ticks));
+        }
+    }
+
+    /** Sounds and particles for the extras: fragments bursting in the sky, ice from the crater landing. */
+    private void extras(ClientLevel level, int t, Vec3 camera) {
+        boolean film = this.inFilm();
+        for (CometExtras.Fragment f : this.extras.fragments) {
+            if (t == (int) Math.ceil(f.burstAt())) {
+                Vec3 at = f.at(this.plan, f.burstAt());
+                this.boom(HalleyContent.BURST.get(), at, sky(camera, at), 1.4F, film, 0.12F, 900.0);
+                if (camera.distanceTo(at) < 260.0) {
+                    for (int i = 0; i < this.count(24); i++) {
+                        particle(level, ParticleTypes.FIREWORK, at, this.gauss(0.6), this.gauss(0.6), this.gauss(0.6));
+                    }
+                }
+            }
+        }
+        for (CometExtras.Shard s : this.extras.shards) {
+            if (t == (int) Math.ceil(s.landsAt())) {
+                Vec3 land = s.landing();
+                Vec3 ground = this.ground(level, land.x, land.z, land.y);
+                if (camera.distanceTo(ground) < 160.0) {
+                    BlockParticleOption ice = new BlockParticleOption(ParticleTypes.BLOCK, Blocks.PACKED_ICE.defaultBlockState());
+                    for (int i = 0; i < this.count(12); i++) {
+                        particle(level, ice, ground.add(this.gauss(0.6), 0.4, this.gauss(0.6)), this.gauss(0.25), 0.25 + this.random.nextDouble() * 0.35, this.gauss(0.25));
+                    }
+                    for (int i = 0; i < this.count(6); i++) {
+                        particle(level, ParticleTypes.SNOWFLAKE, ground.add(this.gauss(1.0), 0.6, this.gauss(1.0)), this.gauss(0.08), 0.1 + this.random.nextDouble() * 0.2, this.gauss(0.08));
+                    }
+                    particle(level, ParticleTypes.CLOUD, ground.add(0.0, 0.6, 0.0), 0.0, 0.05, 0.0);
+                }
+                if (!film && camera.distanceTo(ground) < 90.0) {
+                    this.play(SoundEvents.AMETHYST_CLUSTER_BREAK, ground, 1.3F, 0.6F + this.random.nextFloat() * 0.4F, false);
+                }
+            }
+        }
     }
 
     public boolean finished() {
@@ -258,6 +320,10 @@ public final class HalleyFx {
         }
         if (t == HalleyPlan.MARK) {
             this.play(HalleyContent.MARK.get(), film ? p.target : near(camera, p.target, p.params.craterRadius()), 1.0F, 1.0F, film);
+        }
+        if (t == SKY_SOUND && HalleyClientConfig.sky() && this.skyReach(camera) > 0.05F) {
+            // the sky goes dark: heard from overhead
+            this.play(HalleyContent.DUSK.get(), film ? p.target : camera.add(0.0, 24.0, 0.0), 1.2F, 1.0F, film);
         }
         if (t == HalleyPlan.COUNTDOWN) {
             this.play(HalleyContent.COUNTDOWN.get(), near(camera, p.target, p.params.craterRadius()), 1.0F, 1.0F, film);
@@ -585,7 +651,83 @@ public final class HalleyFx {
     // ---- Rendering. -----------------------------------------------------------------------------------------------
 
     public void render(GlowBatch world, GlowBatch light, float partial, double landRange, CometVisuals.Land land) {
-        this.visuals.draw(world, light, this.age + partial, this.marks, landRange, land);
+        double t = this.age + partial;
+        this.visuals.draw(world, light, t, this.marks, landRange, land, this.host.filmWeight());
+        if (HalleyClientConfig.extraEffects()) {
+            float glitter = this.veil(t) * this.skyReach(world.camera());
+            this.extras.draw(world, light, t, land, glitter, this.visuals.heartTip());
+        }
+    }
+
+    // ---- The sky (drawn by client/sky). ---------------------------------------------------------------------------
+
+    /**
+     * What this strike does to the sky right now, seen from {@code camera}: it goes to night as the uplink locks on
+     * (stars, an aurora, the comet lighting the air), the fireball outshines the stars as it comes down, and after the
+     * impact the air is full of ice: a pale haze with a halo round the sun, clearing as the crystals settle.
+     */
+    public SkyLook sky(float partial, Vec3 camera) {
+        HalleyPlan p = this.plan;
+        double t = this.age + partial;
+        double impact = p.impact;
+        float heat = CometVisuals.smooth((t - (HalleyPlan.ENTRY - 20.0)) / 50.0);
+        // the night lingers a moment after the impact, so the blast lights up a dark sky before the haze rolls in
+        float night = CometVisuals.smooth((t - 12.0) / 50.0)
+            * (1.0F - 0.3F * CometVisuals.smooth((t - HalleyPlan.TOUCHDOWN) / 20.0))
+            * (1.0F - CometVisuals.smooth((t - impact - 4.0) / 36.0));
+        float stars = night * (1.0F - 0.75F * heat);
+        float aurora = CometVisuals.smooth((t - 60.0) / 70.0) * (1.0F - CometVisuals.smooth((t - (HalleyPlan.ENTRY - 30.0)) / 60.0));
+        float halo = CometVisuals.smooth((t - (impact + 45.0)) / 40.0) * (1.0F - CometVisuals.smooth((t - (p.duration - 70.0)) / 50.0));
+        float flash = 0.35F * pulse(t, HalleyPlan.ENTRY, 4.0) + 0.9F * pulse(t, HalleyPlan.TOUCHDOWN, 3.5) + 1.4F * pulse(t, impact, 5.0);
+
+        // where the light in the sky comes from: the comet, the plough, then the glow over the crater
+        Vec3 at;
+        float glow;
+        float colour;
+        if (t <= HalleyPlan.TOUCHDOWN) {
+            at = p.comet(t);
+            glow = (0.3F + 0.7F * (float) Math.pow(HalleyPlan.approach(t), 3.0)) * CometVisuals.smooth((t - HalleyPlan.SIGHT) / 30.0) + 1.2F * heat;
+            colour = heat;
+        } else if (t <= impact) {
+            at = p.comet(t);
+            glow = 1.0F;
+            colour = 0.5F;
+        } else {
+            at = p.target.add(0.0, p.params.craterRadius() * 0.4, 0.0);
+            glow = 1.5F * (float) Math.exp(-(t - impact) / 25.0);
+            colour = 0.1F;
+        }
+        Vec3 toward = at.subtract(camera);
+        toward = toward.lengthSqr() < 1.0E-6 ? new Vec3(0.0, 1.0, 0.0) : toward.normalize();
+        float land = night * (1.0F - 0.55F * heat) * 0.85F;
+        float w = this.skyReach(camera);
+
+        // with a shader pack on, the night is the pack's own (HalleySky.dayTime): the sky's clock is wound on through
+        // the evening into the night as the sky goes dark, and after the impact on through the dawn to the real time
+        // again, or back the way it came if that's shorter
+        double wound = this.toNight * CometVisuals.smooth((t - 12.0) / 50.0) * w;
+        float rise = CometVisuals.smooth((t - impact - 4.0) / 36.0);
+        double shift = wound >= 12000.0 ? wound + (24000.0 - wound) * rise : wound * (1.0 - rise);
+
+        return new SkyLook(night * w, stars * w, aurora * w, this.veil(t) * w, halo * w, flash * w, toward, glow * w, colour,
+            this.visuals.tailDirection(), land * w, (float) (p.seed & 1023L), (float) shift);
+    }
+
+    /** The haze of ice after the impact: rolling in as the blast fades, clearing over the rest of the strike. */
+    private float veil(double t) {
+        double impact = this.plan.impact;
+        return CometVisuals.smooth((t - impact - 10.0) / 35.0)
+            * (1.0F - CometVisuals.smooth((t - (impact + 80.0)) / Math.max(20.0, this.plan.duration - impact - 100.0)));
+    }
+
+    /** The sky changes fully within 900 blocks of the mark, and not at all beyond 2000. */
+    private float skyReach(Vec3 camera) {
+        double d = Math.hypot(camera.x - this.plan.target.x, camera.z - this.plan.target.z);
+        return 1.0F - CometVisuals.smooth((d - 900.0) / 1100.0);
+    }
+
+    private static float pulse(double t, double at, double decay) {
+        return t < at ? 0.0F : (float) Math.exp(-(t - at) / decay);
     }
 
     /** Post-processing for this frame: impact frames, flashes, shake, bloom. */

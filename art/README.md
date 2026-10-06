@@ -7,7 +7,7 @@ hand-edited:
   HUD.
 - `make_thumbnail.py` - the project thumbnail (`thumbnail.png`, 512x512, used on CurseForge) and the mod's logo in
   the game's mod list.
-- `make_sounds.py` - all eleven sounds (one function each; their lengths match the strike's timeline, e.g. the
+- `make_sounds.py` - all thirteen sounds (one function each; their lengths match the strike's timeline, e.g. the
   countdown is cut to end exactly at touchdown).
 
 They need Python 3 with `numpy` and `Pillow`; the sounds also need `scipy` and `soundfile`
