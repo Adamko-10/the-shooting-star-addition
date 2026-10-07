@@ -1,20 +1,20 @@
 package dev.ss05.halley.compat.client;
 
-import dev.aek.shootingstardemo.mc1211.client.cinematic.CutsceneDirector;
-import dev.aek.shootingstardemo.mc1211.client.cinematic.Subject;
-import dev.aek.shootingstardemo.mc1211.client.fx.Frame;
-import dev.aek.shootingstardemo.mc1211.client.fx.FxManager;
-import dev.aek.shootingstardemo.mc1211.client.fx.Overlay;
-import dev.aek.shootingstardemo.mc1211.client.fx.SpellFx;
-import dev.aek.shootingstardemo.mc1211.client.render.ScreenFx;
-import dev.aek.shootingstardemo.mc1211.net.SpellFxPayload;
-import dev.aek.shootingstardemo.mc1211.registry.ModSounds;
+import dev.aek.shootingstardemo.client.cinematic.CutsceneDirector;
+import dev.aek.shootingstardemo.client.cinematic.Subject;
+import dev.aek.shootingstardemo.client.fx.Frame;
+import dev.aek.shootingstardemo.client.fx.FxManager;
+import dev.aek.shootingstardemo.client.fx.Overlay;
+import dev.aek.shootingstardemo.client.fx.SpellFx;
+import dev.aek.shootingstardemo.client.render.ScreenFx;
+import dev.aek.shootingstardemo.net.SpellFxPayload;
+import dev.aek.shootingstardemo.registry.ModSounds;
 import dev.ss05.halley.HalleyPlan;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.phys.Vec3;
@@ -88,7 +88,7 @@ final class HalleyFxAdapter extends SpellFx {
     }
 
     @Override
-    public void hud(GuiGraphics graphics, Frame frame) {
+    public void hud(GuiGraphicsExtractor graphics, Frame frame) {
         HalleyHud.world(graphics, this.fx, frame.partial(), Overlay.width(graphics));
         HalleyHud.marker(graphics, this.fx, frame.partial(), Overlay.width(graphics), Overlay.height(graphics));
     }

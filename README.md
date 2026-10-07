@@ -9,7 +9,7 @@ crosshair.
 ![SS-05 Halley in game](docs/screenshots/overview.jpg)
 
 > **Compatibility:** this branch is the **Fabric, Minecraft 26.3** version, made for **The Shooting Star [Demo]
-> 1.3.0 [Fabric]**. The **NeoForge 1.21.1** version (for The Shooting Star 1.2.2 and 1.3) is on the `main` branch.
+> 1.3.1 [Fabric]**. The **NeoForge 1.21.1** version (for The Shooting Star 1.2.2 and 1.3) is on the `main` branch.
 > The Shooting Star itself also comes for Forge and other Minecraft versions; this addon only covers these two. See
 > [Will it work with future versions?](#will-it-work-with-future-versions-of-the-shooting-star) below.
 
@@ -31,7 +31,9 @@ land round it.
   and hands them to the pack as glowing geometry, and the dark sky becomes the pack's own night: the sky's clock races
   through a dusk into the night as the comet comes in, and on through a dawn after the impact. Only what you see
   changes, never the world's actual time.
-- **Works on both of 26.3's graphics backends**, OpenGL and Vulkan (Iris itself runs on OpenGL), and with Sodium.
+- **Works with Sodium and Distant Horizons.** SS-05's own drawing works on both of 26.3's graphics backends, but The
+  Shooting Star itself needs **OpenGL**: on Vulkan it stops at a warning screen. Set *Video Settings → Graphics API*
+  to *Prefer OpenGL* and restart.
 - Pieces break off the comet and burst in the sky, the fireball sheds sparks and throws lens flares, ice is thrown
   out of the crater on long arcs, glowing cracks race across the land, a wall of snow rides the shock front, and the
   comet heart shines a beam into the sky.
@@ -54,9 +56,13 @@ land round it.
 ## Installing
 
 1. Minecraft **26.3** with **Fabric Loader 0.19.5** or newer, and **Fabric API**.
-2. **The Shooting Star [Demo] 1.3.0 [Fabric]** (its Fabric 26.3 file).
+2. **The Shooting Star [Demo] 1.3.1 [Fabric]**: `the-shooting-star-demo-1.3.1-fabric.jar`, one file for every
+   Minecraft version it supports, 26.3 included.
 3. `shooting_star_addition-1.1.0+fabric-26.3.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
+
+Minecraft must be drawing with OpenGL (*Video Settings → Graphics API → Prefer OpenGL*), or The Shooting Star
+won't start.
 
 In game: hold the Stellar Remote, press **O** (or pick SS-05 in the remote's menu, **H**), aim at the ground and
 right-click. The key can be changed in Controls or from the remote's menu like the others.
@@ -103,8 +109,8 @@ Honestly: maybe, maybe not. The Shooting Star has no official way for other mods
 attaches itself to some of its internals (the remote's skill list, its effect system and a few of its classes), and
 The Shooting Star is updated often. That means:
 
-- **Small updates** that don't touch those parts should keep working: the addon accepts The Shooting Star 1.3 and
-  anything newer on Fabric 26.3, and 1.3.0 works.
+- **Small updates** that don't touch those parts should keep working: the addon accepts The Shooting Star 1.3.1
+  and anything newer on Fabric 26.3.
 - **Updates that change those parts** won't crash your game. The addon checks everything before it attaches, and if
   something has moved it switches SS-05 off, logs why, and tells server operators in chat. It stays off until this
   addon is updated. The optional touches (the remote's cover animation, the cutscene overlay) quietly switch
@@ -127,7 +133,8 @@ welcome in the issues.
 
 ### Building
 
-Requires JDK 25. Put The Shooting Star's Fabric 26.3 jar in `libs/` (see `libs/README.txt`), then:
+Requires JDK 25. Put The Shooting Star's Fabric jar in `libs/` as you downloaded it (see `libs/README.txt`; the
+build takes its Minecraft 26.3 part out of it), then:
 
 - `./gradlew build` → `build/libs/shooting_star_addition-<version>.jar`
 - `./gradlew runClient` / `./gradlew runServer` → a dev game with both mods loaded

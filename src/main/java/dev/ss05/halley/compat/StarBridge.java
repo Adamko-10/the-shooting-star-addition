@@ -1,14 +1,14 @@
 package dev.ss05.halley.compat;
 
-import dev.aek.shootingstardemo.mc1211.magic.Casting;
-import dev.aek.shootingstardemo.mc1211.magic.Skill;
-import dev.aek.shootingstardemo.mc1211.magic.SkillSet;
-import dev.aek.shootingstardemo.mc1211.registry.ModSkills;
-import dev.aek.shootingstardemo.mc1211.spell.GreaterTeleportation;
-import dev.aek.shootingstardemo.mc1211.spell.SpellEngine;
-import dev.aek.shootingstardemo.mc1211.spell.SpellUtil;
-import dev.aek.shootingstardemo.mc1211.star.Carving;
-import dev.aek.shootingstardemo.mc1211.star.Erasure;
+import dev.aek.shootingstardemo.magic.Casting;
+import dev.aek.shootingstardemo.magic.Skill;
+import dev.aek.shootingstardemo.magic.SkillSet;
+import dev.aek.shootingstardemo.registry.ModSkills;
+import dev.aek.shootingstardemo.spell.GreaterTeleportation;
+import dev.aek.shootingstardemo.spell.SpellEngine;
+import dev.aek.shootingstardemo.spell.SpellUtil;
+import dev.aek.shootingstardemo.star.Carving;
+import dev.aek.shootingstardemo.star.Erasure;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.world.Excavation;
 import dev.ss05.halley.world.HalleyCasting;

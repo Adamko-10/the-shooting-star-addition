@@ -1,6 +1,6 @@
 // The Shooting Star Addition: an unofficial addon for The Shooting Star (Fabric, Minecraft 26.3), built with Loom.
 //
-//   1. Put The Shooting Star's Fabric 26.3 jar in libs/ (any file named the-shooting-star*.jar).
+//   1. Put The Shooting Star's Fabric jar in libs/ (the file from its download page, the-shooting-star*.jar).
 //   2. ./gradlew build        -> build/libs/shooting_star_addition-<version>.jar
 //      ./gradlew runClient    -> a dev game with The Shooting Star and this addon loaded
 //
@@ -27,9 +27,26 @@ loom {
     }
 }
 
-// The Shooting Star is compiled against and loaded in the dev runs, but never shipped inside this jar (its licence
-// is All Rights Reserved).
-var shootingStar = fileTree(dir: 'libs', include: 'the-shooting-star*.jar')
+// The Shooting Star is downloaded as one jar for several Minecraft versions, with its 26.3 build nested inside
+// (META-INF/jars/...+mc26.3.jar): that inner jar is what the addon is compiled against and what the dev runs load.
+// The inner jar on its own in libs/ works too. Neither is ever shipped inside this jar (its licence is All Rights
+// Reserved).
+def shootingStarJars = fileTree(dir: 'libs', include: 'the-shooting-star*.jar').files.sort()
+def extractShootingStar = tasks.register('extractShootingStar', Sync) {
+    into layout.buildDirectory.dir('shooting-star')
+    includeEmptyDirs = false
+    shootingStarJars.each { jar ->
+        if (jar.name.contains('+mc26.3')) {
+            from(jar)
+        } else {
+            from(zipTree(jar)) {
+                include 'META-INF/jars/*+mc26.3.jar'
+                eachFile { it.relativePath = new RelativePath(true, it.name) }
+            }
+        }
+    }
+}
+def shootingStar = files(extractShootingStar).asFileTree.matching { include '*.jar' }
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -41,9 +58,10 @@ dependencies {
 }
 
 tasks.named('compileJava') {
+    def found = shootingStar
     doFirst {
-        if (shootingStar.isEmpty()) {
-            throw new GradleException("Put The Shooting Star's jar (the-shooting-star*.jar) in libs/ first - see libs/README.txt")
+        if (found.isEmpty()) {
+            throw new GradleException("Put The Shooting Star's Fabric jar (the-shooting-star*.jar, with its Minecraft 26.3 build inside) in libs/ first - see libs/README.txt")
         }
     }
 }
