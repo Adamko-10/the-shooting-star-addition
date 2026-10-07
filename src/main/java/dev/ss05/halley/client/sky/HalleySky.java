@@ -13,22 +13,30 @@ import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.renderpearl.api.device.GpuDevice;
 import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
 import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.client.HalleyFx;
+import dev.ss05.halley.client.render.BakedTexture;
 import dev.ss05.halley.client.render.HalleyPipelines;
 import dev.ss05.halley.client.render.ShaderPacks;
 import java.nio.ByteBuffer;
 import java.util.Optional;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.ProjectionMatrixBuffer;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.SkyRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
 import net.minecraft.world.attribute.EnvironmentAttributeSystem;
 import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.joml.Vector4f;
@@ -64,8 +72,8 @@ public final class HalleySky {
     private static SkyLook current;
     @Nullable
     private static GpuBuffer cube;
-    @Nullable
-    private static GpuBuffer uniforms;
+    /** The values for the dome, and for the two painted layers (written at different times in a frame). */
+    private static final GpuBuffer[] UNIFORMS = new GpuBuffer[3];
 
     private HalleySky() {
     }
@@ -123,7 +131,7 @@ public final class HalleySky {
             return;
         }
         float partial = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(true);
-        GpuBuffer values = writeUniforms(look, level, camera, partial, false, 0.0F);
+        GpuBuffer values = writeUniforms(0, look, level, camera, partial, false, 0.0F);
         GpuBuffer box = cube();
         GpuBufferSlice transforms = RenderSystem.getDynamicUniforms().writeTransform(RenderSystem.getModelViewMatrixCopy(),
             new Vector4f(1.0F, 1.0F, 1.0F, 1.0F));
@@ -150,7 +158,8 @@ public final class HalleySky {
      * The values halley_sky.fsh reads (its HalleySky block), for this frame. {@code packNight}: a shader pack draws the
      * night (see {@link #clockShift}), so only the haze is painted.
      */
-    private static GpuBuffer writeUniforms(SkyLook look, ClientLevel level, Camera camera, float partial, boolean packNight, float layer) {
+    private static GpuBuffer writeUniforms(int slot, SkyLook look, ClientLevel level, Camera camera, float partial, boolean packNight,
+                                           float layer) {
         // the light the ice halo forms round: the sun, or the moon at night
         float sunAngle = camera.attributeProbe().getValue(EnvironmentAttributes.SUN_ANGLE, partial) * Mth.DEG_TO_RAD;
         float moonAngle = camera.attributeProbe().getValue(EnvironmentAttributes.MOON_ANGLE, partial) * Mth.DEG_TO_RAD;
@@ -162,8 +171,10 @@ public final class HalleySky {
         float skyClock = (float) (((level.getGameTime() % 72000L) + partial) / 20.0);
 
         GpuDevice device = RenderSystem.getDevice();
+        GpuBuffer uniforms = UNIFORMS[slot];
         if (uniforms == null || uniforms.isClosed()) {
             uniforms = device.createBuffer(() -> "SS-05 Halley sky values", GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST, UNIFORM_SIZE);
+            UNIFORMS[slot] = uniforms;
         }
         try (MemoryStack stack = MemoryStack.stackPush()) {
             Vec3 comet = look.cometDir();
@@ -217,10 +228,179 @@ public final class HalleySky {
             cube.close();
             cube = null;
         }
-        if (uniforms != null) {
-            uniforms.close();
-            uniforms = null;
+        for (int i = 0; i < UNIFORMS.length; i++) {
+            if (UNIFORMS[i] != null) {
+                UNIFORMS[i].close();
+                UNIFORMS[i] = null;
+            }
         }
+        if (faces != null) {
+            faces.close();
+            faces = null;
+        }
+        paintedBase = false;
+        paintedLight = false;
+    }
+
+    // ---- With a shader pack on: the dome painted onto textures, drawn as glowing-eyes geometry. ----------------------
+
+    /** The six faces of the cube: outward normal, then the axes across it (their uv on the painted textures). */
+    private static final float[][] FACES = {
+        {1, 0, 0, 0, 0, -1, 0, 1, 0},
+        {-1, 0, 0, 0, 0, 1, 0, 1, 0},
+        {0, 1, 0, 1, 0, 0, 0, 0, -1},
+        {0, -1, 0, 1, 0, 0, 0, 0, 1},
+        {0, 0, 1, 1, 0, 0, 0, 1, 0},
+        {0, 0, -1, -1, 0, 0, 0, 1, 0},
+    };
+    /** The new sky's colour is a smooth gradient: a little texture holds it. */
+    private static final int BASE_FACE = 64;
+    /** The light needs the detail: stars, the aurora's folds, the halo's thin rings. */
+    private static final int LIGHT_FACE = 512;
+    /** How much of the haze's colour is added over the pack's sky (it can't be laid over it, only added). */
+    private static final float PACK_HAZE = 0.5F;
+    private static final BakedTexture BASE = new BakedTexture(HalleyAddon.id("sky_base"), BASE_FACE * 3, BASE_FACE * 2);
+    private static final BakedTexture LIGHT = new BakedTexture(HalleyAddon.id("sky_light"), LIGHT_FACE * 3, LIGHT_FACE * 2);
+    @Nullable
+    private static GpuBuffer faces;
+    @Nullable
+    private static ProjectionMatrixBuffer flat;
+    private static boolean paintedBase;
+    private static boolean paintedLight;
+    /** How much of the old sky the painted one would cover (the same everywhere). */
+    private static float paintedCover;
+
+    /**
+     * Once a frame, before the world is drawn (while a shader pack is on, only its own programs draw into the world):
+     * paints the dome's six faces onto two textures, its colour and its light, for {@link #submitForShaderPack}.
+     */
+    public static void paint(float partial) {
+        paintedBase = false;
+        paintedLight = false;
+        SkyLook look = current;
+        Minecraft minecraft = Minecraft.getInstance();
+        ClientLevel level = minecraft.level;
+        if (look == null || level == null) {
+            return;
+        }
+        // the night itself is the shader pack's own (clockShift): only the haze after the impact covers its sky
+        float cover = look.veil() * 0.75F;
+        boolean base = cover > 0.002F;
+        boolean light = look.stars() > 0.001F || look.aurora() > 0.001F || look.cometGlow() > 0.001F
+            || look.halo() > 0.001F || look.flash() > 0.001F;
+        if (!base && !light) {
+            return;
+        }
+        Camera camera = minecraft.gameRenderer.mainCamera();
+        GpuBuffer box = faces();
+        if (flat == null) {
+            flat = new ProjectionMatrixBuffer("SS-05 Halley sky faces");
+        }
+        GpuBufferSlice identity = flat.getBuffer(new Matrix4f());
+        RenderSystem.AutoStorageIndexBuffer indices = RenderSystem.getSequentialBuffer(PrimitiveTopology.QUADS);
+        GpuBuffer indexBuffer = indices.getBuffer(36);
+        if (base) {
+            paintFaces(BASE, writeUniforms(1, look, level, camera, partial, true, 1.0F), box, identity, indexBuffer, indices);
+            paintedBase = true;
+            paintedCover = cover;
+        }
+        if (light) {
+            paintFaces(LIGHT, writeUniforms(2, look, level, camera, partial, true, 2.0F), box, identity, indexBuffer, indices);
+            paintedLight = true;
+        }
+    }
+
+    private static void paintFaces(BakedTexture target, GpuBuffer values, GpuBuffer box, GpuBufferSlice identity, GpuBuffer indexBuffer,
+                                   RenderSystem.AutoStorageIndexBuffer indices) {
+        GpuBufferSlice[] transforms = new GpuBufferSlice[FACES.length];
+        for (int f = 0; f < FACES.length; f++) {
+            float[] face = FACES[f];
+            int col = f % 3;
+            int row = f / 3;
+            // a point on this face -> where it is across the face, squeezed into this face's third and half of the
+            // texture (the projection is the identity, so this lands straight in clip space)
+            Matrix4f m = new Matrix4f().set(
+                face[3] / 3.0F, face[6] / 2.0F, 0.0F, 0.0F,
+                face[4] / 3.0F, face[7] / 2.0F, 0.0F, 0.0F,
+                face[5] / 3.0F, face[8] / 2.0F, 0.0F, 0.0F,
+                (2.0F * col - 2.0F) / 3.0F, row - 0.5F, 0.0F, 1.0F);
+            transforms[f] = RenderSystem.getDynamicUniforms().writeTransform(m, new Vector4f(1.0F, 1.0F, 1.0F, 1.0F));
+        }
+        try (RenderPass pass = target.begin(true)) {
+            RenderSystem.bindDefaultUniforms(pass);
+            pass.setUniform("Projection", identity);
+            pass.setUniform("HalleySky", values);
+            pass.setPipeline(RenderSystem.getCompiledPipeline(HalleyPipelines.SKY_PAINT));
+            pass.setVertexBuffer(0, box.slice());
+            pass.setIndexBuffer(indexBuffer, indices.type());
+            for (int f = 0; f < FACES.length; f++) {
+                pass.setUniform("DynamicTransforms", transforms[f]);
+                pass.drawIndexed(6, 1, f * 6, 0, 0);
+            }
+        }
+    }
+
+    /**
+     * Fabric's {@code LevelRenderEvents.COLLECT_SUBMITS}, while a shader pack is on: the painted faces on a cube round
+     * the camera, out beyond the land and the clouds, handed to Minecraft as glowing-eyes geometry. The pack draws it
+     * adding its light, so it shows wherever the pack's own sky does.
+     */
+    public static void submitForShaderPack(LevelRenderContext context) {
+        if (!ShaderPacks.active() || !paintedBase && !paintedLight) {
+            return;
+        }
+        float radius = context.levelState().cameraRenderState.depthFar * 0.85F;
+        if (paintedLight && LIGHT.ready()) {
+            submitCube(context, LIGHT, LIGHT_FACE, radius, 1.0F);
+        }
+        if (paintedBase && BASE.ready()) {
+            submitCube(context, BASE, BASE_FACE, radius * 0.995F, PACK_HAZE);
+        }
+    }
+
+    private static void submitCube(LevelRenderContext context, BakedTexture texture, int size, float radius, float strength) {
+        float inset = 0.5F / size;
+        context.submitNodeCollector().submitCustomGeometry(context.poseStack(), RenderTypes.eyes(texture.location()), (pose, out) -> {
+            for (int f = 0; f < FACES.length; f++) {
+                float[] face = FACES[f];
+                // both windings: the glowing-eyes pipeline culls back faces, and this is seen from inside
+                for (int i = 0; i < 8; i++) {
+                    int c = i < 4 ? i : 7 - i;
+                    float s = c == 1 || c == 2 ? 1.0F : -1.0F;
+                    float t = c >= 2 ? 1.0F : -1.0F;
+                    float u = (f % 3 + inset + (s + 1.0F) * 0.5F * (1.0F - 2.0F * inset)) / 3.0F;
+                    float v = ((float) (f / 3) + inset + (t + 1.0F) * 0.5F * (1.0F - 2.0F * inset)) / 2.0F;
+                    out.addVertex(pose, radius * (face[0] + face[3] * s + face[6] * t), radius * (face[1] + face[4] * s + face[7] * t),
+                            radius * (face[2] + face[5] * s + face[8] * t))
+                        .setColor(strength, strength, strength, 1.0F)
+                        .setUv(u, v)
+                        .setOverlay(OverlayTexture.NO_OVERLAY)
+                        .setLight(LightCoordsUtil.FULL_BRIGHT)
+                        .setNormal(0.0F, 1.0F, 0.0F);
+                }
+            }
+        });
+    }
+
+    /** The unit cube, face by face in {@link #FACES} order, for painting the faces one at a time. */
+    private static GpuBuffer faces() {
+        if (faces != null && !faces.isClosed()) {
+            return faces;
+        }
+        try (ByteBufferBuilder bytes = ByteBufferBuilder.exactlySized(24 * DefaultVertexFormat.POSITION.getVertexSize())) {
+            BufferBuilder b = new BufferBuilder(bytes, PrimitiveTopology.QUADS, DefaultVertexFormat.POSITION);
+            for (float[] face : FACES) {
+                for (int c = 0; c < 4; c++) {
+                    float s = c == 1 || c == 2 ? 1.0F : -1.0F;
+                    float t = c >= 2 ? 1.0F : -1.0F;
+                    b.addVertex(face[0] + face[3] * s + face[6] * t, face[1] + face[4] * s + face[7] * t, face[2] + face[5] * s + face[8] * t);
+                }
+            }
+            try (MeshData mesh = b.buildOrThrow()) {
+                faces = RenderSystem.getDevice().createBuffer(() -> "SS-05 Halley sky faces", GpuBuffer.USAGE_VERTEX, mesh.vertexBuffer());
+            }
+        }
+        return faces;
     }
 
     // ---- The rest of the world: fog, daylight, clouds, the time of day. ---------------------------------------------
