@@ -1,77 +1,43 @@
-// The Shooting Star Addition: an unofficial addon for The Shooting Star (NeoForge 1.21.1), built with ModDevGradle.
+// The Shooting Star Addition: an unofficial addon for The Shooting Star (Fabric, Minecraft 26.3), built with Loom.
 //
-//   1. Put The Shooting Star's jar in libs/ (any file named the-shooting-star*.jar).
+//   1. Put The Shooting Star's Fabric 26.3 jar in libs/ (any file named the-shooting-star*.jar).
 //   2. ./gradlew build        -> build/libs/shooting_star_addition-<version>.jar
 //      ./gradlew runClient    -> a dev game with The Shooting Star and this addon loaded
 //
-// Versions live in gradle.properties.
+// Versions live in gradle.properties. Minecraft 26.x is not obfuscated, so there are no mappings to set up.
 plugins {
-    id 'java-library'
-    id 'idea'
-    // any ModDevGradle 2.0.x works for NeoForge 1.21.1
-    id 'net.neoforged.moddev' version '2.0.+'
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
 }
 
-tasks.named('wrapper', Wrapper).configure {
-    distributionType = Wrapper.DistributionType.BIN
-}
-
-version = mod_version
-group = mod_group_id
+version = project.mod_version
+group = project.maven_group
 
 base {
-    archivesName = mod_id
+    archivesName = project.archives_base_name
 }
-
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 repositories {
-    mavenLocal()
 }
 
-neoForge {
-    version = project.neo_version
-
-    parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
-    }
-
-    runs {
-        client {
-            client()
-        }
-        server {
-            server()
-            programArgument '--nogui'
-        }
-        configureEach {
-            systemProperty 'forge.logging.markers', 'REGISTRIES'
-            logLevel = org.slf4j.event.Level.INFO
-        }
-    }
-
+loom {
     mods {
         "${mod_id}" {
-            sourceSet(sourceSets.main)
+            sourceSet sourceSets.main
         }
     }
 }
 
-// The Shooting Star is compiled against but never shipped inside this jar (its licence is All Rights Reserved).
+// The Shooting Star is compiled against and loaded in the dev runs, but never shipped inside this jar (its licence
+// is All Rights Reserved).
 var shootingStar = fileTree(dir: 'libs', include: 'the-shooting-star*.jar')
 
 dependencies {
-    compileOnly shootingStar
-}
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
-// The dev runs load mods from run/mods, so The Shooting Star is copied there before every run.
-var copyShootingStar = tasks.register('copyShootingStar', Copy) {
-    from shootingStar
-    into layout.projectDirectory.dir('run/mods')
-}
-tasks.matching { it.name.startsWith('run') }.configureEach {
-    dependsOn copyShootingStar
+    compileOnly shootingStar
+    localRuntime shootingStar
 }
 
 tasks.named('compileJava') {
@@ -82,36 +48,25 @@ tasks.named('compileJava') {
     }
 }
 
-// neoforge.mods.toml is filled in from gradle.properties.
-var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+// fabric.mod.json is filled in from gradle.properties.
+processResources {
     var replaceProperties = [
-        minecraft_version_range    : minecraft_version_range,
-        neo_version_range          : neo_version_range,
-        loader_version_range       : loader_version_range,
-        shooting_star_mod_id       : shooting_star_mod_id,
-        shooting_star_version_range: shooting_star_version_range,
-        mod_id                     : mod_id,
-        mod_name                   : mod_name,
-        mod_license                : mod_license,
-        mod_version                : mod_version,
-        mod_authors                : mod_authors,
-        mod_description            : mod_description,
+        version                    : project.mod_version,
+        shooting_star_mod_id       : project.shooting_star_mod_id,
+        shooting_star_version_range: project.shooting_star_version_range,
     ]
     inputs.properties replaceProperties
-    expand replaceProperties
-    from 'src/main/templates'
-    into 'build/generated/sources/modMetadata'
+    filesMatching('fabric.mod.json') {
+        expand replaceProperties
+    }
 }
-sourceSets.main.resources.srcDir generateModMetadata
-neoForge.ideSyncTask generateModMetadata
 
 tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
+    it.options.release = 25
+    it.options.encoding = 'UTF-8'
 }
 
-idea {
-    module {
-        downloadSources = true
-        downloadJavadoc = true
-    }
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
