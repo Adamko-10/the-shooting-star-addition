@@ -1,14 +1,15 @@
 {
-  "required": false,
+  "required": true,
   "minVersion": "0.8",
-  "package": "dev.ss05.halley.compat.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "package": "dev.ss05.halley.client.mixin",
+  "compatibilityLevel": "JAVA_25",
   "client": [
+    "AttributeTrackSamplerMixin",
     "ClientLevelMixin",
-    "ClientLevelTimeMixin",
-    "FxManagerMixin",
+    "FogRendererMixin",
+    "GameRendererMixin",
     "PlayerModelMixin",
-    "RemoteRendererMixin"
+    "SkyRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 0

@@ -12,7 +12,7 @@ import dev.aek.shootingstardemo.mc1211.registry.ModSounds;
 import dev.ss05.halley.HalleyPlan;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;

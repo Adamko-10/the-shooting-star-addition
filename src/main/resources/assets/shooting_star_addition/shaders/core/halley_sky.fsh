@@ -1,4 +1,5 @@
-#version 150
+#version 330
+#extension GL_ARB_separate_shader_objects : require
 
 // SS-05 Halley's sky, drawn over the vanilla one while a strike runs (client/sky/HalleySky).
 //
@@ -9,27 +10,36 @@
 // Output is premultiplied: rgb = the new sky times how much of the old one it covers, plus light added on top;
 // alpha = that coverage. Blend: ONE, ONE_MINUS_SRC_ALPHA. Everything is a function of the view direction (world axes,
 // from the camera), so the sky stays put as the camera turns.
-uniform float SkyClock;
-uniform float Night;
-uniform float Stars;
-uniform float Aurora;
-uniform float Veil;
-uniform float Halo;
-uniform float Flash;
-uniform vec3 CometDir;
-uniform float CometGlow;
-uniform float CometHeat;
-uniform vec3 TailDir;
-uniform vec3 LightDir;
-uniform float LightUp;
-uniform float Seed;
+// The values for this frame, written by HalleySky.writeUniforms (keep the two in step).
+layout(std140) uniform HalleySky {
+    vec4 SkyA;    // SkyClock, Night, Stars, Aurora
+    vec4 SkyB;    // Veil, Halo, Flash, CometGlow
+    vec4 SkyComet; // CometDir, CometHeat
+    vec4 SkyTail; // TailDir, Seed
+    vec4 SkyLight; // LightDir, LightUp
+    vec4 SkyLayer; // Layer
+};
+#define SkyClock SkyA.x
+#define Night SkyA.y
+#define Stars SkyA.z
+#define Aurora SkyA.w
+#define Veil SkyB.x
+#define Halo SkyB.y
+#define Flash SkyB.z
+#define CometGlow SkyB.w
+#define CometDir SkyComet.xyz
+#define CometHeat SkyComet.w
+#define TailDir SkyTail.xyz
+#define Seed SkyTail.w
+#define LightDir SkyLight.xyz
+#define LightUp SkyLight.w
 // what to draw: 0 = the dome as above; for shader packs, painted onto textures (HalleySky.paint): 1 = only the new
 // sky's colour (premultiplied; how much it covers is drawn separately), 2 = only the light on top
-uniform float Layer;
+#define Layer SkyLayer.x
 
-in vec3 direction;
+layout(location = 0) in vec3 direction;
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
 
 // ---- The colours of the dark sky (HalleySky.HORIZON must match the horizon one, for the fog). ----------------------
 const vec3 ZENITH = vec3(0.010, 0.017, 0.055);

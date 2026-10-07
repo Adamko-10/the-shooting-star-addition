@@ -1,20 +1,20 @@
-#version 150
+#version 330
+#extension GL_ARB_separate_shader_objects : require
 
 // The shapes of SS-05 Halley's light, drawn additively on camera-relative quads (client/CometRenderer).
 //
 // uv carries the shape: u = shape * 4 + (x + 1) and v = variant * 4 + (y + 1), with x and y running -1..1 across the
 // quad (for ribbons x runs from the head of the ribbon, -1, to its tail, +1). The vertex colour is the tint and its
-// alpha the strength. Alpha written out is a small share of the light, so that with Fabulous graphics the
-// transparency pass still blends it (it ignores fully transparent pixels).
-uniform vec4 ColorModulator;
-uniform float GameTime;
-// 1 while painting the shapes onto a texture for shader packs (client/render/GlowAtlas)
-uniform float Bake;
+// alpha the strength. Only the colour is written (the pipeline masks alpha off), so the light only ever adds.
+#include <minecraft:dynamictransforms.glsl>
+#include <minecraft:globals.glsl>
 
-in vec2 texCoord0;
-in vec4 vertexColor;
+// BAKE is defined while painting the shapes onto a texture for shader packs (client/render/GlowAtlas)
 
-out vec4 fragColor;
+layout(location = 0) in vec2 texCoord0;
+layout(location = 1) in vec4 vertexColor;
+
+layout(location = 0) out vec4 fragColor;
 
 const float GLOW = 0.0;
 const float RING = 1.0;
@@ -164,11 +164,11 @@ void main() {
         light = (ring + wash) * (1.0 - smoothstep(0.97, 1.0, d));
     }
 
-    if (Bake > 0.5) {
-        // the light alone, softly clipped into 0..1 (a texture can't hold more), and where there is any
-        fragColor = vec4(vec3(1.0 - exp(-light)), clamp(light * 50.0, 0.0, 1.0));
-        return;
-    }
+#ifdef BAKE
+    // the light alone, softly clipped into 0..1 (a texture can't hold more), and where there is any
+    fragColor = vec4(vec3(1.0 - exp(-light)), clamp(light * 50.0, 0.0, 1.0));
+    return;
+#endif
 
     float strength = vertexColor.a * light;
     vec3 colour = vertexColor.rgb * strength * ColorModulator.rgb;

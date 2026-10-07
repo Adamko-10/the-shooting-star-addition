@@ -7,14 +7,13 @@ import dev.ss05.halley.HalleyPlan;
 import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.content.HalleyContent;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -54,7 +53,8 @@ import net.minecraft.world.phys.Vec3;
  * </ol>
  */
 public final class HalleyStrike {
-    private static final TicketType<ChunkPos> TICKET = TicketType.create(HalleyAddon.MOD_ID + ":halley", Comparator.comparingLong(ChunkPos::toLong));
+    /** Keeps the strike's chunks loaded and ticking while it runs (registered in HalleyContent). */
+    private static final TicketType TICKET = HalleyContent.CHUNKS;
     private static final int TRENCH_CHUNKS_PER_TICK = 12;
     /** The trench is cut in pieces this long, each started as the nucleus reaches it (a single circle round it all
      *  would visit hundreds of chunks that the trench never touches). */
@@ -127,7 +127,7 @@ public final class HalleyStrike {
         }
         for (int[] ticket : this.tickets) {
             ChunkPos at = new ChunkPos(ticket[0], ticket[1]);
-            this.level.getChunkSource().addRegionTicket(TICKET, at, ticket[2], at);
+            this.level.getChunkSource().addTicketWithRadius(TICKET, at, ticket[2]);
         }
     }
 
@@ -140,7 +140,7 @@ public final class HalleyStrike {
             this.ticketsHeld = false;
             for (int[] ticket : this.tickets) {
                 ChunkPos at = new ChunkPos(ticket[0], ticket[1]);
-                this.level.getChunkSource().removeRegionTicket(TICKET, at, ticket[2], at);
+                this.level.getChunkSource().removeTicketWithRadius(TICKET, at, ticket[2]);
             }
         }
     }
@@ -234,7 +234,7 @@ public final class HalleyStrike {
         Vec3 from = caster.position();
         if (StarBridge.liftClear(caster, this.plan.target, zone, zone + 36.0, this.plan.duration - HalleyPlan.EVAC)) {
             for (Vec3 at : new Vec3[]{from, caster.position()}) {
-                this.level.playSound(null, at.x, at.y, at.z, HalleyContent.EVAC.get(), SoundSource.PLAYERS, 1.2F, 1.0F);
+                this.level.playSound(null, at.x, at.y, at.z, HalleyContent.EVAC, SoundSource.PLAYERS, 1.2F, 1.0F);
             }
             caster.connection.send(new ClientboundSetTitlesAnimationPacket(2, 30, 12));
             caster.connection.send(new ClientboundSetSubtitleTextPacket(
@@ -270,7 +270,7 @@ public final class HalleyStrike {
         Vec3 a = this.plan.groundPoint(Mth.clamp(fromAlong, 0.0, this.params.trenchLength()));
         Vec3 b = this.plan.groundPoint(Mth.clamp(toAlong, 0.0, this.params.trenchLength()));
         double pad = this.params.trenchWidth() * 0.5 + 26.0;
-        AABB box = new AABB(Math.min(a.x, b.x) - pad, this.level.getMinBuildHeight(), Math.min(a.z, b.z) - pad,
+        AABB box = new AABB(Math.min(a.x, b.x) - pad, this.level.getMinY(), Math.min(a.z, b.z) - pad,
             Math.max(a.x, b.x) + pad, this.top(), Math.max(a.z, b.z) + pad);
         double headAlong = this.plan.frontAlong(t);
         Vec3 head = this.plan.comet(t);
@@ -298,7 +298,7 @@ public final class HalleyStrike {
      */
     private void cutTrenchUpTo(double ploughed) {
         if (this.params.carve()) {
-            int minY = this.level.getMinBuildHeight();
+            int minY = this.level.getMinY();
             double end = this.plan.trenchHalfWidth(this.params.trenchLength());
             double total = this.params.trenchLength() + end;
             int pieces = (int) Math.ceil(total / SEGMENT);
@@ -321,12 +321,12 @@ public final class HalleyStrike {
     }
 
     private BlockState trenchSurface(int x, int y, int z, BlockState was) {
-        if (!was.getFluidState().isEmpty() || was.is(HalleyContent.COMET_TRAIL.get()) || was.is(HalleyContent.COMET_HEART.get())) {
+        if (!was.getFluidState().isEmpty() || was.is(HalleyContent.COMET_TRAIL) || was.is(HalleyContent.COMET_HEART)) {
             return null;
         }
         double lat = Math.abs(this.plan.across(x + 0.5, z + 0.5));
         if (this.params.heart() && lat < 1.6) {
-            return HalleyContent.COMET_TRAIL.get().defaultBlockState();
+            return HalleyContent.COMET_TRAIL.defaultBlockState();
         }
         double cross = this.plan.trenchCross(x + 0.5, z + 0.5);
         double roll = this.plan.hash(x * 3 + 1, z * 5 - 2);
@@ -338,7 +338,7 @@ public final class HalleyStrike {
     private void detonate(@Nullable ServerPlayer caster) {
         this.cutTrenchUpTo(Double.MAX_VALUE);
         if (this.params.carve()) {
-            int minY = this.level.getMinBuildHeight();
+            int minY = this.level.getMinY();
             this.crater = StarBridge.excavate(this.level, this.plan.target, this.params.craterRadius() * 1.22 + 10.0,
                 (x, z) -> this.plan.craterFloor(x, z, minY), this::craterSurface, this.spared,
                 "SS-05 Halley crater", CRATER_CHUNKS_PER_TICK);
@@ -369,7 +369,7 @@ public final class HalleyStrike {
         double from = this.blastBefore;
         this.blastBefore = front;
         Vec3 c = this.plan.target;
-        AABB box = new AABB(c.x - front, this.level.getMinBuildHeight(), c.z - front, c.x + front, this.top(), c.z + front);
+        AABB box = new AABB(c.x - front, this.level.getMinY(), c.z - front, c.x + front, this.top(), c.z + front);
         for (Entity entity : this.entitiesIn(box)) {
             double d = Math.hypot(entity.getX() - c.x, entity.getZ() - c.z);
             if (d > from && d <= front && this.blastThrown.add(entity.getId())) {
@@ -383,7 +383,7 @@ public final class HalleyStrike {
     }
 
     private BlockState craterSurface(int x, int y, int z, BlockState was) {
-        if (!was.getFluidState().isEmpty() || was.is(HalleyContent.COMET_HEART.get())) {
+        if (!was.getFluidState().isEmpty() || was.is(HalleyContent.COMET_HEART)) {
             return null;
         }
         double k = this.plan.craterK(x + 0.5, z + 0.5) + (this.plan.hash(x, z) - 0.5) * 0.16;
@@ -395,9 +395,9 @@ public final class HalleyStrike {
     private void placeHeart() {
         this.heartPlaced = true;
         Map<BlockPos, BlockState> out = new HashMap<>();
-        BlockState ice = HalleyContent.COMET_HEART.get().defaultBlockState();
+        BlockState ice = HalleyContent.COMET_HEART.defaultBlockState();
         Vec3 t = this.plan.target;
-        int floor = this.plan.craterFloor(Mth.floor(t.x), Mth.floor(t.z), this.level.getMinBuildHeight());
+        int floor = this.plan.craterFloor(Mth.floor(t.x), Mth.floor(t.z), this.level.getMinY());
         double baseX = Mth.floor(t.x) + 0.5;
         double baseZ = Mth.floor(t.z) + 0.5;
         double baseY = floor + 0.5;
@@ -458,7 +458,7 @@ public final class HalleyStrike {
                     BlockPos top = new BlockPos(x, this.level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1, z);
                     BlockState was = this.level.getBlockState(top);
                     if (was.isAir() || !was.getFluidState().isEmpty() || was.is(BlockTags.LEAVES) || !was.isCollisionShapeFullBlock(this.level, top)
-                            || was.hasBlockEntity() || was.is(HalleyContent.COMET_HEART.get()) || was.is(HalleyContent.COMET_TRAIL.get())) {
+                            || was.hasBlockEntity() || was.is(HalleyContent.COMET_HEART) || was.is(HalleyContent.COMET_TRAIL)) {
                         continue;
                     }
                     out.put(top, this.plan.hash(x, z * 3) < 0.18 ? Blocks.PACKED_ICE.defaultBlockState() : Blocks.SNOW_BLOCK.defaultBlockState());
@@ -506,7 +506,7 @@ public final class HalleyStrike {
     }
 
     private double top() {
-        return this.level.getMaxBuildHeight() + 64.0;
+        return this.level.getMaxY() + 1 + 64.0;
     }
 
     /** Inside the zone: living things are erased (creative and spectator players excepted), loose things removed. */
@@ -531,9 +531,9 @@ public final class HalleyStrike {
             return;
         }
         entity.setDeltaMovement(entity.getDeltaMovement().add(away.scale(push)).add(0.0, lift, 0.0));
-        entity.hurtMarked = true;
+        entity.needsSync = true;
         if (entity instanceof LivingEntity living && (living == caster || caster == null || StarBridge.affects(living, caster))) {
-            living.hurt(this.wake(living == caster ? null : caster), damage);
+            living.hurtServer(this.level, this.wake(living == caster ? null : caster), damage);
             living.setTicksFrozen(Math.max(living.getTicksFrozen(), living.getTicksRequiredToFreeze() + 100));
         }
     }

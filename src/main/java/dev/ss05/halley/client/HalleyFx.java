@@ -12,9 +12,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.IntFunction;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.ParticleStatus;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -24,6 +23,7 @@ import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ParticleStatus;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -33,7 +33,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Vector3f;
 
 /**
  * One SS-05 strike as a client sees it: its sounds, particles, screen effects, the caster's raised arm and the glow
@@ -130,12 +129,12 @@ public final class HalleyFx {
         this.mine = minecraft.player != null && minecraft.player.getId() == casterId;
         this.host = host;
         this.random = RandomSource.create(seed ^ 0x5EED_05L);
-        int minY = minecraft.level == null ? -64 : minecraft.level.getMinBuildHeight();
+        int minY = minecraft.level == null ? -64 : minecraft.level.getMinY();
         this.visuals = new CometVisuals(this.plan, minY);
         this.extras = new CometExtras(this.plan);
         ParticleStatus status = minecraft.options.particles().get();
         this.particles = status == ParticleStatus.ALL ? 1.0F : status == ParticleStatus.DECREASED ? 0.45F : 0.12F;
-        long day = minecraft.level == null ? 6000L : Math.floorMod(minecraft.level.getDayTime(), 24000L);
+        long day = minecraft.level == null ? 6000L : Math.floorMod(minecraft.level.getDefaultClockTime(), 24000L);
         this.toNight = day >= 13000L && day < 23000L ? 0L : Math.floorMod(18000L - day, 24000L);
         ACTIVE.add(this);
     }
@@ -253,7 +252,7 @@ public final class HalleyFx {
     /** The whole world lights up for an instant, as it does under lightning (the land, not just the screen). */
     private void worldFlash(ClientLevel level, Vec3 camera, Vec3 at, int ticks) {
         if (HalleyClientConfig.worldFlashes() && camera.distanceTo(at) < 1400.0) {
-            level.setSkyFlashTime(Math.max(level.getSkyFlashTime(), ticks));
+            level.setSkyFlashTime(ticks);
         }
     }
 
@@ -263,7 +262,7 @@ public final class HalleyFx {
         for (CometExtras.Fragment f : this.extras.fragments) {
             if (t == (int) Math.ceil(f.burstAt())) {
                 Vec3 at = f.at(this.plan, f.burstAt());
-                this.boom(HalleyContent.BURST.get(), at, sky(camera, at), 1.4F, film, 0.12F, 900.0);
+                this.boom(HalleyContent.BURST, at, sky(camera, at), 1.4F, film, 0.12F, 900.0);
                 if (camera.distanceTo(at) < 260.0) {
                     for (int i = 0; i < this.count(24); i++) {
                         particle(level, ParticleTypes.FIREWORK, at, this.gauss(0.6), this.gauss(0.6), this.gauss(0.6));
@@ -319,31 +318,31 @@ public final class HalleyFx {
             }
         }
         if (t == HalleyPlan.MARK) {
-            this.play(HalleyContent.MARK.get(), film ? p.target : near(camera, p.target, p.params.craterRadius()), 1.0F, 1.0F, film);
+            this.play(HalleyContent.MARK, film ? p.target : near(camera, p.target, p.params.craterRadius()), 1.0F, 1.0F, film);
         }
         if (t == SKY_SOUND && HalleyClientConfig.sky() && this.skyReach(camera) > 0.05F) {
             // the sky goes dark: heard from overhead
-            this.play(HalleyContent.DUSK.get(), film ? p.target : camera.add(0.0, 24.0, 0.0), 1.2F, 1.0F, film);
+            this.play(HalleyContent.DUSK, film ? p.target : camera.add(0.0, 24.0, 0.0), 1.2F, 1.0F, film);
         }
         if (t == HalleyPlan.COUNTDOWN) {
-            this.play(HalleyContent.COUNTDOWN.get(), near(camera, p.target, p.params.craterRadius()), 1.0F, 1.0F, film);
+            this.play(HalleyContent.COUNTDOWN, near(camera, p.target, p.params.craterRadius()), 1.0F, 1.0F, film);
         }
         if (t == HalleyPlan.SIGHT) {
-            this.play(HalleyContent.SIGHT.get(), sky(camera, p.comet(t)), 1.0F, 1.0F, film);
+            this.play(HalleyContent.SIGHT, sky(camera, p.comet(t)), 1.0F, 1.0F, film);
         }
         if (t == APPROACH_SOUND) {
-            this.follow(HalleyContent.APPROACH.get(), 1.4F, film, age -> age > HalleyPlan.TOUCHDOWN + 10 ? null : sky(camera(), p.comet(Math.min(age, HalleyPlan.TOUCHDOWN))));
+            this.follow(HalleyContent.APPROACH, 1.4F, film, age -> age > HalleyPlan.TOUCHDOWN + 10 ? null : sky(camera(), p.comet(Math.min(age, HalleyPlan.TOUCHDOWN))));
         }
         if (t == HalleyPlan.ENTRY) {
             Vec3 at = p.comet(t);
-            this.boom(HalleyContent.BOOM.get(), at, sky(camera, at), 2.0F, film, 0.3F, Double.MAX_VALUE);
+            this.boom(HalleyContent.BOOM, at, sky(camera, at), 2.0F, film, 0.3F, Double.MAX_VALUE);
         }
         if (t == HalleyPlan.TOUCHDOWN) {
             Vec3 at = p.touchdown;
-            this.boom(HalleyContent.TOUCHDOWN.get(), at, near(camera, at, p.trenchHalfWidth(p.params.trenchLength()) * 3.0), 2.4F, film, 0.7F, 800.0);
+            this.boom(HalleyContent.TOUCHDOWN, at, near(camera, at, p.trenchHalfWidth(p.params.trenchLength()) * 3.0), 2.4F, film, 0.7F, 800.0);
         }
         if (t == HalleyPlan.TOUCHDOWN + 1) {
-            this.follow(HalleyContent.PLOUGH.get(), 2.0F, film, age -> age > p.impact + 4 ? null
+            this.follow(HalleyContent.PLOUGH, 2.0F, film, age -> age > p.impact + 4 ? null
                 : near(camera(), p.comet(Math.min(age, p.impact)), p.trenchHalfWidth(p.frontAlong(age)) * 1.5));
         }
         if (t > HalleyPlan.TOUCHDOWN && t < p.impact && t % 3 == 0) {
@@ -353,13 +352,13 @@ public final class HalleyFx {
             this.stopFilmSounds();
             Vec3 at = p.target;
             double reach = p.params.craterRadius() * p.params.blastReach();
-            this.boom(HalleyContent.IMPACT.get(), at, near(camera, at, reach), 3.0F, film, 1.0F, 1100.0);
+            this.boom(HalleyContent.IMPACT, at, near(camera, at, reach), 3.0F, film, 1.0F, 1100.0);
         }
         if (t == p.impact + FROST_SOUND) {
-            this.play(HalleyContent.FROST.get(), near(camera, p.target, p.params.craterRadius() * 1.2), 1.4F, 1.0F, film);
+            this.play(HalleyContent.FROST, near(camera, p.target, p.params.craterRadius() * 1.2), 1.4F, 1.0F, film);
         }
         if (this.visuals.hasHeart() && t >= p.impact + 40 && t < p.duration - 60 && (t - p.impact - 40) % HUM_EVERY == 0) {
-            this.play(HalleyContent.HUM.get(), this.visuals.heart(), 0.8F, 1.0F, film);
+            this.play(HalleyContent.HUM, this.visuals.heart(), 0.8F, 1.0F, film);
         }
     }
 
@@ -382,12 +381,12 @@ public final class HalleyFx {
         SoundInstance instance;
         if (film) {
             // the film's soundtrack: heard as if from the camera, wherever the shot is
-            instance = new SimpleSoundInstance(event.getLocation(), SoundSource.PLAYERS, Math.min(1.0F, volume), pitch,
+            instance = new SimpleSoundInstance(event.location(), SoundSource.PLAYERS, Math.min(1.0F, volume), pitch,
                 SoundInstance.createUnseededRandom(), false, 0, SoundInstance.Attenuation.NONE, 0.0, 0.0, 0.0, true);
             this.filmSounds.add(instance);
         } else {
             // in the world: volume x16 is how far it carries (16 blocks per unit of volume, as the remote's skills do)
-            instance = new SimpleSoundInstance(event.getLocation(), SoundSource.PLAYERS, volume * 16.0F, pitch,
+            instance = new SimpleSoundInstance(event.location(), SoundSource.PLAYERS, volume * 16.0F, pitch,
                 SoundInstance.createUnseededRandom(), false, 0, SoundInstance.Attenuation.LINEAR, at.x, at.y, at.z, false);
         }
         Minecraft.getInstance().getSoundManager().play(instance);
@@ -620,11 +619,11 @@ public final class HalleyFx {
     }
 
     private static void particle(ClientLevel level, ParticleOptions options, Vec3 at, double vx, double vy, double vz) {
-        level.addParticle(options, true, at.x, at.y, at.z, vx, vy, vz);
+        level.addParticle(options, true, false, at.x, at.y, at.z, vx, vy, vz);
     }
 
     private static DustParticleOptions dust(int rgb, float scale) {
-        return new DustParticleOptions(new Vector3f((rgb >> 16 & 0xFF) / 255.0F, (rgb >> 8 & 0xFF) / 255.0F, (rgb & 0xFF) / 255.0F), scale);
+        return new DustParticleOptions(rgb & 0xFFFFFF, scale);
     }
 
     /** The first air above the ground at (x, z), or the fallback height where the chunk isn't loaded. */
@@ -640,7 +639,7 @@ public final class HalleyFx {
             return Double.NaN;
         }
         int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, bx, bz);
-        return y <= level.getMinBuildHeight() ? Double.NaN : y;
+        return y <= level.getMinY() ? Double.NaN : y;
     }
 
     private BlockState groundState(ClientLevel level, Vec3 ground) {
@@ -842,7 +841,7 @@ public final class HalleyFx {
     }
 
     public static Vec3 camera() {
-        return Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+        return Minecraft.getInstance().gameRenderer.mainCamera().position();
     }
 
     /** The point within {@code radius} of {@code centre} nearest the listener: a wide event is heard from its edge. */

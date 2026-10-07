@@ -29,7 +29,7 @@ public final class HalleyCasting {
         // Where it will touch down only depends on the mark and the trench length, so find the ground there now
         // (this loads that one chunk if needed, like the built-in skills do for the mark itself).
         HalleyPlan probe = new HalleyPlan(player.position(), target, player.getYRot(), 0L, HalleyParams.of(tuning, Mth.floor(target.y)));
-        int ground = surface(player.serverLevel(), probe.touchdown.x, probe.touchdown.z, Mth.floor(target.y));
+        int ground = surface(player.level(), probe.touchdown.x, probe.touchdown.z, Mth.floor(target.y));
 
         long seed = player.getRandom().nextLong();
         StarBridge.start(new HalleySpell(player, target, seed, HalleyParams.of(tuning, ground)));
@@ -40,11 +40,11 @@ public final class HalleyCasting {
     static int surface(ServerLevel level, double x, double z, int fallback) {
         int bx = Mth.floor(x);
         int bz = Mth.floor(z);
-        if (!level.isInWorldBounds(new BlockPos(bx, level.getMinBuildHeight(), bz))) {
+        if (!level.isInWorldBounds(new BlockPos(bx, level.getMinY(), bz))) {
             return fallback;
         }
         level.getChunk(bx >> 4, bz >> 4);
         int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, bx, bz);
-        return y <= level.getMinBuildHeight() + 1 ? fallback : y;
+        return y <= level.getMinY() + 1 ? fallback : y;
     }
 }

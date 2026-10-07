@@ -3,7 +3,7 @@ package dev.ss05.halley.client.render;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.HalleyClientConfig;
 import java.lang.reflect.Method;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Whether a shader pack is drawing the world. While one is on, Iris only lets Minecraft's own shaders draw into it

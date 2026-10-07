@@ -2,7 +2,7 @@ package dev.ss05.halley.client.render;
 
 import dev.ss05.halley.HalleyPlan;
 import java.util.SplittableRandom;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
