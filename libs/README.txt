@@ -1,4 +1,4 @@
-Put The Shooting Star's Fabric jar here, as you download it (for 1.3.1 that is the-shooting-star-demo-1.3.1-fabric.jar).
+Put The Shooting Star's Fabric jar here, as you download it (1.3.3 or newer, e.g. the-shooting-star-demo-1.3.4-fabric.jar).
 
 That file holds The Shooting Star for several Minecraft versions; the build takes the Minecraft 26.3 one out of it
 (META-INF/jars/...+mc26.3.jar) into build/shooting-star/. The addon is compiled against that and the dev runs

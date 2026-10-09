@@ -1,6 +1,6 @@
 package dev.ss05.halley.compat;
 
-import dev.aek.shootingstardemo.magic.Skill;
+import cyou.rimuru.shootingstardemo.magic.Skill;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.HalleyPlan;
 import dev.ss05.halley.world.HalleyInfo;

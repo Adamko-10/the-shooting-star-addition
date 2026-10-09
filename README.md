@@ -8,9 +8,9 @@ crosshair.
 
 ![SS-05 Halley in game](docs/screenshots/overview.jpg)
 
-> **Compatibility:** this branch is the **Fabric, Minecraft 26.3** version, made for **The Shooting Star [Demo]
-> 1.3.1 [Fabric]**. The **NeoForge 1.21.1** version (for The Shooting Star 1.2.2 and 1.3) is on the `main` branch.
-> The Shooting Star itself also comes for Forge and other Minecraft versions; this addon only covers these two. See
+> **Compatibility:** this branch is the **Fabric, Minecraft 26.3** version, for **The Shooting Star [Demo] 1.3.3
+> [Fabric] or newer** (tested with 1.3.4) (1.3.3 renamed The Shooting Star's code, so older versions of the addon can't attach to it, and this one can't attach to anything before 1.3.3). The **NeoForge 1.21.1** version is on the `main` branch and the
+> **Forge 1.20.1** version on `forge-1.20.1`. See
 > [Will it work with future versions?](#will-it-work-with-future-versions-of-the-shooting-star) below.
 
 ## SS-05 · Halley
@@ -56,9 +56,9 @@ land round it.
 ## Installing
 
 1. Minecraft **26.3** with **Fabric Loader 0.19.5** or newer, and **Fabric API**.
-2. **The Shooting Star [Demo] 1.3.1 [Fabric]**: `the-shooting-star-demo-1.3.1-fabric.jar`, one file for every
+2. **The Shooting Star [Demo] 1.3.3 [Fabric] or newer**, e.g. `the-shooting-star-demo-1.3.4-fabric.jar`, one file for every
    Minecraft version it supports, 26.3 included.
-3. `shooting_star_addition-1.1.0+fabric-26.3.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
+3. `shooting_star_addition-1.1.1+fabric-26.3.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
 
 Minecraft must be drawing with OpenGL (*Video Settings → Graphics API → Prefer OpenGL*), or The Shooting Star
@@ -109,7 +109,7 @@ Honestly: maybe, maybe not. The Shooting Star has no official way for other mods
 attaches itself to some of its internals (the remote's skill list, its effect system and a few of its classes), and
 The Shooting Star is updated often. That means:
 
-- **Small updates** that don't touch those parts should keep working: the addon accepts The Shooting Star 1.3.1
+- **Small updates** that don't touch those parts should keep working: the addon accepts The Shooting Star 1.3.3
   and anything newer on Fabric 26.3.
 - **Updates that change those parts** won't crash your game. The addon checks everything before it attaches, and if
   something has moved it switches SS-05 off, logs why, and tells server operators in chat. It stays off until this
