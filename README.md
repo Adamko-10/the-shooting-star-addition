@@ -8,9 +8,9 @@ crosshair.
 
 ![SS-05 Halley in game](docs/screenshots/overview.jpg)
 
-> **Compatibility:** made for **The Shooting Star [Demo] 1.2.2** on **NeoForge, Minecraft 1.21.1**, and it works
-> with **The Shooting Star 1.3** too. The Shooting Star itself also comes for Forge, Fabric and other Minecraft
-> versions; this addon does not: it only works on NeoForge 1.21.1. See
+> **Compatibility:** this is the **NeoForge, Minecraft 1.21.1** version, for **The Shooting Star [Demo] 1.3.3 or
+> newer** (tested with 1.3.4). (1.3.3 renamed The Shooting Star's code, so older versions of the addon can't attach to it, and this one can't attach to anything before 1.3.3). There are also Forge 1.20.1 (`forge-1.20.1` branch) and Fabric 26.3
+> (`fabric-26.3` branch) versions. See
 > [Will it work with future versions?](#will-it-work-with-future-versions-of-the-shooting-star) below.
 
 ## SS-05 · Halley
@@ -53,8 +53,8 @@ land round it.
 ## Installing
 
 1. Minecraft **1.21.1** with **NeoForge 21.1.x**.
-2. **The Shooting Star [Demo] 1.2.2 or 1.3** (its NeoForge 1.21.1 file).
-3. `shooting_star_addition-1.1.0.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
+2. **The Shooting Star [Demo] 1.3.3 or newer** (its NeoForge file).
+3. `shooting_star_addition-1.1.1.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
 
 In game: hold the Stellar Remote, press **O** (or pick SS-05 in the remote's menu, **H**), aim at the ground and
@@ -98,16 +98,16 @@ Honestly: maybe, maybe not. The Shooting Star has no official way for other mods
 attaches itself to some of its internals (the remote's skill list, its effect system and a few of its classes), and
 The Shooting Star is updated often. That means:
 
-- **Small updates** that don't touch those parts should keep working: the addon accepts The Shooting Star 1.2 and
-  anything newer, and 1.3 works.
+- **Small updates** that don't touch those parts should keep working: the addon accepts The Shooting Star 1.3.3 and
+  anything newer.
 - **Updates that change those parts** won't crash your game. The addon checks everything before it attaches, and if
   something has moved it switches SS-05 off, logs why, and tells server operators in chat. It stays off until this
   addon is updated. The optional touches (the remote's cover animation, the cutscene overlay, the raised arm) quietly
   switch themselves off instead.
 - **If The Shooting Star changes its mod id** (for example when it stops being a demo), this addon won't load until
   it is updated.
-- **Other mod loaders** (Forge, Fabric) and **other Minecraft versions** are not supported. They would each need
-  their own port.
+- **Other mod loaders and Minecraft versions** each need their own build: this one is NeoForge 1.21.1; there are
+  also Forge 1.20.1 and Fabric 26.3 versions.
 
 ## Plans
 

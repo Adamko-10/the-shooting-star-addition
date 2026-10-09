@@ -1,14 +1,14 @@
 package dev.ss05.halley.compat;
 
-import dev.aek.shootingstardemo.mc1211.magic.Casting;
-import dev.aek.shootingstardemo.mc1211.magic.Skill;
-import dev.aek.shootingstardemo.mc1211.magic.SkillSet;
-import dev.aek.shootingstardemo.mc1211.registry.ModSkills;
-import dev.aek.shootingstardemo.mc1211.spell.GreaterTeleportation;
-import dev.aek.shootingstardemo.mc1211.spell.SpellEngine;
-import dev.aek.shootingstardemo.mc1211.spell.SpellUtil;
-import dev.aek.shootingstardemo.mc1211.star.Carving;
-import dev.aek.shootingstardemo.mc1211.star.Erasure;
+import cyou.rimuru.shootingstardemo.mc1211.magic.Casting;
+import cyou.rimuru.shootingstardemo.mc1211.magic.Skill;
+import cyou.rimuru.shootingstardemo.mc1211.magic.SkillSet;
+import cyou.rimuru.shootingstardemo.mc1211.registry.ModSkills;
+import cyou.rimuru.shootingstardemo.mc1211.spell.GreaterTeleportation;
+import cyou.rimuru.shootingstardemo.mc1211.spell.SpellEngine;
+import cyou.rimuru.shootingstardemo.mc1211.spell.SpellUtil;
+import cyou.rimuru.shootingstardemo.mc1211.star.Carving;
+import cyou.rimuru.shootingstardemo.mc1211.star.Erasure;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.world.Excavation;
 import dev.ss05.halley.world.HalleyCasting;
@@ -17,7 +17,6 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiPredicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -89,7 +88,7 @@ public final class StarBridge {
             Map<Skill, Integer> index = (Map<Skill, Integer>) staticField(TABLE_INDEX).get(null);
             Field skillsField = instanceField(SET_SKILLS);
             Field casterField = instanceField(SET_CASTER);
-            BiPredicate<ServerPlayer, Skill> builtIn = (BiPredicate<ServerPlayer, Skill>) casterField.get(remote);
+            SkillSet.Caster<Skill> builtIn = (SkillSet.Caster<Skill>) casterField.get(remote);
             List<Skill> before = remote.skills;
             if (builtIn == null || before == null || before.isEmpty()) {
                 throw new IllegalStateException("the Stellar Remote has no skills to join");
@@ -97,7 +96,9 @@ public final class StarBridge {
 
             List<Skill> after = new ArrayList<>(before);
             after.add(SKILL);
-            BiPredicate<ServerPlayer, Skill> caster = (player, skill) -> skill == SKILL ? HalleyCasting.cast(player) : builtIn.test(player, skill);
+            // The Shooting Star 1.3.2+ hands every cast a Tuning (the remote's power/speed gauge). SS-05 has no power()
+            // to tune, so it casts the same way whatever the gauge says; the built-in skills get theirs unchanged.
+            SkillSet.Caster<Skill> caster = (player, skill, tuning) -> skill == SKILL ? HalleyCasting.cast(player) : builtIn.cast(player, skill, tuning);
 
             index.put(SKILL, all.size());
             all.add(SKILL);

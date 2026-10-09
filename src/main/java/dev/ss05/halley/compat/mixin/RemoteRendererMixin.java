@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * SS-05 the way it does for its own skills. Without this, the remote just stays shut during an SS-05 strike.
  */
 @Pseudo
-@Mixin(targets = "dev.aek.shootingstardemo.mc1211.client.item.RemoteRenderer", remap = false)
+@Mixin(targets = "cyou.rimuru.shootingstardemo.mc1211.client.item.RemoteRenderer", remap = false)
 abstract class RemoteRendererMixin {
     @Inject(method = "strikeTime()F", at = @At("RETURN"), cancellable = true, require = 0, remap = false)
     private static void ss05halley$clock(CallbackInfoReturnable<Float> cir) {

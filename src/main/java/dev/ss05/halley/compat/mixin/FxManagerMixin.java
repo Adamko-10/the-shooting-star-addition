@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * this adds SS-05's after them. If The Shooting Star changes this method, the overlay is simply missing.
  */
 @Pseudo
-@Mixin(targets = "dev.aek.shootingstardemo.mc1211.client.fx.FxManager", remap = false)
+@Mixin(targets = "cyou.rimuru.shootingstardemo.mc1211.client.fx.FxManager", remap = false)
 abstract class FxManagerMixin {
     @Inject(method = "renderFilmHud(Lnet/minecraft/client/gui/GuiGraphics;F)V", at = @At("TAIL"), require = 0, remap = false)
     private static void ss05halley$filmHud(GuiGraphics graphics, float partial, CallbackInfo ci) {

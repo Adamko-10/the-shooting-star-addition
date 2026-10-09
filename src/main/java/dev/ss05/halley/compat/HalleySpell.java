@@ -1,6 +1,6 @@
 package dev.ss05.halley.compat;
 
-import dev.aek.shootingstardemo.mc1211.spell.ActiveSpell;
+import cyou.rimuru.shootingstardemo.mc1211.spell.ActiveSpell;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.HalleyPlan;
 import dev.ss05.halley.world.HalleyStrike;

@@ -1,13 +1,13 @@
 package dev.ss05.halley.compat.client;
 
-import dev.aek.shootingstardemo.mc1211.client.cinematic.CutsceneDirector;
-import dev.aek.shootingstardemo.mc1211.client.fx.CastTitles;
-import dev.aek.shootingstardemo.mc1211.client.fx.FxManager;
-import dev.aek.shootingstardemo.mc1211.client.fx.Overlay;
-import dev.aek.shootingstardemo.mc1211.client.fx.SpellFx;
-import dev.aek.shootingstardemo.mc1211.net.Network;
-import dev.aek.shootingstardemo.mc1211.net.SpellFxPayload;
-import dev.aek.shootingstardemo.mc1211.star.StarSkill;
+import cyou.rimuru.shootingstardemo.mc1211.client.cinematic.CutsceneDirector;
+import cyou.rimuru.shootingstardemo.mc1211.client.fx.CastTitles;
+import cyou.rimuru.shootingstardemo.mc1211.client.fx.FxManager;
+import cyou.rimuru.shootingstardemo.mc1211.client.fx.Overlay;
+import cyou.rimuru.shootingstardemo.mc1211.client.fx.SpellFx;
+import cyou.rimuru.shootingstardemo.mc1211.net.Network;
+import cyou.rimuru.shootingstardemo.mc1211.net.SpellFxPayload;
+import cyou.rimuru.shootingstardemo.mc1211.star.StarSkill;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
