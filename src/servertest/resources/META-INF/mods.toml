@@ -1,0 +1,40 @@
+# Dev-only game-logic test mod (src/servertest). Not part of the addon's jar; only runs via ./gradlew runServerTest,
+# which sets -Dss05.servertest=true. See dev.ss05.halley.servertest.HalleyServerTest.
+modLoader = "javafml"
+loaderVersion = "[47,)"
+license = "All Rights Reserved"
+
+[[mods]]
+modId = "ss05_servertest"
+version = "1.0.0"
+displayName = "SS-05 Halley Server Test"
+authors = "adamko_10"
+description = '''Dev-only game-logic test for SS-05 Halley: casts the skill for real on a throwaway dedicated server and checks what it did to the world.'''
+
+[[dependencies.ss05_servertest]]
+modId = "forge"
+mandatory = true
+versionRange = "[47,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.ss05_servertest]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.20.1,1.20.2)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.ss05_servertest]]
+modId = "shooting_star_addition"
+mandatory = true
+versionRange = "[1.1.0,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.ss05_servertest]]
+modId = "shooting_star_demo"
+mandatory = true
+versionRange = "[1.3.1,)"
+ordering = "AFTER"
+side = "BOTH"

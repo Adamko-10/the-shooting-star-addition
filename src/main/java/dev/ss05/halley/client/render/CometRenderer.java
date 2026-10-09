@@ -1,9 +1,9 @@
 package dev.ss05.halley.client.render;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.ss05.halley.client.HalleyFx;
 import javax.annotation.Nullable;
@@ -13,7 +13,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 
@@ -23,8 +23,9 @@ import org.joml.Vector4f;
  * pack on ({@link ShaderPacks}) the same quads are drawn from the shapes painted onto {@link GlowAtlas}.
  */
 public final class CometRenderer {
-    private static final ByteBufferBuilder WORLD_BYTES = new ByteBufferBuilder(1 << 18);
-    private static final ByteBufferBuilder GLARE_BYTES = new ByteBufferBuilder(1 << 15);
+    /** Reused and grown across frames (1.20.1's BufferBuilder owns and grows its own backing memory). */
+    private static final BufferBuilder WORLD_BUILDER = new BufferBuilder(1 << 16);
+    private static final BufferBuilder GLARE_BUILDER = new BufferBuilder(1 << 13);
     /** The last frame's camera and view-projection, for the HUD's marker pointing at the comet. */
     private static final Matrix4f VIEW_PROJECTION = new Matrix4f();
     private static Vec3 lastCamera = Vec3.ZERO;
@@ -43,9 +44,9 @@ public final class CometRenderer {
         }
         Camera camera = event.getCamera();
         Vec3 eye = camera.getPosition();
-        VIEW_PROJECTION.set(event.getProjectionMatrix()).mul(event.getModelViewMatrix());
+        VIEW_PROJECTION.set(event.getProjectionMatrix()).mul(event.getPoseStack().last().pose());
         lastCamera = eye;
-        float partial = event.getPartialTick().getGameTimeDeltaPartialTick(true);
+        float partial = event.getPartialTick();
         // anything further out is pulled in along its line of sight to just inside the far plane (see GlowBatch)
         double far = minecraft.gameRenderer.getDepthFar() * 0.9;
         double landRange = minecraft.options.getEffectiveRenderDistance() * 16.0;
@@ -73,13 +74,15 @@ public final class CometRenderer {
             return;
         }
         VertexFormat format = pack ? DefaultVertexFormat.NEW_ENTITY : DefaultVertexFormat.POSITION_TEX_COLOR;
-        BufferBuilder world = new BufferBuilder(WORLD_BYTES, VertexFormat.Mode.QUADS, format);
-        BufferBuilder glare = new BufferBuilder(GLARE_BYTES, VertexFormat.Mode.QUADS, format);
+        BufferBuilder world = WORLD_BUILDER;
+        BufferBuilder glare = GLARE_BUILDER;
+        world.begin(VertexFormat.Mode.QUADS, format);
+        glare.begin(VertexFormat.Mode.QUADS, format);
         GlowBatch worldBatch = new GlowBatch(pack ? GlowAtlas.sink(world)
-            : (x, y, z, u, v, r, g, b, a) -> world.addVertex(x, y, z).setUv(u, v).setColor(r, g, b, a),
+            : (x, y, z, u, v, r, g, b, a) -> world.vertex(x, y, z).uv(u, v).color(r, g, b, a).endVertex(),
             eye, camera.getLeftVector(), camera.getUpVector(), far);
         GlowBatch glareBatch = new GlowBatch(pack ? GlowAtlas.sink(glare)
-            : (x, y, z, u, v, r, g, b, a) -> glare.addVertex(x, y, z).setUv(u, v).setColor(r, g, b, a),
+            : (x, y, z, u, v, r, g, b, a) -> glare.vertex(x, y, z).uv(u, v).color(r, g, b, a).endVertex(),
             eye, camera.getLeftVector(), camera.getUpVector(), far);
 
         for (HalleyFx fx : HalleyFx.active()) {
@@ -88,14 +91,16 @@ public final class CometRenderer {
             }
         }
 
-        MeshData mesh = world.build();
-        if (mesh != null) {
-            (pack ? HalleyRenderTypes.PACK_GLOW : HalleyRenderTypes.GLOW).draw(mesh);
-        }
-        mesh = glare.build();
-        if (mesh != null) {
-            (pack ? HalleyRenderTypes.PACK_GLARE : HalleyRenderTypes.GLARE).draw(mesh);
-        }
+        // the quads are camera-relative; in 1.20.1 the camera's rotation is only in the event's PoseStack (the shared
+        // model-view is back to identity after the particles), so it is put on the model-view for these two draws
+        PoseStack view = RenderSystem.getModelViewStack();
+        view.pushPose();
+        view.mulPoseMatrix(event.getPoseStack().last().pose());
+        RenderSystem.applyModelViewMatrix();
+        (pack ? HalleyRenderTypes.PACK_GLOW : HalleyRenderTypes.GLOW).end(world, RenderSystem.getVertexSorting());
+        (pack ? HalleyRenderTypes.PACK_GLARE : HalleyRenderTypes.GLARE).end(glare, RenderSystem.getVertexSorting());
+        view.popPose();
+        RenderSystem.applyModelViewMatrix();
     }
 
     /**

@@ -1,14 +1,14 @@
 package dev.ss05.halley.compat.client;
 
-import dev.aek.shootingstardemo.mc1211.client.cinematic.CutsceneDirector;
-import dev.aek.shootingstardemo.mc1211.client.cinematic.Subject;
-import dev.aek.shootingstardemo.mc1211.client.fx.Frame;
-import dev.aek.shootingstardemo.mc1211.client.fx.FxManager;
-import dev.aek.shootingstardemo.mc1211.client.fx.Overlay;
-import dev.aek.shootingstardemo.mc1211.client.fx.SpellFx;
-import dev.aek.shootingstardemo.mc1211.client.render.ScreenFx;
-import dev.aek.shootingstardemo.mc1211.net.SpellFxPayload;
-import dev.aek.shootingstardemo.mc1211.registry.ModSounds;
+import dev.aek.shootingstardemo.mc1201.client.cinematic.CutsceneDirector;
+import dev.aek.shootingstardemo.mc1201.client.cinematic.Subject;
+import dev.aek.shootingstardemo.mc1201.client.fx.Frame;
+import dev.aek.shootingstardemo.mc1201.client.fx.FxManager;
+import dev.aek.shootingstardemo.mc1201.client.fx.Overlay;
+import dev.aek.shootingstardemo.mc1201.client.fx.SpellFx;
+import dev.aek.shootingstardemo.mc1201.client.render.ScreenFx;
+import dev.aek.shootingstardemo.mc1201.net.SpellFxPayload;
+import dev.aek.shootingstardemo.mc1201.registry.ModSounds;
 import dev.ss05.halley.HalleyPlan;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;

@@ -1,15 +1,15 @@
-// The Shooting Star Addition: an unofficial addon for The Shooting Star (NeoForge 1.21.1), built with ModDevGradle.
+// The Shooting Star Addition: an unofficial addon for The Shooting Star (Forge 1.20.1), built with ModDevGradle's
+// legacy plugin.
 //
-//   1. Put The Shooting Star's jar in libs/ (any file named the-shooting-star*.jar).
-//   2. ./gradlew build        -> build/libs/shooting_star_addition-<version>.jar
+//   1. Put The Shooting Star's jar in libs/ (any file named the-shooting-star*.jar; the Forge file carries the 1.20.1 build).
+//   2. ./gradlew build        -> build/libs/shooting_star_addition-<version>.jar (reobfuscated to SRG names)
 //      ./gradlew runClient    -> a dev game with The Shooting Star and this addon loaded
 //
 // Versions live in gradle.properties.
 plugins {
     id 'java-library'
     id 'idea'
-    // any ModDevGradle 2.0.x works for NeoForge 1.21.1
-    id 'net.neoforged.moddev' version '2.0.+'
+    id 'net.neoforged.moddev.legacyforge' version '2.0.+'
 }
 
 tasks.named('wrapper', Wrapper).configure {
@@ -23,55 +23,107 @@ base {
     archivesName = mod_id
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+// A dev-only game-logic test (src/servertest, mod id ss05_servertest): run with ./gradlew runServerTest. It is not
+// part of the addon's jar.
+sourceSets {
+    servertest {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+configurations {
+    servertestCompileOnly.extendsFrom compileOnly
+    servertestImplementation.extendsFrom implementation
+    servertestRuntimeOnly.extendsFrom runtimeOnly
+}
 
 repositories {
     mavenLocal()
+    // libs/ holds the user's own copy of The Shooting Star (see below).
+    flatDir { dirs 'libs' }
 }
 
-neoForge {
-    version = project.neo_version
+legacyForge {
+    version = project.forge_version
+    addModdingDependenciesTo sourceSets.servertest
 
     parchment {
         mappingsVersion = project.parchment_mappings_version
         minecraftVersion = project.parchment_minecraft_version
     }
 
+    // (declared before the runs, which pick from them)
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+        ss05_servertest {
+            sourceSet(sourceSets.servertest)
+        }
+    }
+
     runs {
         client {
             client()
+            loadedMods = [mods."${mod_id}"]
         }
         server {
             server()
             programArgument '--nogui'
+            loadedMods = [mods."${mod_id}"]
+        }
+        // A fresh world every time; the test casts SS-05 for real, checks what it did and stops the server.
+        serverTest {
+            server()
+            programArgument '--nogui'
+            gameDirectory = project.file('run/servertest')
+            systemProperty 'ss05.servertest', 'true'
+            loadedMods = [mods."${mod_id}", mods.ss05_servertest]
         }
         configureEach {
             systemProperty 'forge.logging.markers', 'REGISTRIES'
             logLevel = org.slf4j.event.Level.INFO
         }
     }
+}
 
-    mods {
-        "${mod_id}" {
-            sourceSet(sourceSets.main)
+// Each test run starts from a fresh world and the test's own server.properties and addon config (src/servertest/run).
+// The Minecraft EULA is not accepted here: put eula.txt (eula=true) in run/servertest yourself.
+tasks.matching { it.name == 'runServerTest' }.configureEach {
+    doFirst {
+        delete 'run/servertest/world'
+        copy {
+            from 'src/servertest/run'
+            into 'run/servertest'
         }
     }
 }
 
 // The Shooting Star is compiled against but never shipped inside this jar (its licence is All Rights Reserved).
+// Its 1.20.1 classes use SRG names, so it goes through the remapping configurations, both to compile and for the dev runs.
 var shootingStar = fileTree(dir: 'libs', include: 'the-shooting-star*.jar')
 
 dependencies {
-    compileOnly shootingStar
+    // The remapping configurations only take modules, so each jar in libs/ is named as a flatDir module. It needs a
+    // group and a version (any) for the remapping to match it; flatDir ignores the group and finds <name>.jar.
+    shootingStar.files.each { File jar ->
+        var module = "local:${jar.name - '.jar'}:0"
+        modCompileOnly module
+        modRuntimeOnly module
+    }
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
-// The dev runs load mods from run/mods, so The Shooting Star is copied there before every run.
-var copyShootingStar = tasks.register('copyShootingStar', Copy) {
-    from shootingStar
-    into layout.projectDirectory.dir('run/mods')
+// Forge 1.20.1 runs with SRG names, so the mixins need a refmap; and it reads mixin configs from the manifest only.
+mixin {
+    add sourceSets.main, "${mod_id}.refmap.json"
+    config "${mod_id}.mixins.json"
 }
-tasks.matching { it.name.startsWith('run') }.configureEach {
-    dependsOn copyShootingStar
+
+tasks.named('jar', Jar) {
+    manifest.attributes(['MixinConfigs': "${mod_id}.mixins.json"])
 }
 
 tasks.named('compileJava') {
@@ -82,11 +134,11 @@ tasks.named('compileJava') {
     }
 }
 
-// neoforge.mods.toml is filled in from gradle.properties.
+// mods.toml is filled in from gradle.properties.
 var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
     var replaceProperties = [
         minecraft_version_range    : minecraft_version_range,
-        neo_version_range          : neo_version_range,
+        forge_version_range        : forge_version_range,
         loader_version_range       : loader_version_range,
         shooting_star_mod_id       : shooting_star_mod_id,
         shooting_star_version_range: shooting_star_version_range,
@@ -103,10 +155,11 @@ var generateModMetadata = tasks.register('generateModMetadata', ProcessResources
     into 'build/generated/sources/modMetadata'
 }
 sourceSets.main.resources.srcDir generateModMetadata
-neoForge.ideSyncTask generateModMetadata
+legacyForge.ideSyncTask generateModMetadata
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+    options.compilerArgs << '-Xmaxerrs' << '1000'
 }
 
 idea {

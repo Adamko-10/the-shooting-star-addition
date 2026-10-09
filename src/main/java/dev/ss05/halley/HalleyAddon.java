@@ -9,14 +9,16 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.lifecycle.FMLConstructModEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.slf4j.Logger;
 
 /**
@@ -37,14 +39,17 @@ public final class HalleyAddon {
     public static final String MOD_ID = "shooting_star_addition";
     public static final Logger LOG = LogUtils.getLogger();
 
-    public HalleyAddon(IEventBus modBus, ModContainer container, Dist dist) {
-        container.registerConfig(ModConfig.Type.COMMON, HalleyConfig.SPEC);
+    public HalleyAddon() {
+        IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+        Dist dist = FMLEnvironment.dist;
+
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, HalleyConfig.SPEC);
         HalleyContent.register(modBus);
 
         // Mods are constructed in parallel. Hooking into The Shooting Star waits until every mod has been
         // constructed (the deferred queue runs on the main thread), but still runs before key bindings are
         // registered, so SS-05 gets its own key like the other three skills.
-        modBus.addListener(FMLConstructModEvent.class, event -> event.enqueueWork(() -> {
+        modBus.addListener((FMLConstructModEvent event) -> event.enqueueWork(() -> {
             StarBridge.install();
             if (dist.isClient()) {
                 HalleyClient.afterConstruction();
@@ -52,15 +57,15 @@ public final class HalleyAddon {
         }));
 
         if (dist.isClient()) {
-            container.registerConfig(ModConfig.Type.CLIENT, HalleyClientConfig.SPEC);
+            ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, HalleyClientConfig.SPEC);
             HalleyClient.init(modBus);
         }
 
-        NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerLoggedInEvent.class, HalleyAddon::warnIfDetached);
+        MinecraftForge.EVENT_BUS.addListener(HalleyAddon::warnIfDetached);
     }
 
     public static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+        return new ResourceLocation(MOD_ID, path);
     }
 
     /** If The Shooting Star changed under us, say so in chat instead of failing silently. */

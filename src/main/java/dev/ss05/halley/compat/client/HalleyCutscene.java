@@ -1,9 +1,9 @@
 package dev.ss05.halley.compat.client;
 
-import dev.aek.shootingstardemo.mc1211.client.cinematic.CameraPose;
-import dev.aek.shootingstardemo.mc1211.client.cinematic.Cutscene;
-import dev.aek.shootingstardemo.mc1211.client.cinematic.Shot;
-import dev.aek.shootingstardemo.mc1211.client.cinematic.Subject;
+import dev.aek.shootingstardemo.mc1201.client.cinematic.CameraPose;
+import dev.aek.shootingstardemo.mc1201.client.cinematic.Cutscene;
+import dev.aek.shootingstardemo.mc1201.client.cinematic.Shot;
+import dev.aek.shootingstardemo.mc1201.client.cinematic.Subject;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.film.HalleyStoryboard;
 import dev.ss05.halley.compat.StarBridge;

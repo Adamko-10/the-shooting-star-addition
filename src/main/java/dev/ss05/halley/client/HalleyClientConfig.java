@@ -1,13 +1,13 @@
 package dev.ss05.halley.client;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 /**
  * How SS-05 looks on this computer: {@code config/shooting_star_addition-client.toml}. These only change what you see,
  * never what the strike does, so every player can set them for themselves.
  */
 public final class HalleyClientConfig {
-    public static final ModConfigSpec SPEC;
+    public static final ForgeConfigSpec SPEC;
 
     /** How to draw while a shader pack is on (see {@code ShaderPacks}). */
     public enum PackMode {
@@ -19,15 +19,15 @@ public final class HalleyClientConfig {
         NEVER
     }
 
-    private static final ModConfigSpec.BooleanValue SKY;
-    private static final ModConfigSpec.BooleanValue DARKEN_LAND;
-    private static final ModConfigSpec.BooleanValue EXTRA_EFFECTS;
-    private static final ModConfigSpec.BooleanValue WORLD_FLASHES;
-    private static final ModConfigSpec.BooleanValue COMET_MARKER;
-    private static final ModConfigSpec.EnumValue<PackMode> SHADER_PACKS;
+    private static final ForgeConfigSpec.BooleanValue SKY;
+    private static final ForgeConfigSpec.BooleanValue DARKEN_LAND;
+    private static final ForgeConfigSpec.BooleanValue EXTRA_EFFECTS;
+    private static final ForgeConfigSpec.BooleanValue WORLD_FLASHES;
+    private static final ForgeConfigSpec.BooleanValue COMET_MARKER;
+    private static final ForgeConfigSpec.EnumValue<PackMode> SHADER_PACKS;
 
     static {
-        ModConfigSpec.Builder b = new ModConfigSpec.Builder();
+        ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
         b.comment("How SS-05 Halley looks on this computer. These only change what you see.").push("looks");
         SKY = b.comment("The sky goes dark while the comet comes in (stars, an aurora, the comet lighting up the air),",
                 "and hazy with ice after the impact (a halo and sun dogs round the sun).")
@@ -86,7 +86,7 @@ public final class HalleyClientConfig {
     }
 
     /** The default (true) until the config has loaded. */
-    private static boolean get(ModConfigSpec.BooleanValue value) {
+    private static boolean get(ForgeConfigSpec.BooleanValue value) {
         if (!SPEC.isLoaded()) {
             return true;
         }

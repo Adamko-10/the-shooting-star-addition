@@ -539,7 +539,7 @@ public final class HalleyStrike {
     }
 
     private DamageSource wake(@Nullable Entity attacker) {
-        return new DamageSource(this.level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(HalleyContent.WAKE),
+        return new DamageSource(this.level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(HalleyContent.WAKE),
             attacker, attacker);
     }
 

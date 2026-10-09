@@ -5,7 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexSorting;
@@ -29,11 +29,10 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.event.RenderFrameEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import net.neoforged.neoforge.client.event.ViewportEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.client.event.ViewportEvent;
+import net.minecraftforge.event.TickEvent;
 import org.joml.Matrix4f;
-import org.joml.Matrix4fStack;
 
 /**
  * SS-05's sky: while a strike runs, a dome drawn right after the vanilla sky (before the land, so the land still
@@ -74,13 +73,13 @@ public final class HalleySky {
     }
 
     /** Once a frame, before anything is drawn: the look of the strike that changes the sky most from here. */
-    public static void update(RenderFrameEvent.Pre event) {
+    public static void update(TickEvent.RenderTickEvent event) {
         current = null;
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null || HalleyFx.active().isEmpty() || !HalleyClientConfig.sky()) {
             return;
         }
-        float partial = event.getPartialTick().getGameTimeDeltaPartialTick(true);
+        float partial = event.renderTickTime;
         Vec3 camera = minecraft.gameRenderer.getMainCamera().getPosition();
         SkyLook best = null;
         float bestStrength = 0.0F;
@@ -121,12 +120,12 @@ public final class HalleySky {
             renderPainted(event);
             return;
         }
-        uniforms(program, look, level, event.getPartialTick().getGameTimeDeltaPartialTick(true), false);
+        uniforms(program, look, level, event.getPartialTick(), false);
 
-        Matrix4fStack view = RenderSystem.getModelViewStack();
-        view.pushMatrix();
-        view.identity();
-        view.mul(event.getModelViewMatrix());
+        PoseStack view = RenderSystem.getModelViewStack();
+        view.pushPose();
+        view.setIdentity();
+        view.mulPoseMatrix(event.getPoseStack().last().pose());
         RenderSystem.applyModelViewMatrix();
         RenderSystem.setShader(() -> program);
         RenderSystem.enableBlend();
@@ -135,16 +134,17 @@ public final class HalleySky {
         RenderSystem.depthMask(false);
         RenderSystem.disableCull();
 
-        BufferBuilder cube = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+        BufferBuilder cube = Tesselator.getInstance().getBuilder();
+        cube.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
         cube(cube);
-        BufferUploader.drawWithShader(cube.buildOrThrow());
+        BufferUploader.drawWithShader(cube.end());
 
         RenderSystem.enableCull();
         RenderSystem.depthMask(true);
         RenderSystem.enableDepthTest();
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableBlend();
-        view.popMatrix();
+        view.popPose();
         RenderSystem.applyModelViewMatrix();
     }
 
@@ -223,8 +223,8 @@ public final class HalleySky {
         uniforms(program, look, level, partial, true);
         RenderSystem.backupProjectionMatrix();
         RenderSystem.setProjectionMatrix(new Matrix4f(), VertexSorting.ORTHOGRAPHIC_Z);
-        Matrix4fStack view = RenderSystem.getModelViewStack();
-        view.pushMatrix();
+        PoseStack view = RenderSystem.getModelViewStack();
+        view.pushPose();
         RenderSystem.disableBlend();
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
@@ -245,30 +245,31 @@ public final class HalleySky {
         RenderSystem.depthMask(true);
         RenderSystem.enableDepthTest();
         RenderSystem.enableCull();
-        view.popMatrix();
+        view.popPose();
         RenderSystem.applyModelViewMatrix();
         RenderSystem.restoreProjectionMatrix();
         LIGHT.end();
     }
 
-    private static void paintFaces(ShaderInstance program, Matrix4fStack view, int size, float layer) {
+    private static void paintFaces(ShaderInstance program, PoseStack view, int size, float layer) {
         set(program, "Layer", layer);
         for (int f = 0; f < 6; f++) {
             float[] face = FACES[f];
             RenderSystem.viewport(f % 3 * size, f / 3 * size, size, size);
             // a point on this face -> (where it is across the face, 0, 1): the face fills the viewport
-            view.set(face[3], face[6], 0.0F, 0.0F,
+            view.last().pose().set(face[3], face[6], 0.0F, 0.0F,
                 face[4], face[7], 0.0F, 0.0F,
                 face[5], face[8], 0.0F, 0.0F,
                 0.0F, 0.0F, 0.0F, 1.0F);
             RenderSystem.applyModelViewMatrix();
-            BufferBuilder b = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+            BufferBuilder b = Tesselator.getInstance().getBuilder();
+            b.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
             for (int c = 0; c < 4; c++) {
                 float s = c == 1 || c == 2 ? 1.0F : -1.0F;
                 float t = c >= 2 ? 1.0F : -1.0F;
-                b.addVertex(face[0] + face[3] * s + face[6] * t, face[1] + face[4] * s + face[7] * t, face[2] + face[5] * s + face[8] * t);
+                b.vertex(face[0] + face[3] * s + face[6] * t, face[1] + face[4] * s + face[7] * t, face[2] + face[5] * s + face[8] * t).endVertex();
             }
-            BufferUploader.drawWithShader(b.buildOrThrow());
+            BufferUploader.drawWithShader(b.end());
         }
     }
 
@@ -280,41 +281,46 @@ public final class HalleySky {
         if (!paintedBase && !paintedLight) {
             return;
         }
-        Matrix4fStack view = RenderSystem.getModelViewStack();
-        view.pushMatrix();
-        view.identity();
-        view.mul(event.getModelViewMatrix());
+        PoseStack view = RenderSystem.getModelViewStack();
+        view.pushPose();
+        view.setIdentity();
+        view.mulPoseMatrix(event.getPoseStack().last().pose());
         RenderSystem.applyModelViewMatrix();
+        BufferBuilder b = Tesselator.getInstance().getBuilder();
         if (paintedBase) {
-            HalleyRenderTypes.PACK_SKY_DARKEN.draw(darkeningCube(paintedCover));
-            BASE_ADD.draw(paintedCube(BASE_FACE));
+            b.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_LIGHTMAP);
+            darkeningCube(b, paintedCover);
+            HalleyRenderTypes.PACK_SKY_DARKEN.end(b, RenderSystem.getVertexSorting());
+            b.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.NEW_ENTITY);
+            paintedCube(b, BASE_FACE);
+            BASE_ADD.end(b, RenderSystem.getVertexSorting());
         }
         if (paintedLight) {
-            LIGHT_ADD.draw(paintedCube(LIGHT_FACE));
+            b.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.NEW_ENTITY);
+            paintedCube(b, LIGHT_FACE);
+            LIGHT_ADD.end(b, RenderSystem.getVertexSorting());
         }
-        view.popMatrix();
+        view.popPose();
         RenderSystem.applyModelViewMatrix();
     }
 
-    private static MeshData darkeningCube(float alpha) {
-        BufferBuilder b = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_LIGHTMAP);
+    private static void darkeningCube(BufferBuilder b, float alpha) {
         for (float[] face : FACES) {
             for (int c = 0; c < 4; c++) {
                 float s = c == 1 || c == 2 ? 1.0F : -1.0F;
                 float t = c >= 2 ? 1.0F : -1.0F;
                 // white, not black: some shader packs read a dark, faint quad as the block outline and drop it
-                b.addVertex(SIZE * (face[0] + face[3] * s + face[6] * t), SIZE * (face[1] + face[4] * s + face[7] * t),
+                b.vertex(SIZE * (face[0] + face[3] * s + face[6] * t), SIZE * (face[1] + face[4] * s + face[7] * t),
                         SIZE * (face[2] + face[5] * s + face[8] * t))
-                    .setColor(1.0F, 1.0F, 1.0F, alpha)
-                    .setLight(LightTexture.FULL_BRIGHT);
+                    .color(1.0F, 1.0F, 1.0F, alpha)
+                    .uv2(LightTexture.FULL_BRIGHT)
+                    .endVertex();
             }
         }
-        return b.buildOrThrow();
     }
 
-    private static MeshData paintedCube(int size) {
+    private static void paintedCube(BufferBuilder b, int size) {
         float inset = 0.5F / size;
-        BufferBuilder b = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.NEW_ENTITY);
         for (int f = 0; f < 6; f++) {
             float[] face = FACES[f];
             for (int c = 0; c < 4; c++) {
@@ -322,16 +328,16 @@ public final class HalleySky {
                 float t = c >= 2 ? 1.0F : -1.0F;
                 float u = (f % 3 + inset + (s + 1.0F) * 0.5F * (1.0F - 2.0F * inset)) / 3.0F;
                 float v = ((float) (f / 3) + inset + (t + 1.0F) * 0.5F * (1.0F - 2.0F * inset)) / 2.0F;
-                b.addVertex(SIZE * (face[0] + face[3] * s + face[6] * t), SIZE * (face[1] + face[4] * s + face[7] * t),
+                b.vertex(SIZE * (face[0] + face[3] * s + face[6] * t), SIZE * (face[1] + face[4] * s + face[7] * t),
                         SIZE * (face[2] + face[5] * s + face[8] * t))
-                    .setColor(1.0F, 1.0F, 1.0F, 1.0F)
-                    .setUv(u, v)
-                    .setOverlay(OverlayTexture.NO_OVERLAY)
-                    .setLight(LightTexture.FULL_BRIGHT)
-                    .setNormal(0.0F, 1.0F, 0.0F);
+                    .color(1.0F, 1.0F, 1.0F, 1.0F)
+                    .uv(u, v)
+                    .overlayCoords(OverlayTexture.NO_OVERLAY)
+                    .uv2(LightTexture.FULL_BRIGHT)
+                    .normal(0.0F, 1.0F, 0.0F)
+                    .endVertex();
             }
         }
-        return b.buildOrThrow();
     }
 
     private static void cube(BufferBuilder b) {
@@ -347,7 +353,7 @@ public final class HalleySky {
         };
         for (float[] f : faces) {
             for (int i = 0; i < 12; i += 3) {
-                b.addVertex(f[i], f[i + 1], f[i + 2]);
+                b.vertex(f[i], f[i + 1], f[i + 2]).endVertex();
             }
         }
     }

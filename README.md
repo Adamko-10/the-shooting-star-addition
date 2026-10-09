@@ -8,9 +8,9 @@ crosshair.
 
 ![SS-05 Halley in game](docs/screenshots/overview.jpg)
 
-> **Compatibility:** made for **The Shooting Star [Demo] 1.2.2** on **NeoForge, Minecraft 1.21.1**, and it works
-> with **The Shooting Star 1.3** too. The Shooting Star itself also comes for Forge, Fabric and other Minecraft
-> versions; this addon does not: it only works on NeoForge 1.21.1. See
+> **Compatibility:** this branch (`forge-1.20.1`) is the **Forge, Minecraft 1.20.1** version, made for **The Shooting
+> Star [Demo] 1.3.1** (its Forge file, which carries the 1.20.1 build). Other versions of the addon: NeoForge 1.21.1
+> (`main`) and Fabric 26.3 (`fabric-26.3`). See
 > [Will it work with future versions?](#will-it-work-with-future-versions-of-the-shooting-star) below.
 
 ## SS-05 · Halley
@@ -27,7 +27,7 @@ land round it.
   round the sun (or the moon), clearing as the crystals settle.
 - **You can't miss it**: outside the cutscene the comet is drawn bigger, and an arrow at the edge of the screen points
   at it while it's out of view.
-- **Works with shader packs** (Iris, e.g. Complementary): with one on, SS-05 paints its comet and sky onto textures
+- **Works with shader packs** (Oculus, the Forge port of Iris, e.g. with Complementary): with one on, SS-05 paints its comet and sky onto textures
   and draws them the way the pack expects, and the dark sky becomes the pack's own night: the sky's clock races through
   a dusk into the night as the comet comes in, and on through a dawn after the impact. Only what you see changes, never
   the world's actual time.
@@ -52,9 +52,9 @@ land round it.
 
 ## Installing
 
-1. Minecraft **1.21.1** with **NeoForge 21.1.x**.
-2. **The Shooting Star [Demo] 1.2.2 or 1.3** (its NeoForge 1.21.1 file).
-3. `shooting_star_addition-1.1.0.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
+1. Minecraft **1.20.1** with **Forge 47.1 or newer** (47.4.x recommended).
+2. **The Shooting Star [Demo] 1.3.1** (its Forge file).
+3. `shooting_star_addition-1.1.0+1.20.1.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
 
 In game: hold the Stellar Remote, press **O** (or pick SS-05 in the remote's menu, **H**), aim at the ground and
@@ -90,7 +90,7 @@ Each player can set these for themselves; they only change what you see.
 | `extra_effects`  | true    | Fragments, sparks, ice from the crater, cracks, the shock wall, the heart's beam, glittering air. |
 | `world_flashes`  | true    | The whole world lights up for an instant at touchdown and impact. Turn off if flashing light bothers you. |
 | `comet_marker`   | true    | The arrow at the edge of the screen pointing at the comet while it's out of view. |
-| `shader_packs`   | AUTO    | How it's drawn with a shader pack: `AUTO` switches to the shader-pack way whenever Iris has a pack on, `ALWAYS` uses it all the time, `NEVER` doesn't (the comet and the sky then won't show under a shader pack). |
+| `shader_packs`   | AUTO    | How it's drawn with a shader pack: `AUTO` switches to the shader-pack way whenever Oculus has a pack on, `ALWAYS` uses it all the time, `NEVER` doesn't (the comet and the sky then won't show under a shader pack). |
 
 ## Will it work with future versions of The Shooting Star?
 
@@ -98,16 +98,16 @@ Honestly: maybe, maybe not. The Shooting Star has no official way for other mods
 attaches itself to some of its internals (the remote's skill list, its effect system and a few of its classes), and
 The Shooting Star is updated often. That means:
 
-- **Small updates** that don't touch those parts should keep working: the addon accepts The Shooting Star 1.2 and
-  anything newer, and 1.3 works.
+- **Small updates** that don't touch those parts should keep working: the addon accepts The Shooting Star 1.3.1 and
+  anything newer.
 - **Updates that change those parts** won't crash your game. The addon checks everything before it attaches, and if
   something has moved it switches SS-05 off, logs why, and tells server operators in chat. It stays off until this
   addon is updated. The optional touches (the remote's cover animation, the cutscene overlay, the raised arm) quietly
   switch themselves off instead.
 - **If The Shooting Star changes its mod id** (for example when it stops being a demo), this addon won't load until
   it is updated.
-- **Other mod loaders** (Forge, Fabric) and **other Minecraft versions** are not supported. They would each need
-  their own port.
+- **Other mod loaders and Minecraft versions** each need their own build: this one is Forge 1.20.1; there are also
+  NeoForge 1.21.1 and Fabric 26.3 versions.
 
 ## Plans
 
@@ -122,16 +122,23 @@ welcome in the issues.
 
 ### Building
 
-Requires JDK 21. Put The Shooting Star's jar in `libs/` (see `libs/README.txt`), then:
+Gradle runs on JDK 17-21 and fetches JDK 17 for the build itself. Put The Shooting Star's Forge jar in `libs/` (see
+`libs/README.txt`); the build remaps it to Mojang names for compiling and for the dev runs (ModDevGradle Legacy), then:
 
-- `./gradlew build` → `build/libs/shooting_star_addition-<version>.jar`
-- `./gradlew runClient` / `./gradlew runServer` → a dev game with both mods loaded
+- `./gradlew build` → `build/libs/shooting_star_addition-<version>.jar`, reobfuscated to SRG names with a mixin
+  refmap: that's the one to release (`build/devlibs/` holds the dev-named jar, not for release)
+- `./gradlew runServer` → a dev server with both mods loaded
+- `./gradlew runServerTest` → a dev server that casts SS-05 for real in a fresh world, checks what it did and stops
+  (`src/servertest`, not part of the addon's jar; look for `[SS05TEST]` in `run/servertest/logs/latest.log`)
+- `./gradlew runClient` → a dev client. **The Shooting Star's 1.20.1 client mixins don't run in a dev client** (they
+  name their targets in SRG, with no refmap, and Mixin can't map their `@Shadow`s to Mojang names), so it crashes on
+  start. Test client-side things with the built jar in a normal Forge 1.20.1 install instead.
 
 ### When The Shooting Star updates
 
 Only the files in `compat/` touch The Shooting Star; nothing else imports it. So:
 
-1. Delete the old jar from `libs/`, put the new one in, and run `./gradlew build`.
+1. Delete the old jar from `libs/`, put the new one in, and run `./gradlew build` (then `./gradlew runServerTest`).
    - If its version scheme changed, widen `shooting_star_version_range` in `gradle.properties`.
    - If its mod id changed (e.g. once it is no longer a demo), set `shooting_star_mod_id` there too.
 2. **It compiles** — start the game. The log should say
@@ -167,7 +174,7 @@ If the remote gains more built-in skills, SS-05 simply joins after them.
 | The look: colours, comet size, tails | top of `client/render/CometVisuals.java`; shapes in `halley_glow.fsh` |
 | The extras: fragments, ice from the crater, cracks, shock wall, beam | top of `client/render/CometExtras.java` |
 | The sky: when it darkens, the aurora, the haze | `sky()` in `client/HalleyFx.java` (timing); `halley_sky.fsh` (the look) |
-| Shader packs (Iris) | `client/render/ShaderPacks.java` (when), `GlowAtlas.java` (the painted shapes), `paint()` in `client/sky/HalleySky.java` |
+| Shader packs (Oculus) | `client/render/ShaderPacks.java` (when), `GlowAtlas.java` (the painted shapes), `paint()` in `client/sky/HalleySky.java` |
 | Sounds, particles, screen effects, HUD | `client/HalleyFx.java`, `client/HalleyHud.java` |
 | The cutscene | `client/film/HalleyStoryboard.java` (one block per shot) |
 | Textures, menu card, thumbnail, sounds themselves | `art/` (generator scripts — see `art/README.md`) |
@@ -186,7 +193,8 @@ src/main/java/dev/ss05/halley/
   client/                what it looks and sounds like (renderer, effects, HUD, cutscene)
   client/sky/            the sky during a strike (night, aurora, the ice haze)
 src/main/resources/      shader, textures, sounds, language file, data
-src/main/templates/      neoforge.mods.toml (filled in from gradle.properties)
+src/main/templates/      META-INF/mods.toml (filled in from gradle.properties)
+src/servertest/          the dev-only game-logic test (./gradlew runServerTest)
 art/                     scripts that generate the textures, thumbnail and sounds
 docs/screenshots/        in-game screenshots
 ```

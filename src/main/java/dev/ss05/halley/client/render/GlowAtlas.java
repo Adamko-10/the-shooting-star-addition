@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -14,7 +15,6 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import org.joml.Matrix4f;
-import org.joml.Matrix4fStack;
 
 /**
  * Every shape of the {@code halley_glow} shader painted onto one texture, for drawing SS-05's light while a shader
@@ -79,9 +79,9 @@ public final class GlowAtlas {
         TEXTURE.begin(all);
         RenderSystem.backupProjectionMatrix();
         RenderSystem.setProjectionMatrix(new Matrix4f().setOrtho(0.0F, COLUMNS, 0.0F, ROWS, -1.0F, 1.0F), VertexSorting.ORTHOGRAPHIC_Z);
-        Matrix4fStack view = RenderSystem.getModelViewStack();
-        view.pushMatrix();
-        view.identity();
+        PoseStack view = RenderSystem.getModelViewStack();
+        view.pushPose();
+        view.setIdentity();
         RenderSystem.applyModelViewMatrix();
         RenderSystem.disableBlend();
         RenderSystem.disableDepthTest();
@@ -90,7 +90,8 @@ public final class GlowAtlas {
         RenderSystem.setShader(() -> glow);
         glow.safeGetUniform("Bake").set(1.0F);
 
-        BufferBuilder b = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        BufferBuilder b = Tesselator.getInstance().getBuilder();
+        b.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
         int drawn = 0;
         for (int i = 0; i < TILES.length; i++) {
             int shape = TILES[i][0];
@@ -101,23 +102,23 @@ public final class GlowAtlas {
             float y = (float) (i / COLUMNS);
             float u = shape * 4.0F;
             float v = TILES[i][1] * 4.0F;
-            b.addVertex(x, y, 0.0F).setUv(u, v).setColor(1.0F, 1.0F, 1.0F, 1.0F);
-            b.addVertex(x + 1.0F, y, 0.0F).setUv(u + 2.0F, v).setColor(1.0F, 1.0F, 1.0F, 1.0F);
-            b.addVertex(x + 1.0F, y + 1.0F, 0.0F).setUv(u + 2.0F, v + 2.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F);
-            b.addVertex(x, y + 1.0F, 0.0F).setUv(u, v + 2.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F);
+            b.vertex(x, y, 0.0F).uv(u, v).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
+            b.vertex(x + 1.0F, y, 0.0F).uv(u + 2.0F, v).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
+            b.vertex(x + 1.0F, y + 1.0F, 0.0F).uv(u + 2.0F, v + 2.0F).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
+            b.vertex(x, y + 1.0F, 0.0F).uv(u, v + 2.0F).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
             drawn++;
         }
         if (drawn > 0) {
-            BufferUploader.drawWithShader(b.buildOrThrow());
+            BufferUploader.drawWithShader(b.end());
         } else {
-            b.build();
+            b.end();
         }
 
         glow.safeGetUniform("Bake").set(0.0F);
         RenderSystem.depthMask(true);
         RenderSystem.enableDepthTest();
         RenderSystem.enableCull();
-        view.popMatrix();
+        view.popPose();
         RenderSystem.applyModelViewMatrix();
         RenderSystem.restoreProjectionMatrix();
         TEXTURE.end();
@@ -140,12 +141,13 @@ public final class GlowAtlas {
             }
             float tu = (tile % COLUMNS + INSET + lx * (1.0F - 2.0F * INSET)) / COLUMNS;
             float tv = ((float) (tile / COLUMNS) + INSET + ly * (1.0F - 2.0F * INSET)) / ROWS;
-            out.addVertex(x, y, z)
-                .setColor(r * a, g * a, b * a, 1.0F)
-                .setUv(tu, tv)
-                .setOverlay(OverlayTexture.NO_OVERLAY)
-                .setLight(LightTexture.FULL_BRIGHT)
-                .setNormal(0.0F, 1.0F, 0.0F);
+            out.vertex(x, y, z)
+                .color(r * a, g * a, b * a, 1.0F)
+                .uv(tu, tv)
+                .overlayCoords(OverlayTexture.NO_OVERLAY)
+                .uv2(LightTexture.FULL_BRIGHT)
+                .normal(0.0F, 1.0F, 0.0F)
+                .endVertex();
         };
     }
 }

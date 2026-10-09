@@ -18,7 +18,7 @@ abstract class PlayerModelMixin {
     @Inject(method = "setupAnim(Lnet/minecraft/world/entity/LivingEntity;FFFFF)V", at = @At("TAIL"), require = 0)
     private void ss05halley$raiseRemote(LivingEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks,
                                         float netHeadYaw, float headPitch, CallbackInfo ci) {
-        float[] pose = HalleyFx.armPoseFor(entity.getId(), Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true));
+        float[] pose = HalleyFx.armPoseFor(entity.getId(), Minecraft.getInstance().getPartialTick());
         if (pose == null || pose[3] <= 0.0F) {
             return;
         }

@@ -1,34 +1,34 @@
 package dev.ss05.halley;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 /**
  * Every tunable number of SS-05, in one place.
  *
- * <p>NeoForge writes these to {@code config/shooting_star_addition-common.toml} the first time the game starts. Edit that file
+ * <p>Forge writes these to {@code config/shooting_star_addition-common.toml} the first time the game starts. Edit that file
  * (or change the defaults here and rebuild) - nothing else in the addon hard-codes these values.
  *
  * <p>The server's values decide everything: the strike reads them when it is fired and sends the sizes to every
  * client with the strike, so players with a different config still see the right crater.
  */
 public final class HalleyConfig {
-    public static final ModConfigSpec SPEC;
+    public static final ForgeConfigSpec SPEC;
 
-    private static final ModConfigSpec.IntValue COOLDOWN_SECONDS;
-    private static final ModConfigSpec.IntValue TRENCH_LENGTH;
-    private static final ModConfigSpec.IntValue TRENCH_WIDTH;
-    private static final ModConfigSpec.IntValue TRENCH_DEPTH;
-    private static final ModConfigSpec.IntValue CRATER_RADIUS;
-    private static final ModConfigSpec.IntValue CRATER_DEPTH;
-    private static final ModConfigSpec.DoubleValue BLAST_REACH;
-    private static final ModConfigSpec.IntValue REACH;
-    private static final ModConfigSpec.BooleanValue CARVE_TERRAIN;
-    private static final ModConfigSpec.BooleanValue LEAVE_COMET_HEART;
-    private static final ModConfigSpec.BooleanValue FROST_RAYS;
-    private static final ModConfigSpec.BooleanValue EVACUATE_CREATIVE;
+    private static final ForgeConfigSpec.IntValue COOLDOWN_SECONDS;
+    private static final ForgeConfigSpec.IntValue TRENCH_LENGTH;
+    private static final ForgeConfigSpec.IntValue TRENCH_WIDTH;
+    private static final ForgeConfigSpec.IntValue TRENCH_DEPTH;
+    private static final ForgeConfigSpec.IntValue CRATER_RADIUS;
+    private static final ForgeConfigSpec.IntValue CRATER_DEPTH;
+    private static final ForgeConfigSpec.DoubleValue BLAST_REACH;
+    private static final ForgeConfigSpec.IntValue REACH;
+    private static final ForgeConfigSpec.BooleanValue CARVE_TERRAIN;
+    private static final ForgeConfigSpec.BooleanValue LEAVE_COMET_HEART;
+    private static final ForgeConfigSpec.BooleanValue FROST_RAYS;
+    private static final ForgeConfigSpec.BooleanValue EVACUATE_CREATIVE;
 
     static {
-        ModConfigSpec.Builder b = new ModConfigSpec.Builder();
+        ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
 
         b.comment("SS-05 Halley: a comet called down onto your crosshair. It comes in low over the horizon in front of",
                 "you, touches down beyond the mark, ploughs a trench toward you and detonates on the mark.").push("skill");
