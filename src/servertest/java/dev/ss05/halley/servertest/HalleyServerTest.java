@@ -1,13 +1,14 @@
 package dev.ss05.halley.servertest;
 
 import com.mojang.logging.LogUtils;
-import dev.aek.shootingstardemo.mc1201.magic.Casting;
-import dev.aek.shootingstardemo.mc1201.magic.Skill;
-import dev.aek.shootingstardemo.mc1201.magic.SkillSet;
-import dev.aek.shootingstardemo.mc1201.registry.ModItems;
-import dev.aek.shootingstardemo.mc1201.registry.ModSkills;
-import dev.aek.shootingstardemo.mc1201.spell.ActiveSpell;
-import dev.aek.shootingstardemo.mc1201.spell.SpellEngine;
+import cyou.rimuru.shootingstardemo.mc1201.magic.Casting;
+import cyou.rimuru.shootingstardemo.mc1201.magic.Skill;
+import cyou.rimuru.shootingstardemo.mc1201.magic.SkillSet;
+import cyou.rimuru.shootingstardemo.mc1201.magic.Tuning;
+import cyou.rimuru.shootingstardemo.mc1201.registry.ModItems;
+import cyou.rimuru.shootingstardemo.mc1201.registry.ModSkills;
+import cyou.rimuru.shootingstardemo.mc1201.spell.ActiveSpell;
+import cyou.rimuru.shootingstardemo.mc1201.spell.SpellEngine;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.HalleyPlan;
@@ -227,7 +228,7 @@ public final class HalleyServerTest {
         this.record("skill_index_available", this.skillIndexAtCast >= 0, "index=" + this.skillIndexAtCast);
         try {
             // The same call The Shooting Star's own cast-packet handler makes (CastSkillPayload -> Casting.request).
-            Casting.request(this.caster, this.skillIndexAtCast);
+            this.request(this.skillIndexAtCast);
             this.record("cast_request_no_exception", true, "");
         } catch (Throwable ex) {
             this.record("cast_request_no_exception", false, "threw " + ex);
@@ -283,7 +284,7 @@ public final class HalleyServerTest {
 
         try {
             int before = this.countActive();
-            Casting.request(this.caster, this.skillIndexAtCast);
+            this.request(this.skillIndexAtCast);
             int after = this.countActive();
             int remaining = Casting.remaining(this.caster, StarBridge.SKILL);
             int expected = HalleyConfig.tuning().cooldownTicks();
@@ -525,5 +526,11 @@ public final class HalleyServerTest {
     private void finish() {
         LOG.info("[SS05TEST] SUMMARY {}/{} passed", this.passCount, this.totalCount);
         this.server.halt(false);
+    }
+
+    /** The cast packet's path (The Shooting Star 1.3.2+ sends the remote's gauge with it): the untuned defaults. */
+    private void request(int skillIndex) {
+        Tuning tuning = Tuning.initial(SkillSet.byIndex(skillIndex));
+        Casting.request(this.caster, skillIndex, tuning.power(), tuning.damage(), tuning.speed());
     }
 }

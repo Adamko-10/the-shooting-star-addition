@@ -8,8 +8,8 @@ crosshair.
 
 ![SS-05 Halley in game](docs/screenshots/overview.jpg)
 
-> **Compatibility:** this branch (`forge-1.20.1`) is the **Forge, Minecraft 1.20.1** version, made for **The Shooting
-> Star [Demo] 1.3.1** (its Forge file, which carries the 1.20.1 build). Other versions of the addon: NeoForge 1.21.1
+> **Compatibility:** this branch (`forge-1.20.1`) is the **Forge, Minecraft 1.20.1** version, for **The Shooting
+> Star [Demo] 1.3.3 or newer** (its Forge file, which carries the 1.20.1 build; tested with 1.3.4) (1.3.3 renamed The Shooting Star's code, so older versions of the addon can't attach to it, and this one can't attach to anything before 1.3.3). Other versions of the addon: NeoForge 1.21.1
 > (`main`) and Fabric 26.3 (`fabric-26.3`). See
 > [Will it work with future versions?](#will-it-work-with-future-versions-of-the-shooting-star) below.
 
@@ -53,8 +53,8 @@ land round it.
 ## Installing
 
 1. Minecraft **1.20.1** with **Forge 47.1 or newer** (47.4.x recommended).
-2. **The Shooting Star [Demo] 1.3.1** (its Forge file).
-3. `shooting_star_addition-1.1.0+1.20.1.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
+2. **The Shooting Star [Demo] 1.3.3 or newer** (its Forge file).
+3. `shooting_star_addition-1.1.1+1.20.1.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
 
 In game: hold the Stellar Remote, press **O** (or pick SS-05 in the remote's menu, **H**), aim at the ground and
@@ -98,7 +98,7 @@ Honestly: maybe, maybe not. The Shooting Star has no official way for other mods
 attaches itself to some of its internals (the remote's skill list, its effect system and a few of its classes), and
 The Shooting Star is updated often. That means:
 
-- **Small updates** that don't touch those parts should keep working: the addon accepts The Shooting Star 1.3.1 and
+- **Small updates** that don't touch those parts should keep working: the addon accepts The Shooting Star 1.3.3 and
   anything newer.
 - **Updates that change those parts** won't crash your game. The addon checks everything before it attaches, and if
   something has moved it switches SS-05 off, logs why, and tells server operators in chat. It stays off until this
