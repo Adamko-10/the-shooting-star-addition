@@ -89,13 +89,13 @@ legacyForge {
     }
 }
 
-// Each test run starts from a fresh world and the test's own server.properties and addon config (src/servertest/run).
+// Each test run starts from a fresh world and the test's own server.properties and addon config (src/servertest/server-setup).
 // The Minecraft EULA is not accepted here: put eula.txt (eula=true) in run/servertest yourself.
 tasks.matching { it.name == 'runServerTest' }.configureEach {
     doFirst {
         delete 'run/servertest/world'
         copy {
-            from 'src/servertest/run'
+            from 'src/servertest/server-setup'
             into 'run/servertest'
         }
     }

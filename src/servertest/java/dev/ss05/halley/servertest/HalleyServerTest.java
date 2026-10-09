@@ -58,7 +58,7 @@ public final class HalleyServerTest {
     private static final double CAST_DISTANCE = 220.0;
     // The mark is wherever The Shooting Star's own aim-ground logic puts it, at most "reach" from the player, and the
     // touchdown point a further trench_length past it. The test's run config shrinks "reach" to 48 (see
-    // src/servertest/run/config/shooting_star_addition-common.toml, copied into run/servertest before each run) so
+    // src/servertest/server-setup/config/shooting_star_addition-common.toml, copied into run/servertest before each run) so
     // the loaded arena stays a manageable square; the strike's own sizes (trench/crater/blast) are the shipped defaults.
     private static final int MIN_CHUNK_X = -28;
     private static final int MAX_CHUNK_X = 28;

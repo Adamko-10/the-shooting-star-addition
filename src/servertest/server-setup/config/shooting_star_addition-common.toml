@@ -1,0 +1,49 @@
+
+#SS-05 Halley: a comet called down onto your crosshair. It comes in low over the horizon in front of
+#you, touches down beyond the mark, ploughs a trench toward you and detonates on the mark.
+[skill]
+	#Seconds before SS-05 can be fired again (the other Stellar Remote skills use 60).
+	#Creative mode always uses 1 second, like the other skills.
+	#Range: 1 ~ 3600
+	cooldown_seconds = 60
+	#How far away (in blocks) your crosshair can place the mark.
+	#Range: 32 ~ 1024
+	reach = 48
+
+#The shape of the scar. Bigger numbers mean more blocks to cut, so very large values cost more time
+#on the server tick the comet lands.
+[impact]
+	#Length of the trench the comet ploughs before it reaches the mark, in blocks.
+	#Range: 32 ~ 640
+	trench_length = 240
+	#Width of the trench where it meets the crater, in blocks (it starts narrower).
+	#Range: 8 ~ 64
+	trench_width = 30
+	#Depth of the trench at its deepest, in blocks.
+	#Range: 2 ~ 64
+	trench_depth = 22
+	#Radius of the crater on the mark, in blocks. Everything inside it is erased.
+	#Range: 12 ~ 128
+	crater_radius = 56
+	#Depth of the crater, in blocks.
+	#Range: 4 ~ 96
+	crater_depth = 24
+	#How far the shock wave throws, hurts and frosts things, as a multiple of the crater radius.
+	#Range: 1.0 ~ 5.0
+	blast_reach = 2.6
+
+#What the strike leaves behind.
+[world]
+	#Cut the trench and crater into the world. If false the strike is purely visual and
+	#only hurts creatures (handy on servers that protect their terrain).
+	carve_terrain = true
+	#Leave the glowing comet heart crystal in the crater and the frozen trail down the trench.
+	leave_comet_heart = true
+	#Paint rays of snow out from the crater, like ejecta round a fresh lunar crater.
+	frost_rays = true
+
+#Safety.
+[safety]
+	#Lift a creative-mode caster clear if they stand inside the crater, like the other skills do.
+	evacuate_creative_caster = true
+
