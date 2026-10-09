@@ -3,7 +3,7 @@ package dev.ss05.halley;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 /**
- * Every tunable number of SS-05, in one place.
+ * Every tunable number of SS-05, in one place (SS-06's are in {@link MoonConfig}, in the same file).
  *
  * <p>NeoForge writes these to {@code config/shooting_star_addition-common.toml} the first time the game starts. Edit that file
  * (or change the defaults here and rebuild) - nothing else in the addon hard-codes these values.

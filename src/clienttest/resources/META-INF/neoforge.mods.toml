@@ -1,0 +1,44 @@
+# Dev-only mod: the in-game screenshot harness used by the main session to look at an SS-05/SS-06 effect without a
+# human (see src/clienttest). It only does anything when the JVM system property ss05.clienttest is set, which the
+# 'clientTest' Gradle run does. Never built into the release jar, never loaded by the normal runs. Unlike
+# src/main/templates/META-INF/neoforge.mods.toml this one is static - there is no build to keep it in sync with.
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "All Rights Reserved"
+
+[[mods]]
+modId = "ss05_clienttest"
+version = "1.0.0"
+displayName = "SS-05 Client Test Harness"
+authors = "adamko_10"
+description = '''Dev-only automated screenshot harness for The Shooting Star Addition. Not a real mod - never
+shipped, never loaded outside the clientTest Gradle run.'''
+
+[[dependencies.ss05_clienttest]]
+modId = "neoforge"
+type = "required"
+versionRange = "[4,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.ss05_clienttest]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.21.2)"
+ordering = "NONE"
+side = "BOTH"
+
+# Loaded alongside both of these by the clientTest run; this mod drives them, so it must come after.
+[[dependencies.ss05_clienttest]]
+modId = "shooting_star_addition"
+type = "required"
+versionRange = "[1.1.1,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.ss05_clienttest]]
+modId = "shooting_star_demo"
+type = "required"
+versionRange = "[1.3.3,)"
+ordering = "AFTER"
+side = "BOTH"

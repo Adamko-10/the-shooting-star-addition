@@ -1,6 +1,7 @@
 package dev.ss05.halley.compat.mixin;
 
 import dev.ss05.halley.client.HalleyFx;
+import dev.ss05.halley.client.luna.MoonFx;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
@@ -12,13 +13,20 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** Optional: the caster raises the remote to the sky as the mark lands, then holds it out until the strike is over. */
+/**
+ * Optional: the caster raises the remote to the sky as the mark lands (SS-05) or as the alarm sounds (SS-06), then
+ * holds it out until the strike is over.
+ */
 @Mixin(PlayerModel.class)
 abstract class PlayerModelMixin {
     @Inject(method = "setupAnim(Lnet/minecraft/world/entity/LivingEntity;FFFFF)V", at = @At("TAIL"), require = 0)
     private void ss05halley$raiseRemote(LivingEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks,
                                         float netHeadYaw, float headPitch, CallbackInfo ci) {
-        float[] pose = HalleyFx.armPoseFor(entity.getId(), Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true));
+        float partial = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
+        float[] pose = HalleyFx.armPoseFor(entity.getId(), partial);
+        if (pose == null) {
+            pose = MoonFx.armPoseFor(entity.getId(), partial);
+        }
         if (pose == null || pose[3] <= 0.0F) {
             return;
         }

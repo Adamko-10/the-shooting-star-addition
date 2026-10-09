@@ -102,5 +102,61 @@
         "name": "shooting_star_addition:halley_burst"
       }
     ]
+  },
+  "luna_alarm": {
+    "subtitle": "subtitles.shooting_star_addition.luna_alarm",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_alarm"
+      }
+    ]
+  },
+  "luna_crack": {
+    "subtitle": "subtitles.shooting_star_addition.luna_crack",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_crack"
+      }
+    ]
+  },
+  "luna_fall": {
+    "subtitle": "subtitles.shooting_star_addition.luna_fall",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_fall"
+      }
+    ]
+  },
+  "luna_entry": {
+    "subtitle": "subtitles.shooting_star_addition.luna_entry",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_entry"
+      }
+    ]
+  },
+  "luna_impact": {
+    "subtitle": "subtitles.shooting_star_addition.luna_impact",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_impact"
+      }
+    ]
+  },
+  "luna_settle": {
+    "subtitle": "subtitles.shooting_star_addition.luna_settle",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_settle"
+      }
+    ]
+  },
+  "luna_debris": {
+    "subtitle": "subtitles.shooting_star_addition.luna_debris",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_debris"
+      }
+    ]
   }
 }

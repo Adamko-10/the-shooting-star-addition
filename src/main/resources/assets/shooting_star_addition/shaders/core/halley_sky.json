@@ -8,6 +8,11 @@
   "uniforms": [
     { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
     { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+    { "name": "NightZenith", "type": "float", "count": 3, "values": [ 0.010, 0.017, 0.055 ] },
+    { "name": "NightMiddle", "type": "float", "count": 3, "values": [ 0.022, 0.045, 0.125 ] },
+    { "name": "NightHorizon", "type": "float", "count": 3, "values": [ 0.055, 0.110, 0.215 ] },
+    { "name": "VeilHorizon", "type": "float", "count": 3, "values": [ 0.56, 0.76, 0.90 ] },
+    { "name": "VeilTop", "type": "float", "count": 3, "values": [ 0.30, 0.50, 0.76 ] },
     { "name": "SkyClock", "type": "float", "count": 1, "values": [ 0.0 ] },
     { "name": "Night", "type": "float", "count": 1, "values": [ 0.0 ] },
     { "name": "Stars", "type": "float", "count": 1, "values": [ 0.0 ] },

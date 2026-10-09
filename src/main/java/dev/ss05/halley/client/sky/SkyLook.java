@@ -19,9 +19,17 @@ import net.minecraft.world.phys.Vec3;
  * @param darkLand  how far the land's daylight is turned down
  * @param seed      picks this strike's stars and aurora
  * @param timeShift ticks to wind the sky's clock on by, while a shader pack draws the night instead (0..24000)
+ * @param palette   which colours {@code night} and {@code veil} are painted in: {@link #PALETTE_HALLEY} (icy blue,
+ *                  SS-05's own) or {@link #PALETTE_LUNA} (SS-06's sick red-orange)
  */
 public record SkyLook(float night, float stars, float aurora, float veil, float halo, float flash, Vec3 cometDir,
-                      float cometGlow, float cometHeat, Vec3 tailDir, float darkLand, float seed, float timeShift) {
+                      float cometGlow, float cometHeat, Vec3 tailDir, float darkLand, float seed, float timeShift,
+                      int palette) {
+    /** SS-05 Halley's own night and veil: cold navy blue going dark, a pale icy haze after the impact. */
+    public static final int PALETTE_HALLEY = 0;
+    /** SS-06 Luna's: a sick red-orange night under the alarm, a warm dusty haze in the aftermath. */
+    public static final int PALETTE_LUNA = 1;
+
     /** How much of the vanilla sky this covers. */
     public float cover() {
         return 1.0F - (1.0F - this.night) * (1.0F - this.veil * 0.75F);

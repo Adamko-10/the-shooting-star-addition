@@ -2,6 +2,9 @@ package dev.ss05.halley.client;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import dev.ss05.halley.HalleyAddon;
+import dev.ss05.halley.client.luna.MoonFx;
+import dev.ss05.halley.client.luna.render.MoonRenderer;
+import dev.ss05.halley.client.luna.render.MoonSphere;
 import dev.ss05.halley.client.render.CometRenderer;
 import dev.ss05.halley.client.render.GlowAtlas;
 import dev.ss05.halley.client.render.HalleyRenderTypes;
@@ -28,20 +31,26 @@ public final class HalleyClient {
     public static void init(IEventBus modBus) {
         modBus.addListener(RegisterShadersEvent.class, HalleyClient::registerShaders);
         NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, CometRenderer::render);
+        NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, MoonRenderer::render);
+        NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, MoonSphere::renderSolid);
         NeoForge.EVENT_BUS.addListener(RenderFrameEvent.Pre.class, HalleyClient::frameStart);
         NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, HalleySky::render);
         NeoForge.EVENT_BUS.addListener(ViewportEvent.ComputeFogColor.class, HalleySky::fog);
-        NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingOut.class, event -> HalleyFx.clearAll());
+        NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingOut.class, event -> {
+            HalleyFx.clearAll();
+            MoonFx.clearAll();
+        });
     }
 
     /**
      * Once a frame, before anything is drawn: how this frame is drawn (with or without a shader pack), the sky, and
-     * with a shader pack on, SS-05's light painted onto textures while its own shaders can still run.
+     * with a shader pack on, SS-05's and SS-06's light painted onto textures while their own shaders can still run.
      */
     private static void frameStart(RenderFrameEvent.Pre event) {
         ShaderPacks.update();
         HalleySky.update(event);
-        if (ShaderPacks.active() && Minecraft.getInstance().level != null && !HalleyFx.active().isEmpty()) {
+        if (ShaderPacks.active() && Minecraft.getInstance().level != null
+            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty())) {
             GlowAtlas.paint(HalleyRenderTypes.shader());
             HalleySky.paint(event.getPartialTick().getGameTimeDeltaPartialTick(true));
         }

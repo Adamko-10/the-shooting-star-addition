@@ -12,6 +12,7 @@ import com.mojang.blaze3d.vertex.VertexSorting;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.client.HalleyFx;
+import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.render.BakedTexture;
 import dev.ss05.halley.client.render.HalleyRenderTypes;
 import dev.ss05.halley.client.render.ShaderPacks;
@@ -48,10 +49,16 @@ import org.joml.Matrix4fStack;
  * in the client config.
  */
 public final class HalleySky {
-    /** The dark sky's colour at the horizon (HORIZON in halley_sky.fsh): the fog takes it on. */
-    private static final Vec3 HORIZON = new Vec3(0.055, 0.110, 0.215);
-    /** The icy haze's colour at the horizon (veilSky in halley_sky.fsh at the horizon). */
-    private static final Vec3 VEIL_HORIZON = new Vec3(0.63, 0.84, 0.98);
+    /** The dark sky's colours, zenith/middle/horizon, by {@link SkyLook#palette()} (matches halley_sky.fsh's defaults). */
+    private static final Vec3[] NIGHT_ZENITH = {new Vec3(0.010, 0.017, 0.055), new Vec3(0.050, 0.010, 0.006)};
+    private static final Vec3[] NIGHT_MIDDLE = {new Vec3(0.022, 0.045, 0.125), new Vec3(0.150, 0.035, 0.012)};
+    private static final Vec3[] NIGHT_HORIZON = {new Vec3(0.055, 0.110, 0.215), new Vec3(0.360, 0.090, 0.020)};
+    /**
+     * The haze's colours by palette (veilSky in halley_sky.fsh): at the horizon ({@code h = 0}) and overhead
+     * ({@code h >= 0.85}). SS-06's is a warm dusty haze instead of SS-05's pale ice.
+     */
+    private static final Vec3[] VEIL_HORIZON_BY_PALETTE = {new Vec3(0.56, 0.76, 0.90), new Vec3(0.62, 0.38, 0.20)};
+    private static final Vec3[] VEIL_TOP = {new Vec3(0.30, 0.50, 0.76), new Vec3(0.42, 0.22, 0.10)};
     /** Half the size of the cube drawn round the camera (well inside the far plane at any render distance). */
     private static final float SIZE = 50.0F;
 
@@ -85,6 +92,17 @@ public final class HalleySky {
         SkyLook best = null;
         float bestStrength = 0.0F;
         for (HalleyFx fx : HalleyFx.active()) {
+            if (fx.finished()) {
+                continue;
+            }
+            SkyLook look = fx.sky(partial, camera);
+            float strength = look.cover() + look.flash() + look.aurora() * 0.2F + look.cometGlow() * 0.1F;
+            if (look.visible() && strength >= bestStrength) {
+                best = look;
+                bestStrength = strength;
+            }
+        }
+        for (MoonFx fx : MoonFx.active()) {
             if (fx.finished()) {
                 continue;
             }
@@ -157,6 +175,12 @@ public final class HalleySky {
         Vec3 light = day ? sun : sun.scale(-1.0);
         float lightUp = day ? smooth((sun.y + 0.05) / 0.15) : 0.55F * smooth((-sun.y - 0.05) / 0.15);
 
+        int palette = Math.max(0, Math.min(NIGHT_ZENITH.length - 1, look.palette()));
+        set(program, "NightZenith", NIGHT_ZENITH[palette]);
+        set(program, "NightMiddle", NIGHT_MIDDLE[palette]);
+        set(program, "NightHorizon", NIGHT_HORIZON[palette]);
+        set(program, "VeilTop", VEIL_TOP[palette]);
+        set(program, "VeilHorizon", VEIL_HORIZON_BY_PALETTE[palette]);
         set(program, "SkyClock", (float) (((level.getGameTime() % 72000L) + partial) / 20.0));
         set(program, "Night", packNight ? 0.0F : look.night());
         set(program, "Stars", look.stars());
@@ -381,13 +405,16 @@ public final class HalleySky {
             return;
         }
         // the same mix as the shader's at the horizon: the night, the haze over it, what's left of the vanilla sky
+        int palette = Math.max(0, Math.min(NIGHT_HORIZON.length - 1, look.palette()));
+        Vec3 horizon = NIGHT_HORIZON[palette];
+        Vec3 veilHorizon = VEIL_HORIZON_BY_PALETTE[palette];
         float keep = 1.0F - look.cover();
         float veil = look.veil() * 0.75F;
         float night = look.night() * (1.0F - veil);
         float flash = look.flash() * 0.6F;
-        event.setRed(Math.min(1.0F, (float) (HORIZON.x * night + VEIL_HORIZON.x * veil) + event.getRed() * keep + flash));
-        event.setGreen(Math.min(1.0F, (float) (HORIZON.y * night + VEIL_HORIZON.y * veil) + event.getGreen() * keep + flash));
-        event.setBlue(Math.min(1.0F, (float) (HORIZON.z * night + VEIL_HORIZON.z * veil) + event.getBlue() * keep + flash));
+        event.setRed(Math.min(1.0F, (float) (horizon.x * night + veilHorizon.x * veil) + event.getRed() * keep + flash));
+        event.setGreen(Math.min(1.0F, (float) (horizon.y * night + veilHorizon.y * veil) + event.getGreen() * keep + flash));
+        event.setBlue(Math.min(1.0F, (float) (horizon.z * night + veilHorizon.z * veil) + event.getBlue() * keep + flash));
     }
 
     /** From compat/mixin: the land's daylight (ClientLevel.getSkyDarken), turned down under the dark sky. */

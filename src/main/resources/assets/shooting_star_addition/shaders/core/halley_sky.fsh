@@ -23,6 +23,13 @@ uniform vec3 TailDir;
 uniform vec3 LightDir;
 uniform float LightUp;
 uniform float Seed;
+// the dark sky's and the haze's colours (HalleySky.java sets these from SkyLook.palette: SS-05's own icy blue, or
+// SS-06 Luna's sick red-orange); HalleySky.HORIZON/VEIL_HORIZON must match NightHorizon/VeilHorizon's defaults
+uniform vec3 NightZenith;
+uniform vec3 NightMiddle;
+uniform vec3 NightHorizon;
+uniform vec3 VeilTop;
+uniform vec3 VeilHorizon;
 // what to draw: 0 = the dome as above; for shader packs, painted onto textures (HalleySky.paint): 1 = only the new
 // sky's colour (premultiplied; how much it covers is drawn separately), 2 = only the light on top
 uniform float Layer;
@@ -31,10 +38,7 @@ in vec3 direction;
 
 out vec4 fragColor;
 
-// ---- The colours of the dark sky (HalleySky.HORIZON must match the horizon one, for the fog). ----------------------
-const vec3 ZENITH = vec3(0.010, 0.017, 0.055);
-const vec3 MIDDLE = vec3(0.022, 0.045, 0.125);
-const vec3 HORIZON = vec3(0.055, 0.110, 0.215);
+// ---- The colours of the dark sky. -----------------------------------------------------------------------------------
 const float HALO_RADIUS = 0.3840;
 
 float hash12(vec2 p) {
@@ -87,9 +91,9 @@ float fbm3(vec3 p) {
 
 vec3 nightSky(vec3 d) {
     float h = d.y;
-    vec3 c = mix(HORIZON, MIDDLE, smoothstep(0.0, 0.3, h));
-    c = mix(c, ZENITH, smoothstep(0.3, 1.0, h));
-    return h < 0.0 ? mix(HORIZON, HORIZON * 0.55, smoothstep(0.0, -0.35, h)) : c;
+    vec3 c = mix(NightHorizon, NightMiddle, smoothstep(0.0, 0.3, h));
+    c = mix(c, NightZenith, smoothstep(0.3, 1.0, h));
+    return h < 0.0 ? mix(NightHorizon, NightHorizon * 0.55, smoothstep(0.0, -0.35, h)) : c;
 }
 
 // the face of the cube a direction goes through, and where on it: a flat grid to scatter stars on
@@ -201,7 +205,7 @@ vec3 cometLight(vec3 d) {
 
 vec3 veilSky(vec3 d) {
     float h = d.y;
-    vec3 c = mix(vec3(0.56, 0.76, 0.90), vec3(0.30, 0.50, 0.76), smoothstep(0.0, 0.85, h));
+    vec3 c = mix(VeilHorizon, VeilTop, smoothstep(0.0, 0.85, h));
     return c + vec3(0.07, 0.08, 0.08) * exp(-max(h, 0.0) * 9.0);
 }
 

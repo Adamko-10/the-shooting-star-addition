@@ -29,6 +29,19 @@ repositories {
     mavenLocal()
 }
 
+// A dev-only source set for the in-game screenshot harness used by the main session to look at an effect without a
+// human (see src/clienttest). It is never built into the release jar and never loaded by the normal runs - only by
+// the 'clientTest' run below, as its own second mod. Default conventions give it src/clienttest/java and
+// src/clienttest/resources.
+sourceSets {
+    clienttest {}
+}
+
+// Captured so the 'runs' block below can restrict exactly which mods each run loads (otherwise every run would load
+// every mod registered in 'mods', including the clienttest-only one).
+var mainMod
+var clientTestMod
+
 neoForge {
     version = project.neo_version
 
@@ -37,41 +50,79 @@ neoForge {
         minecraftVersion = project.parchment_minecraft_version
     }
 
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+        ss05_clienttest {
+            sourceSet(sourceSets.clienttest)
+        }
+    }
+    mainMod = mods.getByName(mod_id)
+    clientTestMod = mods.getByName('ss05_clienttest')
+
     runs {
         client {
             client()
+            loadedMods.set([mainMod])
         }
         server {
             server()
             programArgument '--nogui'
+            loadedMods.set([mainMod])
+        }
+        // Dev-only: ./gradlew runClientTest -Dss05.clienttest.skill=halley ...
+        // Opens its own game directory (run/clienttest) with The Shooting Star, the addon and the harness mod
+        // loaded, and drives a scripted cast + screenshots. See src/clienttest/java for the harness itself.
+        clientTest {
+            client()
+            gameDirectory = layout.projectDirectory.dir('run/clienttest')
+            loadedMods.set([mainMod, clientTestMod])
+            systemProperty 'ss05.clienttest', 'true'
+            // Forwarded straight from the Gradle invocation (-Dss05.clienttest.xxx=... works; Gradle re-applies
+            // -D system properties on every build even when a daemon is reused) so the harness's parameters can
+            // be changed without recompiling.
+            ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat'].each { key ->
+                var propertyName = "ss05.clienttest.${key}"
+                var value = project.findProperty(propertyName) ?: System.getProperty(propertyName)
+                if (value != null) {
+                    systemProperty propertyName, value.toString()
+                }
+            }
         }
         configureEach {
             systemProperty 'forge.logging.markers', 'REGISTRIES'
             logLevel = org.slf4j.event.Level.INFO
         }
     }
-
-    mods {
-        "${mod_id}" {
-            sourceSet(sourceSets.main)
-        }
-    }
 }
+
+// The clienttest source set needs the Minecraft/NeoForge dependencies too (sourceSet(sourceSets.main) above gets
+// these automatically as the plugin's primary source set; any other source set needs this explicitly).
+neoForge.addModdingDependenciesTo(sourceSets.clienttest)
 
 // The Shooting Star is compiled against but never shipped inside this jar (its licence is All Rights Reserved).
 var shootingStar = fileTree(dir: 'libs', include: 'the-shooting-star*.jar')
 
 dependencies {
     compileOnly shootingStar
+    // The harness sees main's classes (StarBridge, etc.) and compiles against The Shooting Star the same way.
+    clienttestImplementation sourceSets.main.output
+    clienttestCompileOnly shootingStar
 }
 
-// The dev runs load mods from run/mods, so The Shooting Star is copied there before every run.
+// The dev runs load mods from a 'mods' folder next to their game directory, so The Shooting Star is copied there
+// before every run. The clientTest run has its own game directory (run/clienttest), so it gets its own copy too.
 var copyShootingStar = tasks.register('copyShootingStar', Copy) {
     from shootingStar
     into layout.projectDirectory.dir('run/mods')
 }
+var copyShootingStarForClientTest = tasks.register('copyShootingStarForClientTest', Copy) {
+    from shootingStar
+    into layout.projectDirectory.dir('run/clienttest/mods')
+}
 tasks.matching { it.name.startsWith('run') }.configureEach {
-    dependsOn copyShootingStar
+    dependsOn copyShootingStar, copyShootingStarForClientTest
 }
 
 tasks.named('compileJava') {
