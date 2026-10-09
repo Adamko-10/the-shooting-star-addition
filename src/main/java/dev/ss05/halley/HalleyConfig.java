@@ -70,6 +70,7 @@ public final class HalleyConfig {
             .define("evacuate_creative_caster", true);
         b.pop();
 
+        MoonConfig.define(b);
         SPEC = b.build();
     }
 
