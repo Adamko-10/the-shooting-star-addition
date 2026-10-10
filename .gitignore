@@ -10,3 +10,5 @@ runs/
 bin/
 # The Shooting Star's jar is the user's own copy, not part of this project
 libs/*.jar
+# Python caches from the art scripts
+__pycache__/
