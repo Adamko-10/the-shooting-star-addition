@@ -39,7 +39,7 @@ land round it.
   card, cooldown and recharge display.
 - Its own cutscene (skippable with the remote's cutscene key), with impact frames, flashes and camera shake in the
   remote's style, and the remote's cover, button and screen animate for it.
-- Thirteen new sounds, and two new blocks: the **Comet Heart** and the **Frozen Comet Trail**.
+- Thirteen new sounds, and two new blocks: the **Comet Heart** and the **Frozen Comet Trail** (mine them with a pickaxe to take them home).
 - Everything in the trench and the crater is erased, the way the remote's other skills erase their strike zones (you
   too if you stand there; in creative you are lifted clear). Past the crater, the shock wave throws, hurts and
   freezes whatever it meets.
@@ -53,14 +53,15 @@ land round it.
 
 ## SS-06 · Luna
 
-At night, flip the cover and press the button: **EARTH SYSTEM SHUT DOWN**. The moon, right where it hangs in your
+Flip the cover and press the button: **EARTH SYSTEM SHUT DOWN**, and the sky falls to night (like SS-05's). The moon, right where it hangs in your
 sky, shudders and cracks open along glowing molten seams, leaves its place and falls onto your crosshair, slowly at
 first and then faster and faster, growing until it fills the sky. It burns through the atmosphere in a shroud of fire,
 hits the ground in a white flash and a shock ring, ploughs into the crater it digs and comes to rest there, half
 buried: a whole moon of **moon cheese**, with one block of **molten moon cheese** at its very centre.
 
-- **Night only** (by default; it refuses by day and where there is no moon, like the Nether).
-- Its own key (**J** by default), menu card, cooldown (120 s), cutscene (skippable), sounds and alarm.
+- Works by day or night (the sky turns to night for it; only what you see changes, never the world's time). Not where there is no moon, like the Nether.
+- Fissures tear out across the land all round the crater (like Gungnir's cracks), and the shock wave throws, burns and hurts far beyond it.
+- Its own key (**Y** by default), menu card, cooldown (120 s), cutscene (skippable), sounds and alarm.
 - Everything in the crater is erased; past it, the shock wave throws, burns and hurts whatever it meets.
 - **Moon cheese**: right-click a block to place it, right-click the air to eat it. It's as good as a golden carrot.
 - **Molten moon cheese**: eat it for **500 hearts** and **Strength 255** for 10 minutes (Molten Might).
@@ -75,10 +76,10 @@ buried: a whole moon of **moon cheese**, with one block of **molten moon cheese*
 
 1. Minecraft **1.21.1** with **Forge 52.1.x**.
 2. **The Shooting Star [Demo] 1.3.3 or newer** (its Forge file).
-3. `shooting_star_addition-1.2.0+forge-1.21.1.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
+3. `shooting_star_addition-1.3.0+forge-1.21.1.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
 
-In game: hold the Stellar Remote, press **O** for SS-05 or **J** for SS-06 (or pick them in the remote's menu, **H**),
+In game: hold the Stellar Remote, press **O** for SS-05 or **Y** for SS-06 (or pick them in the remote's menu, **H**),
 aim at the ground and right-click. The keys can be changed in Controls or from the remote's menu like the others.
 
 ## Settings — `config/shooting_star_addition-common.toml`
@@ -104,12 +105,12 @@ SS-06 and moon cheese, in the same file:
 |------------------|--------------------|---------|-----------|--------------|
 | moonfall         | `cooldown_seconds` | 120     | 1-3600    | Recharge time. |
 | moonfall         | `reach`            | 420     | 32-1024   | How far away the crosshair can place the mark. |
-| moonfall         | `night_only`       | true    |           | `false` = it can be called by day too. |
-| moonfall_size    | `moon_radius`      | 32      | 2-200     | Radius of the moon (64 blocks across). |
-| moonfall_size    | `crater_radius`    | 60      | 4-320     | Radius of the crater; everything inside dies. |
-| moonfall_size    | `crater_depth`     | 22      | 1-256     | Depth of the crater. |
+| moonfall         | `require_night`    | false   |           | `true` = it refuses by day. |
+| moonfall_size    | `moon_radius`      | 48      | 2-200     | Radius of the moon (96 blocks across). |
+| moonfall_size    | `crater_radius`    | 90      | 4-320     | Radius of the crater; everything inside dies. |
+| moonfall_size    | `crater_depth`     | 30      | 1-256     | Depth of the crater. |
 | moonfall_size    | `sink_percent`     | 35      | 0-90      | How much of the moon ends up buried. |
-| moonfall_size    | `blast_reach`      | 2.5     | 1.0-6.0   | Shock wave reach, in crater radii. |
+| moonfall_size    | `blast_reach`      | 3.0     | 1.0-6.0   | Shock wave reach, in crater radii. |
 | moonfall_size    | `chunks_per_tick`  | 8       | 1-64      | How fast the crater and moon are cut and built (huge moons take a while). |
 | moonfall_world   | `carve_terrain`    | true    |           | `false` = purely visual, only creatures are hit. |
 | moonfall_world   | `molten_core`      | true    |           | The block of molten moon cheese at the moon's centre. |
