@@ -44,24 +44,24 @@ public final class MoonConfig {
             .defineInRange("cooldown_seconds", 120, 1, 3600);
         reach = b.comment("How far away (in blocks) your crosshair can place the mark.")
             .defineInRange("reach", 420, 32, 1024);
-        nightOnly = b.comment("Only answer at night (when the moon is up). If false it can be called any time; by day the",
-                "moon comes down out of the daylight sky.")
-            .define("night_only", true);
+        nightOnly = b.comment("Only answer at night. By default (false) it can be called any time: like SS-05, the sky falls",
+                "to night for the strike (only what players see; the world's real time is untouched).")
+            .define("require_night", false);
         b.pop();
 
         b.comment("How big it all is. Anything from a pebble to a monster works, but every block of moon and crater has to be",
                 "placed or cut: a radius-200 moon is ~33 million blocks and will take the server a long while (it is",
                 "built a few chunks per tick, so the game keeps running). Very big moons also stick out of the build height.").push("moonfall_size");
-        moonRadius = b.comment("Radius of the moon, in blocks (the default is 64 blocks across).")
-            .defineInRange("moon_radius", 32, MIN_MOON_RADIUS, MAX_MOON_RADIUS);
+        moonRadius = b.comment("Radius of the moon, in blocks (the default is 96 blocks across).")
+            .defineInRange("moon_radius", 48, MIN_MOON_RADIUS, MAX_MOON_RADIUS);
         craterRadius = b.comment("Radius of the crater it digs, in blocks. Everything inside it is erased.")
-            .defineInRange("crater_radius", 60, MIN_CRATER_RADIUS, MAX_CRATER_RADIUS);
+            .defineInRange("crater_radius", 90, MIN_CRATER_RADIUS, MAX_CRATER_RADIUS);
         craterDepth = b.comment("Depth of the crater at its centre, in blocks.")
-            .defineInRange("crater_depth", 22, MIN_CRATER_DEPTH, MAX_CRATER_DEPTH);
+            .defineInRange("crater_depth", 30, MIN_CRATER_DEPTH, MAX_CRATER_DEPTH);
         sinkPercent = b.comment("How much of the moon's height ends up buried below the ground, in percent.")
             .defineInRange("sink_percent", 35, 0, 90);
         blastReach = b.comment("How far the shock wave throws and hurts things, as a multiple of the crater radius.")
-            .defineInRange("blast_reach", 2.5, 1.0, 6.0);
+            .defineInRange("blast_reach", 3.0, 1.0, 6.0);
         chunksPerTick = b.comment("How many chunks of crater and moon are cut or built each tick. Higher finishes big moons",
                 "sooner but makes those ticks longer.")
             .defineInRange("chunks_per_tick", 8, 1, 64);
@@ -90,7 +90,7 @@ public final class MoonConfig {
     public record Tuning(int cooldownTicks, int reach, boolean nightOnly, int moonRadius, int craterRadius,
                          int craterDepth, int sinkPercent, double blastReach, int chunksPerTick, boolean carveTerrain,
                          boolean moltenCore, int moltenHearts, int moltenStrength, int moltenMinutes) {
-        public static final Tuning DEFAULTS = new Tuning(120 * 20, 420, true, 32, 60, 22, 35, 2.5, 8, true, true, 500, 255, 10);
+        public static final Tuning DEFAULTS = new Tuning(120 * 20, 420, false, 48, 90, 30, 35, 3.0, 8, true, true, 500, 255, 10);
     }
 
     public static Tuning tuning() {

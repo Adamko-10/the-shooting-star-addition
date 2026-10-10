@@ -1,5 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
+  "ambientocclusion": false,
   "textures": {
     "all": "shooting_star_addition:block/moon_cheese"
   }

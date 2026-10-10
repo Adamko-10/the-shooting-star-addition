@@ -84,7 +84,7 @@ public final class HalleySky {
     public static void update(RenderFrameEvent.Pre event) {
         current = null;
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level == null || HalleyFx.active().isEmpty() || !HalleyClientConfig.sky()) {
+        if (minecraft.level == null || (HalleyFx.active().isEmpty() && MoonFx.active().isEmpty()) || !HalleyClientConfig.sky()) {
             return;
         }
         float partial = event.getPartialTick().getGameTimeDeltaPartialTick(true);

@@ -32,7 +32,10 @@ public final class MoonCasting {
             return false;
         }
         Vec3 target = StarBridge.aimGround(player, tuning.reach(), 260.0);
-        Vec3 sky = MoonPlan.skyDirection(level.getTimeOfDay(1.0F));
+        // By night it falls from where the moon hangs. By day (the sky falls to night for the strike, like SS-05's) it
+        // falls from where the moon would hang twelve hours on, i.e. where the sun is now.
+        float timeOfDay = level.getTimeOfDay(1.0F);
+        Vec3 sky = MoonPlan.skyDirection(level.isNight() ? timeOfDay : timeOfDay + 0.5F);
         long seed = player.getRandom().nextLong();
         StarBridge.start(new MoonSpell(player, target, seed, MoonParams.of(tuning, Mth.floor(target.y), sky)));
         return true;
