@@ -46,7 +46,16 @@ repositories {
 }
 
 legacyForge {
-    version = project.forge_version
+    // The same jar also runs on NeoForge 1.20.1 (which still reports itself as forge 47.1): ./gradlew -Pneoforge ...
+    // builds and runs against NeoForge 1.20.1 instead, e.g. to run the servertest there with The Shooting Star's
+    // NeoForge jar in libs/.
+    if (project.hasProperty('neoforge')) {
+        enable {
+            neoForgeVersion = project.neoforge_version
+        }
+    } else {
+        version = project.forge_version
+    }
     addModdingDependenciesTo sourceSets.servertest
 
     parchment {

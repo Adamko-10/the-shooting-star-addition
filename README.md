@@ -9,7 +9,7 @@ molten heart.
 
 ![SS-05 Halley in game](docs/screenshots/overview.jpg)
 
-> **Compatibility:** this branch (`forge-1.20.1`) is the **Forge, Minecraft 1.20.1** version, for **The Shooting
+> **Compatibility:** this branch (`forge-1.20.1`) is the **Forge and NeoForge, Minecraft 1.20.1** version (one jar for both), for **The Shooting
 > Star [Demo] 1.3.3 or newer** (its Forge file, which carries the 1.20.1 build; tested with 1.3.4) (1.3.3 renamed The Shooting Star's code, so older versions of the addon can't attach to it, and this one can't attach to anything before 1.3.3). Other versions of the addon: NeoForge 1.21.1
 > (`main`) and Fabric 26.3 (`fabric-26.3`). See
 > [Will it work with future versions?](#will-it-work-with-future-versions-of-the-shooting-star) below.
@@ -73,8 +73,8 @@ buried: a whole moon of **moon cheese**, with one block of **molten moon cheese*
 
 ## Installing
 
-1. Minecraft **1.20.1** with **Forge 47.1 or newer** (47.4.x recommended).
-2. **The Shooting Star [Demo] 1.3.3 or newer** (its Forge file).
+1. Minecraft **1.20.1** with **Forge 47.1 or newer** (47.4.x recommended) or **NeoForge 1.20.1** (47.1.x).
+2. **The Shooting Star [Demo] 1.3.3 or newer**: its Forge file on Forge, its NeoForge file on NeoForge (both carry the 1.20.1 build).
 3. `shooting_star_addition-1.2.0+1.20.1.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
 
@@ -171,6 +171,8 @@ Gradle runs on JDK 17-21 and fetches JDK 17 for the build itself. Put The Shooti
 - `./gradlew runServer` → a dev server with both mods loaded
 - `./gradlew runServerTest` → a dev server that casts SS-05 for real in a fresh world, checks what it did and stops
   (`src/servertest`, not part of the addon's jar; look for `[SS05TEST]` in `run/servertest/logs/latest.log`)
+- `./gradlew -Pneoforge runServerTest` → the same test on NeoForge 1.20.1 (put The Shooting Star's NeoForge jar in
+  `libs/` instead of the Forge one first)
 - `./gradlew runClient` → a dev client. **The Shooting Star's 1.20.1 client mixins don't run in a dev client** (they
   name their targets in SRG, with no refmap, and Mixin can't map their `@Shadow`s to Mojang names), so it crashes on
   start. Test client-side things with the built jar in a normal Forge 1.20.1 install instead.
