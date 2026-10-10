@@ -19,10 +19,41 @@ base {
 repositories {
 }
 
+// Dev-only: the automated screenshot harness (see src/clienttest). Never built into the release jar, never loaded
+// by the normal runs - only by the 'clientTest' run below, as its own second mod. Default conventions give it
+// src/clienttest/java and src/clienttest/resources.
+sourceSets {
+    clienttest {}
+}
+
 loom {
     mods {
         "${mod_id}" {
             sourceSet sourceSets.main
+        }
+        ss05_clienttest {
+            sourceSet sourceSets.clienttest
+        }
+    }
+    runs {
+        // Dev-only: ./gradlew runClientTest -Dss05.clienttest.skill=moon ...
+        // Opens its own game directory (run/clienttest) with The Shooting Star, the addon and the harness mod
+        // loaded, and drives a scripted cast + screenshots. See src/clienttest/java for the harness itself.
+        clientTest {
+            client()
+            source sourceSets.clienttest
+            runDir 'run/clienttest'
+            property 'ss05.clienttest', 'true'
+            // Forwarded straight from the Gradle invocation (-Dss05.clienttest.xxx=... works; Gradle re-applies
+            // -D system properties on every build even when a daemon is reused) so the harness's parameters can
+            // be changed without recompiling.
+            ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat'].each { key ->
+                var propertyName = "ss05.clienttest.${key}"
+                var value = project.findProperty(propertyName) ?: System.getProperty(propertyName)
+                if (value != null) {
+                    property propertyName, value.toString()
+                }
+            }
         }
     }
 }
@@ -55,6 +86,15 @@ dependencies {
 
     compileOnly shootingStar
     localRuntime shootingStar
+
+    // The clienttest source set sees exactly what 'main' sees (Minecraft, Fabric, The Shooting Star), plus this
+    // addon's own compiled classes (to call StarBridge/HalleyContent) - only 'main' gets Loom's modding
+    // dependencies automatically, so its resolved classpaths are extended onto clienttest's directly.
+    clienttestImplementation sourceSets.main.output
+}
+configurations {
+    clienttestCompileClasspath.extendsFrom compileClasspath
+    clienttestRuntimeClasspath.extendsFrom runtimeClasspath
 }
 
 tasks.named('compileJava') {

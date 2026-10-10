@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "shooting_star_addition:moon_cheese"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "shooting_star_addition:blocks/moon_cheese"
+}

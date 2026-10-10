@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "ss05_clienttest",
+  "version": "1.0.0",
+  "name": "SS-05 Client Test Harness",
+  "description": "Dev-only automated screenshot harness for The Shooting Star Addition. Not a real mod - never shipped, never loaded outside the clientTest Gradle run.",
+  "authors": [
+    "adamko_10"
+  ],
+  "license": "All-Rights-Reserved",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.ss05.halley.clienttest.Ss05ClientTestMod"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.3",
+    "shooting_star_addition": ">=1.1.1",
+    "shooting_star_demo": ">=1.3.3-demo"
+  }
+}

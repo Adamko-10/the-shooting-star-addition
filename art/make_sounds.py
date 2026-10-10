@@ -346,6 +346,142 @@ def burst():
     finish('halley_burst', reverb(out + roll, 1.8, 0.3)[:int(SR * seconds)], peak=0.85, fade_out=0.3, drive=1.4)
 
 
+# =====================================================================================================================
+# SS-06 Luna's sounds. Appended after SS-05's so the shared `rng` has already produced every draw halley_* consumes -
+# re-running this file leaves every halley_*.ogg byte-identical, as long as these run last (see __main__ below).
+# =====================================================================================================================
+
+# ---- The alarm under EARTH SYSTEM SHUT DOWN: a two-tone klaxon over a deep synthetic "system failure" tone. ---------
+def luna_alarm():
+    seconds = 3.0
+    total = t_axis(seconds)
+    out = np.zeros(len(total))
+    # the klaxon: alternating two-tone siren, square-ish for a harsh digital edge
+    period = 0.5
+    phase = (total % period) / period
+    tone_hz = np.where(phase < 0.5, 880.0, 660.0)
+    siren_phase = np.cumsum(tone_hz) / SR
+    siren = np.sign(np.sin(2 * np.pi * siren_phase)) * 0.5 + np.sin(2 * np.pi * siren_phase) * 0.3
+    siren *= env(total, 0.05, 2.6, 0.2)
+    out += siren * 0.55
+    # the deep "system failure" tone: a detuned low sawtooth pair, slowly pulsing
+    saw = signal.sawtooth(2 * np.pi * 73.4 * total) + signal.sawtooth(2 * np.pi * 73.9 * total)
+    pulse = 0.5 + 0.5 * np.sin(2 * np.pi * 4.0 * total)
+    out += lowpass(saw, 400) * (0.25 + 0.2 * pulse) * env(total, 0.1, 2.6, 0.3)
+    # digital glitch crackle under it
+    for _ in range(26):
+        at = rng.uniform(0.0, seconds - 0.05)
+        tg = t_axis(0.02)
+        out_seg = bandpass(noise(0.02), 1500, 6000) * np.exp(-tg / 0.004) * rng.uniform(0.08, 0.2)
+        place(out, out_seg, at)
+    finish('luna_alarm', out, peak=0.88, fade_out=0.15, drive=1.6)
+
+
+# ---- The moon cracks open: a huge rock crack, then creaking as the seams spread. -------------------------------------
+def luna_crack():
+    seconds = 2.0
+    total = t_axis(seconds)
+    out = np.zeros(len(total))
+    tc = t_axis(0.09)
+    place(out, lowpass(noise(0.09) * np.exp(-tc / 0.012), 3200) * 1.0, 0.0)
+    tb = t_axis(0.6)
+    place(out, np.sin(2 * np.pi * 50 * tb) * np.exp(-tb / 0.2) * 0.75, 0.0)
+    # creaking: a handful of slow, grinding chirps sliding down, like stressed stone
+    for i in range(5):
+        at = 0.08 + i * 0.32 + rng.uniform(-0.03, 0.03)
+        tk = t_axis(0.3)
+        creak = chirp(tk, rng.uniform(900, 1700), rng.uniform(200, 400)) * np.exp(-tk / 0.18) * rng.uniform(0.15, 0.3)
+        place(out, bandpass(creak, 150, 3000), at)
+    rumble = lowpass(brown(seconds), 200) * env(total, 0.02, 0.3, 0.7) * 0.5
+    finish('luna_crack', reverb(out + rumble, 1.4, 0.25)[:int(SR * seconds)], peak=0.87, fade_out=0.3, drive=1.6)
+
+
+# ---- The fall: 11.5 s, FALL to CONTACT - a long rising roar building out of the alarm's register into a thunderclap. -
+def luna_fall():
+    seconds = 11.5
+    total = t_axis(seconds)
+    k = total / seconds
+    roar = sweep_lowpass(brown(seconds) * 0.65 + noise(seconds) * 0.35, 70, 4200, curve=2.6)
+    roar *= 0.03 + 0.97 * k ** 3.6
+    rumble = lowpass(noise(seconds), 50) * 7.0 * (0.08 + 0.92 * k ** 2.4)
+    whistle = chirp(total, 140, 1400) * 0.16 * k ** 4.5
+    tear = highpass(noise(seconds), 3200) * 0.22 * k ** 6
+    # fragments breaking off and streaming behind, scattered crackles that thin out as it closes in
+    crackle = np.zeros(len(total))
+    for _ in range(90):
+        at = min(seconds - 0.06, abs(rng.exponential(seconds * 0.35)))
+        tg = t_axis(0.025)
+        place(crackle, bandpass(noise(0.025), 1000, 6000) * np.exp(-tg / 0.005) * rng.uniform(0.06, 0.2), at)
+    finish('luna_fall', roar + rumble + whistle + tear + crackle, peak=0.92, fade_out=0.05, drive=2.0)
+
+
+# ---- Entry: hitting the atmosphere - a burning, tearing roar with a bow shock. ---------------------------------------
+def luna_entry():
+    seconds = 4.0
+    total = t_axis(seconds)
+    k = total / seconds
+    roar = sweep_lowpass(brown(seconds) * 0.5 + noise(seconds) * 0.5, 500, 5200, curve=1.6) * (0.3 + 0.7 * k ** 1.5)
+    fire = bandpass(noise(seconds), 2000, 7000) * (0.2 + 0.5 * np.sin(2 * np.pi * 9.0 * total) ** 2) * (0.25 + 0.6 * k)
+    tear = highpass(noise(seconds), 3500) * 0.35 * (0.2 + 0.8 * k ** 2)
+    shock = chirp(total, 2200, 300) * np.exp(-total / 1.4) * 0.3
+    finish('luna_entry', roar + fire + tear + shock, peak=0.9, fade_out=0.1, drive=2.1)
+
+
+# ---- Impact: the moon touches down - a colossal boom and a long rolling rumble. ---------------------------------------
+def luna_impact():
+    seconds = 6.0
+    total = t_axis(seconds)
+    out = np.zeros(len(total))
+    tc = t_axis(0.1)
+    place(out, noise(0.1) * np.exp(-tc / 0.013) * 1.0, 0.0)
+    tb = t_axis(5.5)
+    blast = chirp(tb, 55, 16) * np.exp(-tb / 0.9)
+    out[:len(tb)] += np.tanh(blast * 3.2) * 1.0
+    out += lowpass(brown(seconds), 260) * env(total, 0.04, 0.4, 2.0) * 1.0
+    out += lowpass(noise(seconds), 70) * 5.0 * env(total, 0.03, 0.3, 1.3)
+    # ground shake: a very slow, huge low thump trailing the blast
+    tt = t_axis(2.0)
+    place(out, np.sin(2 * np.pi * 24 * tt) * np.exp(-tt / 0.6) * 0.8, 0.08)
+    out += highpass(noise(seconds), 3000) * env(total, 0.06, 0.5, 1.2) * 0.14
+    finish('luna_impact', reverb(out, 3.2, 0.3)[:int(SR * seconds)], peak=0.85, fade_out=1.0, drive=2.2)
+
+
+# ---- Settle: it ploughs on down and comes to rest - grinding, the last of the rubble collapsing in on it. ------------
+def luna_settle():
+    seconds = 3.0
+    total = t_axis(seconds)
+    shape = env(total, 0.1, 1.6, 0.5)
+    grind = sweep_lowpass(brown(seconds) * 0.6 + noise(seconds) * 0.4, 1200, 300, curve=1.0) * shape
+    rumble = lowpass(noise(seconds), 70) * 5.5 * shape
+    collapse = np.zeros(len(total))
+    for _ in range(180):
+        at = min(seconds - 0.05, rng.exponential(0.9))
+        tg = t_axis(0.025)
+        place(collapse, bandpass(noise(0.025), 600, 4000) * np.exp(-tg / 0.006) * rng.uniform(0.08, 0.3), at)
+    finish('luna_settle', grind + rumble + collapse * shape, peak=0.86, fade_out=0.4, drive=1.5)
+
+
+# ---- Debris: dust, rock and cheese chunks raining back down afterwards, crackling as they land. -----------------------
+def luna_debris():
+    seconds = 6.0
+    total = t_axis(seconds)
+    out = np.zeros(len(total))
+    for _ in range(260):
+        at = rng.uniform(0.0, seconds - 0.1)
+        weight = 1.0 - at / seconds
+        tg = t_axis(0.04)
+        lo = rng.uniform(400, 3500)
+        grain = bandpass(noise(0.04), lo, lo * 2.2) * np.exp(-tg / 0.012) * rng.uniform(0.08, 0.3) * (0.3 + 0.9 * weight)
+        place(out, grain, at)
+    for _ in range(10):
+        at = rng.uniform(0.0, seconds - 0.3)
+        tb = t_axis(0.25)
+        place(out, np.sin(2 * np.pi * rng.uniform(45, 90) * tb) * np.exp(-tb / 0.08) * 0.3, at)
+    dust = lowpass(noise(seconds), 300) * env(total, 0.3, 4.0, 1.5) * 0.12
+    finish('luna_debris', reverb(out + dust, 1.6, 0.2)[:int(SR * seconds)], peak=0.8, fade_out=0.6, drive=1.2)
+
+
 if __name__ == '__main__':
-    for make in (mark, countdown, sight, approach, boom, touchdown, plough, impact, frost, hum, evac, dusk, burst):
+    for make in (mark, countdown, sight, approach, boom, touchdown, plough, impact, frost, hum, evac, dusk, burst,
+                 luna_alarm, luna_crack, luna_fall, luna_entry, luna_impact, luna_settle, luna_debris):
         make()

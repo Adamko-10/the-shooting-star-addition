@@ -39,6 +39,18 @@ public final class HalleyPipelines {
     /** The shapes alone, painted onto {@link GlowAtlas} for shader packs. */
     public static final RenderPipeline BAKE = glow("bake", REPLACE, Optional.empty(), true);
 
+    /** Minecraft draws with reversed depth (near = 1): writes depth the same way, so the sphere occludes and is
+     * occluded like any solid block of the world. */
+    private static final DepthStencilState TEST_AND_WRITE = new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, true);
+    /** Straight alpha: the base layer is opaque, so blending is off (it still has an alpha channel to leave alone). */
+    private static final ColorTargetState OPAQUE = new ColorTargetState(Optional.empty(), GpuFormat.RGBA8_UNORM, ColorTargetState.WRITE_COLOR);
+    /** Reads a texture, no lightmap, no fog: {@link SkyLook} and the moon's own baked-in shading are all it needs. */
+    public static final BindGroupLayout MOON_SAMPLER = BindGroupLayouts.SAMPLER0;
+    /** SS-06's moon sphere: {@code surface.png}, opaque, depth-tested and written. */
+    public static final RenderPipeline MOON = moon("moon", OPAQUE, true);
+    /** The molten seams on top: {@code seams.png}, additive, depth-tested but not written (it rides on the base). */
+    public static final RenderPipeline MOON_EMISSIVE = moon("moon_emissive", ADD, false);
+
     /** The sky's values for the frame (HalleySky in halley_sky.fsh). */
     public static final BindGroupLayout SKY_UNIFORMS = BindGroupLayout.builder().withUniform("HalleySky", UniformType.UNIFORM_BUFFER).build();
     /** The dome over the vanilla sky. */
@@ -66,6 +78,22 @@ public final class HalleyPipelines {
             b.withShaderDefine("BAKE");
         }
         return b.build();
+    }
+
+    private static RenderPipeline moon(String name, ColorTargetState target, boolean write) {
+        return RenderPipeline.builder()
+            .withLocation(HalleyAddon.id("pipeline/halley_" + name))
+            .withVertexShader(HalleyAddon.id("core/halley_moon"))
+            .withFragmentShader(HalleyAddon.id("core/halley_moon"))
+            .withBindGroupLayout(BindGroupLayouts.PROJECTION)
+            .withBindGroupLayout(BindGroupLayouts.DYNAMIC_TRANSFORMS)
+            .withBindGroupLayout(MOON_SAMPLER)
+            .withVertexBinding(0, DefaultVertexFormat.POSITION_TEX_COLOR)
+            .withPrimitiveTopology(PrimitiveTopology.QUADS)
+            .withColorTargetState(target)
+            .withDepthStencilState(Optional.of(write ? TEST_AND_WRITE : TEST_ONLY))
+            .withCull(false)
+            .build();
     }
 
     private static RenderPipeline sky(String name, ColorTargetState target) {

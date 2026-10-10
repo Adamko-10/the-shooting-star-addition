@@ -3,7 +3,7 @@ package dev.ss05.halley;
 import dev.ss05.halley.config.ConfigFile;
 
 /**
- * Every tunable number of SS-05, in one place.
+ * Every tunable number of SS-05, in one place (SS-06's are in {@link MoonConfig}, added to the same file below).
  *
  * <p>Written to {@code config/shooting_star_addition-common.toml} the first time the game starts. Edit that file (or
  * change the defaults here and rebuild) - nothing else in the addon hard-codes these values. The file is read when
@@ -58,6 +58,8 @@ public final class HalleyConfig {
         b.section("safety", "Safety.");
         EVACUATE_CREATIVE = b.define("evacuate_creative_caster", true,
             "Lift a creative-mode caster clear if they stand inside the crater, like the other skills do.");
+
+        MoonConfig.define(b);
     }
 
     private HalleyConfig() {

@@ -16,6 +16,7 @@ import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.client.HalleyFx;
+import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.render.BakedTexture;
 import dev.ss05.halley.client.render.HalleyPipelines;
 import dev.ss05.halley.client.render.ShaderPacks;
@@ -53,10 +54,11 @@ import org.lwjgl.system.MemoryStack;
  * in the client config. The hooks into Minecraft are in {@code client/mixin}.
  */
 public final class HalleySky {
-    /** The dark sky's colour at the horizon (HORIZON in halley_sky.fsh): the fog takes it on. */
-    private static final Vec3 HORIZON = new Vec3(0.055, 0.110, 0.215);
-    /** The icy haze's colour at the horizon (veilSky in halley_sky.fsh at the horizon). */
-    private static final Vec3 VEIL_HORIZON = new Vec3(0.63, 0.84, 0.98);
+    /** The dark sky's colour at the horizon, by {@link SkyLook#palette()} (HORIZON in halley_sky.fsh): the fog takes
+     * it on. SS-06 Luna's is a warm dusty red instead of SS-05's cold navy. */
+    private static final Vec3[] HORIZON_BY_PALETTE = {new Vec3(0.055, 0.110, 0.215), new Vec3(0.360, 0.090, 0.020)};
+    /** The haze's colour at the horizon, by palette (veilSky in halley_sky.fsh at the horizon). */
+    private static final Vec3[] VEIL_HORIZON_BY_PALETTE = {new Vec3(0.63, 0.84, 0.98), new Vec3(0.62, 0.38, 0.20)};
     /** The land's light at night (the overworld's sky_light_factor and sky_light_color then). */
     private static final float NIGHT_LIGHT = 0.24F;
     private static final Vector3fc NIGHT_TINT = new Vector3f(0x7A / 255.0F, 0x7A / 255.0F, 1.0F);
@@ -95,6 +97,17 @@ public final class HalleySky {
         SkyLook best = null;
         float bestStrength = 0.0F;
         for (HalleyFx fx : HalleyFx.active()) {
+            if (fx.finished()) {
+                continue;
+            }
+            SkyLook look = fx.sky(partial, camera);
+            float strength = look.cover() + look.flash() + look.aurora() * 0.2F + look.cometGlow() * 0.1F;
+            if (look.visible() && strength >= bestStrength) {
+                best = look;
+                bestStrength = strength;
+            }
+        }
+        for (MoonFx fx : MoonFx.active()) {
             if (fx.finished()) {
                 continue;
             }
@@ -185,7 +198,7 @@ public final class HalleySky {
                 .putVec4((float) comet.x, (float) comet.y, (float) comet.z, look.cometHeat())
                 .putVec4((float) tail.x, (float) tail.y, (float) tail.z, look.seed())
                 .putVec4((float) light.x, (float) light.y, (float) light.z, lightUp)
-                .putVec4(layer, 0.0F, 0.0F, 0.0F)
+                .putVec4(layer, (float) look.palette(), 0.0F, 0.0F)
                 .get();
             device.createCommandEncoder().writeToBuffer(uniforms.slice(), data);
         }
@@ -412,13 +425,16 @@ public final class HalleySky {
             return;
         }
         // the same mix as the shader's at the horizon: the night, the haze over it, what's left of the vanilla sky
+        int palette = Math.max(0, Math.min(HORIZON_BY_PALETTE.length - 1, look.palette()));
+        Vec3 horizon = HORIZON_BY_PALETTE[palette];
+        Vec3 veilHorizon = VEIL_HORIZON_BY_PALETTE[palette];
         float keep = 1.0F - look.cover();
         float veil = look.veil() * 0.75F;
         float night = look.night() * (1.0F - veil);
         float flash = look.flash() * 0.6F;
-        fog.x = Math.min(1.0F, (float) (HORIZON.x * night + VEIL_HORIZON.x * veil) + fog.x * keep + flash);
-        fog.y = Math.min(1.0F, (float) (HORIZON.y * night + VEIL_HORIZON.y * veil) + fog.y * keep + flash);
-        fog.z = Math.min(1.0F, (float) (HORIZON.z * night + VEIL_HORIZON.z * veil) + fog.z * keep + flash);
+        fog.x = Math.min(1.0F, (float) (horizon.x * night + veilHorizon.x * veil) + fog.x * keep + flash);
+        fog.y = Math.min(1.0F, (float) (horizon.y * night + veilHorizon.y * veil) + fog.y * keep + flash);
+        fog.z = Math.min(1.0F, (float) (horizon.z * night + veilHorizon.z * veil) + fog.z * keep + flash);
     }
 
     /**

@@ -1,11 +1,19 @@
 {
   "key.shooting_star_demo.stellar_remote.halley": "The Shooting Star: SS-05 Halley",
   "skill.shooting_star_demo.stellar_remote.halley.desc": "Flip the cover and press the button. Your crosshair is marked in ice-blue and an approach corridor is projected out across the land beyond it, and SS-05 Halley — a comet called down out of its orbit — rises over the horizon with its tails stretched across the sky. Fifteen seconds later it comes down as a fireball at the far end of the corridor, ploughs a frozen trench back toward you and detonates on the mark: a crater of blue ice with the comet's heart left standing in it and rays of frost thrown out over the land round it. Everything in the trench and the crater dies, you too if you stand there (in creative you are lifted clear), and past the crater the shock wave still throws, hurts and freezes whatever it meets.",
+  "key.shooting_star_demo.stellar_remote.luna": "The Shooting Star: SS-06 Luna",
+  "skill.shooting_star_demo.stellar_remote.luna.desc": "At night, shut the Earth system down: flip the cover and press the button, and SS-06 Luna answers with a klaxon and EARTH SYSTEM SHUT DOWN slammed across the screen while your crosshair is marked in gold. The moon itself shudders where it hangs in the sky, cracks open along molten seams and leaves its place, coming down a straight line onto the mark — slow at first, then faster and faster, burning through the air, filling the sky — until it strikes: a white flash, a huge shock wave, and a crater blasted open under it. It ploughs on down into the crater and comes to rest there, part buried, built out of moon cheese with one block of molten moon cheese glowing at its very heart. Everything within the crater is erased, you too if you stand there (in creative you are lifted clear), and past it the shock wave still throws and hurts whatever it meets. Moon cheese is eaten like a golden carrot; the molten block at the centre is always edible and, for a while after eating it, raises your hearts enormously and gives you great strength, healing you to your new full health. Needs a moon in the sky to answer at all.",
   "block.shooting_star_addition.comet_heart": "Comet Heart",
   "block.shooting_star_addition.comet_trail": "Frozen Comet Trail",
+  "block.shooting_star_addition.moon_cheese": "Moon Cheese",
+  "block.shooting_star_addition.molten_moon_cheese": "Molten Moon Cheese",
+  "effect.shooting_star_addition.molten_might": "Molten Might",
   "death.attack.shooting_star_addition.halley_wake": "%1$s was frozen in a comet's wake",
   "death.attack.shooting_star_addition.halley_wake.player": "%1$s was frozen in the wake of %2$s's comet",
   "death.attack.shooting_star_addition.halley_wake.item": "%1$s was frozen in the wake of %2$s's comet, called down with %3$s",
+  "death.attack.shooting_star_addition.luna_impact": "%1$s was flattened by a falling moon",
+  "death.attack.shooting_star_addition.luna_impact.player": "%1$s was flattened by a moon %2$s called down",
+  "death.attack.shooting_star_addition.luna_impact.item": "%1$s was flattened by a moon %2$s called down with %3$s",
   "subtitles.shooting_star_addition.halley_mark": "Approach corridor projected onto the land",
   "subtitles.shooting_star_addition.halley_countdown": "Comet strike countdown",
   "subtitles.shooting_star_addition.halley_sight": "A comet rises over the horizon",
@@ -18,5 +26,12 @@
   "subtitles.shooting_star_addition.halley_hum": "The comet heart hums",
   "subtitles.shooting_star_addition.halley_evac": "Evac teleport",
   "subtitles.shooting_star_addition.halley_dusk": "The sky goes dark",
-  "subtitles.shooting_star_addition.halley_burst": "A comet fragment bursts overhead"
+  "subtitles.shooting_star_addition.halley_burst": "A comet fragment bursts overhead",
+  "subtitles.shooting_star_addition.luna_alarm": "EARTH SYSTEM SHUT DOWN",
+  "subtitles.shooting_star_addition.luna_crack": "The moon cracks open",
+  "subtitles.shooting_star_addition.luna_fall": "The moon roars down out of the sky",
+  "subtitles.shooting_star_addition.luna_entry": "The moon burns through the atmosphere",
+  "subtitles.shooting_star_addition.luna_impact": "The moon strikes the ground",
+  "subtitles.shooting_star_addition.luna_settle": "The moon grinds to rest",
+  "subtitles.shooting_star_addition.luna_debris": "Debris rains down"
 }

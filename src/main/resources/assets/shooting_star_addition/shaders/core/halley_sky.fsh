@@ -36,15 +36,22 @@ layout(std140) uniform HalleySky {
 // what to draw: 0 = the dome as above; for shader packs, painted onto textures (HalleySky.paint): 1 = only the new
 // sky's colour (premultiplied; how much it covers is drawn separately), 2 = only the light on top
 #define Layer SkyLayer.x
+// which colours the dark sky and the haze are painted in: 0 = SS-05 Halley's own icy blue, 1 = SS-06 Luna's sick
+// red-orange (SkyLook.palette, HalleySky.writeUniforms)
+#define Palette SkyLayer.y
 
 layout(location = 0) in vec3 direction;
 
 layout(location = 0) out vec4 fragColor;
 
-// ---- The colours of the dark sky (HalleySky.HORIZON must match the horizon one, for the fog). ----------------------
-const vec3 ZENITH = vec3(0.010, 0.017, 0.055);
-const vec3 MIDDLE = vec3(0.022, 0.045, 0.125);
-const vec3 HORIZON = vec3(0.055, 0.110, 0.215);
+// ---- The colours of the dark sky, by Palette (HalleySky.HORIZON_BY_PALETTE must match the horizon ones, for the
+// fog). ----------------------------------------------------------------------------------------------------------
+const vec3 ZENITH_HALLEY = vec3(0.010, 0.017, 0.055);
+const vec3 MIDDLE_HALLEY = vec3(0.022, 0.045, 0.125);
+const vec3 HORIZON_HALLEY = vec3(0.055, 0.110, 0.215);
+const vec3 ZENITH_LUNA = vec3(0.050, 0.010, 0.006);
+const vec3 MIDDLE_LUNA = vec3(0.150, 0.035, 0.012);
+const vec3 HORIZON_LUNA = vec3(0.360, 0.090, 0.020);
 const float HALO_RADIUS = 0.3840;
 
 float hash12(vec2 p) {
@@ -96,10 +103,13 @@ float fbm3(vec3 p) {
 // ---- The night sky. ------------------------------------------------------------------------------------------------
 
 vec3 nightSky(vec3 d) {
+    vec3 zenith = mix(ZENITH_HALLEY, ZENITH_LUNA, Palette);
+    vec3 middle = mix(MIDDLE_HALLEY, MIDDLE_LUNA, Palette);
+    vec3 horizon = mix(HORIZON_HALLEY, HORIZON_LUNA, Palette);
     float h = d.y;
-    vec3 c = mix(HORIZON, MIDDLE, smoothstep(0.0, 0.3, h));
-    c = mix(c, ZENITH, smoothstep(0.3, 1.0, h));
-    return h < 0.0 ? mix(HORIZON, HORIZON * 0.55, smoothstep(0.0, -0.35, h)) : c;
+    vec3 c = mix(horizon, middle, smoothstep(0.0, 0.3, h));
+    c = mix(c, zenith, smoothstep(0.3, 1.0, h));
+    return h < 0.0 ? mix(horizon, horizon * 0.55, smoothstep(0.0, -0.35, h)) : c;
 }
 
 // the face of the cube a direction goes through, and where on it: a flat grid to scatter stars on
@@ -210,8 +220,10 @@ vec3 cometLight(vec3 d) {
 // ---- The ice in the air after the impact. ---------------------------------------------------------------------------
 
 vec3 veilSky(vec3 d) {
+    vec3 veilHorizon = mix(vec3(0.56, 0.76, 0.90), vec3(0.62, 0.38, 0.20), Palette);
+    vec3 veilTop = mix(vec3(0.30, 0.50, 0.76), vec3(0.42, 0.22, 0.10), Palette);
     float h = d.y;
-    vec3 c = mix(vec3(0.56, 0.76, 0.90), vec3(0.30, 0.50, 0.76), smoothstep(0.0, 0.85, h));
+    vec3 c = mix(veilHorizon, veilTop, smoothstep(0.0, 0.85, h));
     return c + vec3(0.07, 0.08, 0.08) * exp(-max(h, 0.0) * 9.0);
 }
 
