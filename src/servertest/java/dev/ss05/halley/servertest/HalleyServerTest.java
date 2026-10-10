@@ -12,9 +12,13 @@ import cyou.rimuru.shootingstardemo.mc1201.spell.SpellEngine;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.HalleyPlan;
+import dev.ss05.halley.MoonConfig;
+import dev.ss05.halley.MoonParams;
+import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.content.HalleyContent;
 import dev.ss05.halley.world.HalleyInfo;
+import dev.ss05.halley.world.MoonInfo;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +30,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -43,13 +50,14 @@ import net.minecraftforge.fml.common.Mod;
 import org.slf4j.Logger;
 
 /**
- * Dev-only game-logic test for SS-05 Halley. Does nothing unless started with {@code -Dss05.servertest=true}
- * (see {@code ./gradlew runServerTest}). Casts the skill for real through The Shooting Star's own casting path
- * (the same one its network handler uses), on a throwaway flat arena, then checks what the strike did to the
- * world and to some test mobs, and halts the server with a summary.
+ * Dev-only game-logic test for SS-05 Halley and SS-06 Luna. Does nothing unless started with
+ * {@code -Dss05.servertest=true} (see {@code ./gradlew runServerTest}). Casts each skill for real through The
+ * Shooting Star's own casting path (the same one its network handler uses), on a throwaway flat arena, then checks
+ * what the strike did to the world and to some test mobs, and halts the server with a summary.
  *
  * <p>Everything is logged as {@code [SS05TEST] PASS <name>} / {@code [SS05TEST] FAIL <name>: <details>}, and
- * finally {@code [SS05TEST] SUMMARY x/y passed}.
+ * finally {@code [SS05TEST] SUMMARY x/y passed}. SS-05's checks run first (phases {@code WAIT}..{@code WATCH}),
+ * then SS-06's (phases {@code MOON_*}).
  */
 @Mod("ss05_servertest")
 public final class HalleyServerTest {
@@ -67,8 +75,14 @@ public final class HalleyServerTest {
     private static final int MAX_CHUNK_Z = 28;
     /** Hard stop: 2 minutes of game time after the cast, win or lose. */
     private static final int HARD_TIMEOUT_TICKS = 2400;
+    /** SS-06's strike is much shorter (MoonPlan.DURATION = 600 ticks); half a minute of margin is plenty. */
+    private static final int MOON_HARD_TIMEOUT_TICKS = 1200;
 
-    private enum Phase { WAIT, CAST, POSTCAST, WATCH, DONE }
+    private enum Phase {
+        WAIT, CAST, POSTCAST, WATCH,
+        MOON_SET_DAY, MOON_CAST_DAY, MOON_CAST_NIGHT, MOON_POSTCAST, MOON_WATCH, MOON_EAT,
+        DONE
+    }
 
     private Phase phase = Phase.WAIT;
     private MinecraftServer server;
@@ -88,6 +102,15 @@ public final class HalleyServerTest {
     private Pig insideMob2;
     private Pig besideMob;
     private Pig controlMob;
+
+    // ---- SS-06 Luna. ------------------------------------------------------------------------------------------------
+    private int moonCastTick = -1;
+    private int moonSkillIndexAtCast = -1;
+    private boolean moonWasRunning;
+    private boolean moonEarlyDeathFail;
+    private MoonPlan moonReplicaPlan;
+    private Pig moonInsideMob;
+    private Pig moonBesideMob;
 
     private int passCount;
     private int totalCount;
@@ -136,6 +159,42 @@ public final class HalleyServerTest {
             case WATCH:
                 this.watch();
                 break;
+            case MOON_SET_DAY:
+                // Turn to face the opposite horizontal direction from SS-05's cast (yaw 270 -> 90): the two tests
+                // share one arena and one caster, and The Shooting Star's own aim-ground has some lateral scatter of
+                // its own (SS-05's mark landed noticeably off the straight line out of the caster), so without this
+                // the moonfall's crater can end up close enough to SS-05's crater/blast zone that leftover comet_trail
+                // (SS-05's debris) is still sitting on top where this test wants to see Luna's own crater surface.
+                // Facing the other way puts Luna's mark on the far side of spawn from SS-05's, comfortably clear.
+                this.caster.setYRot(90.0F);
+                this.caster.setYHeadRot(90.0F);
+                this.caster.yHeadRotO = 90.0F;
+                // isNight()/isDay() read ServerLevel's skyDarken, recomputed once a tick from the day time - give it
+                // a tick to catch up before the day-cast attempt below.
+                this.level.setDayTime(1000L);
+                this.phase = Phase.MOON_CAST_DAY;
+                break;
+            case MOON_CAST_DAY:
+                this.castMoonByDay();
+                this.level.setDayTime(18000L);
+                this.phase = Phase.MOON_CAST_NIGHT;
+                break;
+            case MOON_CAST_NIGHT:
+                this.castMoonByNight();
+                this.phase = Phase.MOON_POSTCAST;
+                break;
+            case MOON_POSTCAST:
+                this.moonPostCast();
+                this.phase = Phase.MOON_WATCH;
+                break;
+            case MOON_WATCH:
+                this.moonWatch();
+                break;
+            case MOON_EAT:
+                this.moonEat();
+                this.phase = Phase.DONE;
+                this.finish();
+                break;
             default:
                 break;
         }
@@ -146,6 +205,7 @@ public final class HalleyServerTest {
     /** Returns false if the bridge never attached (nothing else to usefully test then). */
     private boolean setup() {
         this.checkSkillRegistration();
+        this.checkMoonSkillRegistration();
         if (!StarBridge.installed()) {
             return false;
         }
@@ -196,6 +256,34 @@ public final class HalleyServerTest {
             this.record("skill_art_name", ok, "art=" + art);
         } catch (Throwable ex) {
             this.record("skill_art_name", false, "threw " + ex);
+        }
+    }
+
+    /** Same shape as {@link #checkSkillRegistration()}, for SS-06 Luna (skill index 4, key J). */
+    private void checkMoonSkillRegistration() {
+        if (!StarBridge.installed()) {
+            return;
+        }
+
+        Skill skill = StarBridge.MOON;
+        SkillSet owner = SkillSet.of(skill);
+        this.record("moon_skill_owned_by_stellar_remote", owner == ModSkills.STELLAR_REMOTE, "owner=" + owner);
+
+        int index = SkillSet.indexOf(skill);
+        this.record("moon_skill_index_is_4", index == 4, "index=" + index);
+        this.record("moon_skill_id_is_luna", "luna".equals(skill.id()), "id=" + skill.id());
+        this.record("moon_skill_default_key_is_J", skill.defaultKey() == MoonInfo.DEFAULT_KEY, "key=" + skill.defaultKey());
+        this.record("moon_skill_cooldown_matches_config", skill.cooldown() == MoonConfig.tuning().cooldownTicks(),
+            "cooldown=" + skill.cooldown() + " config=" + MoonConfig.tuning().cooldownTicks());
+        this.record("moon_skill_duration_matches_plan", skill.duration() == MoonPlan.DURATION,
+            "duration=" + skill.duration() + " expected=" + MoonPlan.DURATION);
+
+        try {
+            ResourceLocation art = owner.art(skill);
+            boolean ok = art != null && art.getPath().toLowerCase(java.util.Locale.ROOT).contains("luna");
+            this.record("moon_skill_art_name", ok, "art=" + art);
+        } catch (Throwable ex) {
+            this.record("moon_skill_art_name", false, "threw " + ex);
         }
     }
 
@@ -365,8 +453,8 @@ public final class HalleyServerTest {
                 LOG.error("[SS05TEST] hard timeout after {} ticks since the cast (still running={})", elapsed, running);
             }
             this.finalizeChecks();
-            this.phase = Phase.DONE;
-            this.finish();
+            // On to SS-06 Luna's checks (see the Phase enum javadoc).
+            this.phase = Phase.MOON_SET_DAY;
         }
     }
 
@@ -437,6 +525,7 @@ public final class HalleyServerTest {
             // powder snow, and this check runs after the full ~520-tick strike (so well after the ~28-tick blast
             // window) - plenty of time for it to have fully decayed even though it really was set. Either sign of
             // having been caught by the blast is enough, matching how the task describes this check (frozen OR hurt).
+            // (SS-06's blast only hurts and ignites, never freezes, so for its mobs this is really just "hurt".)
             boolean hurt = mob.isAlive() && mob.getHealth() < mob.getMaxHealth();
             boolean frozen = mob.getTicksFrozen() > 0;
             this.record(name, mob.isAlive() && (hurt || frozen),
@@ -453,6 +542,244 @@ public final class HalleyServerTest {
         boolean ok = mob.isAlive() && mob.getHealth() == mob.getMaxHealth() && mob.getTicksFrozen() == 0;
         this.record("control_mob_unaffected", ok,
             "alive=" + mob.isAlive() + " health=" + mob.getHealth() + "/" + mob.getMaxHealth() + " ticksFrozen=" + mob.getTicksFrozen());
+    }
+
+    // ==== SS-06 Luna. ================================================================================================
+
+    /** Attempts the cast by day; MoonConfig's {@code night_only} (default true) should refuse it. */
+    private void castMoonByDay() {
+        this.moonSkillIndexAtCast = StarBridge.moonIndex();
+        this.record("moon_skill_index_available", this.moonSkillIndexAtCast >= 0, "index=" + this.moonSkillIndexAtCast);
+        boolean isDay = this.level.isDay();
+        this.record("arena_is_day_for_refusal_check", isDay, "isDay=" + isDay + " isNight=" + this.level.isNight());
+        try {
+            this.request(this.moonSkillIndexAtCast);
+            boolean running = SpellEngine.running(StarBridge.MOON, this.caster.getUUID());
+            this.record("moon_day_cast_refused", !running, running ? "a moonfall started during the day" : "");
+        } catch (Throwable ex) {
+            this.record("moon_day_cast_refused", false, "threw " + ex);
+        }
+    }
+
+    /** Attempts the real cast by night, once the day-refusal check above is done. */
+    private void castMoonByNight() {
+        boolean isNight = this.level.isNight();
+        this.record("arena_is_night_for_real_cast", isNight, "isNight=" + isNight);
+        this.moonCastTick = this.tick;
+        try {
+            this.request(this.moonSkillIndexAtCast);
+            this.record("moon_cast_request_no_exception", true, "");
+        } catch (Throwable ex) {
+            this.record("moon_cast_request_no_exception", false, "threw " + ex);
+        }
+    }
+
+    private void moonPostCast() {
+        boolean running = SpellEngine.running(StarBridge.MOON, this.caster.getUUID());
+        this.record("moon_cast_starts_spell", running, running ? "" : "SpellEngine.running() is false right after the cast");
+
+        ActiveSpell found = null;
+        try {
+            for (Object o : this.activeSpells()) {
+                ActiveSpell as = (ActiveSpell) o;
+                if (as.skill == StarBridge.MOON && as.casterId.equals(this.caster.getUUID())) {
+                    found = as;
+                    break;
+                }
+            }
+            this.record("moon_read_active_spell_reflection", found != null,
+                found != null ? "" : "no matching ActiveSpell in SpellEngine.ACTIVE");
+        } catch (Throwable ex) {
+            this.record("moon_read_active_spell_reflection", false, "threw " + ex);
+        }
+
+        if (found == null) {
+            return;
+        }
+
+        try {
+            // Rebuilt the same way MoonCasting.cast() builds it: the sky direction read at cast time, from the
+            // target/seed the running spell actually used (public fields on ActiveSpell, like HalleyPlan's replica).
+            Vec3 sky = MoonPlan.skyDirection(this.level.getTimeOfDay(1.0F));
+            MoonParams params = MoonParams.of(MoonConfig.tuning(), Mth.floor(found.target.y), sky);
+            this.moonReplicaPlan = new MoonPlan(found.origin, found.target, found.seed, params);
+            this.record("moon_replica_plan_built", true, "target=" + found.target + " core=" + this.moonReplicaPlan.core);
+        } catch (Throwable ex) {
+            this.record("moon_replica_plan_built", false, "threw " + ex);
+            return;
+        }
+
+        try {
+            this.placeMoonMobs();
+            this.record("moon_test_mobs_placed", true, "");
+        } catch (Throwable ex) {
+            this.record("moon_test_mobs_placed", false, "threw " + ex);
+        }
+    }
+
+    private void placeMoonMobs() {
+        MoonPlan plan = this.moonReplicaPlan;
+        double erase = plan.eraseRadius();
+        double blast = plan.blastRadius();
+        // Well inside the erase radius: should be erased outright.
+        this.moonInsideMob = this.spawnMoonPig(plan, erase * 0.3, 0.0, "ss06test_inside");
+        // Close to the outer edge of the blast radius, where the shock wave's damage (which scales up sharply
+        // toward the crater, see MoonStrike#throwHurtIgnite) is comfortably under a pig's 10 HP, so it survives hurt.
+        double besideDistance = erase + (blast - erase) * 0.82;
+        this.moonBesideMob = this.spawnMoonPig(plan, 0.0, besideDistance, "ss06test_beside");
+    }
+
+    private Pig spawnMoonPig(MoonPlan plan, double dx, double dz, String name) {
+        Vec3 p = plan.target.add(dx, 0.0, dz);
+        Pig pig = new Pig(EntityType.PIG, this.level);
+        pig.moveTo(p.x, this.groundY, p.z, 0.0F, 0.0F);
+        pig.setNoAi(true);
+        pig.setPersistenceRequired();
+        pig.setCustomName(Component.literal(name));
+        this.level.addFreshEntity(pig);
+        return pig;
+    }
+
+    private void moonWatch() {
+        int elapsed = this.tick - this.moonCastTick;
+        boolean running = SpellEngine.running(StarBridge.MOON, this.caster.getUUID());
+        if (running) {
+            this.moonWasRunning = true;
+        }
+
+        if (!this.moonEarlyDeathFail && elapsed > 0 && elapsed < MoonPlan.CONTACT - 2
+                && this.moonInsideMob != null && !this.moonInsideMob.isAlive()) {
+            this.moonEarlyDeathFail = true;
+            LOG.error("[SS05TEST] a mob inside the moon's erase radius died at tick {} (before MoonPlan.CONTACT={})", elapsed, MoonPlan.CONTACT);
+        }
+
+        boolean finishedNaturally = this.moonWasRunning && !running;
+        boolean timedOut = elapsed > MOON_HARD_TIMEOUT_TICKS;
+        if (finishedNaturally || timedOut) {
+            if (timedOut && !finishedNaturally) {
+                LOG.error("[SS05TEST] moon hard timeout after {} ticks since the cast (still running={})", elapsed, running);
+            }
+            this.finalizeMoonChecks();
+            this.phase = Phase.MOON_EAT;
+        }
+    }
+
+    private void finalizeMoonChecks() {
+        this.record("moon_no_early_deaths", !this.moonEarlyDeathFail,
+            this.moonEarlyDeathFail ? "a mob inside the erase radius died before MoonPlan.CONTACT" : "");
+
+        if (this.moonReplicaPlan == null) {
+            this.record("moon_world_checks_skipped", false, "no replica plan (cast or reflection failed earlier)");
+            return;
+        }
+        MoonPlan plan = this.moonReplicaPlan;
+
+        try {
+            // Within the crater radius but outside the moon's own sphere at ground level, so this samples the
+            // crater's cut surface rather than a block the moon build painted over it.
+            BlockPos craterSample = this.sampleTopBlockAt(plan.target.x + plan.params.craterRadius() * 0.7, plan.target.z);
+            BlockState craterState = this.level.getBlockState(craterSample);
+            boolean craterOk = this.isOneOf(craterState, Blocks.MAGMA_BLOCK, Blocks.BASALT, Blocks.BLACKSTONE,
+                Blocks.COARSE_DIRT, Blocks.COBBLED_DEEPSLATE, Blocks.GRAVEL);
+            this.record("moon_crater_cut", craterOk, "block at " + craterSample + " = " + craterState.getBlock());
+        } catch (Throwable ex) {
+            this.record("moon_crater_cut", false, "threw " + ex);
+        }
+
+        try {
+            BlockState coreState = this.level.getBlockState(plan.core);
+            boolean coreOk = coreState.is(HalleyContent.MOLTEN_MOON_CHEESE.get());
+            this.record("moon_core_is_molten_moon_cheese", coreOk, "block at " + plan.core + " = " + coreState.getBlock());
+        } catch (Throwable ex) {
+            this.record("moon_core_is_molten_moon_cheese", false, "threw " + ex);
+        }
+
+        try {
+            double r = plan.params.moonRadius();
+            // Two sample points inside the moon's sphere, above the ground, offset horizontally from its centre.
+            BlockPos sample1 = BlockPos.containing(plan.restCentre.x + r * 0.3, plan.restCentre.y, plan.restCentre.z);
+            BlockPos sample2 = BlockPos.containing(plan.restCentre.x - r * 0.3, plan.restCentre.y + r * 0.2, plan.restCentre.z);
+            BlockState state1 = this.level.getBlockState(sample1);
+            BlockState state2 = this.level.getBlockState(sample2);
+            boolean ok = state1.is(HalleyContent.MOON_CHEESE.get()) && state2.is(HalleyContent.MOON_CHEESE.get());
+            this.record("moon_cheese_sphere_painted", ok,
+                "block at " + sample1 + " = " + state1.getBlock() + ", at " + sample2 + " = " + state2.getBlock());
+        } catch (Throwable ex) {
+            this.record("moon_cheese_sphere_painted", false, "threw " + ex);
+        }
+
+        this.checkMob("moon_inside_mob_erased", this.moonInsideMob, true);
+        this.checkMob("moon_beside_mob_hurt", this.moonBesideMob, false);
+
+        boolean notRunning = !SpellEngine.running(StarBridge.MOON, this.caster.getUUID());
+        this.record("moon_spell_completes_and_stops", notRunning, notRunning ? "" : "SpellEngine still reports it running");
+    }
+
+    private BlockPos sampleTopBlockAt(double x, double z) {
+        int bx = Mth.floor(x);
+        int bz = Mth.floor(z);
+        for (int y = this.groundY + 10; y > this.level.getMinBuildHeight(); y--) {
+            BlockPos pos = new BlockPos(bx, y, bz);
+            if (!this.level.getBlockState(pos).isAir()) {
+                return pos;
+            }
+        }
+        return new BlockPos(bx, this.groundY - 1, bz);
+    }
+
+    /** Feeds the FakePlayer caster both moon-cheese items for real (through {@code ItemStack.finishUsingItem}, the
+     *  same call the normal eat-animation path ends in) and checks what each one did. */
+    private void moonEat() {
+        try {
+            MobEffectInstance before = this.caster.getEffect(MobEffects.DAMAGE_BOOST);
+            this.record("molten_no_strength_before_eating", before == null, "found " + before);
+        } catch (Throwable ex) {
+            this.record("molten_no_strength_before_eating", false, "threw " + ex);
+        }
+
+        try {
+            ItemStack stack = new ItemStack(HalleyContent.MOLTEN_MOON_CHEESE_ITEM.get());
+            this.caster.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            ItemStack after = stack.finishUsingItem(this.level, this.caster);
+            this.caster.setItemInHand(InteractionHand.MAIN_HAND, after);
+
+            double maxHealth = this.caster.getAttributeValue(Attributes.MAX_HEALTH);
+            double expectedMaxHealth = MoonConfig.tuning().moltenHearts() * 2.0;
+            this.record("molten_max_health_raised", maxHealth == expectedMaxHealth,
+                "maxHealth=" + maxHealth + " expected=" + expectedMaxHealth);
+
+            MobEffectInstance strength = this.caster.getEffect(MobEffects.DAMAGE_BOOST);
+            int expectedAmplifier = MoonConfig.tuning().moltenStrength() - 1;
+            this.record("molten_strength_amplifier", strength != null && strength.getAmplifier() == expectedAmplifier,
+                "strength=" + strength + " expectedAmplifier=" + expectedAmplifier);
+
+            int expectedDuration = MoonConfig.tuning().moltenMinutes() * 60 * 20;
+            boolean durationOk = strength != null && strength.getDuration() > expectedDuration - 20 && strength.getDuration() <= expectedDuration;
+            this.record("molten_strength_duration", durationOk,
+                "duration=" + (strength == null ? "null" : strength.getDuration()) + " expected~=" + expectedDuration);
+
+            this.record("molten_healed_to_new_max", this.caster.getHealth() == (float) maxHealth,
+                "health=" + this.caster.getHealth() + " maxHealth=" + maxHealth);
+        } catch (Throwable ex) {
+            this.record("molten_max_health_raised", false, "threw " + ex);
+            this.record("molten_strength_amplifier", false, "threw " + ex);
+            this.record("molten_strength_duration", false, "threw " + ex);
+        }
+
+        try {
+            // Leave room under the cap (20) so the "+6" is actually visible instead of being clamped away.
+            this.caster.getFoodData().setFoodLevel(10);
+            int before = this.caster.getFoodData().getFoodLevel();
+            ItemStack stack = new ItemStack(HalleyContent.MOON_CHEESE_ITEM.get());
+            this.caster.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            ItemStack after = stack.finishUsingItem(this.level, this.caster);
+            this.caster.setItemInHand(InteractionHand.MAIN_HAND, after);
+            int afterLevel = this.caster.getFoodData().getFoodLevel();
+            this.record("moon_cheese_food_level_plus_6", afterLevel - before == 6,
+                "before=" + before + " after=" + afterLevel);
+        } catch (Throwable ex) {
+            this.record("moon_cheese_food_level_plus_6", false, "threw " + ex);
+        }
     }
 
     // ---- Small world-reading helpers. -------------------------------------------------------------------------

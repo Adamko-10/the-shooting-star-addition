@@ -47,3 +47,10 @@
 	#Lift a creative-mode caster clear if they stand inside the crater, like the other skills do.
 	evacuate_creative_caster = true
 
+#SS-06 Luna: at night, the Stellar Remote can shut the Earth system down and bring the moon down onto
+#your crosshair.
+[moonfall]
+	#How far away (in blocks) your crosshair can place the mark.
+	#Range: 32 ~ 1024
+	reach = 48
+

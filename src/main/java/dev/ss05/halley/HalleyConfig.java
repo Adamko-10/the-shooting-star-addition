@@ -3,7 +3,8 @@ package dev.ss05.halley;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 /**
- * Every tunable number of SS-05, in one place.
+ * Every tunable number of SS-05, in one place (SS-06's are in {@link MoonConfig}, in the same file: its sections are
+ * appended to this class's builder below, before the spec is built, so both land in one {@code SPEC}/one toml file).
  *
  * <p>Forge writes these to {@code config/shooting_star_addition-common.toml} the first time the game starts. Edit that file
  * (or change the defaults here and rebuild) - nothing else in the addon hard-codes these values.
@@ -69,6 +70,8 @@ public final class HalleyConfig {
         EVACUATE_CREATIVE = b.comment("Lift a creative-mode caster clear if they stand inside the crater, like the other skills do.")
             .define("evacuate_creative_caster", true);
         b.pop();
+
+        MoonConfig.define(b);
 
         SPEC = b.build();
     }

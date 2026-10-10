@@ -12,6 +12,7 @@ import cyou.rimuru.shootingstardemo.mc1201.star.Erasure;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.world.Excavation;
 import dev.ss05.halley.world.HalleyCasting;
+import dev.ss05.halley.world.MoonCasting;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -51,6 +52,8 @@ public final class StarBridge {
 
     /** SS-05 as The Shooting Star sees it. */
     public static final HalleySkill SKILL = new HalleySkill();
+    /** SS-06 as The Shooting Star sees it. */
+    public static final MoonSkill MOON = new MoonSkill();
 
     private static volatile boolean installed;
     private static volatile String problem = "not installed yet";
@@ -67,8 +70,8 @@ public final class StarBridge {
     }
 
     /**
-     * Adds SS-05 to the Stellar Remote: after the three built-in skills, with its own index, key binding, menu row,
-     * tooltip line and cooldown, exactly as if it had been one of them. Safe to call more than once.
+     * Adds SS-05 and SS-06 to the Stellar Remote: after the built-in skills, each with its own index, key binding,
+     * menu row, tooltip line and cooldown, exactly as if they had been among them. Safe to call more than once.
      */
     @SuppressWarnings("unchecked")
     public static synchronized boolean install() {
@@ -96,20 +99,26 @@ public final class StarBridge {
 
             List<Skill> after = new ArrayList<>(before);
             after.add(SKILL);
+            after.add(MOON);
             // The Shooting Star 1.3.2+ hands every cast a Tuning (the remote's power/speed gauge). SS-05 has no power()
             // to tune, so it casts the same way whatever the gauge says; the built-in skills get theirs unchanged.
-            SkillSet.Caster<Skill> caster = (player, skill, tuning) -> skill == SKILL ? HalleyCasting.cast(player) : builtIn.cast(player, skill, tuning);
+            SkillSet.Caster<Skill> caster = (player, skill, tuning) -> skill == SKILL ? HalleyCasting.cast(player)
+                : skill == MOON ? MoonCasting.cast(player) : builtIn.cast(player, skill, tuning);
 
-            index.put(SKILL, all.size());
-            all.add(SKILL);
-            owner.put(SKILL, remote);
+            for (Skill added : List.<Skill>of(SKILL, MOON)) {
+                index.put(added, all.size());
+                all.add(added);
+                owner.put(added, remote);
+            }
             try {
                 skillsField.set(remote, List.copyOf(after));
                 casterField.set(remote, caster);
             } catch (ReflectiveOperationException | RuntimeException failed) {
-                all.remove(SKILL);
-                owner.remove(SKILL);
-                index.remove(SKILL);
+                for (Skill added : List.<Skill>of(SKILL, MOON)) {
+                    all.remove(added);
+                    owner.remove(added);
+                    index.remove(added);
+                }
                 skillsField.set(remote, before);
                 casterField.set(remote, builtIn);
                 throw failed;
@@ -117,7 +126,8 @@ public final class StarBridge {
 
             installed = true;
             problem = "";
-            HalleyAddon.LOG.info("SS-05 Halley joined the Stellar Remote as skill #{} (key slot {}).", after.size(), SkillSet.indexOf(SKILL));
+            HalleyAddon.LOG.info("SS-05 Halley joined the Stellar Remote as skill #{} (key slot {}).", after.indexOf(SKILL) + 1, SkillSet.indexOf(SKILL));
+            HalleyAddon.LOG.info("SS-06 Luna joined the Stellar Remote as skill #{} (key slot {}).", after.indexOf(MOON) + 1, SkillSet.indexOf(MOON));
             return true;
         } catch (Throwable failed) {
             problem = failed.getClass().getSimpleName() + ": " + failed.getMessage();
@@ -150,6 +160,11 @@ public final class StarBridge {
         return installed ? SkillSet.indexOf(SKILL) : -1;
     }
 
+    /** The index The Shooting Star uses for SS-06 in its packets, or -1 when it isn't attached. */
+    public static int moonIndex() {
+        return installed ? SkillSet.indexOf(MOON) : -1;
+    }
+
     // ---- Thin wrappers over The Shooting Star's helpers. One line each, so an update only touches these. ----------
 
     /** Starts a spell and broadcasts its effect packet to nearby players, like the built-in skills. */
@@ -157,8 +172,16 @@ public final class StarBridge {
         SpellEngine.start(spell);
     }
 
+    public static void start(MoonSpell spell) {
+        SpellEngine.start(spell);
+    }
+
     public static boolean alreadyFlying(ServerPlayer player) {
-        return SpellEngine.running(SKILL, player.getUUID());
+        return alreadyFlying(SKILL, player);
+    }
+
+    public static boolean alreadyFlying(Skill skill, ServerPlayer player) {
+        return SpellEngine.running(skill, player.getUUID());
     }
 
     /** The point on the ground under the crosshair (or under a creature in it), the way the built-in skills aim. */

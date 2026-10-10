@@ -1,8 +1,9 @@
 # The Shooting Star Addition
 
 An **unofficial**, fan-made addon for [The Shooting Star [Demo]](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-demo)
-by rimuru_dev. It adds a new skill to the Stellar Remote: **SS-05 · Halley**, a comet called down onto your
-crosshair.
+by rimuru_dev. It adds two new skills to the Stellar Remote: **SS-05 · Halley**, a comet called down onto your
+crosshair, and **SS-06 · Luna**, which at night brings the moon itself down, leaving a moon of edible moon cheese with a
+molten heart.
 
 **Download:** [The Shooting Star Addition on CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition)
 
@@ -50,15 +51,36 @@ land round it.
 | ![](docs/screenshots/05-detonation.jpg) | ![](docs/screenshots/06-comet-heart.jpg) | ![](docs/screenshots/07-crater.jpg) |
 | ![The dark sky and the aurora, in third person](docs/screenshots/10-night-sky.jpg) | ![The ice halo and sun dogs after the impact](docs/screenshots/11-ice-halo.jpg) | ![With a shader pack (Complementary)](docs/screenshots/12-shader-pack.jpg) |
 
+## SS-06 · Luna
+
+At night, flip the cover and press the button: **EARTH SYSTEM SHUT DOWN**. The moon, right where it hangs in your
+sky, shudders and cracks open along glowing molten seams, leaves its place and falls onto your crosshair, slowly at
+first and then faster and faster, growing until it fills the sky. It burns through the atmosphere in a shroud of fire,
+hits the ground in a white flash and a shock ring, ploughs into the crater it digs and comes to rest there, half
+buried: a whole moon of **moon cheese**, with one block of **molten moon cheese** at its very centre.
+
+- **Night only** (by default; it refuses by day and where there is no moon, like the Nether).
+- Its own key (**J** by default), menu card, cooldown (120 s), cutscene (skippable), sounds and alarm.
+- Everything in the crater is erased; past it, the shock wave throws, burns and hurts whatever it meets.
+- **Moon cheese**: right-click a block to place it, right-click the air to eat it. It's as good as a golden carrot.
+- **Molten moon cheese**: eat it for **500 hearts** and **Strength 255** for 10 minutes (Molten Might).
+- **Any size**: the moon, crater and shock wave are server settings, from a pebble to a monster (see below).
+- **It permanently changes the land.** Back up worlds you care about.
+
+| | | |
+|---|---|---|
+| ![EARTH SYSTEM SHUT DOWN](docs/screenshots/13-luna-alarm.jpg) | ![The moon burning in](docs/screenshots/14-luna-fall.jpg) | ![The moon in its crater](docs/screenshots/15-luna-crater.jpg) |
+
 ## Installing
 
 1. Minecraft **1.20.1** with **Forge 47.1 or newer** (47.4.x recommended).
 2. **The Shooting Star [Demo] 1.3.3 or newer** (its Forge file).
-3. `shooting_star_addition-1.1.1+1.20.1.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
+3. `shooting_star_addition-1.2.0+1.20.1.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
 
-In game: hold the Stellar Remote, press **O** (or pick SS-05 in the remote's menu, **H**), aim at the ground and
-right-click. The key can be changed in Controls or from the remote's menu like the others.
+In game: hold the Stellar Remote, press **O** for SS-05 or **J** for SS-06 (or pick them in the remote's menu,
+**H**), aim at the ground and right-click. The keys can be changed in Controls or from the remote's menu like the
+others.
 
 ## Settings — `config/shooting_star_addition-common.toml`
 
@@ -75,7 +97,26 @@ right-click. The key can be changed in Controls or from the remote's menu like t
 | world    | `carve_terrain`            | true    | `false` = the strike only hurts creatures, the land is untouched. |
 | world    | `leave_comet_heart`        | true    | The glowing heart crystal and the frozen trail down the trench. |
 | world    | `frost_rays`               | true    | Rays of snow painted out from the crater. |
-| safety   | `evacuate_creative_caster` | true    | Lift a creative-mode caster out of the crater first. |
+| safety   | `evacuate_creative_caster` | true    | Lift a creative-mode caster out of the crater first (SS-05 and SS-06). |
+
+SS-06 and moon cheese, in the same file:
+
+| Section          | Setting            | Default | Range     | What it does |
+|------------------|--------------------|---------|-----------|--------------|
+| moonfall         | `cooldown_seconds` | 120     | 1-3600    | Recharge time. |
+| moonfall         | `reach`            | 420     | 32-1024   | How far away the crosshair can place the mark. |
+| moonfall         | `night_only`       | true    |           | `false` = it can be called by day too. |
+| moonfall_size    | `moon_radius`      | 32      | 2-200     | Radius of the moon (64 blocks across). |
+| moonfall_size    | `crater_radius`    | 60      | 4-320     | Radius of the crater; everything inside dies. |
+| moonfall_size    | `crater_depth`     | 22      | 1-256     | Depth of the crater. |
+| moonfall_size    | `sink_percent`     | 35      | 0-90      | How much of the moon ends up buried. |
+| moonfall_size    | `blast_reach`      | 2.5     | 1.0-6.0   | Shock wave reach, in crater radii. |
+| moonfall_size    | `chunks_per_tick`  | 8       | 1-64      | How fast the crater and moon are cut and built (huge moons take a while). |
+| moonfall_world   | `carve_terrain`    | true    |           | `false` = purely visual, only creatures are hit. |
+| moonfall_world   | `molten_core`      | true    |           | The block of molten moon cheese at the moon's centre. |
+| moon_cheese      | `molten_hearts`    | 500     | 1-512     | Hearts while Molten Might lasts. |
+| moon_cheese      | `molten_strength`  | 255     | 1-255     | Strength level it gives. |
+| moon_cheese      | `molten_minutes`   | 10      | 1-120     | How long it lasts. |
 
 The server's values are sent with every strike, so every client films exactly the crater the server cuts.
 
@@ -101,9 +142,9 @@ The Shooting Star is updated often. That means:
 - **Small updates** that don't touch those parts should keep working: the addon accepts The Shooting Star 1.3.3 and
   anything newer.
 - **Updates that change those parts** won't crash your game. The addon checks everything before it attaches, and if
-  something has moved it switches SS-05 off, logs why, and tells server operators in chat. It stays off until this
-  addon is updated. The optional touches (the remote's cover animation, the cutscene overlay, the raised arm) quietly
-  switch themselves off instead.
+  something has moved it switches SS-05 and SS-06 off, logs why, and tells server operators in chat. It stays off
+  until this addon is updated. The optional touches (the remote's cover animation, the cutscene overlay, the raised
+  arm) quietly switch themselves off instead.
 - **If The Shooting Star changes its mod id** (for example when it stops being a demo), this addon won't load until
   it is updated.
 - **Other mod loaders and Minecraft versions** each need their own build: this one is Forge 1.20.1; there are also
@@ -111,7 +152,7 @@ The Shooting Star is updated often. That means:
 
 ## Plans
 
-This is version 1.1. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
+This is version 1.2. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
 Shooting Star and keep improving it: more skills for the Stellar Remote, balancing and polish from your feedback,
 and versions for other loaders and Minecraft versions if there's demand. Bug reports, ideas and feedback are very
 welcome in the issues.
@@ -145,23 +186,26 @@ Only the files in `compat/` touch The Shooting Star; nothing else imports it. So
    `SS-05 Halley joined the Stellar Remote as skill #N`. If so, you're done.
 3. **Compile errors** — they will be in `compat/` only:
    - a renamed package or class: fix the imports in `compat/StarBridge.java`, `compat/HalleySkill.java`,
-     `compat/HalleySpell.java` and `compat/client/*.java`;
+     `compat/HalleySpell.java`, `compat/MoonSkill.java`, `compat/MoonSpell.java` and `compat/client/*.java`;
    - a moved helper (spell engine, aiming, carving, erasure, the evac lift): each is a one-line wrapper at the
      bottom of `StarBridge.java` — point it at the new method.
 4. **The log says "SS-05 Halley couldn't attach"** (operators also get a red chat message on joining): the remote's
    skill list (`SkillSet`) changed shape. The private field names the addon writes to are constants at the top of
-   `StarBridge.java` — rename them to match.
+   `StarBridge.java` — rename them to match. SS-05 and SS-06 attach together, in the same call, so this covers both.
 5. **Smaller things that may stop without breaking anything** — optional mixins in `compat/mixin/` that switch
    themselves off if their target moved:
-   - the remote's cover/button/screen not animating for SS-05 → `RemoteRendererMixin` (`strikeTime`);
-   - no SS-05 overlay on the cutscene → `FxManagerMixin` (`renderFilmHud`);
+   - the remote's cover/button/screen not animating for SS-05 or SS-06 → `RemoteRendererMixin` (`strikeTime`);
+   - no SS-05/SS-06 overlay on the cutscene → `FxManagerMixin` (`renderFilmHud`);
    - the caster's arm not raising (vanilla target, very unlikely to change) → `PlayerModelMixin`;
    - the land not dimming under the dark sky (vanilla target, very unlikely to change) → `ClientLevelMixin`;
    - with a shader pack on, the sky not going to night (vanilla target, very unlikely to change) →
-     `ClientLevelTimeMixin`.
-6. **A new built-in skill takes the O key** → change `DEFAULT_KEY` in `world/HalleyInfo.java`.
+     `ClientLevelTimeMixin`;
+   - the vanilla moon showing through SS-06's own moon (vanilla target, very unlikely to change) →
+     `LevelRendererMoonMixin`.
+6. **A new built-in skill takes the O or J key** → change `DEFAULT_KEY` in `world/HalleyInfo.java` or
+   `world/MoonInfo.java`.
 
-If the remote gains more built-in skills, SS-05 simply joins after them.
+If the remote gains more built-in skills, SS-05 and SS-06 simply join after them.
 
 ### Changing the skill
 
@@ -173,10 +217,11 @@ If the remote gains more built-in skills, SS-05 simply joins after them.
 | Name, colour, default key | `world/HalleyInfo.java`; description and key name in `assets/shooting_star_addition/lang/en_us.json` |
 | The look: colours, comet size, tails | top of `client/render/CometVisuals.java`; shapes in `halley_glow.fsh` |
 | The extras: fragments, ice from the crater, cracks, shock wall, beam | top of `client/render/CometExtras.java` |
-| The sky: when it darkens, the aurora, the haze | `sky()` in `client/HalleyFx.java` (timing); `halley_sky.fsh` (the look) |
+| The sky: when it darkens, the aurora, the haze | `sky()` in `client/HalleyFx.java` (timing); `halley_sky.fsh` (the look; shared with SS-06, see `SkyLook.palette()`) |
 | Shader packs (Oculus) | `client/render/ShaderPacks.java` (when), `GlowAtlas.java` (the painted shapes), `paint()` in `client/sky/HalleySky.java` |
 | Sounds, particles, screen effects, HUD | `client/HalleyFx.java`, `client/HalleyHud.java` |
 | The cutscene | `client/film/HalleyStoryboard.java` (one block per shot) |
+| SS-06 (the moonfall), moon cheese | see [docs/SS-06-LUNA.md](docs/SS-06-LUNA.md) (design and code map) |
 | Textures, menu card, thumbnail, sounds themselves | `art/` (generator scripts — see `art/README.md`) |
 
 ### Project layout
@@ -191,7 +236,8 @@ src/main/java/dev/ss05/halley/
   content/               blocks, sounds, damage type
   world/                 what the strike does to the world (server)
   client/                what it looks and sounds like (renderer, effects, HUD, cutscene)
-  client/sky/            the sky during a strike (night, aurora, the ice haze)
+  client/luna/           SS-06's own effects, HUD and renderer (the moon sphere, its glow)
+  client/sky/            the sky during a strike (night, aurora, the ice haze; shared by SS-05 and SS-06)
 src/main/resources/      shader, textures, sounds, language file, data
 src/main/templates/      META-INF/mods.toml (filled in from gradle.properties)
 src/servertest/          the dev-only game-logic test (./gradlew runServerTest)

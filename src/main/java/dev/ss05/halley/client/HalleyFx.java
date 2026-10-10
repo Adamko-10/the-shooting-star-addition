@@ -710,7 +710,7 @@ public final class HalleyFx {
         double shift = wound >= 12000.0 ? wound + (24000.0 - wound) * rise : wound * (1.0 - rise);
 
         return new SkyLook(night * w, stars * w, aurora * w, this.veil(t) * w, halo * w, flash * w, toward, glow * w, colour,
-            this.visuals.tailDirection(), land * w, (float) (p.seed & 1023L), (float) shift);
+            this.visuals.tailDirection(), land * w, (float) (p.seed & 1023L), (float) shift, SkyLook.PALETTE_HALLEY);
     }
 
     /** The haze of ice after the impact: rolling in as the blast fades, clearing over the rest of the strike. */
