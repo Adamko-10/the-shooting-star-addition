@@ -20,13 +20,21 @@ import net.minecraft.world.level.block.state.BlockState;
  * {@link Excavation} (which only ever cuts blocks away above a floor), this one also places blocks, so it is its
  * own small class rather than another {@code StarBridge.excavate} shape; what to place comes straight from
  * {@link MoonPlan#inMoon}, so it is always the same sphere the client films.
+ *
+ * <p>It goes over the chunks twice: first only the outer {@link #SHELL} blocks, so the moon's whole surface is there
+ * as early as possible (the client cross-fades its rendered moon into the blocks as they appear), then the inside.
  */
 public final class MoonBuild {
     private final ServerLevel level;
     private final MoonPlan plan;
     private final int chunksPerTick;
+    /** How thick the first pass (the surface) is, in blocks. */
+    private static final double SHELL = 3.0;
+
     private final List<ChunkPos> order;
     private int next;
+    /** 0 = the shell, 1 = the inside. */
+    private int pass;
 
     public MoonBuild(ServerLevel level, MoonPlan plan, int chunksPerTick) {
         this.level = level;
@@ -65,7 +73,12 @@ public final class MoonBuild {
     }
 
     public boolean done() {
-        return this.next >= this.order.size();
+        return this.pass > 1;
+    }
+
+    /** Whether the moon's whole surface has been built (the inside may still be filling). */
+    public boolean shellDone() {
+        return this.pass > 0;
     }
 
     public void tick() {
@@ -78,10 +91,19 @@ public final class MoonBuild {
     }
 
     private void build(int count) {
-        if (this.done()) {
-            return;
+        while (count > 0 && !this.done()) {
+            int end = Math.min(this.order.size(), this.next + count);
+            count -= end - this.next;
+            this.buildChunks(end, this.pass == 0);
+            if (this.next >= this.order.size()) {
+                this.pass++;
+                this.next = 0;
+            }
         }
-        int end = Math.min(this.order.size(), this.next + count);
+    }
+
+    private void buildChunks(int end, boolean shell) {
+        double inner = Math.max(0.0, this.plan.params.moonRadius() - SHELL);
         int minY = this.level.getMinY();
         int maxY = this.level.getMaxY();
         double r = this.plan.params.moonRadius();
@@ -113,6 +135,11 @@ public final class MoonBuild {
                     int yTo = Math.min(maxY, Mth.ceil(this.plan.restCentre.y + half));
                     for (int y = yFrom; y <= yTo; y++) {
                         if (!this.plan.inMoon(x, y, z)) {
+                            continue;
+                        }
+                        // the shell pass takes the outer SHELL blocks, the second pass everything inside them
+                        double d = this.plan.restCentre.distanceToSqr(x + 0.5, y + 0.5, z + 0.5);
+                        if (shell != d >= inner * inner) {
                             continue;
                         }
                         BlockPos at = new BlockPos(x, y, z);

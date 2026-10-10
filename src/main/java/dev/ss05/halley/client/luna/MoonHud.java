@@ -27,7 +27,11 @@ public final class MoonHud {
     private MoonHud() {
     }
 
-    /** For the caster, outside the film: the glitching alert. For anyone, outside the film: the off-screen marker. */
+    /**
+     * Outside the film (either the caster skipped the cutscene, or this is somebody else): the glitching alert (the
+     * caster only), the SS-05-style "INBOUND" panel at the top of the screen with a countdown, and the off-screen
+     * marker pointing at the moon while it's out of view.
+     */
     public static void hud(GuiGraphicsExtractor g, MoonFx fx, float partial, int w, int h) {
         if (fx.filmWeight() > 0.05F) {
             return;
@@ -35,7 +39,36 @@ public final class MoonHud {
         if (fx.mine) {
             alert(g, fx, fx.time(partial), w, h);
         }
+        world(g, fx, partial, w);
         marker(g, fx, partial, w, h);
+    }
+
+    /** For anyone near the strike, outside the film: what is coming, and how long until it lands (modelled on
+     * {@code HalleyHud.world}). */
+    private static void world(GuiGraphicsExtractor g, MoonFx fx, float partial, int w) {
+        Minecraft minecraft = Minecraft.getInstance();
+        MoonPlan p = fx.plan;
+        float t = fx.time(partial);
+        if (minecraft.player == null || t < MoonPlan.BREAK || t >= MoonPlan.CONTACT) {
+            return;
+        }
+        Vec3 me = minecraft.player.position();
+        double blast = p.blastRadius();
+        double fromMark = Math.hypot(me.x - p.target.x, me.z - p.target.z);
+        if (fromMark > blast + p.params.moonRadius() + 160.0) {
+            return;
+        }
+        boolean erase = fromMark < p.eraseRadius();
+        boolean inBlast = fromMark < blast;
+        Font font = minecraft.font;
+        float rate = 1.0F + 3.0F * Mth.clamp((t - MoonPlan.ENTRY) / (MoonPlan.CONTACT - MoonPlan.ENTRY), 0.0F, 1.0F);
+        float blink = (t / 20.0F * rate) % 1.0F;
+        int a = (int) (255.0F * (0.55F + 0.45F * (1.0F - blink)));
+        String title = erase ? "INSIDE THE ERASE RADIUS" : inBlast ? "INSIDE THE BLAST RADIUS" : "MOON INBOUND";
+        int colour = erase || inBlast ? RED : CYAN;
+        String clock = String.format(Locale.ROOT, "T-%05.2f", Math.max(0.0F, (MoonPlan.CONTACT - t) / 20.0F));
+        bracketed(g, font, title, w / 2, 26, a << 24 | colour, 1.5F);
+        centered(g, font, clock, w / 2, 44, 0xFFFFFFFF, 1.25F);
     }
 
     /** "EARTH SYSTEM SHUT DOWN": huge, red, glitching, for ~3.5 seconds from the alarm. {@code t} is in ticks since
@@ -124,7 +157,10 @@ public final class MoonHud {
         text(g, font, range, lx - font.width(range) / 2.0F, ly + 1.0F, (int) (a * 0.7F) << 24 | 0xE2FBFF, 1.0F);
     }
 
-    /** The caster's film: a brief uplink line, and the big alert re-shown (the cutscene starts at age 0). */
+    /**
+     * The caster's film: an uplink overlay with the moon's telemetry - distance, ETA to impact and velocity readouts,
+     * warning text, and the big alert re-shown (the cutscene starts at age 0) - modelled on {@code HalleyHud.film}.
+     */
     public static void film(GuiGraphicsExtractor g, MoonFx fx, float partial, int w, int h, HalleyHud.@Nullable Projector project) {
         float ct = fx.filmTime(partial);
         if (Float.isNaN(ct)) {
@@ -137,9 +173,67 @@ public final class MoonHud {
         if (ct >= MoonPlan.ALARM && ct <= MoonPlan.ALARM + MoonFx.ALARM_TICKS) {
             alert(g, fx, ct, w, h);
         }
+        MoonPlan p = fx.plan;
         Font font = Minecraft.getInstance().font;
-        int a = (int) (fade * 180.0F);
-        text(g, font, "UPLINK // SS-06 > LUNA", 18.0F, 18.0F, a << 24 | GOLD, 1.0F);
+        int a = (int) (fade * 255.0F);
+        boolean flicker = (int) (ct * 3.0F) % 11 == 0;
+        int ink = a << 24 | GOLD;
+        int dim = (int) (a * 0.55F) << 24 | 0xFFE2C8;
+        int m = 12;
+        int arm = 22;
+        corner(g, m, m, arm, 1, 1, ink);
+        corner(g, w - m, m, arm, -1, 1, ink);
+        corner(g, m, h - m, arm, 1, -1, ink);
+        corner(g, w - m, h - m, arm, -1, -1, ink);
+        text(g, font, "UPLINK // SS-06 > LUNA", m + 6, m + 6, flicker ? dim : ink, 1.0F);
+        text(g, font, String.format(Locale.ROOT, "T+%05.2f", ct / 20.0F), m + 6, m + 17, dim, 1.0F);
+        String clock = ct < MoonPlan.CONTACT ? String.format(Locale.ROOT, "IMPACT T-%05.2f", Math.max(0.0F, (MoonPlan.CONTACT - ct) / 20.0F))
+            : "IMPACT CONFIRMED";
+        right(g, font, clock, w - m - 6, m + 6, ink, 1.0F);
+        right(g, font, String.format(Locale.ROOT, "LOCK %d / %d / %d", Mth.floor(p.target.x), Mth.floor(p.target.y), Mth.floor(p.target.z)),
+            w - m - 6, h - m - 14, dim, 1.0F);
+
+        if (ct >= MoonPlan.ALARM && ct < MoonPlan.ALARM + 70.0F && project != null) {
+            float[] at = project.project(p.target.add(0.0, 0.5, 0.0));
+            if (at != null) {
+                float k = Mth.clamp((ct - MoonPlan.ALARM) / 10.0F, 0.0F, 1.0F);
+                int size = (int) Mth.lerp(k, 70.0F, 10.0F);
+                box(g, (int) at[0], (int) at[1], size, ink);
+                text(g, font, "TARGET ACQUIRED", at[0] + size + 4, at[1] - 9, ink, 1.0F);
+                text(g, font, String.format(Locale.ROOT, "ERASE %d M · BLAST %d M", Mth.ceil(p.eraseRadius()), Mth.ceil(p.blastRadius())),
+                    at[0] + size + 4, at[1] + 1, dim, 1.0F);
+            }
+        }
+
+        if (ct >= MoonPlan.BREAK && ct < MoonPlan.CONTACT && project != null) {
+            Vec3 moon = p.centre(ct);
+            float[] at = project.project(moon);
+            if (at != null) {
+                double d = moon.distanceTo(MoonFx.camera());
+                int size = (int) Mth.clamp(20.0 - d / 300.0, 8.0, 20.0);
+                box(g, (int) at[0], (int) at[1], size, ink);
+                text(g, font, "SS-06 · LUNA", at[0] + size + 4, at[1] - 9, ink, 1.0F);
+                text(g, font, String.format(Locale.ROOT, "RANGE %.2f KM · ALT %,.0f M", d / 1000.0, moon.y - p.target.y),
+                    at[0] + size + 4, at[1] + 1, dim, 1.0F);
+            }
+            double eta = Math.max(0.0, MoonPlan.CONTACT - ct) / 20.0;
+            text(g, font, String.format(Locale.ROOT, "V %,.0f M/S", p.speed(ct) * 20.0), 18, h - 40, ink, 1.5F);
+            text(g, font, String.format(Locale.ROOT, "ETA %.1f S · CLOSING", eta), 18, h - 24, dim, 1.0F);
+            if (ct >= MoonPlan.ENTRY - 30.0F) {
+                boolean blink = (int) (ct / 2.0F) % 2 == 0;
+                bracketed(g, font, "ENTRY · PLASMA SHEATH", w / 2, 30, blink ? ink : dim, 1.5F);
+            }
+        }
+
+        if (ct >= MoonPlan.CONTACT + 4.0F && ct < MoonPlan.CONTACT + 60.0F) {
+            int b = (int) (a * Mth.clamp((MoonPlan.CONTACT + 60.0F - ct) / 12.0F, 0.0F, 1.0F));
+            bracketed(g, font, "IMPACT CONFIRMED", w / 2, h / 2 + 50, b << 24 | GOLD, 2.0F);
+        }
+        if (ct >= MoonPlan.CONTACT + 100.0F) {
+            int b = (int) (a * Mth.clamp((ct - MoonPlan.CONTACT - 100.0F) / 10.0F, 0.0F, 1.0F));
+            centered(g, font, String.format(Locale.ROOT, "CRATER Ø%d · DEPTH %d · MOON Ø%d",
+                p.params.craterRadius() * 2, p.params.craterDepth(), p.params.moonRadius() * 2), w / 2, h - m - 30, b << 24 | 0xFFE2C8, 1.25F);
+        }
     }
 
     private static float pseudo(long seed) {
@@ -155,6 +249,33 @@ public final class MoonHud {
         pose.scale(scale, scale);
         g.text(font, s, 0, 0, color, false);
         pose.popMatrix();
+    }
+
+    // ---- Drawing helpers (the same look as HalleyHud's own; duplicated here to keep this package independent). ----
+
+    private static void corner(GuiGraphicsExtractor g, int x, int y, int arm, int dx, int dy, int color) {
+        g.fill(Math.min(x, x + dx * arm), y, Math.max(x, x + dx * arm), y + dy, color);
+        g.fill(x, Math.min(y, y + dy * arm), x + dx, Math.max(y, y + dy * arm), color);
+    }
+
+    private static void box(GuiGraphicsExtractor g, int x, int y, int size, int color) {
+        int arm = Math.max(3, size / 3);
+        corner(g, x - size, y - size, arm, 1, 1, color);
+        corner(g, x + size, y - size, arm, -1, 1, color);
+        corner(g, x - size, y + size, arm, 1, -1, color);
+        corner(g, x + size, y + size, arm, -1, -1, color);
+    }
+
+    private static void right(GuiGraphicsExtractor g, Font font, String s, int x, int y, int color, float scale) {
+        text(g, font, s, x - font.width(s) * scale, y, color, scale);
+    }
+
+    private static void centered(GuiGraphicsExtractor g, Font font, String s, int cx, int y, int color, float scale) {
+        text(g, font, s, cx - font.width(s) * scale / 2.0F, y, color, scale);
+    }
+
+    private static void bracketed(GuiGraphicsExtractor g, Font font, String s, int cx, int y, int color, float scale) {
+        centered(g, font, "[ " + s + " ]", cx, y, color, scale);
     }
 
     /** Tiny stand-in for {@code HalleyFx.window}, duplicated here to keep this package independent. */

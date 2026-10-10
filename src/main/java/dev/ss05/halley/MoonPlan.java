@@ -22,22 +22,22 @@ public final class MoonPlan {
     public static final int ARM = 0;
     /** The button goes down. */
     public static final int PRESS = 7;
-    /** "EARTH SYSTEM SHUT DOWN": the alarm, the title, the sky starts to redden. */
+    /** "EARTH SYSTEM SHUT DOWN": the alarm, the title; the sky falls to night (like SS-05) and starts to redden. */
     public static final int ALARM = 10;
     /** A creative-mode caster standing in the crater-to-be is lifted clear. */
     public static final int EVAC = 12;
     /** The moon shudders and cracks; molten seams open across it. */
-    public static final int BREAK = 50;
+    public static final int BREAK = 60;
     /** It leaves its place in the sky and starts to fall. */
-    public static final int FALL = 90;
+    public static final int FALL = 120;
     /** It reaches the atmosphere: a burning shroud and a roar. */
-    public static final int ENTRY = 250;
+    public static final int ENTRY = 380;
     /** Its lowest point touches the ground on the mark: the impact. */
-    public static final int CONTACT = 320;
+    public static final int CONTACT = 480;
     /** It has ploughed into the crater it dug and come to rest. */
-    public static final int SETTLE = 360;
+    public static final int SETTLE = 540;
     /** How long the spell keeps running after it comes to rest (dust, debris, the sky clearing). */
-    public static final int AFTERMATH = 240;
+    public static final int AFTERMATH = 300;
     public static final int DURATION = SETTLE + AFTERMATH;
 
     // ---- The fall. -----------------------------------------------------------------------------------------------
@@ -228,6 +228,51 @@ public final class MoonPlan {
     /** How far the shock wave throws and hurts things. */
     public double blastRadius() {
         return this.params.craterRadius() * this.params.blastReach();
+    }
+
+    // ---- The cracks (like Gungnir's): fissures racing out across the land from the crater at the impact. -------------
+
+    /** How many cracks run out from the crater. */
+    public static final int CRACKS = 16;
+    /** How long they take to race out to their full length after {@link #CONTACT}, in ticks. */
+    public static final int CRACK_TICKS = 24;
+
+    /** The bearing crack {@code i} leaves the crater at, in radians (spread round, a little irregular). */
+    public double crackAngle(int i) {
+        double even = (i + 0.5) / CRACKS * Math.PI * 2.0;
+        return even + (this.hash(i, 7, -i) - 0.5) * (Math.PI * 2.0 / CRACKS) * 0.8;
+    }
+
+    /** How far crack {@code i} runs beyond the crater rim, in blocks (out to about the shock wave's reach). */
+    public double crackLength(int i) {
+        return (this.blastRadius() - this.params.craterRadius()) * (0.55 + 0.45 * this.hash(i, 11, i));
+    }
+
+    /**
+     * A point on crack {@code i}, {@code along} 0 at the crater rim to 1 at its tip; it wanders from side to side.
+     * The y is the mark's (the ground is found by whoever uses it).
+     */
+    public Vec3 crackPoint(int i, double along) {
+        double angle = this.crackAngle(i);
+        double r = this.params.craterRadius() + along * this.crackLength(i);
+        double wander = 0.22 * Math.sin(along * 7.0 + this.phase(i)) + 0.09 * Math.sin(along * 19.0 + this.phase(i + 3));
+        double a = angle + wander * (0.35 + 0.65 * along) * this.params.craterRadius() / Math.max(r, 1.0);
+        return new Vec3(this.target.x + Math.cos(a) * r, this.target.y, this.target.z + Math.sin(a) * r);
+    }
+
+    /** Half the width of crack {@code i} at {@code along}, in blocks: widest at the rim, tapering to a point. */
+    public double crackHalfWidth(int i, double along) {
+        double base = Math.max(1.0, this.params.craterRadius() * 0.035) * (0.7 + 0.6 * this.hash(i, 13, -i));
+        return base * (1.0 - along) * (1.0 - along * 0.3);
+    }
+
+    /** 0..1: how far the cracks have run out at time {@code t} (they race out from {@link #CONTACT}). */
+    public static double crackFront(double t) {
+        if (t <= CONTACT) {
+            return 0.0;
+        }
+        double k = Math.min(1.0, (t - CONTACT) / CRACK_TICKS);
+        return 1.0 - (1.0 - k) * (1.0 - k);
     }
 
     // ---- Shared randomness. ----------------------------------------------------------------------------------------

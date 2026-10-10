@@ -90,7 +90,7 @@ public final class HalleySky {
     public static void update(float partial) {
         current = null;
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level == null || HalleyFx.active().isEmpty() || !HalleyClientConfig.sky()) {
+        if (minecraft.level == null || (HalleyFx.active().isEmpty() && MoonFx.active().isEmpty()) || !HalleyClientConfig.sky()) {
             return;
         }
         Vec3 camera = minecraft.gameRenderer.mainCamera().position();

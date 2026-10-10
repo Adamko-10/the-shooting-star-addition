@@ -54,8 +54,12 @@ public final class MoonFx {
     private static final double PARTICLE_RANGE = 900.0;
     /** How often, in ticks, the block moon is polled for after SETTLE. */
     private static final int POLL_EVERY = 5;
-    /** How long the rendered sphere takes to fade away once it's handed over (or the strike is about to end). */
-    private static final float HANDOVER_FADE = 10.0F;
+    /** How long the rendered sphere takes to fade away once it's handed over (or the strike is about to end): a slow
+     * cross-fade into a glowing, cooling molten shell (see {@link #sphereVisibilityAt}, {@code MoonSphere}'s cooling
+     * tint and {@code MoonVisuals}' handover glow), not a pop. */
+    private static final float HANDOVER_FADE = 55.0F;
+    /** How long the cooling molten-shell look lingers after handover, in ticks (see the same places). */
+    public static final float COOLING_TICKS = 100.0F;
 
     /** What the film needs from The Shooting Star (implemented in compat/client). */
     public interface Host {
@@ -105,6 +109,10 @@ public final class MoonFx {
     private int age;
     /** The tick (age) the block moon was confirmed built, or -1 until then. */
     private int handoverAt = -1;
+    /** How far the clock has to be wound on from the real time for the middle of the night (0: it's night already);
+     * see {@code HalleyFx}'s own field of the same name - SS-06 winds a shader pack's night on exactly the same way,
+     * so the alarm turns the sky to night whether it's day or night when the moon is called down. */
+    private final long toNight;
 
     public MoonFx(Host host, int casterId, Vec3 origin, Vec3 target, long seed, int[] data) {
         Minecraft minecraft = Minecraft.getInstance();
@@ -116,6 +124,8 @@ public final class MoonFx {
         this.random = RandomSource.create(seed ^ 0x6C75_6E61_06L);
         ParticleStatus status = minecraft.options.particles().get();
         this.particles = status == ParticleStatus.ALL ? 1.0F : status == ParticleStatus.DECREASED ? 0.45F : 0.12F;
+        long day = minecraft.level == null ? 6000L : Math.floorMod(minecraft.level.getDefaultClockTime(), 24000L);
+        this.toNight = day >= 13000L && day < 23000L ? 0L : Math.floorMod(18000L - day, 24000L);
         ACTIVE.add(this);
     }
 
@@ -166,6 +176,11 @@ public final class MoonFx {
 
     public int age() {
         return this.age;
+    }
+
+    /** The tick the block moon was confirmed built, or -1 before that (for the cross-fade's cooling glow). */
+    public int handoverAt() {
+        return this.handoverAt;
     }
 
     public float time(float partial) {
@@ -223,15 +238,15 @@ public final class MoonFx {
         MoonParams p = this.plan.params;
         Vec3 rc = this.plan.restCentre;
         int r = p.moonRadius();
-        int side = Math.max(1, Mth.floor(r * 0.9));
-        int cx = Mth.floor(rc.x);
         int cy = Mth.floor(rc.y);
-        int cz = Mth.floor(rc.z);
-        BlockPos[] samples = {
-            new BlockPos(cx, Mth.floor(rc.y + r - 1.0), cz),
-            new BlockPos(cx + side, cy, cz), new BlockPos(cx - side, cy, cz),
-            new BlockPos(cx, cy, cz + side), new BlockPos(cx, cy, cz - side),
-        };
+        // the top, and eight points round the equator, all just inside the surface: the server builds the whole
+        // shell before the inside, so once all of these are there the surface is complete
+        BlockPos[] samples = new BlockPos[9];
+        samples[0] = new BlockPos(Mth.floor(rc.x), Mth.floor(rc.y + r - 1.0), Mth.floor(rc.z));
+        for (int i = 0; i < 8; i++) {
+            double a = i * Math.PI / 4.0;
+            samples[i + 1] = new BlockPos(Mth.floor(rc.x + Math.cos(a) * (r - 1.0)), cy, Mth.floor(rc.z + Math.sin(a) * (r - 1.0)));
+        }
         int loaded = 0;
         int built = 0;
         for (BlockPos pos : samples) {
@@ -244,7 +259,7 @@ public final class MoonFx {
                 built++;
             }
         }
-        if (loaded >= 3 && built * 2 >= loaded) {
+        if (loaded >= 5 && built == loaded) {
             this.handoverAt = this.age;
         }
     }
@@ -267,9 +282,13 @@ public final class MoonFx {
         return 1.0F - smooth((t - fadeFrom) / HANDOVER_FADE);
     }
 
-    /** How much smaller than its true size to draw the sphere at rest, so it doesn't z-fight with the block moon. */
+    /**
+     * How much smaller than its true size to draw the sphere (negative = bigger): at rest it is drawn a block bigger,
+     * so it covers the block moon (whose block corners reach ~0.9 past the radius) while the server is still building
+     * it, instead of the blocks showing through it piece by piece; then it cross-fades away (see sphereVisibilityAt).
+     */
     public static double radiusShrinkAt(double t) {
-        return 0.3 * MoonPlan.settle(t);
+        return -1.0 * MoonPlan.settle(t);
     }
 
     public void removed() {
@@ -521,18 +540,30 @@ public final class MoonFx {
         MoonPlan p = this.plan;
         double t = this.age + partial;
         float w = this.skyReach(camera);
+        // the sky falls to night exactly like SS-05's, whether it's day or night when the moon is called: full dark
+        // by the end of the alarm, holding through the fall and the impact, clearing again in the aftermath
         float cover = smooth((t - MoonPlan.ALARM) / 30.0) * (1.0F - smooth((t - (MoonPlan.DURATION - 90.0)) / 90.0));
         float heat = smooth((t - (MoonPlan.ENTRY - 20.0)) / 50.0) * (1.0F - smooth((t - (MoonPlan.CONTACT + 50.0)) / 90.0));
         float flash = 0.4F * pulse(t, MoonPlan.ENTRY, 5.0) + 1.5F * pulse(t, MoonPlan.CONTACT, 6.0);
         float veil = smooth((t - (MoonPlan.CONTACT + 10.0)) / 40.0) * (1.0F - smooth((t - (MoonPlan.DURATION - 60.0)) / 60.0));
+        // stars show through the red-orange night, washed out by the burning approach and the impact's glare
+        float stars = cover * (1.0F - 0.8F * heat);
+        // the land dims under the dark sky, exactly as SS-05's does (so the moon's own light stands out against it)
+        float land = cover * (1.0F - 0.5F * heat) * 0.85F;
 
         Vec3 at = t <= MoonPlan.CONTACT ? p.centre(t) : p.target.add(0.0, p.params.craterRadius() * 0.4, 0.0);
         Vec3 toward = at.subtract(camera);
         toward = toward.lengthSqr() < 1.0E-6 ? new Vec3(0.0, 1.0, 0.0) : toward.normalize();
         float glow = t <= MoonPlan.CONTACT ? 0.5F + 1.7F * heat : 1.8F * (float) Math.exp(-(t - MoonPlan.CONTACT) / 30.0);
 
-        return new SkyLook(cover * w, 0.0F, 0.0F, veil * w * 0.6F, 0.0F, flash * w, toward,
-            glow * w, 1.0F, Vec3.ZERO, 0.0F, (float) (p.seed & 1023L), 0.0F, SkyLook.PALETTE_LUNA);
+        // with a shader pack on, the night is the pack's own: the sky's clock is wound on into it as the alarm turns
+        // the sky dark, and back again as the aftermath clears, exactly like HalleyFx.sky's own wind/unwind
+        double wound = this.toNight * cover * w;
+        float rise = smooth((t - (MoonPlan.DURATION - 90.0)) / 90.0);
+        double shift = wound >= 12000.0 ? wound + (24000.0 - wound) * rise : wound * (1.0 - rise);
+
+        return new SkyLook(cover * w, stars * w, 0.0F, veil * w * 0.6F, 0.0F, flash * w, toward,
+            glow * w, 1.0F, Vec3.ZERO, land * w, (float) (p.seed & 1023L), (float) shift, SkyLook.PALETTE_LUNA);
     }
 
     private float skyReach(Vec3 camera) {
@@ -578,22 +609,24 @@ public final class MoonFx {
         }
 
         float since = (t - MoonPlan.CONTACT) / 20.0F;
-        if (since >= 0.0F && since < 10.0F) {
-            float near = film ? 1.0F : proximity(camera, p.target, 2800.0);
+        if (since >= 0.0F && since < 12.0F) {
+            float near = film ? 1.0F : proximity(camera, p.target, 3200.0);
             Vec3 focus = p.target.add(0.0, p.params.craterRadius() * 0.3, 0.0);
-            // ink/inverted only (mode 3 is the remote's cold-blue accent, SS-05's own look) - SS-06's flash carries its colour
-            impactSequence(screen, since, focus, near, 0.06F, 0, 1, 0, 1, 0, 1);
-            float decay = since < 0.06F ? 1.0F : (float) Math.exp(-(since - 0.06F) * 5.0F);
+            // a longer, punchier staged sequence than SS-05's own (the moon hits far harder), in The Shooting Star's warm impact frames (its composite shader): 9-10 white and gold, 15-16 black and ember,
+            // 17 ember line-art, 19 ember halftone, 2 crimson - the moon-cheese gold and the burning entry, never SS-05's cyan
+            impactSequence(screen, since, focus, near, 0.05F, 9, 15, 10, 17, 2, 16, 9, 19, 15, 10);
+            float decay = since < 0.06F ? 1.0F : (float) Math.exp(-(since - 0.06F) * 4.2F);
+            screen.flash(0xFFFFFF, 2.1F * near * decay);
             screen.flash(0xFFEFC8, 1.6F * near * decay);
-            screen.flash(0xFF7A2E, 0.6F * near * (float) Math.exp(-since * 1.4F));
-            screen.zoomBlur(window(since, 0.0F, 0.04F, 0.4F, 1.6F) * 0.7F * near);
-            screen.shake(window(since, 0.0F, 0.06F, 2.5F, 6.0F) * near);
-            screen.aberration(window(since, 0.0F, 0.06F, 0.7F, 3.5F) * near);
-            float hold = window(t, MoonPlan.CONTACT, MoonPlan.CONTACT + 8.0F, MoonPlan.CONTACT + 110.0F, MoonPlan.CONTACT + 170.0F);
-            screen.bloom(1.1F * hold, 1.3F + 1.2F * hold);
-            screen.vignette(0x2A0E05, hold * 0.4F * near);
-            screen.stoppedWorld(window(since, 0.0F, 0.025F, 0.3F, 0.55F) * near, 11.0F);
-            screen.desaturate(0.18F * window(t, MoonPlan.CONTACT + 10.0F, MoonPlan.CONTACT + 40.0F, MoonPlan.CONTACT + 160.0F, MoonPlan.CONTACT + 220.0F) * near);
+            screen.flash(0xFF7A2E, 0.8F * near * (float) Math.exp(-since * 1.1F));
+            screen.zoomBlur(window(since, 0.0F, 0.04F, 0.5F, 2.0F) * 0.9F * near);
+            screen.shake(window(since, 0.0F, 0.06F, 3.2F, 7.5F) * 1.2F * near);
+            screen.aberration(window(since, 0.0F, 0.06F, 0.9F, 4.5F) * near);
+            float hold = window(t, MoonPlan.CONTACT, MoonPlan.CONTACT + 8.0F, MoonPlan.CONTACT + 140.0F, MoonPlan.CONTACT + 210.0F);
+            screen.bloom(1.4F * hold, 1.6F + 1.5F * hold);
+            screen.vignette(0x2A0E05, hold * 0.5F * near);
+            screen.stoppedWorld(window(since, 0.0F, 0.025F, 0.35F, 0.65F) * near, 11.0F);
+            screen.desaturate(0.22F * window(t, MoonPlan.CONTACT + 10.0F, MoonPlan.CONTACT + 40.0F, MoonPlan.CONTACT + 180.0F, MoonPlan.CONTACT + 250.0F) * near);
         }
         if (t > MoonPlan.CONTACT && t < MoonPlan.SETTLE + 60) {
             float near = film ? 1.0F : proximity(camera, p.target, 1800.0);

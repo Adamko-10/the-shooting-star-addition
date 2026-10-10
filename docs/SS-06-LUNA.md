@@ -5,34 +5,37 @@ port of the addon implements the same thing, so read this before porting it.
 
 ## What the player sees
 
-At night, with the Stellar Remote: press **J** (or pick SS-06 in the remote's menu) and aim at the ground.
+With the Stellar Remote, by day or night: press **Y** (or pick SS-06 in the remote's menu) and aim at the ground.
 
 1. **ARM / PRESS (0-7):** the remote's cover flips, the button goes down (The Shooting Star's own clicks).
 2. **ALARM (10):** **"EARTH SYSTEM SHUT DOWN"** slams across the screen in big red letters with a glitch/scanline
    look, over a siren (`luna_alarm`). Other players nearby get it in their action bar. The night sky starts to turn a
    sick red-orange. The mark appears on the ground (gold).
-3. **BREAK (50-90):** the moon, *exactly where the vanilla moon hangs in the sky* (same direction, same apparent
+3. **BREAK (60-120):** the moon, *exactly where the vanilla moon hangs in the sky* (same direction, same apparent
    size), shudders. Glowing molten seams crack open across it (`luna_crack`). The vanilla moon is hidden from here on
    (it is replaced by ours).
-4. **FALL (90-320):** it leaves its place and comes down a straight line onto the mark, slow at first and then
+4. **FALL (120-480):** it leaves its place and comes down a straight line onto the mark, slow at first and then
    faster and faster (`MoonPlan.fall`, ease 2.6), slowly turning, growing until it fills the sky. A long rising roar
    (`luna_fall`). The ground starts to rumble (camera shake grows). Fragments break off and stream behind it.
-5. **ENTRY (250-320):** it hits the atmosphere: a burning orange-white shroud and a bow shock on its leading face,
+5. **ENTRY (380-480):** it hits the atmosphere: a burning orange-white shroud and a bow shock on its leading face,
    flames streaming back up its path, the whole sky lit orange (`luna_entry`).
-6. **CONTACT (320):** its lowest point touches the mark. White flash, impact frames, huge camera shake, a shock
+6. **CONTACT (480):** its lowest point touches the mark. White flash, impact frames, huge camera shake, a shock
    ring racing out along the ground, a dome of dust, rock and cheese chunks thrown out on long arcs, `luna_impact`.
    The server erases everything in the crater and blasts what is beyond it.
-7. **SETTLE (320-360):** it ploughs on down into the crater it digs and comes to rest, part buried (`luna_settle`).
+7. **SETTLE (480-540):** it ploughs on down into the crater it digs and comes to rest, part buried (`luna_settle`).
    The server has the crater cut and the moon built out of **moon cheese**, with **one block of molten moon cheese**
    at its very centre.
-8. **AFTERMATH (360-600):** dust hangs and drifts, debris rains down (`luna_debris`), embers glow on the moon's
+8. **AFTERMATH (540-840):** dust hangs and drifts, debris rains down (`luna_debris`), embers glow on the moon's
    surface, the sky slowly returns to night.
 
 The caster gets a cutscene (like SS-05's), skippable with the remote's cutscene key. Everyone else watches it live.
 
 ## Rules
 
-- **Night only** (config `night_only`, default true): `ServerLevel.isNight()`; in dimensions with fixed time
+- **Any time of day** (config `require_night`, default false; it was `night_only` in 1.2.0 and was renamed so old
+  config files don't keep the old behaviour): like SS-05, the client turns the sky to night for the strike (only the
+  look; under shader packs the sky clock is wound on). By day the moon starts where the sun is
+  (`skyDirection(timeOfDay + 0.5)`). In dimensions with fixed time
   (Nether/End) it refuses ("there is no moon here").
 - One moonfall per caster at a time; cooldown 120 s (config).
 - The mark is placed the way the remote's other skills aim (`StarBridge.aimGround`).
@@ -41,11 +44,14 @@ The caster gets a cutscene (like SS-05's), skippable with the remote's cutscene 
 
 - `sky`: unit vector toward the vanilla moon at cast time (`MoonPlan.skyDirection(level.getTimeOfDay(1))`), lifted
   to at least 18 degrees above the horizon. Sent to clients inside `MoonParams`.
-- The moon (radius `moon_radius`, default 32) starts `START_DISTANCE` (3200) blocks up `sky` from the mark, falls
+- The moon (radius `moon_radius`, default 48) starts `START_DISTANCE` (3200) blocks up `sky` from the mark, falls
   to `contactCentre` (its surface touching the mark), then sinks to `restCentre` (centre `moon_radius*(1-2*sink)`
   above the ground; `sink_percent` default 35).
-- Crater: radius `crater_radius` (60), depth `crater_depth` (22), bowl shape `MoonPlan.craterFloor`. Everything
-  within `eraseRadius()` is erased at CONTACT; the shock wave reaches `blastRadius()` (crater radius × 2.5).
+- Crater: radius `crater_radius` (90), depth `crater_depth` (30), bowl shape `MoonPlan.craterFloor`. Everything
+  within `eraseRadius()` is erased at CONTACT; the shock wave reaches `blastRadius()` (crater radius × 3).
+- Cracks: `MoonPlan.CRACKS` (16) fissures along `crackPoint`/`crackHalfWidth`, out to about the blast radius,
+  racing out over `CRACK_TICKS` (24) from CONTACT. The server cuts them (`world/MoonCracks`: magma floor, scorched
+  walls, loaded chunks only); the client draws them glowing along the same lines.
 - Moon at rest: every block whose centre is within `moon_radius` of `restCentre` becomes moon cheese, and the block
   `core` (holding `restCentre`) becomes molten moon cheese (if `molten_core`). Blocks above the world's build height
   are skipped.
@@ -145,3 +151,7 @@ half reuses almost all of it.
   `pushPose()`/`translate(x, y, 0f)`/`mulPose(Axis.ZP.rotation(angle))`).
 - **The Shooting Star's package lost its `mc1211` segment**, same as everywhere else in `compat/`:
   `cyou.rimuru.shootingstardemo.mc1211.*` → `cyou.rimuru.shootingstardemo.*` in `MoonFxAdapter` and `MoonCutscene`.
+- 1.3.0 on 26.3: the vanilla sun is hidden too (`MoonHideMixin` cancels `SkyRenderer.renderSun` as well as
+  `renderMoon`), since SS-06 can now be called by day; `MoonFx` reads the clock with `getDefaultClockTime()`
+  (26.3 has no `getDayTime()`); the moon keeps the branch's own never-fogged pipeline, with the 1.3.0 size cap and
+  "true size from the impact on" rule from `main`.

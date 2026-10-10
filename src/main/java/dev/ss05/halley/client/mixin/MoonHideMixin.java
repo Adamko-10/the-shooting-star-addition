@@ -16,6 +16,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(SkyRenderer.class)
 abstract class MoonHideMixin {
+    /** SS-06 can be called by day now (the sky falls to night for it), so the real sun is hidden too. */
+    @Inject(method = "renderSun", at = @At("HEAD"), cancellable = true, require = 0)
+    private void ss06luna$hideVanillaSun(CallbackInfo ci) {
+        if (!MoonFx.active().isEmpty()) {
+            ci.cancel();
+        }
+    }
+
     @Inject(method = "renderMoon", at = @At("HEAD"), cancellable = true, require = 0)
     private void ss06luna$hideVanillaMoon(CallbackInfo ci) {
         if (!MoonFx.active().isEmpty()) {

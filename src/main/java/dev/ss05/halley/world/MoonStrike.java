@@ -68,6 +68,8 @@ public final class MoonStrike {
     @Nullable
     private MoonBuild moonBuild;
     @Nullable
+    private MoonCracks cracks;
+    @Nullable
     private BlockPos spared;
     private boolean decorated;
 
@@ -131,6 +133,9 @@ public final class MoonStrike {
         if (this.crater != null && !this.crater.done()) {
             this.crater.tick();
         }
+        if (this.cracks != null && !this.cracks.done()) {
+            this.cracks.tick(t);
+        }
         // Wait for the crater to be fully cut before painting any of the moon: the excavator removes everything
         // above its floor in whatever chunk it next reaches, so a chunk painted ahead of it would be cut away again.
         if (this.moonBuild != null && !this.moonBuild.done() && (this.crater == null || this.crater.done())) {
@@ -150,6 +155,9 @@ public final class MoonStrike {
         if (this.crater != null) {
             this.crater.finish();
         }
+        if (this.cracks != null) {
+            this.cracks.finish();
+        }
         if (this.moonBuild == null && this.params.carve()) {
             this.moonBuild = new MoonBuild(this.level, this.plan, this.tuning.chunksPerTick());
         }
@@ -164,7 +172,8 @@ public final class MoonStrike {
     }
 
     private boolean carvingDone() {
-        return (this.crater == null || this.crater.done()) && (this.moonBuild == null || this.moonBuild.done());
+        return (this.crater == null || this.crater.done()) && (this.moonBuild == null || this.moonBuild.done())
+            && (this.cracks == null || this.cracks.done());
     }
 
     private double horizontal(double x, double z) {
@@ -226,6 +235,8 @@ public final class MoonStrike {
             this.crater = StarBridge.excavate(this.level, this.plan.target, this.params.craterRadius() * 1.15 + 10.0,
                 (x, z) -> this.plan.craterFloor(x, z, minY), this::craterSurface, this.spared,
                 "SS-06 Luna crater", this.tuning.chunksPerTick());
+            // and the fissures racing out across the land from the rim (like Gungnir's)
+            this.cracks = new MoonCracks(this.level, this.plan);
         }
 
         Vec3 t = this.plan.target;
@@ -308,14 +319,14 @@ public final class MoonStrike {
         if (entity instanceof Player player && (player.isCreative() || player.isSpectator())) {
             return;
         }
-        double push = 1.2 + 3.2 * strength;
-        double lift = 0.6 + 1.3 * strength;
+        double push = 2.0 + 5.0 * strength;
+        double lift = 0.9 + 1.8 * strength;
         entity.setDeltaMovement(entity.getDeltaMovement().add(away.scale(push)).add(0.0, lift, 0.0));
         entity.needsSync = true;
         if (entity instanceof LivingEntity living && (living == caster || caster == null || StarBridge.affects(living, caster))) {
-            float damage = (float) (6.0 + 36.0 * strength * strength);
+            float damage = (float) (10.0 + 60.0 * strength * strength);
             living.hurtServer(this.level, this.impact(living == caster ? null : caster), damage);
-            living.igniteForSeconds((float) (2.0 + 3.0 * strength));
+            living.igniteForSeconds((float) (3.0 + 6.0 * strength));
         }
     }
 

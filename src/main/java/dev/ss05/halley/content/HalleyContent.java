@@ -34,26 +34,29 @@ import net.minecraft.world.level.material.PushReaction;
 
 /** The addon's own blocks, sounds and damage type. Nothing here depends on The Shooting Star. */
 public final class HalleyContent {
-    /** The comet's nucleus, left standing in the crater: glowing blue ice that nothing breaks (like Gungnir's spire). */
+    /**
+     * The comet's nucleus, left standing in the crater: glowing blue ice. Tough, but a pickaxe mines it and it drops
+     * itself (like Gungnir's own blocks).
+     */
     public static final Block COMET_HEART = block("comet_heart", p -> p
-        .strength(-1.0F, 3600000.8F)
+        .strength(2.5F, 6.0F)
         .mapColor(MapColor.ICE)
         .sound(SoundType.AMETHYST)
         .lightLevel(state -> 15)
         .emissiveRendering(state -> true)
-        .noLootTable()
+        .requiresCorrectToolForDrops()
         .isValidSpawn((state, level, pos, type) -> false)
         .pushReaction(PushReaction.IMMOVEABLE));
 
-    /** The frozen streak the nucleus scored down the floor of the trench. */
+    /** The frozen streak the nucleus scored down the floor of the trench. Pickaxe-minable, drops itself. */
     public static final Block COMET_TRAIL = block("comet_trail", p -> p
-        .strength(-1.0F, 3600000.8F)
+        .strength(1.0F, 6.0F)
         .mapColor(MapColor.COLOR_LIGHT_BLUE)
         .sound(SoundType.GLASS)
         .lightLevel(state -> 10)
         .emissiveRendering(state -> true)
         .friction(0.98F)
-        .noLootTable()
+        .requiresCorrectToolForDrops()
         .isValidSpawn((state, level, pos, type) -> false)
         .pushReaction(PushReaction.IMMOVEABLE));
 
@@ -81,6 +84,10 @@ public final class HalleyContent {
         ResourceKey.create(Registries.MOB_EFFECT, HalleyAddon.id("molten_might")), new MoltenMightEffect());
 
     /** Eaten like a golden carrot (6 hunger, 14.4 saturation); right-click a block to place it, right-click in the air to eat it. */
+    /** The comet's heart and trail as items, so they can be mined and carried off like The Shooting Star's own blocks. */
+    public static final Item COMET_HEART_ITEM = item("comet_heart", key -> new BlockItem(COMET_HEART, new Item.Properties().setId(key)));
+    public static final Item COMET_TRAIL_ITEM = item("comet_trail", key -> new BlockItem(COMET_TRAIL, new Item.Properties().setId(key)));
+
     public static final Item MOON_CHEESE_ITEM = item("moon_cheese", key -> new BlockItem(MOON_CHEESE, new Item.Properties().setId(key).food(Foods.GOLDEN_CARROT)));
 
     /**
@@ -171,6 +178,8 @@ public final class HalleyContent {
             output.accept(MOLTEN_MOON_CHEESE_ITEM);
         });
         CreativeModeTabEvents.modifyOutputEvent(NATURAL_BLOCKS_TAB).register(output -> {
+            output.accept(COMET_HEART_ITEM);
+            output.accept(COMET_TRAIL_ITEM);
             output.accept(MOON_CHEESE_ITEM);
             output.accept(MOLTEN_MOON_CHEESE_ITEM);
         });
