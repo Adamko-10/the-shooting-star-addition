@@ -15,10 +15,11 @@ public final class MoonInfo {
     /** Moon-cheese gold (SS-05 is ice-cyan). */
     public static final int COLOR = 0xFFC93C;
     /**
-     * GLFW key code 74 = J, which vanilla leaves free. (A plain number so the dedicated server never needs the
+     * GLFW key code 89 = Y, next to the remote's U and I; vanilla leaves it free, and The Shooting Star uses J (skip /
+     * toggle the cutscene) and H (the menu), so not those. (A plain number so the dedicated server never needs the
      * client's GLFW classes.) Players can rebind it in Controls or from the remote's menu.
      */
-    public static final int DEFAULT_KEY = 74;
+    public static final int DEFAULT_KEY = 89;
 
     private MoonInfo() {
     }

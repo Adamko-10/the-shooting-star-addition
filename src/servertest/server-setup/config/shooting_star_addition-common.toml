@@ -53,4 +53,12 @@
 	#How far away (in blocks) your crosshair can place the mark.
 	#Range: 32 ~ 1024
 	reach = 48
+	#The test turns this on so it can check the refusal by day (the default is false).
+	require_night = true
 
+#The test keeps SS-06 small so it fits its arena next to SS-05's crater (the defaults are much bigger).
+[moonfall_size]
+	moon_radius = 24
+	crater_radius = 48
+	crater_depth = 18
+	blast_reach = 2.5

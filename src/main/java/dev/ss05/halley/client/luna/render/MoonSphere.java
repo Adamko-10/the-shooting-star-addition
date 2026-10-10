@@ -36,6 +36,12 @@ public final class MoonSphere {
     private static final ResourceLocation SEAMS = HalleyAddon.id("textures/luna/seams.png");
     private static final RenderType BASE = RenderType.entityCutoutNoCull(SURFACE);
     private static final RenderType EMISSIVE = RenderType.entityTranslucentEmissive(SEAMS);
+    /**
+     * With a shader pack on, ordinary entity geometry gets the pack's own (night-time, so dark) lighting and the moon
+     * all but vanishes (seen with Complementary Reimagined). Packs draw "glowing eyes" geometry full-bright, the way
+     * SS-05's shader-pack path does, so the moon's surface goes that way instead.
+     */
+    private static final RenderType PACK_BASE = RenderType.eyes(SURFACE);
     /** Reused and grown across frames (1.20.1's BufferBuilder owns and grows its own backing memory). */
     private static final BufferBuilder BASE_BUILDER = new BufferBuilder(1 << 18);
     private static final BufferBuilder SEAM_BUILDER = new BufferBuilder(1 << 18);
@@ -48,6 +54,8 @@ public final class MoonSphere {
      * sky), so the disc you actually see is about half that: ratio 0.1.
      */
     private static final double START_RATIO = 0.1;
+    /** The most the falling moon is ever drawn at, as radius over distance (0.75 = about 37 degrees across the view). */
+    private static final double MAX_DISPLAY_RATIO = 0.75;
     /** How many times the molten-seam texture tiles across the sphere, so its cracks spread over the whole surface
      * instead of appearing once (equirectangular, so a wider tile than tall keeps roughly square cells). */
     private static final int SEAM_TILE_U = 4;
@@ -88,10 +96,15 @@ public final class MoonSphere {
         double exaggeration = t < MoonPlan.CONTACT ? 1.0 + 1.4 * Math.pow(fall, 1.6)
             : Mth.lerp(Mth.clamp((t - MoonPlan.CONTACT) / 4.0, 0.0, 1.0), 2.4, 1.0);
         displayRatio *= exaggeration;
+        // never so big that the drawn sphere would swallow the camera (a ratio of 1 = its surface at the camera):
+        // close cameras (the cutscene's) see it fill much of the view, never from the inside
+        displayRatio = Math.min(displayRatio, MAX_DISPLAY_RATIO);
 
         double distance;
         double radius;
-        if (trueRatio >= displayRatio) {
+        // from the impact on it is in the world for real: true size, true place (the display trick only ever
+        // applies while it is still falling from the sky)
+        if (t >= MoonPlan.CONTACT || trueRatio >= displayRatio) {
             distance = trueDistance;
             radius = trueRadius;
         } else {
@@ -106,7 +119,13 @@ public final class MoonSphere {
         Vec3 drawCentre = camera.add(dir.scale(distance));
         Vec3 axis = new Vec3(-p.travel.z, 0.0, p.travel.x);
         float flicker = 0.82F + 0.18F * (float) Math.sin(t * 1.7 + (p.seed & 0xFF));
-        return new Placement(drawCentre, radius, axis, p.spin(t), MoonPlan.crack(t) * flicker, MoonPlan.burn(t));
+
+        // once the block moon has taken over, the rendered shell cross-fades into a glowing, cooling molten look
+        // (orange-white dying down to gold) instead of just popping out - see the class doc
+        int handover = fx.handoverAt();
+        double cooling = handover < 0 ? 0.0 : Mth.clamp(1.0 - (t - handover) / MoonFx.COOLING_TICKS, 0.0, 1.0);
+        float heat = (float) Math.max(MoonPlan.burn(t), cooling);
+        return new Placement(drawCentre, radius, axis, p.spin(t), MoonPlan.crack(t) * flicker, heat);
     }
 
     public static void renderSolid(RenderLevelStageEvent event) {
@@ -148,7 +167,7 @@ public final class MoonSphere {
         view.mulPoseMatrix(event.getPoseStack().last().pose());
         RenderSystem.applyModelViewMatrix();
         try {
-            BASE.end(base, RenderSystem.getVertexSorting());
+            (dev.ss05.halley.client.render.ShaderPacks.active() ? PACK_BASE : BASE).end(base, RenderSystem.getVertexSorting());
             EMISSIVE.end(seam, RenderSystem.getVertexSorting());
         } finally {
             view.popPose();
@@ -194,12 +213,14 @@ public final class MoonSphere {
         float u = (float) (lon / (Math.PI * 2.0));
         float v = (float) (0.5 - lat / Math.PI);
 
-        // bright and self-lit, like the vanilla moon - only a gentle limb darkening, warming toward the leading
-        // edge's colour as it burns through the atmosphere
-        float limb = 0.86F + 0.14F * (float) Math.max(0.0, rotated.dot(LIGHT_DIR));
-        float r1 = Math.min(1.0F, limb + burn * 0.22F);
-        float g1 = Math.min(1.0F, limb - burn * (limb - 0.75F) * 0.5F);
-        float b1 = Math.max(0.0F, limb - burn * limb * 0.6F);
+        // bright and self-lit - more so than the vanilla moon, so it's never lost against a dark sky - with only a
+        // gentle limb darkening (and a faint cool "earthshine" on the unlit side, never truly dark), warming toward
+        // the leading edge's colour as it burns through the atmosphere, or glowing molten-hot during the hand-over
+        // to the block moon (see MoonSphere.placement)
+        float limb = 0.93F + 0.07F * (float) Math.max(0.0, rotated.dot(LIGHT_DIR));
+        float r1 = Math.min(1.0F, limb + burn * 0.4F);
+        float g1 = Math.min(1.0F, limb - burn * (limb - 0.82F) * 0.55F + burn * 0.15F);
+        float b1 = Math.max(0.05F, limb - burn * limb * 0.75F);
         base.vertex(x, y, z)
             .color(r1, g1, b1, 1.0F)
             .uv(u, v)

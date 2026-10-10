@@ -272,7 +272,7 @@ public final class HalleyServerTest {
         int index = SkillSet.indexOf(skill);
         this.record("moon_skill_index_is_4", index == 4, "index=" + index);
         this.record("moon_skill_id_is_luna", "luna".equals(skill.id()), "id=" + skill.id());
-        this.record("moon_skill_default_key_is_J", skill.defaultKey() == MoonInfo.DEFAULT_KEY, "key=" + skill.defaultKey());
+        this.record("moon_skill_default_key_is_Y", skill.defaultKey() == MoonInfo.DEFAULT_KEY, "key=" + skill.defaultKey());
         this.record("moon_skill_cooldown_matches_config", skill.cooldown() == MoonConfig.tuning().cooldownTicks(),
             "cooldown=" + skill.cooldown() + " config=" + MoonConfig.tuning().cooldownTicks());
         this.record("moon_skill_duration_matches_plan", skill.duration() == MoonPlan.DURATION,
@@ -546,7 +546,7 @@ public final class HalleyServerTest {
 
     // ==== SS-06 Luna. ================================================================================================
 
-    /** Attempts the cast by day; MoonConfig's {@code night_only} (default true) should refuse it. */
+    /** Attempts the cast by day; the test config sets MoonConfig's {@code require_night} (default false), so it should refuse it. */
     private void castMoonByDay() {
         this.moonSkillIndexAtCast = StarBridge.moonIndex();
         this.record("moon_skill_index_available", this.moonSkillIndexAtCast >= 0, "index=" + this.moonSkillIndexAtCast);
@@ -627,6 +627,10 @@ public final class HalleyServerTest {
         // toward the crater, see MoonStrike#throwHurtIgnite) is comfortably under a pig's 10 HP, so it survives hurt.
         double besideDistance = erase + (blast - erase) * 0.82;
         this.moonBesideMob = this.spawnMoonPig(plan, 0.0, besideDistance, "ss06test_beside");
+        // SS-06's shock wave does at least 10 damage anywhere in its ring (a pig has 10): give this one more health so
+        // "hurt but alive" can still be told apart from "erased"
+        this.moonBesideMob.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH).setBaseValue(100.0);
+        this.moonBesideMob.setHealth(100.0F);
     }
 
     private Pig spawnMoonPig(MoonPlan plan, double dx, double dz, String name) {
@@ -679,9 +683,13 @@ public final class HalleyServerTest {
             // crater's cut surface rather than a block the moon build painted over it.
             BlockPos craterSample = this.sampleTopBlockAt(plan.target.x + plan.params.craterRadius() * 0.7, plan.target.z);
             BlockState craterState = this.level.getBlockState(craterSample);
-            boolean craterOk = this.isOneOf(craterState, Blocks.MAGMA_BLOCK, Blocks.BASALT, Blocks.BLACKSTONE,
+            // the rim's palette keeps the original block a quarter of the time, so what proves the cut is the
+            // surface having been dug well below the ground (or a scorched crater block on top)
+            boolean dug = craterSample.getY() <= plan.target.y - 4.0;
+            boolean craterOk = dug || this.isOneOf(craterState, Blocks.MAGMA_BLOCK, Blocks.BASALT, Blocks.BLACKSTONE,
                 Blocks.COARSE_DIRT, Blocks.COBBLED_DEEPSLATE, Blocks.GRAVEL);
-            this.record("moon_crater_cut", craterOk, "block at " + craterSample + " = " + craterState.getBlock());
+            this.record("moon_crater_cut", craterOk, "block at " + craterSample + " = " + craterState.getBlock()
+                + " (ground y " + plan.target.y + ")");
         } catch (Throwable ex) {
             this.record("moon_crater_cut", false, "threw " + ex);
         }
