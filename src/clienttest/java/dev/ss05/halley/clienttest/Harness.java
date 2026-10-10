@@ -37,9 +37,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.WorldDimensions;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.RenderFrameEvent;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.minecraftforge.event.TickEvent;
 
 /**
  * The actual harness: creates a flat creative world, places the player, casts a skill for real through The
@@ -75,7 +73,7 @@ final class Harness {
 
     private static long nextStatusLogMillis = 0;
 
-    static void onClientTick(ClientTickEvent.Post event) {
+    static void onClientTick(TickEvent.ClientTickEvent.Post event) {
         if (done) {
             return;
         }
@@ -237,22 +235,24 @@ final class Harness {
         log("eat moon_cheese: food 5 -> " + player.getFoodData().getFoodLevel() + ", saturation " + player.getFoodData().getSaturationLevel());
         new net.minecraft.world.item.ItemStack(dev.ss05.halley.content.HalleyContent.MOLTEN_MOON_CHEESE_ITEM.get()).finishUsingItem(level, player);
         net.minecraft.world.effect.MobEffectInstance strength = player.getEffect(net.minecraft.world.effect.MobEffects.DAMAGE_BOOST);
-        net.minecraft.world.effect.MobEffectInstance might = player.getEffect(dev.ss05.halley.content.HalleyContent.MOLTEN_MIGHT);
+        net.minecraft.world.effect.MobEffectInstance might = player.getEffect(net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(dev.ss05.halley.content.HalleyContent.MOLTEN_MIGHT.get()));
         log("eat molten_moon_cheese: maxHealth " + player.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH)
             + " health " + player.getHealth()
             + " strength " + (strength == null ? "none" : "amplifier " + strength.getAmplifier() + " for " + strength.getDuration() + " ticks")
             + " molten_might " + (might == null ? "none" : might.getDuration() + " ticks"));
-        // a relog, in miniature: save the player and load the data into a fresh player
+        // a relog, in miniature: save the player and load the data into a fresh player. (NeoForge's FakePlayerFactory
+        // has no Forge equivalent, so this uses the plain vanilla ServerPlayer constructor instead - loader-agnostic.)
         net.minecraft.nbt.CompoundTag saved = player.saveWithoutId(new net.minecraft.nbt.CompoundTag());
-        ServerPlayer reloaded = net.neoforged.neoforge.common.util.FakePlayerFactory.get(level,
-            new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "ss05reload"));
+        ServerPlayer reloaded = new ServerPlayer(level.getServer(), level,
+            new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "ss05reload"),
+            net.minecraft.server.level.ClientInformation.createDefault());
         reloaded.load(saved);
         log("after a save/load: maxHealth " + reloaded.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH)
             + " health " + reloaded.getHealth()
             + " strength " + (reloaded.getEffect(net.minecraft.world.effect.MobEffects.DAMAGE_BOOST) == null ? "none"
                 : "amplifier " + reloaded.getEffect(net.minecraft.world.effect.MobEffects.DAMAGE_BOOST).getAmplifier()));
         // and again after the effects are gone, as if they ran out
-        player.removeEffect(dev.ss05.halley.content.HalleyContent.MOLTEN_MIGHT);
+        player.removeEffect(net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(dev.ss05.halley.content.HalleyContent.MOLTEN_MIGHT.get()));
         log("after molten_might removed: maxHealth " + player.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH));
         new net.minecraft.world.item.ItemStack(dev.ss05.halley.content.HalleyContent.MOLTEN_MOON_CHEESE_ITEM.get()).finishUsingItem(level, player);
     }
@@ -313,7 +313,7 @@ final class Harness {
     }
 
     /** Keeps view=wide/up honest for the rest of the strike (see {@link #maintainCamera}). */
-    static void onServerTick(ServerTickEvent.Post event) {
+    static void onServerTick(TickEvent.ServerTickEvent.Post event) {
         if (!castRequested || done) {
             return;
         }
@@ -329,7 +329,7 @@ final class Harness {
 
     // ---- Screenshots, frame-precise. -----------------------------------------------------------------------------
 
-    static void onRenderFrame(RenderFrameEvent.Post event) {
+    static void onRenderFrame(TickEvent.RenderTickEvent.Post event) {
         if (done || castGameTime < 0) {
             return;
         }

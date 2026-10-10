@@ -1,5 +1,7 @@
-# The Shooting Star Addition: an unofficial addon for The Shooting Star (NeoForge 1.21.1).
+# The Shooting Star Addition: an unofficial addon for The Shooting Star (Forge 1.21.1).
 # Values written as dollar-brace placeholders are filled in from gradle.properties when the jar is built.
+# Mixins (the remote's cover animation, the caster's raised arm, the film overlay) are declared via the jar
+# manifest's MixinConfigs attribute, not here - Forge 1.21.1 does not read [[mixins]] from mods.toml.
 modLoader = "javafml"
 loaderVersion = "${loader_version_range}"
 license = "${mod_license}"
@@ -12,21 +14,16 @@ authors = "${mod_authors}"
 logoFile = "shooting_star_addition_icon.png"
 description = '''${mod_description}'''
 
-# Optional touches inside The Shooting Star (the remote's cover animation, the caster's raised arm, the film
-# overlay). If The Shooting Star changes, these simply switch themselves off; the skill keeps working.
-[[mixins]]
-config = "shooting_star_addition.mixins.json"
-
 [[dependencies.${mod_id}]]
-modId = "neoforge"
-type = "required"
-versionRange = "${neo_version_range}"
+modId = "forge"
+mandatory = true
+versionRange = "${forge_version_range}"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
 modId = "minecraft"
-type = "required"
+mandatory = true
 versionRange = "${minecraft_version_range}"
 ordering = "NONE"
 side = "BOTH"
@@ -35,7 +32,7 @@ side = "BOTH"
 # (for example once it is no longer a demo), change shooting_star_mod_id in gradle.properties.
 [[dependencies.${mod_id}]]
 modId = "${shooting_star_mod_id}"
-type = "required"
+mandatory = true
 versionRange = "${shooting_star_version_range}"
 ordering = "AFTER"
 side = "BOTH"

@@ -14,7 +14,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  */
 @Mixin(ClientLevel.class)
 abstract class ClientLevelMixin {
-    @Inject(method = "getSkyDarken(F)F", at = @At("RETURN"), cancellable = true, require = 0)
+    // remap = false: Forge 1.21.1 runs with Mojang (official) names at runtime, so there is no obfuscation mapping
+    // for the Mixin annotation processor to look these vanilla targets up in - treat the names as final already.
+    @Inject(method = "getSkyDarken(F)F", at = @At("RETURN"), cancellable = true, require = 0, remap = false)
     private void ss05halley$darkenLand(float partialTick, CallbackInfoReturnable<Float> cir) {
         float vanilla = cir.getReturnValueF();
         float darkened = HalleySky.skyDarken(vanilla);
@@ -23,7 +25,7 @@ abstract class ClientLevelMixin {
         }
     }
 
-    @Inject(method = "getCloudColor(F)Lnet/minecraft/world/phys/Vec3;", at = @At("RETURN"), cancellable = true, require = 0)
+    @Inject(method = "getCloudColor(F)Lnet/minecraft/world/phys/Vec3;", at = @At("RETURN"), cancellable = true, require = 0, remap = false)
     private void ss05halley$darkenClouds(float partialTick, CallbackInfoReturnable<Vec3> cir) {
         Vec3 vanilla = cir.getReturnValue();
         Vec3 changed = HalleySky.cloudColor(vanilla);

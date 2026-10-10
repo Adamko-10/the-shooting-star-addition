@@ -19,7 +19,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(PlayerModel.class)
 abstract class PlayerModelMixin {
-    @Inject(method = "setupAnim(Lnet/minecraft/world/entity/LivingEntity;FFFFF)V", at = @At("TAIL"), require = 0)
+    // remap = false: Forge 1.21.1 runs with Mojang (official) names at runtime - see ClientLevelMixin.
+    @Inject(method = "setupAnim(Lnet/minecraft/world/entity/LivingEntity;FFFFF)V", at = @At("TAIL"), require = 0, remap = false)
     private void ss05halley$raiseRemote(LivingEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks,
                                         float netHeadYaw, float headPitch, CallbackInfo ci) {
         float partial = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);

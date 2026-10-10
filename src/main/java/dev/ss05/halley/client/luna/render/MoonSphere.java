@@ -16,7 +16,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 
 /**
  * SS-06's moon as a solid, lit, textured sphere: {@code surface.png} for the albedo, {@code seams.png} (an emissive
@@ -119,7 +119,7 @@ public final class MoonSphere {
         }
         Vec3 camera = event.getCamera().getPosition();
         double maxDistance = minecraft.gameRenderer.getDepthFar() * 0.9;
-        float partial = event.getPartialTick().getGameTimeDeltaPartialTick(true);
+        float partial = event.getPartialTick();
 
         BufferBuilder base = new BufferBuilder(BASE_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.NEW_ENTITY);
         BufferBuilder seam = new BufferBuilder(SEAM_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.NEW_ENTITY);

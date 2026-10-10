@@ -13,7 +13,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 
@@ -43,9 +43,9 @@ public final class CometRenderer {
         }
         Camera camera = event.getCamera();
         Vec3 eye = camera.getPosition();
-        VIEW_PROJECTION.set(event.getProjectionMatrix()).mul(event.getModelViewMatrix());
+        VIEW_PROJECTION.set(event.getProjectionMatrix()).mul(event.getPoseStack());
         lastCamera = eye;
-        float partial = event.getPartialTick().getGameTimeDeltaPartialTick(true);
+        float partial = event.getPartialTick();
         // anything further out is pulled in along its line of sight to just inside the far plane (see GlowBatch)
         double far = minecraft.gameRenderer.getDepthFar() * 0.9;
         double landRange = minecraft.options.getEffectiveRenderDistance() * 16.0;

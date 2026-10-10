@@ -30,9 +30,9 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.event.RenderFrameEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import net.neoforged.neoforge.client.event.ViewportEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.client.event.ViewportEvent;
+import net.minecraftforge.event.TickEvent;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
 
@@ -81,13 +81,13 @@ public final class HalleySky {
     }
 
     /** Once a frame, before anything is drawn: the look of the strike that changes the sky most from here. */
-    public static void update(RenderFrameEvent.Pre event) {
+    public static void update(TickEvent.RenderTickEvent.Pre event) {
         current = null;
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null || HalleyFx.active().isEmpty() || !HalleyClientConfig.sky()) {
             return;
         }
-        float partial = event.getPartialTick().getGameTimeDeltaPartialTick(true);
+        float partial = event.getTimer().getGameTimeDeltaPartialTick(true);
         Vec3 camera = minecraft.gameRenderer.getMainCamera().getPosition();
         SkyLook best = null;
         float bestStrength = 0.0F;
@@ -139,12 +139,12 @@ public final class HalleySky {
             renderPainted(event);
             return;
         }
-        uniforms(program, look, level, event.getPartialTick().getGameTimeDeltaPartialTick(true), false);
+        uniforms(program, look, level, event.getPartialTick(), false);
 
         Matrix4fStack view = RenderSystem.getModelViewStack();
         view.pushMatrix();
         view.identity();
-        view.mul(event.getModelViewMatrix());
+        view.mul(event.getPoseStack());
         RenderSystem.applyModelViewMatrix();
         RenderSystem.setShader(() -> program);
         RenderSystem.enableBlend();
@@ -307,7 +307,7 @@ public final class HalleySky {
         Matrix4fStack view = RenderSystem.getModelViewStack();
         view.pushMatrix();
         view.identity();
-        view.mul(event.getModelViewMatrix());
+        view.mul(event.getPoseStack());
         RenderSystem.applyModelViewMatrix();
         if (paintedBase) {
             HalleyRenderTypes.PACK_SKY_DARKEN.draw(darkeningCube(paintedCover));

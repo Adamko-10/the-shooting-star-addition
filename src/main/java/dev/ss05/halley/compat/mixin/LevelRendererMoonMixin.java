@@ -19,9 +19,11 @@ import org.spongepowered.asm.mixin.injection.Redirect;
  */
 @Mixin(LevelRenderer.class)
 abstract class LevelRendererMoonMixin {
+    // remap = false: Forge 1.21.1 runs with Mojang (official) names at runtime - see ClientLevelMixin. The INVOKE
+    // target is already a Mojang-mapped descriptor too, so it needs no remapping either.
     @Redirect(method = "renderSky", at = @At(value = "INVOKE",
-        target = "Lcom/mojang/blaze3d/vertex/BufferUploader;drawWithShader(Lcom/mojang/blaze3d/vertex/MeshData;)V", ordinal = 2),
-        require = 0)
+        target = "Lcom/mojang/blaze3d/vertex/BufferUploader;drawWithShader(Lcom/mojang/blaze3d/vertex/MeshData;)V", ordinal = 2, remap = false),
+        require = 0, remap = false)
     private static void ss06luna$hideVanillaMoon(MeshData mesh) {
         if (MoonFx.active().isEmpty()) {
             BufferUploader.drawWithShader(mesh);

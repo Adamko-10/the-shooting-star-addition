@@ -9,9 +9,9 @@ molten heart.
 
 ![SS-05 Halley in game](docs/screenshots/overview.jpg)
 
-> **Compatibility:** this is the **NeoForge, Minecraft 1.21.1** version, for **The Shooting Star [Demo] 1.3.3 or
-> newer** (tested with 1.3.4). (1.3.3 renamed The Shooting Star's code, so older versions of the addon can't attach to it, and this one can't attach to anything before 1.3.3). There are also Forge 1.20.1 (`forge-1.20.1` branch) and Fabric 26.3
-> (`fabric-26.3` branch) versions. See
+> **Compatibility:** this is the **Forge, Minecraft 1.21.1** version, for **The Shooting Star [Demo] 1.3.3 or
+> newer** (tested with 1.3.4). (1.3.3 renamed The Shooting Star's code, so older versions of the addon can't attach to it, and this one can't attach to anything before 1.3.3). There are also NeoForge 1.21.1 (`main` branch), Forge 1.20.1
+> (`forge-1.20.1` branch) and Fabric 26.3 (`fabric-26.3` branch) versions. See
 > [Will it work with future versions?](#will-it-work-with-future-versions-of-the-shooting-star) below.
 
 ## SS-05 · Halley
@@ -73,9 +73,9 @@ buried: a whole moon of **moon cheese**, with one block of **molten moon cheese*
 
 ## Installing
 
-1. Minecraft **1.21.1** with **NeoForge 21.1.x**.
-2. **The Shooting Star [Demo] 1.3.3 or newer** (its NeoForge file).
-3. `shooting_star_addition-1.2.0.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
+1. Minecraft **1.21.1** with **Forge 52.1.x**.
+2. **The Shooting Star [Demo] 1.3.3 or newer** (its Forge file).
+3. `shooting_star_addition-1.2.0+forge-1.21.1.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
 
 In game: hold the Stellar Remote, press **O** for SS-05 or **J** for SS-06 (or pick them in the remote's menu, **H**),
@@ -146,8 +146,8 @@ The Shooting Star is updated often. That means:
   switch themselves off instead.
 - **If The Shooting Star changes its mod id** (for example when it stops being a demo), this addon won't load until
   it is updated.
-- **Other mod loaders and Minecraft versions** each need their own build: this one is NeoForge 1.21.1; there are
-  also Forge 1.20.1 and Fabric 26.3 versions.
+- **Other mod loaders and Minecraft versions** each need their own build: this one is Forge 1.21.1; there are
+  also NeoForge 1.21.1, Forge 1.20.1 and Fabric 26.3 versions.
 
 ## Plans
 
@@ -162,10 +162,13 @@ welcome in the issues.
 
 ### Building
 
-Requires JDK 21. Put The Shooting Star's jar in `libs/` (see `libs/README.txt`), then:
+Requires JDK 21 and Forge's ForgeGradle 7 (`net.minecraftforge.gradle`, applied in `build.gradle`; no extra repository
+setup needed, it's on the Gradle Plugin Portal). Put The Shooting Star's jar in `libs/` (see `libs/README.txt`), then:
 
 - `./gradlew build` → `build/libs/shooting_star_addition-<version>.jar`
 - `./gradlew runClient` / `./gradlew runServer` → a dev game with both mods loaded
+- `./gradlew runClienttestClient -Dss05.clienttest.skill=halley ...` → the dev-only screenshot harness (see
+  `src/clienttest`)
 
 ### When The Shooting Star updates
 

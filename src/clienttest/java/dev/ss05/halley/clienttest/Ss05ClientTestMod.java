@@ -1,13 +1,8 @@
 package dev.ss05.halley.clienttest;
 
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.RenderFrameEvent;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.fml.common.Mod;
 
 /**
  * Dev-only mod: a scripted, automated in-game screenshot harness for SS-05/SS-06, so the main session can look at
@@ -21,13 +16,13 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 public final class Ss05ClientTestMod {
     public static final String MOD_ID = "ss05_clienttest";
 
-    public Ss05ClientTestMod(IEventBus modBus, ModContainer container, Dist dist) {
+    public Ss05ClientTestMod() {
         if (!HarnessParams.ACTIVE) {
             return;
         }
-        NeoForge.EVENT_BUS.addListener(ClientTickEvent.Post.class, Harness::onClientTick);
-        NeoForge.EVENT_BUS.addListener(RenderFrameEvent.Post.class, Harness::onRenderFrame);
-        NeoForge.EVENT_BUS.addListener(ServerTickEvent.Post.class, Harness::onServerTick);
+        MinecraftForge.EVENT_BUS.addListener(Harness::onClientTick);
+        MinecraftForge.EVENT_BUS.addListener(Harness::onRenderFrame);
+        MinecraftForge.EVENT_BUS.addListener(Harness::onServerTick);
         Harness.log("harness armed: " + HarnessParams.describe());
     }
 }

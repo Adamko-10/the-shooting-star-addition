@@ -1,6 +1,6 @@
 package dev.ss05.halley;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 /**
  * Every tunable number of SS-06 Luna (the moonfall) and of moon cheese. They live in the same file as SS-05's,
@@ -18,25 +18,25 @@ public final class MoonConfig {
     public static final int MIN_CRATER_DEPTH = 1;
     public static final int MAX_CRATER_DEPTH = 256;
 
-    private static ModConfigSpec.IntValue cooldownSeconds;
-    private static ModConfigSpec.IntValue reach;
-    private static ModConfigSpec.BooleanValue nightOnly;
-    private static ModConfigSpec.IntValue moonRadius;
-    private static ModConfigSpec.IntValue craterRadius;
-    private static ModConfigSpec.IntValue craterDepth;
-    private static ModConfigSpec.IntValue sinkPercent;
-    private static ModConfigSpec.DoubleValue blastReach;
-    private static ModConfigSpec.IntValue chunksPerTick;
-    private static ModConfigSpec.BooleanValue carveTerrain;
-    private static ModConfigSpec.BooleanValue moltenCore;
-    private static ModConfigSpec.IntValue moltenHearts;
-    private static ModConfigSpec.IntValue moltenStrength;
-    private static ModConfigSpec.IntValue moltenMinutes;
+    private static ForgeConfigSpec.IntValue cooldownSeconds;
+    private static ForgeConfigSpec.IntValue reach;
+    private static ForgeConfigSpec.BooleanValue nightOnly;
+    private static ForgeConfigSpec.IntValue moonRadius;
+    private static ForgeConfigSpec.IntValue craterRadius;
+    private static ForgeConfigSpec.IntValue craterDepth;
+    private static ForgeConfigSpec.IntValue sinkPercent;
+    private static ForgeConfigSpec.DoubleValue blastReach;
+    private static ForgeConfigSpec.IntValue chunksPerTick;
+    private static ForgeConfigSpec.BooleanValue carveTerrain;
+    private static ForgeConfigSpec.BooleanValue moltenCore;
+    private static ForgeConfigSpec.IntValue moltenHearts;
+    private static ForgeConfigSpec.IntValue moltenStrength;
+    private static ForgeConfigSpec.IntValue moltenMinutes;
 
     private MoonConfig() {
     }
 
-    static void define(ModConfigSpec.Builder b) {
+    static void define(ForgeConfigSpec.Builder b) {
         b.comment("SS-06 Luna: at night, the Stellar Remote can shut the Earth system down and bring the moon down onto",
                 "your crosshair. It leaves a moon of moon cheese half-buried in a crater, with one block of molten moon",
                 "cheese at its very heart.").push("moonfall");
