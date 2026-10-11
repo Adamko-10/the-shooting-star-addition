@@ -123,3 +123,37 @@ ext.tssReobf = { TaskProvider<? extends AbstractArchiveTask> jarTask, String tas
     }
     return reobf
 }
+
+// Loom on obfuscated Minecraft (Fabric 1.21.11 and older) resolves and remaps mod dependencies while it configures the
+// project, before any task runs, so there the readable copy has to exist by then: tssDeobfNow(jar) makes it right away
+// (when it is missing or older than the jar or its mapping) and returns it.
+ext.tssDeobfNow = { File obfJar ->
+    def out = layout.buildDirectory.dir('shooting-star-named').get().file(obfJar.name).asFile
+    def mapping = tssMappingFor(obfJar)
+    if (!out.exists() || out.lastModified() < obfJar.lastModified() || (mapping.exists() && out.lastModified() < mapping.lastModified())) {
+        def launcher = javaToolchains.launcherFor { languageVersion = java.toolchain.languageVersion }.get()
+        providers.exec {
+            commandLine launcher.executablePath.asFile.path, '-cp', configurations.tssTools.asPath,
+                file('tools/tss/TssRemap.java').path, 'deobf', obfJar.path, out.path, mapping.path
+        }.result.get()
+    }
+    return files(out)
+}
+
+// The nested jar of a Fabric bundle whose name contains filter, taken out of it now (see tssDeobfNow).
+ext.tssNestedNow = { File bundle, String filter ->
+    if (bundle.name.contains(filter)) return bundle
+    def zip = new java.util.zip.ZipFile(bundle)
+    try {
+        def entry = zip.entries().find { it.name.startsWith('META-INF/jars/') && it.name.contains(filter) }
+        if (entry == null) throw new GradleException("${bundle.name} holds no ${filter} build")
+        def out = layout.buildDirectory.dir('shooting-star').get().file(entry.name.substring(entry.name.lastIndexOf('/') + 1)).asFile
+        if (!out.exists() || out.lastModified() < bundle.lastModified()) {
+            out.parentFile.mkdirs()
+            out.withOutputStream { it << zip.getInputStream(entry) }
+        }
+        return out
+    } finally {
+        zip.close()
+    }
+}
