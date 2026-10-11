@@ -1,7 +1,7 @@
 package dev.ss05.halley.world;
 
 /**
- * How SS-05 is named and shown on the Stellar Remote. The menu also reads its description and key name from the
+ * How Halley is named and shown on the Stellar Remote. The menu also reads its description and key name from the
  * language file (assets/shooting_star_addition/lang/en_us.json), so wording changes go there.
  */
 public final class HalleyInfo {
@@ -9,7 +9,11 @@ public final class HalleyInfo {
     public static final String ID = "halley";
     /** The platform all the remote's skills belong to. */
     public static final String TIER = "The Shooting Star";
-    public static final String TITLE = "SS-05 · Halley";
+    /** "SS-06 · Halley": the number follows The Shooting Star's own skills (see {@link SkillNumbers}). */
+    public static String title() {
+        return SkillNumbers.halley() + " · Halley";
+    }
+
     /** Ice-cyan: the other three are red (SS-01), ember (SS-03) and violet (SS-04). */
     public static final int COLOR = 0x6FE8FF;
     /**

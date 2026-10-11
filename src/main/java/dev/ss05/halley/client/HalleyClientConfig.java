@@ -30,7 +30,7 @@ public final class HalleyClientConfig {
 
     static {
         ConfigFile b = SPEC;
-        b.section("looks", "How SS-05 Halley looks on this computer. These only change what you see.");
+        b.section("looks", "How Halley and Luna look on this computer. These only change what you see.");
         SKY = b.define("sky", true, "The sky goes dark while the comet comes in (stars, an aurora, the comet lighting up the air),",
             "and hazy with ice after the impact (a halo and sun dogs round the sun).");
         DARKEN_LAND = b.define("darken_land", true, "The land dims under that dark sky, so the comet's light stands out.");
@@ -42,7 +42,7 @@ public final class HalleyClientConfig {
         COMET_MARKER = b.define("comet_marker", true, "An arrow at the edge of the screen pointing at the comet while it's out of view.");
         SHADER_PACKS = b.defineEnum("shader_packs", PackMode.AUTO,
             "Shader packs (Iris) only show what is drawn with Minecraft's own shaders, so while one is on",
-            "SS-05 paints its comet and sky onto textures first and draws those the way the pack expects.",
+            "Halley paints its comet and sky onto textures first and draws those the way the pack expects.",
             "AUTO: do that whenever a shader pack is on. ALWAYS: do it all the time. NEVER: don't (with a",
             "shader pack on, the comet and the sky then won't show).");
     }

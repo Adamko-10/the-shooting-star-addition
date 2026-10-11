@@ -79,13 +79,21 @@ def extractShootingStar = tasks.register('extractShootingStar', Sync) {
 }
 def shootingStar = files(extractShootingStar).asFileTree.matching { include '*.jar' }
 
+// The Shooting Star 1.4.0+ is obfuscated: compile and run against a readable copy of it, and map the release jar back
+// (see gradle/tss.gradle).
+ext.tssObf = shootingStar
+ext.tssPrefix = 'cyou/rimuru/shootingstardemo/'
+ext.tssNested = '+mc26.3'
+apply from: 'gradle/tss.gradle'
+tssReobf(tasks.named('jar'))
+
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
-    compileOnly shootingStar
-    localRuntime shootingStar
+    compileOnly tssNamed
+    localRuntime tssNamed
 
     // The clienttest source set sees exactly what 'main' sees (Minecraft, Fabric, The Shooting Star), plus this
     // addon's own compiled classes (to call StarBridge/HalleyContent) - only 'main' gets Loom's modding
@@ -127,4 +135,37 @@ tasks.withType(JavaCompile).configureEach {
 java {
     sourceCompatibility = JavaVersion.VERSION_25
     targetCompatibility = JavaVersion.VERSION_25
+}
+
+// Dev-only: ./gradlew prodClientTest -Dss05.clienttest.skill=moon ... runs the clienttest harness against the
+// *release* jar in a production-style game, with Fabric API and The Shooting Star's own (obfuscated, 1.4.0+) jar: the
+// proof that tssReobf mapped every reference back. Its game directory is run/prodclient.
+configurations {
+    prodMods {
+        canBeConsumed = false
+        transitive = false
+    }
+}
+dependencies {
+    prodMods "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+def clienttestJar = tasks.register('clienttestJar', Jar) {
+    from sourceSets.clienttest.output
+    archiveClassifier = 'clienttest'
+    destinationDirectory = layout.buildDirectory.dir('prodtest')
+}
+def reobfClienttest = tssReobf(clienttestJar, 'tssReobfClienttest', 'prodtest')
+tasks.register('prodClientTest', net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+    dependsOn extractShootingStar
+    // setFrom: Loom adds the project's own jar by default, which here is the readable one in build/libs-raw
+    mods.setFrom(tasks.named('tssReobf'), reobfClienttest, configurations.prodMods, shootingStar)
+    runDir = file('run/prodclient')
+    jvmArgs.add('-Dss05.clienttest=true')
+    ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat'].each { key ->
+        var propertyName = "ss05.clienttest.${key}"
+        var value = project.findProperty(propertyName) ?: System.getProperty(propertyName)
+        if (value != null) {
+            jvmArgs.add("-D${propertyName}=${value}")
+        }
+    }
 }

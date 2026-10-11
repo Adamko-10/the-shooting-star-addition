@@ -26,17 +26,17 @@ public final class MoonCasting {
     /** Returns false (and tells the player why) if the moon can't be called right now. */
     public static boolean cast(ServerPlayer player) {
         if (StarBridge.alreadyFlying(StarBridge.MOON, player)) {
-            StarBridge.deny(player, MoonInfo.TITLE + ": the moon is already falling");
+            StarBridge.deny(player, MoonInfo.title() + ": the moon is already falling");
             return false;
         }
         ServerLevel level = player.level();
         MoonConfig.Tuning tuning = MoonConfig.tuning();
         if (level.dimensionType().hasFixedTime()) {
-            StarBridge.deny(player, MoonInfo.TITLE + ": there is no moon here");
+            StarBridge.deny(player, MoonInfo.title() + ": there is no moon here");
             return false;
         }
         if (tuning.nightOnly() && !isNight(level)) {
-            StarBridge.deny(player, MoonInfo.TITLE + " only answers at night");
+            StarBridge.deny(player, MoonInfo.title() + " only answers at night");
             return false;
         }
         Vec3 target = StarBridge.aimGround(player, tuning.reach(), 260.0);

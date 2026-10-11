@@ -20,7 +20,7 @@ public final class HalleyCasting {
     /** Returns false (and tells the player why) if the comet can't be called right now. */
     public static boolean cast(ServerPlayer player) {
         if (StarBridge.alreadyFlying(player)) {
-            StarBridge.deny(player, HalleyInfo.TITLE + " is already on its way");
+            StarBridge.deny(player, HalleyInfo.title() + " is already on its way");
             return false;
         }
         HalleyConfig.Tuning tuning = HalleyConfig.tuning();
