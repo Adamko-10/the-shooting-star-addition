@@ -30,9 +30,9 @@ public final class HalleyConfig {
     static {
         ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
 
-        b.comment("SS-05 Halley: a comet called down onto your crosshair. It comes in low over the horizon in front of",
+        b.comment("Halley: a comet called down onto your crosshair. It comes in low over the horizon in front of",
                 "you, touches down beyond the mark, ploughs a trench toward you and detonates on the mark.").push("skill");
-        COOLDOWN_SECONDS = b.comment("Seconds before SS-05 can be fired again (the other Stellar Remote skills use 60).",
+        COOLDOWN_SECONDS = b.comment("Seconds before Halley can be fired again (the other Stellar Remote skills use 60).",
                 "Creative mode always uses 1 second, like the other skills.")
             .defineInRange("cooldown_seconds", 60, 1, 3600);
         REACH = b.comment("How far away (in blocks) your crosshair can place the mark.")

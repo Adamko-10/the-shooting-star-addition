@@ -37,10 +37,10 @@ public final class MoonConfig {
     }
 
     static void define(ForgeConfigSpec.Builder b) {
-        b.comment("SS-06 Luna: at night, the Stellar Remote can shut the Earth system down and bring the moon down onto",
+        b.comment("Luna: at night, the Stellar Remote can shut the Earth system down and bring the moon down onto",
                 "your crosshair. It leaves a moon of moon cheese half-buried in a crater, with one block of molten moon",
                 "cheese at its very heart.").push("moonfall");
-        cooldownSeconds = b.comment("Seconds before SS-06 can be fired again. Creative mode always uses 1 second, like the other skills.")
+        cooldownSeconds = b.comment("Seconds before Luna can be fired again. Creative mode always uses 1 second, like the other skills.")
             .defineInRange("cooldown_seconds", 120, 1, 3600);
         reach = b.comment("How far away (in blocks) your crosshair can place the mark.")
             .defineInRange("reach", 420, 32, 1024);

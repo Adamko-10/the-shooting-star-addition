@@ -1,20 +1,21 @@
 # The Shooting Star Addition
 
 An **unofficial**, fan-made addon for [The Shooting Star [Demo]](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-demo)
-by rimuru_dev. It adds two new skills to the Stellar Remote: **SS-05 · Halley**, a comet called down onto your
-crosshair, and **SS-06 · Luna**, which at night brings the moon itself down, leaving a moon of edible moon cheese with a
-molten heart.
+by rimuru_dev. It adds two new skills to the Stellar Remote: **Halley**, a comet called down onto your
+crosshair, and **Luna**, which at night brings the moon itself down, leaving a moon of edible moon cheese with a
+molten heart. On the remote they come after The Shooting Star's own skills and are numbered after them:
+with The Shooting Star 1.4.0, which has its own SS-05 · Tesseract, they are **SS-06 · Halley** and **SS-07 · Luna**.
 
 **Download:** [The Shooting Star Addition on CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition)
 
-![SS-05 Halley in game](docs/screenshots/overview.jpg)
+![Halley in game](docs/screenshots/overview.jpg)
 
-> **Compatibility:** this is the **Forge, Minecraft 1.21.1** version, for **The Shooting Star [Demo] 1.3.3 or
-> newer** (tested with 1.3.4). (1.3.3 renamed The Shooting Star's code, so older versions of the addon can't attach to it, and this one can't attach to anything before 1.3.3). There are also NeoForge 1.21.1 (`main` branch), Forge 1.20.1
-> (`forge-1.20.1` branch) and Fabric 26.3 (`fabric-26.3` branch) versions. See
+> **Compatibility:** this is the **Forge, Minecraft 1.21.1** version, for **The Shooting Star [Demo] 1.4.0**
+> (exactly that version: 1.4.0 is obfuscated, see below). There are also NeoForge 1.21.1 (`main` branch), Forge and
+> NeoForge 1.20.1 (`forge-1.20.1`), Fabric 26.3 (`fabric-26.3`) and Fabric 1.21.11 (`fabric-1.21.11`) versions. See
 > [Will it work with future versions?](#will-it-work-with-future-versions-of-the-shooting-star) below.
 
-## SS-05 · Halley
+## Halley
 
 Flip the cover and press the button. Your crosshair is marked in ice-blue and an approach corridor is projected
 across the land beyond it. A comet rises over the horizon with its tails stretched across the sky, hits the atmosphere
@@ -28,7 +29,7 @@ land round it.
   round the sun (or the moon), clearing as the crystals settle.
 - **You can't miss it**: outside the cutscene the comet is drawn bigger, and an arrow at the edge of the screen points
   at it while it's out of view.
-- **Works with shader packs** (Iris, e.g. Complementary): with one on, SS-05 paints its comet and sky onto textures
+- **Works with shader packs** (Iris, e.g. Complementary): with one on, Halley paints its comet and sky onto textures
   and draws them the way the pack expects, and the dark sky becomes the pack's own night: the sky's clock races through
   a dusk into the night as the comet comes in, and on through a dawn after the impact. Only what you see changes, never
   the world's actual time.
@@ -51,9 +52,9 @@ land round it.
 | ![](docs/screenshots/05-detonation.jpg) | ![](docs/screenshots/06-comet-heart.jpg) | ![](docs/screenshots/07-crater.jpg) |
 | ![The dark sky and the aurora, in third person](docs/screenshots/10-night-sky.jpg) | ![The ice halo and sun dogs after the impact](docs/screenshots/11-ice-halo.jpg) | ![With a shader pack (Complementary)](docs/screenshots/12-shader-pack.jpg) |
 
-## SS-06 · Luna
+## Luna
 
-Flip the cover and press the button: **EARTH SYSTEM SHUT DOWN**, and the sky falls to night (like SS-05's). The moon, right where it hangs in your
+Flip the cover and press the button: **EARTH SYSTEM SHUT DOWN**, and the sky falls to night (like Halley's). The moon, right where it hangs in your
 sky, shudders and cracks open along glowing molten seams, leaves its place and falls onto your crosshair, slowly at
 first and then faster and faster, growing until it fills the sky. It burns through the atmosphere in a shroud of fire,
 hits the ground in a white flash and a shock ring, ploughs into the crater it digs and comes to rest there, half
@@ -61,7 +62,7 @@ buried: a whole moon of **moon cheese**, with one block of **molten moon cheese*
 
 - Works by day or night (the sky turns to night for it; only what you see changes, never the world's time). Not where there is no moon, like the Nether.
 - Fissures tear out across the land all round the crater (like Gungnir's cracks), and the shock wave throws, burns and hurts far beyond it.
-- Its own key (**Y** by default), menu card, cooldown (120 s), cutscene (skippable), sounds and alarm.
+- Its own key (**N** by default), menu card, cooldown (120 s), cutscene (skippable), sounds and alarm.
 - Everything in the crater is erased; past it, the shock wave throws, burns and hurts whatever it meets.
 - **Moon cheese**: right-click a block to place it, right-click the air to eat it. It's as good as a golden carrot.
 - **Molten moon cheese**: eat it for **500 hearts** and **Strength 255** for 10 minutes (Molten Might).
@@ -75,11 +76,11 @@ buried: a whole moon of **moon cheese**, with one block of **molten moon cheese*
 ## Installing
 
 1. Minecraft **1.21.1** with **Forge 52.1.x**.
-2. **The Shooting Star [Demo] 1.3.3 or newer** (its Forge file).
+2. **The Shooting Star [Demo] 1.4.0** (its Forge file, `the-shooting-star-demo-1.4.0-forge.jar`).
 3. `shooting_star_addition-1.3.0+forge-1.21.1.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
 
-In game: hold the Stellar Remote, press **O** for SS-05 or **Y** for SS-06 (or pick them in the remote's menu, **H**),
+In game: hold the Stellar Remote, press **O** for Halley or **N** for Luna (or pick them in the remote's menu, **H**),
 aim at the ground and right-click. The keys can be changed in Controls or from the remote's menu like the others.
 
 ## Settings — `config/shooting_star_addition-common.toml`
@@ -97,9 +98,9 @@ aim at the ground and right-click. The keys can be changed in Controls or from t
 | world    | `carve_terrain`            | true    | `false` = the strike only hurts creatures, the land is untouched. |
 | world    | `leave_comet_heart`        | true    | The glowing heart crystal and the frozen trail down the trench. |
 | world    | `frost_rays`               | true    | Rays of snow painted out from the crater. |
-| safety   | `evacuate_creative_caster` | true    | Lift a creative-mode caster out of the crater first (SS-05 and SS-06). |
+| safety   | `evacuate_creative_caster` | true    | Lift a creative-mode caster out of the crater first (Halley and Luna). |
 
-SS-06 and moon cheese, in the same file:
+Luna and moon cheese, in the same file:
 
 | Section          | Setting            | Default | Range     | What it does |
 |------------------|--------------------|---------|-----------|--------------|
@@ -135,20 +136,24 @@ Each player can set these for themselves; they only change what you see.
 
 ## Will it work with future versions of The Shooting Star?
 
-Honestly: maybe, maybe not. The Shooting Star has no official way for other mods to add skills, so this addon
-attaches itself to some of its internals (the remote's skill list, its effect system and a few of its classes), and
-The Shooting Star is updated often. That means:
+Not without an update of this addon. Since 1.4.0, The Shooting Star is obfuscated: the names inside its code are
+scrambled (`a`, `b`, `c`...) and can change with every release. It has no official way for other mods to add skills,
+so this addon attaches to its internals by those names, and each version of the addon is made for one version of The
+Shooting Star:
 
-- **Small updates** that don't touch those parts should keep working: the addon accepts The Shooting Star 1.3.3 and
-  anything newer.
-- **Updates that change those parts** won't crash your game. The addon checks everything before it attaches, and if
-  something has moved it switches SS-05 off, logs why, and tells server operators in chat. It stays off until this
-  addon is updated. The optional touches (the remote's cover animation, the cutscene overlay, the raised arm) quietly
-  switch themselves off instead.
+- This version needs **The Shooting Star 1.4.0**. With any other version the game says so when it starts, instead of
+  crashing.
+- When The Shooting Star updates, wait for the matching update of this addon.
+- On the remote, The Shooting Star's own skills keep their numbers and Halley and Luna take the next ones: if it adds
+  an SS-06 of its own, they become SS-07 and SS-08 by themselves.
+- If something it attaches to has really changed, the addon doesn't crash your game: it switches its skills off, logs
+  why, and tells server operators in chat.
 - **If The Shooting Star changes its mod id** (for example when it stops being a demo), this addon won't load until
   it is updated.
+
 - **Other mod loaders and Minecraft versions** each need their own build: this one is Forge 1.21.1; there are
   also NeoForge 1.21.1, Forge 1.20.1 and Fabric 26.3 versions.
+
 
 ## Plans
 
@@ -173,32 +178,37 @@ setup needed, it's on the Gradle Plugin Portal). Put The Shooting Star's jar in 
 
 ### When The Shooting Star updates
 
-Only the files in `compat/` touch The Shooting Star; nothing else imports it. So:
+Since 1.4.0 The Shooting Star is obfuscated. `compat/` (the only code that touches it) is still written against its
+readable names, those of 1.3.x: the build makes a readable copy of its jar with a mapping (`gradle/tss.gradle`, tools in
+`tools/tss/`), compiles and runs against that copy, and maps the release jar back to the real names. Mappings are
+made on your own machine and kept out of git (`libs/mappings/`): the repository never carries a de-obfuscation map of
+The Shooting Star.
 
-1. Delete the old jar from `libs/`, put the new one in, and run `./gradlew build`.
-   - If its version scheme changed, widen `shooting_star_version_range` in `gradle.properties`.
-   - If its mod id changed (e.g. once it is no longer a demo), set `shooting_star_mod_id` there too.
-2. **It compiles** — start the game. The log should say
-   `SS-05 Halley joined the Stellar Remote as skill #N`. If so, you're done.
-3. **Compile errors** — they will be in `compat/` only:
-   - a renamed package or class: fix the imports in `compat/StarBridge.java`, `compat/HalleySkill.java`,
-     `compat/HalleySpell.java` and `compat/client/*.java`;
-   - a moved helper (spell engine, aiming, carving, erasure, the evac lift): each is a one-line wrapper at the
-     bottom of `StarBridge.java` — point it at the new method.
-4. **The log says "SS-05 Halley couldn't attach"** (operators also get a red chat message on joining): the remote's
-   skill list (`SkillSet`) changed shape. The private field names the addon writes to are constants at the top of
-   `StarBridge.java` — rename them to match.
-5. **Smaller things that may stop without breaking anything** — optional mixins in `compat/mixin/` that switch
+1. Keep a readable build of the previous version: `build/shooting-star-named/<jar>` from the last build (for 1.4.0,
+   the 1.3.4 jar itself is the readable one). Then put the new jar in `libs/` in place of the old one.
+2. `./gradlew tssMappings -PtssNamed=<that readable jar>` matches the two by their structure and writes
+   `libs/mappings/<name>.tiny`, with a `.report.txt` of what it couldn't match (what's new in the update, and anything
+   that changed). Nothing `compat/` uses should be in the report.
+3. Set `shooting_star_version_range` in `gradle.properties` to the new version and run `./gradlew build`. It compiles
+   against the readable copy, and `tssReobf` checks every reference into The Shooting Star against the real jar: the
+   build fails if one doesn't exist there.
+4. **Compile errors** are in `compat/` only, where something really changed: each helper is a one-line wrapper at the
+   bottom of `compat/StarBridge.java`; the skills are `compat/HalleySkill.java`/`MoonSkill.java`, the spells
+   `compat/HalleySpell.java`/`MoonSpell.java`, the effects `compat/client/*.java`.
+5. Start the game. The log should say `SS-06 · Halley (Halley) joined the Stellar Remote as skill #N` (with the number
+   that follows The Shooting Star's own skills). If it says "couldn't attach", the remote's skill list (`SkillSet`)
+   changed shape: `StarBridge.install()` finds the fields it needs by their types.
+6. **Smaller things that may stop without breaking anything** — optional mixins in `compat/mixin/` that switch
    themselves off if their target moved:
-   - the remote's cover/button/screen not animating for SS-05 → `RemoteRendererMixin` (`strikeTime`);
-   - no SS-05 overlay on the cutscene → `FxManagerMixin` (`renderFilmHud`);
+   - the remote's cover/button/screen not animating for Halley and Luna → `RemoteRendererMixin` (`strikeTime`);
+   - no overlay of theirs on the cutscene → `FxManagerMixin` (`renderFilmHud`);
    - the caster's arm not raising (vanilla target, very unlikely to change) → `PlayerModelMixin`;
    - the land not dimming under the dark sky (vanilla target, very unlikely to change) → `ClientLevelMixin`;
    - with a shader pack on, the sky not going to night (vanilla target, very unlikely to change) →
      `ClientLevelTimeMixin`.
-6. **A new built-in skill takes the O key** → change `DEFAULT_KEY` in `world/HalleyInfo.java`.
-
-If the remote gains more built-in skills, SS-05 simply joins after them.
+7. **A new built-in skill takes the O or N key** → change `DEFAULT_KEY` in `world/HalleyInfo.java` or
+   `world/MoonInfo.java`. Its SS number needs nothing: Halley and Luna are numbered after the remote's own skills
+   (`world/SkillNumbers.java`).
 
 ### Changing the skill
 
@@ -206,7 +216,7 @@ If the remote gains more built-in skills, SS-05 simply joins after them.
 |---|---|
 | Sizes, cooldown, what it leaves behind | `config/shooting_star_addition-common.toml` (defaults in `HalleyConfig.java`) |
 | The timeline (when it is sighted, enters, touches down) | `HalleyPlan.java` — film, sounds and server all follow it |
-| SS-06 (the moonfall), moon cheese | see [docs/SS-06-LUNA.md](docs/SS-06-LUNA.md) (design and code map) |
+| Luna (the moonfall), moon cheese | see [docs/SS-06-LUNA.md](docs/SS-06-LUNA.md) (design and code map) |
 | What it does to the world | `world/HalleyStrike.java` (block palettes at the top) |
 | Name, colour, default key | `world/HalleyInfo.java`; description and key name in `assets/shooting_star_addition/lang/en_us.json` |
 | The look: colours, comet size, tails | top of `client/render/CometVisuals.java`; shapes in `halley_glow.fsh` |
