@@ -1,4 +1,4 @@
-package dev.ss05.halley.compat.client;
+package dev.ss05.halley.compat.tss.client;
 
 import cyou.rimuru.shootingstardemo.client.cinematic.CutsceneDirector;
 import cyou.rimuru.shootingstardemo.client.cinematic.Subject;
@@ -9,9 +9,9 @@ import cyou.rimuru.shootingstardemo.client.fx.SpellFx;
 import cyou.rimuru.shootingstardemo.client.render.ScreenFx;
 import cyou.rimuru.shootingstardemo.net.SpellFxPayload;
 import cyou.rimuru.shootingstardemo.registry.ModSounds;
-import dev.ss05.halley.MoonPlan;
-import dev.ss05.halley.client.luna.MoonFx;
-import dev.ss05.halley.client.luna.MoonHud;
+import dev.ss05.halley.HalleyPlan;
+import dev.ss05.halley.client.HalleyFx;
+import dev.ss05.halley.client.HalleyHud;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -19,14 +19,14 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.phys.Vec3;
 
-/** SS-06's effects as one of The Shooting Star's spell effects: it ticks, draws its HUD and post-processing there. */
-final class MoonFxAdapter extends SpellFx {
-    private final MoonFx fx;
+/** SS-05's effects as one of The Shooting Star's spell effects: it ticks, draws its HUD and post-processing there. */
+final class HalleyFxAdapter extends SpellFx {
+    private final HalleyFx fx;
 
-    MoonFxAdapter(SpellFxPayload payload) {
+    HalleyFxAdapter(SpellFxPayload payload) {
         super(payload);
         Subject subject = this.subject();
-        this.fx = new MoonFx(new MoonFx.Host() {
+        this.fx = new HalleyFx(new HalleyFx.Host() {
             @Override
             public float filmWeight() {
                 return CutsceneDirector.weight(subject);
@@ -47,10 +47,10 @@ final class MoonFxAdapter extends SpellFx {
             public SoundEvent remoteSound(boolean press) {
                 return press ? ModSounds.STAR_PRESS : ModSounds.STAR_ARM;
             }
-        }, payload.casterId(), this.origin, this.target, payload.seed(), payload.targets());
+        }, payload.casterId(), this.origin, this.target, payload.yaw(), payload.seed(), payload.targets());
     }
 
-    MoonFx moon() {
+    HalleyFx halley() {
         return this.fx;
     }
 
@@ -59,9 +59,10 @@ final class MoonFxAdapter extends SpellFx {
         this.fx.tick(minecraft, level, t);
     }
 
+    /** The strike's own length, from the packet (this client's config may differ from the server's). */
     @Override
     protected int duration() {
-        return MoonPlan.DURATION;
+        return this.fx.plan.duration;
     }
 
     @Override
@@ -74,9 +75,11 @@ final class MoonFxAdapter extends SpellFx {
         return this.target;
     }
 
+    /** Post-processing and HUD reach as far as the trench and the shock wave do, and then some. */
     @Override
     public double range() {
-        return 900.0 + this.fx.plan.params.craterRadius() * this.fx.plan.params.blastReach();
+        HalleyPlan p = this.fx.plan;
+        return 700.0 + p.params.trenchLength() + p.params.craterRadius() * p.params.blastReach();
     }
 
     @Override
@@ -86,11 +89,12 @@ final class MoonFxAdapter extends SpellFx {
 
     @Override
     public void hud(GuiGraphicsExtractor graphics, Frame frame) {
-        MoonHud.hud(graphics, this.fx, frame.partial(), Overlay.width(graphics), Overlay.height(graphics));
+        HalleyHud.world(graphics, this.fx, frame.partial(), Overlay.width(graphics));
+        HalleyHud.marker(graphics, this.fx, frame.partial(), Overlay.width(graphics), Overlay.height(graphics));
     }
 
-    /** SS-06's screen effects written into the remote's post-processing settings for this frame. */
-    private record Screen(ScreenFx fx) implements MoonFx.Screen {
+    /** SS-05's screen effects written into the remote's post-processing settings for this frame. */
+    private record Screen(ScreenFx fx) implements HalleyFx.Screen {
         @Override
         public void shake(float k) {
             this.fx.shake = Math.max(this.fx.shake, k);

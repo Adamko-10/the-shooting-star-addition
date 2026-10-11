@@ -10,28 +10,57 @@ import org.objectweb.asm.tree.*;
  * The Shooting Star 1.4.0+ is obfuscated. This remaps between its obfuscated names and readable ones, with a Tiny v2
  * mapping made by TssMatch (namespaces "obf" and "named"):
  *
- *   deobf <obf.jar> <out.jar> <mapping.tiny>                                - The Shooting Star's jar, for compiling
- *                                                                             and dev runs
- *   reobf <addon.jar> <out.jar> <mapping.tiny> <tss.jar> <named-tss.jar>... - this addon's release jar, to run with
- *                                                                             the real one (tss.jar)
+ *   deobf <obf.jar> <out.jar> <mapping.tiny>   - The Shooting Star's jar, for compiling and dev runs
+ *   reobf <addon.jar> <out.jar> <mapping.tiny> <tss.jar>
+ *                                              - an addon jar, to run with the real The Shooting Star jar (tss.jar)
  *
  * Without the mapping file (a readable, pre-1.4.0 The Shooting Star), both just copy. reobf then checks the result
  * against the real jar (see {@link #verify}) and fails if anything it uses isn't there.
  *
  * reobf also rewrites the target-method strings of this addon's mixins into The Shooting Star ({@code remap = false},
- * so no remapper touches them otherwise).
+ * so no remapper touches them otherwise). The release jar is made by {@link TssPack}, which runs reobf once per
+ * supported version of The Shooting Star.
  */
 public class TssRemap {
     public static void main(String[] args) throws Exception {
-        String mode = args[0];
         Path in = Path.of(args[1]), out = Path.of(args[2]), mapping = Path.of(args[3]);
-        boolean reobf = mode.equals("reobf");
+        if (args[0].equals("reobf")) {
+            reobf(in, out, mapping, Path.of(args[4]));
+        } else {
+            deobf(in, out, mapping);
+        }
+    }
+
+    /** A readable copy of The Shooting Star's jar. */
+    static void deobf(Path obf, Path out, Path mapping) throws IOException {
+        remap(obf, out, mapping, false, List.of());
+    }
+
+    /** The addon jar mapped to the real names of The Shooting Star's jar {@code tss}, and verified against it. */
+    static void reobf(Path addon, Path out, Path mapping, Path tss) throws IOException {
+        if (!Files.exists(mapping)) {
+            remap(addon, out, mapping, true, List.of());
+        } else {
+            // tiny-remapper needs The Shooting Star's class hierarchy (under the names it maps from) to map members
+            // that the addon's classes inherit from it
+            Path named = Files.createTempFile("tss-named", ".jar");
+            try {
+                deobf(tss, named, mapping);
+                remap(addon, out, mapping, true, List.of(named));
+            } finally {
+                Files.deleteIfExists(named);
+            }
+        }
+        verify(out, tss);
+    }
+
+    static void remap(Path in, Path out, Path mapping, boolean reobf, List<Path> classpath) throws IOException {
+        String mode = reobf ? "reobf" : "deobf";
         Files.createDirectories(out.toAbsolutePath().getParent());
         if (!Files.exists(mapping)) {
             // a readable The Shooting Star (1.3.x), or no mapping made for this one yet: nothing to remap
             Files.copy(in, out, StandardCopyOption.REPLACE_EXISTING);
             System.out.println(mode + ": no mapping " + mapping.getFileName() + ", copied " + in.getFileName());
-            if (reobf) verify(out, Path.of(args[4]));
             return;
         }
         Path input = in;
@@ -47,14 +76,13 @@ public class TssRemap {
         try (OutputConsumerPath consumer = new OutputConsumerPath.Builder(out).assumeArchive(true).build()) {
             consumer.addNonClassFiles(input, NonClassCopyMode.UNCHANGED, remapper);
             remapper.readInputs(input);
-            for (int i = reobf ? 5 : 4; i < args.length; i++) remapper.readClassPath(Path.of(args[i]));
+            for (Path p : classpath) remapper.readClassPath(p);
             remapper.apply(consumer);
         } finally {
             remapper.finish();
         }
         if (reobf) Files.deleteIfExists(input);
         System.out.println(mode + " -> " + out);
-        if (reobf) verify(out, Path.of(args[4]));
     }
 
     // ---- verify ------------------------------------------------------------------------------------------------------

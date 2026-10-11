@@ -1,6 +1,6 @@
-package dev.ss05.halley.compat.mixin;
+package dev.ss05.halley.compat.tss.mixin;
 
-import dev.ss05.halley.compat.client.StarClientBridge;
+import dev.ss05.halley.compat.tss.client.StarClientBridge;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
