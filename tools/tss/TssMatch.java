@@ -451,7 +451,7 @@ public class TssMatch {
         return res;
     }
 
-    /** For each static field of c written in <clinit>, the strings loaded since the previous static write (only keys
+    /** For each static field of c written in its methods, the strings loaded since the previous static write (only keys
      * that are unique within the class). */
     static Map<String, FieldNode> clinitKeys(ClassNode c) {
         Map<String, FieldNode> byName = new HashMap<>();
@@ -459,12 +459,26 @@ public class TssMatch {
         Map<String, FieldNode> res = new HashMap<>();
         Set<String> dup = new HashSet<>();
         for (MethodNode m : c.methods) {
-            if (!m.name.equals("<clinit>")) continue;
+            // <clinit>, or wherever else they are set (NeoForge/Forge register items in a RegisterEvent handler)
             StringBuilder seg = new StringBuilder();
             String last = null;
             int since = 0;
             for (AbstractInsnNode in : m.instructions) {
                 if (in instanceof LdcInsnNode l && l.cst instanceof String v) seg.append(v).append('|');
+                // read right after its own strings, e.g. register(id("stellar_remote"), STELLAR_REMOTE) in a lambda
+                if (in instanceof FieldInsnNode fi && fi.getOpcode() == Opcodes.GETSTATIC && fi.owner.equals(c.name) && seg.length() > 0) {
+                    FieldNode f = byName.get(fi.name);
+                    String k = "read:" + seg;
+                    seg.setLength(0);
+                    if (f == null || (f.access & Opcodes.ACC_STATIC) == 0) continue;
+                    if (res.containsKey(k) || dup.contains(k)) {
+                        res.remove(k);
+                        dup.add(k);
+                    } else {
+                        res.put(k, f);
+                    }
+                    continue;
+                }
                 if (in instanceof FieldInsnNode fi && fi.getOpcode() == Opcodes.PUTSTATIC && fi.owner.equals(c.name)) {
                     FieldNode f = byName.get(fi.name);
                     String k = seg.toString();
