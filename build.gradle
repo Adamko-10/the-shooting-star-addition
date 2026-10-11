@@ -103,6 +103,21 @@ tssPack(tasks.named('jar'))
 // it from the cache (the configuration cache is off in gradle.properties for the same reason).
 tasks.named('compileJava') { outputs.cacheIf { false } }
 
+// Dev-only: the test harness as a real Forge 1.21.1 client loads it. ./gradlew prodClientTestJars -PtssTest=1.4.0 writes
+// build/prodtest/shooting_star_addition-<version>-clienttest.jar, mapped to that version of The Shooting Star: put it in
+// a real Forge 1.21.1 client's mods folder with the release jar and that real jar, and start the client with the
+// -Dss05.clienttest.* properties (see src/clienttest).
+var clienttestJar = tasks.register('clienttestJar', Jar) {
+    from sourceSets.clienttest.output
+    archiveClassifier = 'clienttest'
+    destinationDirectory = layout.buildDirectory.dir('prodtest')
+}
+var reobfClienttest = tssReobf(clienttestJar, 'tssReobfClienttest', 'prodtest')
+tasks.register('prodClientTestJars') {
+    dependsOn tasks.named('tssPack'), reobfClienttest
+}
+tasks.named('clienttestJar') { dependsOn tasks.named('compileClienttestJava') }
+
 // Resolved once; calling minecraft.dependency(...) a second time with the same coordinate (e.g. for the clienttest
 // source set below) duplicates Mavenizer's internal task registration and fails the build, so the same
 // MavenizerInstance is reused for every source set instead.
