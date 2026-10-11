@@ -404,11 +404,28 @@ public final class HalleyServerTest {
         }
     }
 
+    /**
+     * The spells SpellEngine holds. The Shooting Star 1.4.0+ is obfuscated, so its lists are found by their type
+     * (static List<ActiveSpell>: the running ones and the ones about to start), never by name.
+     */
     @SuppressWarnings("unchecked")
     private List<Object> activeSpells() throws ReflectiveOperationException {
-        Field f = SpellEngine.class.getDeclaredField("ACTIVE");
-        f.setAccessible(true);
-        return new ArrayList<>((List<Object>) f.get(null));
+        List<Object> all = new ArrayList<>();
+        int lists = 0;
+        for (Field f : SpellEngine.class.getDeclaredFields()) {
+            if (!java.lang.reflect.Modifier.isStatic(f.getModifiers()) || f.getType() != List.class
+                || !(f.getGenericType() instanceof java.lang.reflect.ParameterizedType type)
+                || type.getActualTypeArguments()[0] != ActiveSpell.class) {
+                continue;
+            }
+            f.setAccessible(true);
+            all.addAll((List<Object>) f.get(null));
+            lists++;
+        }
+        if (lists == 0) {
+            throw new NoSuchFieldException("SpellEngine has no static List<ActiveSpell>");
+        }
+        return all;
     }
 
     private int countActive() throws ReflectiveOperationException {

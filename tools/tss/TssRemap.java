@@ -199,7 +199,12 @@ public class TssRemap {
             if (!seen.add(o)) continue;
             ClassNode c = tss.get(o);
             if (c == null) {
-                if (!o.startsWith(TSS)) return true; // reached Minecraft or the JDK: not ours to check
+                if (o.startsWith("java/")) {
+                    // the JDK is right here: check it (a TSS class's missing method mustn't pass as one of Object's)
+                    if (jdkHas(o, name, desc, method)) return true;
+                    continue;
+                }
+                if (!o.startsWith(TSS)) return true; // reached Minecraft: not ours to check
                 continue;
             }
             if (method ? c.methods.stream().anyMatch(m -> m.name.equals(name) && m.desc.equals(desc))
@@ -208,6 +213,32 @@ public class TssRemap {
             }
             if (c.superName != null) todo.add(c.superName);
             todo.addAll(c.interfaces);
+        }
+        return false;
+    }
+
+    /** Whether a JDK class (or anything above it) has name(desc) / field name of type desc. */
+    static boolean jdkHas(String owner, String name, String desc, boolean method) {
+        Class<?> c;
+        try {
+            c = Class.forName(owner.replace('/', '.'), false, TssRemap.class.getClassLoader());
+        } catch (ClassNotFoundException e) {
+            return true; // not in this JDK: can't tell
+        }
+        Deque<Class<?>> todo = new ArrayDeque<>(List.of(c));
+        while (!todo.isEmpty()) {
+            Class<?> k = todo.poll();
+            if (method) {
+                for (java.lang.reflect.Method m : k.getDeclaredMethods()) {
+                    if (m.getName().equals(name) && Type.getMethodDescriptor(m).equals(desc)) return true;
+                }
+            } else {
+                for (java.lang.reflect.Field f : k.getDeclaredFields()) {
+                    if (f.getName().equals(name) && Type.getDescriptor(f.getType()).equals(desc)) return true;
+                }
+            }
+            if (k.getSuperclass() != null) todo.add(k.getSuperclass());
+            todo.addAll(List.of(k.getInterfaces()));
         }
         return false;
     }

@@ -125,6 +125,28 @@ apply from: 'gradle/tss.gradle'
 tssPack(tasks.named('reobfJar'))
 var shootingStarNamed = tssVersions.isEmpty() ? files() : tssDeobfNow(tssVersions[0].jar)
 
+// Dev-only: the servertest mod as a real Forge 1.20.1 server loads it, to run the game-logic test against the *release*
+// jar and The Shooting Star's own (obfuscated) jar. ./gradlew prodServerTestJars -PtssTest=1.4.0 writes
+// build/prodtest/shooting_star_addition-<version>-servertest.jar: the test mod mapped to SRG names and to that version of
+// The Shooting Star. Put it in a real Forge 1.20.1 server's mods folder with the release jar and that real jar, start the
+// server with -Dss05.servertest=true and the files of src/servertest/server-setup, and grep its log for SS05TEST.
+var servertestJar = tasks.register('servertestJar', Jar) {
+    from sourceSets.servertest.output
+    archiveClassifier = 'servertest'
+    destinationDirectory = layout.buildDirectory.dir('devlibs')
+}
+// (reobfuscate reads the source set's runtime elements, which a source set gets as a feature of the java component)
+java {
+    registerFeature('servertest') {
+        usingSourceSet(sourceSets.servertest)
+    }
+}
+var reobfServertestJar = obfuscation.reobfuscate(servertestJar, sourceSets.servertest)
+var tssReobfServertest = tssReobf(reobfServertestJar, 'tssReobfServertest', 'prodtest')
+tasks.register('prodServerTestJars') {
+    dependsOn tasks.named('tssPack'), tssReobfServertest
+}
+
 dependencies {
     // The remapping configurations only take modules, so each jar is named as a flatDir module. It needs a group and a
     // version (any) for the remapping to match it; flatDir ignores the group and finds <name>.jar.

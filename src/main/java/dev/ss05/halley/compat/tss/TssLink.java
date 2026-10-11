@@ -20,7 +20,11 @@ import dev.ss05.halley.world.HalleyInfo;
 import dev.ss05.halley.world.MoonCasting;
 import dev.ss05.halley.world.MoonInfo;
 import dev.ss05.halley.world.SkillNumbers;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
@@ -217,7 +221,45 @@ public final class TssLink implements StarLink {
 
     @Override
     public void erase(ServerLevel level, LivingEntity victim, ServerPlayer attacker) {
-        Erasure.strike(level, victim, attacker);
+        try {
+            STRIKE.invokeExact(level, victim, attacker);
+        } catch (RuntimeException | Error failed) {
+            throw failed;
+        } catch (Throwable failed) {
+            throw new IllegalStateException(failed);
+        }
+    }
+
+    /**
+     * Erasure.strike(ServerLevel, victim, ServerPlayer). Its victim is a LivingEntity up to 1.3.x and any Entity from
+     * 1.4.0, so it is found by that shape (the one public static void method of Erasure taking a ServerLevel, an entity
+     * and a ServerPlayer), and the same code calls it in every version.
+     */
+    private static final MethodHandle STRIKE = strike();
+
+    private static MethodHandle strike() {
+        Method found = null;
+        for (Method method : Erasure.class.getDeclaredMethods()) {
+            Class<?>[] p = method.getParameterTypes();
+            if (!Modifier.isStatic(method.getModifiers()) || !Modifier.isPublic(method.getModifiers()) || method.getReturnType() != void.class
+                || p.length != 3 || p[0] != ServerLevel.class || p[2] != ServerPlayer.class
+                || !p[1].isAssignableFrom(LivingEntity.class) || !Entity.class.isAssignableFrom(p[1])) {
+                continue;
+            }
+            if (found != null) {
+                throw new IllegalStateException("Erasure has more than one strike(ServerLevel, entity, ServerPlayer)");
+            }
+            found = method;
+        }
+        if (found == null) {
+            throw new IllegalStateException("Erasure has no strike(ServerLevel, entity, ServerPlayer)");
+        }
+        try {
+            return MethodHandles.publicLookup().unreflect(found)
+                .asType(MethodType.methodType(void.class, ServerLevel.class, LivingEntity.class, ServerPlayer.class));
+        } catch (IllegalAccessException failed) {
+            throw new IllegalStateException(failed);
+        }
     }
 
     @Override
