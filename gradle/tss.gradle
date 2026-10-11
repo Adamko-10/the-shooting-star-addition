@@ -1,27 +1,33 @@
-// The Shooting Star 1.4.0+ ships obfuscated: its classes and members are named a, b, c... compat/ is written against
-// its readable names (as in 1.3.x), so:
+// One release jar for several versions of The Shooting Star.
 //
-//   - tssDeobf makes a readable copy of The Shooting Star's jar, using the mapping for it in libs/mappings/, and the
-//     build compiles (and the dev runs run) against that copy;
-//   - tssReobf maps the release jar's references back to The Shooting Star's real, obfuscated names, and checks that
-//     every class, field and method of it the jar uses really exists in The Shooting Star's jar (the build fails
-//     otherwise).
+// The Shooting Star 1.4.0+ ships obfuscated: its classes and members are named a, b, c..., and the names change with
+// every release. compat/tss/ (the only code that touches it) is written against its readable names (as in 1.3.x), so:
 //
-// The mapping is made on your own machine, never committed (libs/ is git-ignored): the repository must not carry a
-// de-obfuscation map of The Shooting Star. When The Shooting Star updates:
+//   - tssDeobf makes a readable copy of the newest The Shooting Star jar in libs/, using the mapping for it in
+//     libs/mappings/, and the build compiles (and the dev runs run) against that copy;
+//   - tssPack makes the release jar: for every The Shooting Star jar in libs/, it maps the addon's references back to
+//     that version's real names, checks that every class, field and method it uses really exists in that jar (the
+//     build fails otherwise), and puts that version's copy of compat/tss/ into the jar as compat/v1_4_1/ and so on
+//     (tools/tss/TssPack.java). At run time compat/StarBridge picks the copy for the version that is loaded;
+//   - tssVersionRange / tssVersionList are the versions the jar supports, for the mod metadata.
 //
-//   ./gradlew tssMappings -PtssNamed=<a readable build of it for the same loader and Minecraft version>
+// So libs/ holds one jar per supported version (a readable 1.3.x one needs no mapping). The mappings are made on your
+// own machine, never committed (libs/ is git-ignored): the repository must not carry a de-obfuscation map of The
+// Shooting Star. When The Shooting Star updates, add its jar to libs/ (keep the old ones) and run
 //
-// where the readable build is the 1.3.4 jar (for 1.4.0), or for later versions build/shooting-star-named/<jar> left
-// by the previous version's tssDeobf. Then check libs/mappings/<name>.tiny.report.txt: nothing compat/ uses may be in
-// it, and the build must compile. With a readable The Shooting Star (no mapping for it) both steps just copy the jar.
+//   ./gradlew tssMappings -PtssNamed=<a readable build of the previous version>
+//
+// where the readable build is build/shooting-star-named/<jar> left by the previous version's tssDeobf (or the 1.3.4
+// jar, for 1.4.0). Then check libs/mappings/<name>.tiny.report.txt: nothing compat/tss/ uses may be in it, and the
+// build must compile and pack.
 //
 // Used from build.gradle as:
-//   ext.tssObf = <FileCollection: The Shooting Star's jar, as the loader would load it>   (before applying this)
+//   ext.tssObf = <FileCollection: The Shooting Star's jars in libs/, as downloaded>   (before applying this)
 //   ext.tssPrefix = 'cyou/rimuru/shootingstardemo/' (+ 'mc1201/' etc. on Forge/NeoForge)
-//   ext.tssNested = '+mc26.3' (Fabric: which nested jar of the bundle -PtssNamed points at), else null
+//   ext.tssNested = '+mc26.3' (Fabric: the nested jar of the bundle that this Minecraft version loads), else null
 //   apply from: 'gradle/tss.gradle'
-//   ...then depend on tssNamed instead of the jar, and call tssReobf(<the task making the release jar>).
+//   ...then depend on tssNamed instead of the jars, call tssPack(<the task making the jar>) for the release jar, and
+//   tssReobf(...) for the test harness (mapped for one version only: -PtssTest=1.4.0, default the newest).
 
 repositories {
     maven {
@@ -37,9 +43,10 @@ configurations {
 dependencies {
     tssTools 'net.fabricmc:tiny-remapper:0.12.3'
     tssTools 'org.ow2.asm:asm-tree:9.9.1'
+    tssTools 'org.ow2.asm:asm-commons:9.9.1'
 }
 
-// The two tools (tools/tss), compiled on their own: they never go into the addon.
+// The tools (tools/tss), compiled on their own: they never go into the addon.
 def tssToolsDir = layout.buildDirectory.dir('tss-tools')
 def tssCompileTools = tasks.register('tssCompileTools', JavaCompile) {
     source = fileTree('tools/tss') { include '*.java' }
@@ -50,14 +57,101 @@ def tssCompileTools = tasks.register('tssCompileTools', JavaCompile) {
 }
 def tssToolsClasspath = files(tssToolsDir) { builtBy tssCompileTools } + configurations.tssTools
 
-def tssTag = tssPrefix.replaceAll('^cyou/rimuru/shootingstardemo/?', '').replace('/', '')
+def tssSubpackage = tssPrefix.replaceAll('^cyou/rimuru/shootingstardemo/?', '').replace('/', '')
 def tssMappingsDir = file('libs/mappings')
-def tssMappingFor = { File jar -> new File(tssMappingsDir, "${jar.name - '.jar'}${tssTag ? '.' + tssTag : ''}.tiny") }
+def tssMappingFor = { File jar -> new File(tssMappingsDir, "${jar.name - '.jar'}${tssSubpackage ? '.' + tssSubpackage : ''}.tiny") }
 def tssProjectDir = projectDir
+def tssModId = project.findProperty('shooting_star_mod_id') ?: 'shooting_star_demo'
+
+// The nested jar of a Fabric bundle whose name contains filter, taken out of it now.
+ext.tssNestedNow = { File bundle, String filter ->
+    if (bundle.name.contains(filter)) return bundle
+    def zip = new java.util.zip.ZipFile(bundle)
+    try {
+        def entry = zip.entries().find { it.name.startsWith('META-INF/jars/') && it.name.contains(filter) }
+        if (entry == null) throw new GradleException("${bundle.name} holds no ${filter} build")
+        def out = layout.buildDirectory.dir('shooting-star').get().file(entry.name.substring(entry.name.lastIndexOf('/') + 1)).asFile
+        if (!out.exists() || out.lastModified() < bundle.lastModified()) {
+            out.parentFile.mkdirs()
+            out.withOutputStream { it << zip.getInputStream(entry) }
+        }
+        return out
+    } finally {
+        zip.close()
+    }
+}
+
+// ---- Which versions of The Shooting Star are in libs/ ---------------------------------------------------------------
+
+def tssVersionIn = { File jar ->
+    def zip = new java.util.zip.ZipFile(jar)
+    try {
+        for (name in ['META-INF/neoforge.mods.toml', 'META-INF/mods.toml']) {
+            def entry = zip.getEntry(name)
+            if (entry == null) continue
+            def m = zip.getInputStream(entry).getText('UTF-8') =~ /(?s)modId\s*=\s*"${tssModId}".*?\bversion\s*=\s*"([^"]+)"/
+            if (m.find()) return m.group(1)
+        }
+        def entry = zip.getEntry('fabric.mod.json')
+        if (entry != null) return new groovy.json.JsonSlurper().parse(zip.getInputStream(entry)).version as String
+    } finally {
+        zip.close()
+    }
+    throw new GradleException("Can't tell which version of The Shooting Star ${jar.name} is")
+}
+// "1.4.1-demo+mc26.3" -> [1, 4, 1]
+def tssNumbers = { String v -> v.split(/[-+ ]/, 2)[0].tokenize('.').collect { it.isInteger() ? it as int : 0 } }
+def tssCompare = { String a, String b ->
+    def x = tssNumbers(a), y = tssNumbers(b)
+    for (i in 0..<Math.max(x.size(), y.size())) {
+        int c = (i < x.size() ? x[i] : 0) <=> (i < y.size() ? y[i] : 0)
+        if (c != 0) return c
+    }
+    return 0
+}
+// The package its copy of compat/tss/ gets in the release jar: "1.4.1-demo" -> "v1_4_1" (as compat/TssVersion.tag).
+ext.tssVersionTag = { String v -> 'v' + v.split(/[-+ ]/, 2)[0].toLowerCase(Locale.ROOT).replaceAll(/[^a-z0-9]/, '_') }
+
+// [version: '1.4.1-demo', tag: 'v1_4_1', jar: <the jar the loader loads>, mapping: <libs/mappings/...tiny>], newest first
+ext.tssVersions = tssObf.files.collect { File file ->
+    File jar = tssNested ? tssNestedNow(file, tssNested) : file
+    String version = tssVersionIn(jar)
+    [version: version, tag: tssVersionTag(version), jar: jar, mapping: tssMappingFor(jar)]
+}.sort { a, b -> tssCompare(b.version, a.version) }
+tssVersions.groupBy { it.tag }.each { tag, same ->
+    if (same.size() > 1) throw new GradleException("libs/ has more than one The Shooting Star ${tag}: ${same*.jar*.name} - keep one")
+}
+if (!tssVersions.isEmpty()) {
+    logger.lifecycle("The Shooting Star versions: ${tssVersions*.version.join(', ')} (compiling against ${tssVersions[0].version})")
+}
+// The one the dev runs and the test harness use: -PtssTest=1.4.0, default the newest.
+def tssTestVersion = project.findProperty('tssTest')
+ext.tssTest = tssTestVersion == null ? (tssVersions ? tssVersions[0] : null)
+    : tssVersions.find { tssCompare(it.version, tssTestVersion as String) == 0 }
+if (tssTestVersion != null && tssTest == null) {
+    throw new GradleException("-PtssTest=${tssTestVersion}: libs/ has no The Shooting Star ${tssTestVersion} (it has ${tssVersions*.version})")
+}
+def tssLatest = files(tssVersions ? [tssVersions[0].jar] : [])
+ext.tssTestJar = files(tssTest ? [tssTest.jar] : [])
+
+// For neoforge.mods.toml / mods.toml: "[1.3.3,1.3.5),[1.4.0,1.4.2)" (each version up to its next patch).
+ext.tssVersionRange = {
+    def ranges = []
+    tssVersions.reverse().each {
+        def n = tssNumbers(it.version)
+        def lower = n.join('.'), upper = (n.size() > 1 ? n[0..-2] + [n[-1] + 1] : [n[0] + 1]).join('.')
+        if (ranges && ranges[-1][1] == lower) ranges[-1][1] = upper else ranges << [lower, upper]
+    }
+    ranges.collect { "[${it[0]},${it[1]})" }.join(',')
+}()
+// For fabric.mod.json: ["1.3.4-demo", "1.4.1-demo"] (Fabric ignores the +mc26.3 part).
+ext.tssVersionList = '[' + tssVersions.reverse().collect { '"' + it.version.split(/\+/, 2)[0] + '"' }.join(', ') + ']'
+
+// ---- The readable copy (compile and dev runs) ----------------------------------------------------------------------
 
 def tssNamedDir = layout.buildDirectory.dir('shooting-star-named')
 def tssDeobf = tasks.register('tssDeobf', JavaExec) {
-    def obf = tssObf
+    def obf = tssLatest
     inputs.files(obf)
     inputs.files(fileTree('libs/mappings') { include '*.tiny' })
     outputs.dir(tssNamedDir)
@@ -74,63 +168,14 @@ def tssDeobf = tasks.register('tssDeobf', JavaExec) {
 }
 ext.tssNamed = files(tssNamedDir) { builtBy tssDeobf }.asFileTree.matching { include '*.jar' }
 
-tasks.register('tssMappings', JavaExec) {
-    description = 'Matches The Shooting Star\'s obfuscated jar against a readable build of it: -PtssNamed=<jar>'
-    def obf = tssObf
-    def named = providers.gradleProperty('tssNamed')
-    def prefix = tssPrefix
-    def nested = project.findProperty('tssNested') ?: ''
-    def mappingFor = tssMappingFor
-    inputs.files(obf)
-    classpath = tssToolsClasspath
-    mainClass = 'TssMatch'
-    argumentProviders.add({
-        def jar = obf.singleFile
-        def mapping = mappingFor(jar)
-        mapping.parentFile.mkdirs()
-        def namedJar = new File(named.get())
-        if (!namedJar.absolute) namedJar = new File(tssProjectDir, named.get())
-        def a = [namedJar.path, jar.path, mapping.path, prefix]
-        if (nested) a << nested
-        a
-    } as CommandLineArgumentProvider)
-    notCompatibleWithConfigurationCache('runs an external tool over a file collection')
-}
-
-// The release jar: the loader's own jar task writes to build/libs-raw, and this writes the final one to build/libs.
-// (Also used for the dev-only test harness jars: another task name and output folder.)
-ext.tssReobf = { TaskProvider<? extends AbstractArchiveTask> jarTask, String taskName = 'tssReobf', String outDir = 'libs' ->
-    jarTask.configure { destinationDirectory = layout.buildDirectory.dir(outDir + '-raw') }
-    def obf = tssObf
-    def mappingFor = tssMappingFor
-    def named = tssNamed
-    def reobf = tasks.register(taskName, JavaExec) {
-        def input = jarTask.flatMap { it.archiveFile }
-        def output = layout.buildDirectory.file(jarTask.flatMap { it.archiveFileName }.map { outDir + '/' + it })
-        inputs.file(input)
-        inputs.files(obf, named)
-        inputs.files(fileTree('libs/mappings') { include '*.tiny' })
-        outputs.file(output)
-        classpath = tssToolsClasspath
-        mainClass = 'TssRemap'
-        argumentProviders.add({
-            ['reobf', input.get().asFile.path, output.get().asFile.path, mappingFor(obf.singleFile).path, obf.singleFile.path] + named.files*.path
-        } as CommandLineArgumentProvider)
-        notCompatibleWithConfigurationCache('runs an external tool over a file collection')
-    }
-    if (taskName == 'tssReobf') {
-        tasks.named('assemble') { dependsOn reobf }
-    }
-    return reobf
-}
-
-// Loom on obfuscated Minecraft (Fabric 1.21.11 and older) resolves and remaps mod dependencies while it configures the
-// project, before any task runs, so there the readable copy has to exist by then: tssDeobfNow(jar) makes it right away
-// (when it is missing or older than the jar or its mapping) and returns it.
+// Loom on obfuscated Minecraft (Fabric 1.21.11 and older) and MDG Legacy resolve and remap mod dependencies while they
+// configure the project, before any task runs, so there the readable copy has to exist by then: tssDeobfNow(jar) makes
+// it right away (when it is missing or older than the jar or its mapping) and returns it. Use it on tssVersions[0].jar.
 ext.tssDeobfNow = { File obfJar ->
     def out = layout.buildDirectory.dir('shooting-star-named').get().file(obfJar.name).asFile
     def mapping = tssMappingFor(obfJar)
     if (!out.exists() || out.lastModified() < obfJar.lastModified() || (mapping.exists() && out.lastModified() < mapping.lastModified())) {
+        out.parentFile.listFiles()?.each { if (it.name.endsWith('.jar') && it != out) it.delete() }
         def launcher = javaToolchains.launcherFor { languageVersion = java.toolchain.languageVersion }.get()
         providers.exec {
             commandLine launcher.executablePath.asFile.path, '-cp', configurations.tssTools.asPath,
@@ -140,20 +185,84 @@ ext.tssDeobfNow = { File obfJar ->
     return files(out)
 }
 
-// The nested jar of a Fabric bundle whose name contains filter, taken out of it now (see tssDeobfNow).
-ext.tssNestedNow = { File bundle, String filter ->
-    if (bundle.name.contains(filter)) return bundle
-    def zip = new java.util.zip.ZipFile(bundle)
-    try {
-        def entry = zip.entries().find { it.name.startsWith('META-INF/jars/') && it.name.contains(filter) }
-        if (entry == null) throw new GradleException("${bundle.name} holds no ${filter} build")
-        def out = layout.buildDirectory.dir('shooting-star').get().file(entry.name.substring(entry.name.lastIndexOf('/') + 1)).asFile
-        if (!out.exists() || out.lastModified() < bundle.lastModified()) {
-            out.parentFile.mkdirs()
-            out.withOutputStream { it << zip.getInputStream(entry) }
+// ---- Mappings -------------------------------------------------------------------------------------------------------
+
+// The mapping for the newest jar in libs/ (or -PtssJar=<version>), matched against the version before it in libs/,
+// made readable with its own mapping. -PtssNamed=<a readable jar> matches against that instead.
+tasks.register('tssMappings', JavaExec) {
+    description = 'Makes libs/mappings/<jar>.tiny for the newest The Shooting Star in libs/ [-PtssJar=<version>] [-PtssNamed=<readable jar>]'
+    def pick = project.findProperty('tssJar')
+    def index = pick == null ? 0 : tssVersions.findIndexOf { tssCompare(it.version, pick as String) == 0 }
+    def entry = index >= 0 && index < tssVersions.size() ? tssVersions[index] : null
+    def previous = entry != null && index + 1 < tssVersions.size() ? tssVersions[index + 1] : null
+    def named = providers.gradleProperty('tssNamed')
+    def prefix = tssPrefix
+    def nested = project.findProperty('tssNested') ?: ''
+    classpath = tssToolsClasspath
+    mainClass = named.isPresent() ? 'TssMatch' : 'TssMappings'
+    argumentProviders.add({
+        if (entry == null) throw new GradleException("No The Shooting Star ${pick ?: ''} in libs/")
+        entry.mapping.parentFile.mkdirs()
+        def a
+        if (named.isPresent()) {
+            def namedJar = new File(named.get())
+            if (!namedJar.absolute) namedJar = new File(tssProjectDir, named.get())
+            a = [namedJar.path]
+        } else if (previous != null) {
+            a = [previous.jar.path, previous.mapping.path]
+        } else {
+            throw new GradleException("libs/ has no version of The Shooting Star older than ${entry.version} to match it against: pass -PtssNamed=<a readable build of it>")
         }
-        return out
-    } finally {
-        zip.close()
+        a += [entry.jar.path, entry.mapping.path, prefix]
+        if (nested) a << nested
+        a
+    } as CommandLineArgumentProvider)
+    notCompatibleWithConfigurationCache('runs an external tool over a file collection')
+}
+
+// ---- The release jar ------------------------------------------------------------------------------------------------
+
+// The loader's own jar task writes to build/libs-raw, and this writes the release jar to build/libs.
+ext.tssPack = { TaskProvider<? extends AbstractArchiveTask> jarTask ->
+    jarTask.configure { destinationDirectory = layout.buildDirectory.dir('libs-raw') }
+    def versions = tssVersions
+    def pack = tasks.register('tssPack', JavaExec) {
+        description = 'Makes the release jar, with a copy of compat/tss/ for every The Shooting Star in libs/'
+        def input = jarTask.flatMap { it.archiveFile }
+        def output = layout.buildDirectory.file(jarTask.flatMap { it.archiveFileName }.map { 'libs/' + it })
+        inputs.file(input)
+        inputs.files(versions*.jar)
+        inputs.files(fileTree('libs/mappings') { include '*.tiny' })
+        outputs.file(output)
+        classpath = tssToolsClasspath
+        mainClass = 'TssPack'
+        argumentProviders.add({
+            [input.get().asFile.path, output.get().asFile.path] + versions.collectMany { [it.tag, it.mapping.path, it.jar.path] }
+        } as CommandLineArgumentProvider)
+        notCompatibleWithConfigurationCache('runs an external tool over a file collection')
     }
+    tasks.named('assemble') { dependsOn pack }
+    return pack
+}
+
+// A jar mapped for the one version the tests run with (tssTest): the test harness, which uses The Shooting Star
+// directly. Its own task name and output folder.
+ext.tssReobf = { TaskProvider<? extends AbstractArchiveTask> jarTask, String taskName, String outDir ->
+    jarTask.configure { destinationDirectory = layout.buildDirectory.dir(outDir + '-raw') }
+    def test = tssTest
+    def reobf = tasks.register(taskName, JavaExec) {
+        def input = jarTask.flatMap { it.archiveFile }
+        def output = layout.buildDirectory.file(jarTask.flatMap { it.archiveFileName }.map { outDir + '/' + it })
+        inputs.file(input)
+        inputs.files(test.jar)
+        inputs.files(fileTree('libs/mappings') { include '*.tiny' })
+        outputs.file(output)
+        classpath = tssToolsClasspath
+        mainClass = 'TssRemap'
+        argumentProviders.add({
+            ['reobf', input.get().asFile.path, output.get().asFile.path, test.mapping.path, test.jar.path]
+        } as CommandLineArgumentProvider)
+        notCompatibleWithConfigurationCache('runs an external tool over a file collection')
+    }
+    return reobf
 }

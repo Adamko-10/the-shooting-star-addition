@@ -90,12 +90,13 @@ repositories {
 // The Shooting Star is compiled against but never shipped inside this jar (its licence is All Rights Reserved).
 var shootingStar = fileTree(dir: 'libs', include: 'the-shooting-star*.jar')
 
-// The Shooting Star 1.4.0+ is obfuscated: compile and run against a readable copy of it, and map the release jar back
-// (see gradle/tss.gradle).
+// The Shooting Star 1.4.0+ is obfuscated: compile and run against a readable copy of the newest one in libs/, and
+// make the release jar work with every one in libs/ (see gradle/tss.gradle).
 ext.tssObf = shootingStar
 ext.tssPrefix = 'cyou/rimuru/shootingstardemo/mc1211/'
+ext.tssNested = null
 apply from: 'gradle/tss.gradle'
-tssReobf(tasks.named('jar'))
+tssPack(tasks.named('jar'))
 
 // Resolved once; calling minecraft.dependency(...) a second time with the same coordinate (e.g. for the clienttest
 // source set below) duplicates Mavenizer's internal task registration and fails the build, so the same
@@ -115,13 +116,16 @@ dependencies {
 
 // The dev runs load mods from a 'mods' folder next to their game directory, so The Shooting Star is copied there
 // before every run. The clientTest run has its own game directory (run/clienttest), so it gets its own copy too.
-var copyShootingStar = tasks.register('copyShootingStar', Copy) {
+// (Only one The Shooting Star at a time: a copy of another version left there from before is removed.)
+var copyShootingStar = tasks.register('copyShootingStar', Sync) {
     from tssNamed
     into layout.projectDirectory.dir('run/mods')
+    preserve { exclude 'the-shooting-star*.jar' }
 }
-var copyShootingStarForClientTest = tasks.register('copyShootingStarForClientTest', Copy) {
+var copyShootingStarForClientTest = tasks.register('copyShootingStarForClientTest', Sync) {
     from tssNamed
     into layout.projectDirectory.dir('run/clienttest/mods')
+    preserve { exclude 'the-shooting-star*.jar' }
 }
 tasks.matching { it.name.startsWith('run') }.configureEach {
     dependsOn copyShootingStar, copyShootingStarForClientTest
@@ -142,7 +146,7 @@ var generateModMetadata = tasks.register('generateModMetadata', ProcessResources
         forge_version_range        : forge_version_range,
         loader_version_range       : loader_version_range,
         shooting_star_mod_id       : shooting_star_mod_id,
-        shooting_star_version_range: shooting_star_version_range,
+        shooting_star_version_range: tssVersionRange,
         mod_id                     : mod_id,
         mod_name                   : mod_name,
         mod_license                : mod_license,
@@ -162,11 +166,12 @@ sourceSets.main.resources.srcDir generateModMetadata
 // the same way.
 tasks.named('jar', Jar) {
     manifest {
-        attributes(['MixinConfigs': "${mod_id}.mixins.json"])
+        attributes(['MixinConfigs': "${mod_id}.mixins.json,${mod_id}.tss.mixins.json"])
     }
 }
 minecraft.runs.configureEach {
     args "--mixin.config=${mod_id}.mixins.json"
+    args "--mixin.config=${mod_id}.tss.mixins.json"
 }
 
 tasks.withType(JavaCompile).configureEach {
