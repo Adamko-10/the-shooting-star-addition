@@ -149,7 +149,10 @@ public class TssPack {
             byte[] data = jar.get(name);
             if (data == null) continue;
             String text = new String(data, StandardCharsets.UTF_8);
-            if (!text.contains(config)) continue;
+            // A long MixinConfigs value wraps onto a continuation line (one leading space) past 72 bytes, per the
+            // jar manifest spec; unwrap just for this detection so a long comma-separated list still matches.
+            String unwrapped = name.equals("META-INF/MANIFEST.MF") ? text.replace("\r\n ", "").replace("\n ", "") : text;
+            if (!unwrapped.contains(config)) continue;
             String changed;
             if (name.endsWith(".toml")) {
                 // [[mixins]] config = "x.tss.mixins.json"  ->  one [[mixins]] block per config
