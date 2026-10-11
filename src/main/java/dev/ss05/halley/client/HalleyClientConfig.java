@@ -28,7 +28,7 @@ public final class HalleyClientConfig {
 
     static {
         ModConfigSpec.Builder b = new ModConfigSpec.Builder();
-        b.comment("How SS-05 Halley looks on this computer. These only change what you see.").push("looks");
+        b.comment("How Halley and Luna look on this computer. These only change what you see.").push("looks");
         SKY = b.comment("The sky goes dark while the comet comes in (stars, an aurora, the comet lighting up the air),",
                 "and hazy with ice after the impact (a halo and sun dogs round the sun).")
             .define("sky", true);
@@ -43,7 +43,7 @@ public final class HalleyClientConfig {
         COMET_MARKER = b.comment("An arrow at the edge of the screen pointing at the comet while it's out of view.")
             .define("comet_marker", true);
         SHADER_PACKS = b.comment("Shader packs (Iris) only show what is drawn with Minecraft's own shaders, so while one is on",
-                "SS-05 paints its comet and sky onto textures first and draws those the way the pack expects.",
+                "Halley paints its comet and sky onto textures first and draws those the way the pack expects.",
                 "AUTO: do that whenever a shader pack is on. ALWAYS: do it all the time. NEVER: don't (with a",
                 "shader pack on, the comet and the sky then won't show).")
             .defineEnum("shader_packs", PackMode.AUTO);

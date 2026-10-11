@@ -22,7 +22,7 @@ public final class HalleySkill implements Skill {
 
     @Override
     public String title() {
-        return HalleyInfo.TITLE;
+        return HalleyInfo.title();
     }
 
     @Override
@@ -47,6 +47,6 @@ public final class HalleySkill implements Skill {
 
     @Override
     public String toString() {
-        return "SS-05 Halley";
+        return HalleyInfo.title();
     }
 }

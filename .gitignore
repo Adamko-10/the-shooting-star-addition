@@ -12,3 +12,4 @@ bin/
 libs/*.jar
 # Python caches from the art scripts
 __pycache__/
+libs/mappings/

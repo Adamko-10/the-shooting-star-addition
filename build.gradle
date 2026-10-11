@@ -90,6 +90,19 @@ neoForge {
                 }
             }
         }
+        prodClientTest {
+            client()
+            gameDirectory = layout.projectDirectory.dir('run/prodclient')
+            loadedMods.set([])
+            systemProperty 'ss05.clienttest', 'true'
+            ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat'].each { key ->
+                var propertyName = "ss05.clienttest.${key}"
+                var value = project.findProperty(propertyName) ?: System.getProperty(propertyName)
+                if (value != null) {
+                    systemProperty propertyName, value.toString()
+                }
+            }
+        }
         configureEach {
             systemProperty 'forge.logging.markers', 'REGISTRIES'
             logLevel = org.slf4j.event.Level.INFO
@@ -104,25 +117,49 @@ neoForge.addModdingDependenciesTo(sourceSets.clienttest)
 // The Shooting Star is compiled against but never shipped inside this jar (its licence is All Rights Reserved).
 var shootingStar = fileTree(dir: 'libs', include: 'the-shooting-star*.jar')
 
+// The Shooting Star 1.4.0+ is obfuscated: compile and run against a readable copy of it, and map the release jar back
+// (see gradle/tss.gradle).
+ext.tssObf = shootingStar
+ext.tssPrefix = 'cyou/rimuru/shootingstardemo/mc1211/'
+apply from: 'gradle/tss.gradle'
+tssReobf(tasks.named('jar'))
+
 dependencies {
-    compileOnly shootingStar
+    compileOnly tssNamed
     // The harness sees main's classes (StarBridge, etc.) and compiles against The Shooting Star the same way.
     clienttestImplementation sourceSets.main.output
-    clienttestCompileOnly shootingStar
+    clienttestCompileOnly tssNamed
 }
 
 // The dev runs load mods from a 'mods' folder next to their game directory, so The Shooting Star is copied there
 // before every run. The clientTest run has its own game directory (run/clienttest), so it gets its own copy too.
 var copyShootingStar = tasks.register('copyShootingStar', Copy) {
-    from shootingStar
+    from tssNamed
     into layout.projectDirectory.dir('run/mods')
 }
 var copyShootingStarForClientTest = tasks.register('copyShootingStarForClientTest', Copy) {
-    from shootingStar
+    from tssNamed
     into layout.projectDirectory.dir('run/clienttest/mods')
 }
-tasks.matching { it.name.startsWith('run') }.configureEach {
+tasks.matching { it.name.startsWith('run') && it.name != 'runProdClientTest' }.configureEach {
     dependsOn copyShootingStar, copyShootingStarForClientTest
+}
+
+// Dev-only: ./gradlew runProdClientTest -Dss05.clienttest.skill=moon ... runs the harness against the *release* jar
+// and The Shooting Star's own (obfuscated, 1.4.0+) jar, all loaded from run/prodclient/mods as players load them: the
+// proof that tssReobf mapped every reference back.
+var clienttestJar = tasks.register('clienttestJar', Jar) {
+    from sourceSets.clienttest.output
+    archiveClassifier = 'clienttest'
+    destinationDirectory = layout.buildDirectory.dir('prodtest')
+}
+var reobfClienttest = tssReobf(clienttestJar, 'tssReobfClienttest', 'prodtest')
+var copyProdMods = tasks.register('copyProdMods', Sync) {
+    from tasks.named('tssReobf'), reobfClienttest, shootingStar
+    into layout.projectDirectory.dir('run/prodclient/mods')
+}
+tasks.matching { it.name == 'runProdClientTest' }.configureEach {
+    dependsOn copyProdMods
 }
 
 tasks.named('compileJava') {

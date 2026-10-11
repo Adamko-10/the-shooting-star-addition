@@ -2,6 +2,7 @@ package dev.ss05.halley.client.luna;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import dev.ss05.halley.world.SkillNumbers;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.client.HalleyHud;
@@ -105,7 +106,7 @@ public final class MoonHud {
         text(g, font, text, cx + split, cy, (a * 2 / 3) << 24 | CYAN, scale);
         text(g, font, text, cx, cy, a << 24 | 0xFFFFFF, scale);
 
-        String sub = "// SS-06 LUNA · ALL SYSTEMS DOWN //";
+        String sub = "// " + SkillNumbers.luna() + " LUNA · ALL SYSTEMS DOWN //";
         text(g, font, sub, w / 2 - font.width(sub) * 1.5F / 2.0F, cy + 20.0F * scale / 4.0F + 14.0F, (a * 3 / 4) << 24 | RED, 1.5F);
     }
 
@@ -154,7 +155,8 @@ public final class MoonHud {
         String range = String.format(Locale.ROOT, "%.1f KM", moon.distanceTo(MoonFx.camera()) / 1000.0);
         float lx = (float) Mth.clamp(x - c * 48.0, 60.0, w - 60.0);
         float ly = (float) Mth.clamp(y + s * 40.0, 20.0, h - 30.0);
-        text(g, font, "SS-06 · LUNA", lx - font.width("SS-06 · LUNA") * 1.25F / 2.0F, ly - 12.0F, ink, 1.25F);
+        String name = SkillNumbers.luna() + " · LUNA";
+        text(g, font, name, lx - font.width(name) * 1.25F / 2.0F, ly - 12.0F, ink, 1.25F);
         text(g, font, range, lx - font.width(range) / 2.0F, ly + 1.0F, (int) (a * 0.7F) << 24 | 0xE2FBFF, 1.0F);
     }
 
@@ -186,7 +188,7 @@ public final class MoonHud {
         corner(g, w - m, m, arm, -1, 1, ink);
         corner(g, m, h - m, arm, 1, -1, ink);
         corner(g, w - m, h - m, arm, -1, -1, ink);
-        text(g, font, "UPLINK // SS-06 > LUNA", m + 6, m + 6, flicker ? dim : ink, 1.0F);
+        text(g, font, "UPLINK // " + SkillNumbers.luna() + " > LUNA", m + 6, m + 6, flicker ? dim : ink, 1.0F);
         text(g, font, String.format(Locale.ROOT, "T+%05.2f", ct / 20.0F), m + 6, m + 17, dim, 1.0F);
         String clock = ct < MoonPlan.CONTACT ? String.format(Locale.ROOT, "IMPACT T-%05.2f", Math.max(0.0F, (MoonPlan.CONTACT - ct) / 20.0F))
             : "IMPACT CONFIRMED";
@@ -213,7 +215,7 @@ public final class MoonHud {
                 double d = moon.distanceTo(MoonFx.camera());
                 int size = (int) Mth.clamp(20.0 - d / 300.0, 8.0, 20.0);
                 box(g, (int) at[0], (int) at[1], size, ink);
-                text(g, font, "SS-06 · LUNA", at[0] + size + 4, at[1] - 9, ink, 1.0F);
+                text(g, font, SkillNumbers.luna() + " · LUNA", at[0] + size + 4, at[1] - 9, ink, 1.0F);
                 text(g, font, String.format(Locale.ROOT, "RANGE %.2f KM · ALT %,.0f M", d / 1000.0, moon.y - p.target.y),
                     at[0] + size + 4, at[1] + 1, dim, 1.0F);
             }
