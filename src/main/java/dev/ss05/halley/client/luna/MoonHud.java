@@ -9,7 +9,7 @@ import java.util.Locale;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3x2fStack;
@@ -32,7 +32,7 @@ public final class MoonHud {
      * caster only), the SS-05-style "INBOUND" panel at the top of the screen with a countdown, and the off-screen
      * marker pointing at the moon while it's out of view.
      */
-    public static void hud(GuiGraphicsExtractor g, MoonFx fx, float partial, int w, int h) {
+    public static void hud(GuiGraphics g, MoonFx fx, float partial, int w, int h) {
         if (fx.filmWeight() > 0.05F) {
             return;
         }
@@ -45,7 +45,7 @@ public final class MoonHud {
 
     /** For anyone near the strike, outside the film: what is coming, and how long until it lands (modelled on
      * {@code HalleyHud.world}). */
-    private static void world(GuiGraphicsExtractor g, MoonFx fx, float partial, int w) {
+    private static void world(GuiGraphics g, MoonFx fx, float partial, int w) {
         Minecraft minecraft = Minecraft.getInstance();
         MoonPlan p = fx.plan;
         float t = fx.time(partial);
@@ -73,7 +73,7 @@ public final class MoonHud {
 
     /** "EARTH SYSTEM SHUT DOWN": huge, red, glitching, for ~3.5 seconds from the alarm. {@code t} is in ticks since
      * the button was pressed - the live clock outside the film, the cutscene's own clock inside it. */
-    private static void alert(GuiGraphicsExtractor g, MoonFx fx, float t, int w, int h) {
+    private static void alert(GuiGraphics g, MoonFx fx, float t, int w, int h) {
         float since = t - MoonPlan.ALARM;
         if (since < 0.0F || since > MoonFx.ALARM_TICKS) {
             return;
@@ -109,7 +109,7 @@ public final class MoonHud {
     }
 
     /** An arrow at the edge of the screen pointing at the moon whenever it's out of view. */
-    private static void marker(GuiGraphicsExtractor g, MoonFx fx, float partial, int w, int h) {
+    private static void marker(GuiGraphics g, MoonFx fx, float partial, int w, int h) {
         if (!HalleyClientConfig.cometMarker()) {
             return;
         }
@@ -161,7 +161,7 @@ public final class MoonHud {
      * The caster's film: an uplink overlay with the moon's telemetry - distance, ETA to impact and velocity readouts,
      * warning text, and the big alert re-shown (the cutscene starts at age 0) - modelled on {@code HalleyHud.film}.
      */
-    public static void film(GuiGraphicsExtractor g, MoonFx fx, float partial, int w, int h, HalleyHud.@Nullable Projector project) {
+    public static void film(GuiGraphics g, MoonFx fx, float partial, int w, int h, HalleyHud.@Nullable Projector project) {
         float ct = fx.filmTime(partial);
         if (Float.isNaN(ct)) {
             return;
@@ -242,23 +242,23 @@ public final class MoonHud {
         return (float) ((h >>> 40 & 0xFFFF) / 65536.0);
     }
 
-    private static void text(GuiGraphicsExtractor g, Font font, String s, float x, float y, int color, float scale) {
+    private static void text(GuiGraphics g, Font font, String s, float x, float y, int color, float scale) {
         Matrix3x2fStack pose = g.pose();
         pose.pushMatrix();
         pose.translate(x, y);
         pose.scale(scale, scale);
-        g.text(font, s, 0, 0, color, false);
+        g.drawString(font, s, 0, 0, color, false);
         pose.popMatrix();
     }
 
     // ---- Drawing helpers (the same look as HalleyHud's own; duplicated here to keep this package independent). ----
 
-    private static void corner(GuiGraphicsExtractor g, int x, int y, int arm, int dx, int dy, int color) {
+    private static void corner(GuiGraphics g, int x, int y, int arm, int dx, int dy, int color) {
         g.fill(Math.min(x, x + dx * arm), y, Math.max(x, x + dx * arm), y + dy, color);
         g.fill(x, Math.min(y, y + dy * arm), x + dx, Math.max(y, y + dy * arm), color);
     }
 
-    private static void box(GuiGraphicsExtractor g, int x, int y, int size, int color) {
+    private static void box(GuiGraphics g, int x, int y, int size, int color) {
         int arm = Math.max(3, size / 3);
         corner(g, x - size, y - size, arm, 1, 1, color);
         corner(g, x + size, y - size, arm, -1, 1, color);
@@ -266,15 +266,15 @@ public final class MoonHud {
         corner(g, x + size, y + size, arm, -1, -1, color);
     }
 
-    private static void right(GuiGraphicsExtractor g, Font font, String s, int x, int y, int color, float scale) {
+    private static void right(GuiGraphics g, Font font, String s, int x, int y, int color, float scale) {
         text(g, font, s, x - font.width(s) * scale, y, color, scale);
     }
 
-    private static void centered(GuiGraphicsExtractor g, Font font, String s, int cx, int y, int color, float scale) {
+    private static void centered(GuiGraphics g, Font font, String s, int cx, int y, int color, float scale) {
         text(g, font, s, cx - font.width(s) * scale / 2.0F, y, color, scale);
     }
 
-    private static void bracketed(GuiGraphicsExtractor g, Font font, String s, int cx, int y, int color, float scale) {
+    private static void bracketed(GuiGraphics g, Font font, String s, int cx, int y, int color, float scale) {
         centered(g, font, "[ " + s + " ]", cx, y, color, scale);
     }
 

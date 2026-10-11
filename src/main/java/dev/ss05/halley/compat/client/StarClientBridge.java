@@ -15,7 +15,7 @@ import dev.ss05.halley.client.luna.MoonHud;
 import dev.ss05.halley.compat.StarBridge;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -100,7 +100,7 @@ public final class StarClientBridge {
     }
 
     /** From compat/mixin: SS-05's and SS-06's overlays on the caster's film (the remote draws its own skills' there). */
-    public static void renderFilmHud(GuiGraphicsExtractor graphics, float partial) {
+    public static void renderFilmHud(GuiGraphics graphics, float partial) {
         if (!HalleyFx.active().isEmpty()) {
             Overlay.begin(graphics);
             try {

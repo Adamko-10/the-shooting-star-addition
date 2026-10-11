@@ -1,5 +1,4 @@
 #version 330
-#extension GL_ARB_separate_shader_objects : require
 
 // SS-05 Halley's sky, drawn over the vanilla one while a strike runs (client/sky/HalleySky).
 //
@@ -40,9 +39,9 @@ layout(std140) uniform HalleySky {
 // red-orange (SkyLook.palette, HalleySky.writeUniforms)
 #define Palette SkyLayer.y
 
-layout(location = 0) in vec3 direction;
+in vec3 direction;
 
-layout(location = 0) out vec4 fragColor;
+out vec4 fragColor;
 
 // ---- The colours of the dark sky, by Palette (HalleySky.HORIZON_BY_PALETTE must match the horizon ones, for the
 // fog). ----------------------------------------------------------------------------------------------------------

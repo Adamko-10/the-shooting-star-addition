@@ -11,7 +11,7 @@ import dev.ss05.halley.compat.client.StarClientBridge;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 
@@ -24,10 +24,10 @@ public final class HalleyClient implements ClientModInitializer {
     public void onInitializeClient() {
         HalleyClientConfig.SPEC.load();
         // the moon sphere first, solid and depth-tested, so the glow drawn after it tests against its depth
-        LevelRenderEvents.END_MAIN.register(MoonSphere::renderSolid);
-        LevelRenderEvents.END_MAIN.register(CometRenderer::render);
-        LevelRenderEvents.END_MAIN.register(MoonRenderer::render);
-        LevelRenderEvents.COLLECT_SUBMITS.register(context -> {
+        WorldRenderEvents.END_MAIN.register(MoonSphere::renderSolid);
+        WorldRenderEvents.END_MAIN.register(CometRenderer::render);
+        WorldRenderEvents.END_MAIN.register(MoonRenderer::render);
+        WorldRenderEvents.AFTER_ENTITIES.register(context -> {
             HalleySky.submitForShaderPack(context);
             CometRenderer.submitForShaderPack(context);
             MoonSphere.submitForShaderPack(context);

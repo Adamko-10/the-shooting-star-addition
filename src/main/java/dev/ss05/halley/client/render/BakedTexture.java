@@ -1,16 +1,15 @@
 package dev.ss05.halley.client.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.renderpearl.api.GpuFormat;
-import com.mojang.renderpearl.api.commands.RenderPass;
-import com.mojang.renderpearl.api.device.GpuDevice;
-import com.mojang.renderpearl.api.textures.FilterMode;
-import com.mojang.renderpearl.api.textures.GpuTexture;
-import java.util.Optional;
+import com.mojang.blaze3d.systems.GpuDevice;
+import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.textures.FilterMode;
+import com.mojang.blaze3d.textures.GpuTexture;
+import com.mojang.blaze3d.textures.TextureFormat;
+import java.util.OptionalInt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.resources.Identifier;
-import org.joml.Vector4f;
 
 /**
  * A texture SS-05 paints itself (see {@link ShaderPacks}): drawn into like a render target, and registered under a
@@ -47,7 +46,7 @@ public final class BakedTexture extends AbstractTexture {
             GpuDevice device = RenderSystem.getDevice();
             this.releaseTextures();
             this.texture = device.createTexture(() -> this.location.toString(),
-                GpuTexture.USAGE_RENDER_ATTACHMENT | GpuTexture.USAGE_TEXTURE_BINDING, GpuFormat.RGBA8_UNORM, this.width, this.height, 1, 1);
+                GpuTexture.USAGE_RENDER_ATTACHMENT | GpuTexture.USAGE_TEXTURE_BINDING, TextureFormat.RGBA8, this.width, this.height, 1, 1);
             this.textureView = device.createTextureView(this.texture);
             this.sampler = RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR);
             clear = true;
@@ -57,7 +56,7 @@ public final class BakedTexture extends AbstractTexture {
             }
         }
         return RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "SS-05 Halley " + this.location.getPath(),
-            this.getTextureView(), clear ? Optional.of(new Vector4f(0.0F, 0.0F, 0.0F, 0.0F)) : Optional.empty());
+            this.getTextureView(), clear ? OptionalInt.of(0) : OptionalInt.empty());
     }
 
     /** The texture manager closes it with the rest when resources reload; it is simply made again when next painted. */
@@ -65,5 +64,17 @@ public final class BakedTexture extends AbstractTexture {
     public void close() {
         this.releaseTextures();
         this.registered = false;
+    }
+
+    /** Closes the GPU texture and its view (1.21.11's AbstractTexture has no helper for this). */
+    private void releaseTextures() {
+        if (this.textureView != null) {
+            this.textureView.close();
+            this.textureView = null;
+        }
+        if (this.texture != null) {
+            this.texture.close();
+            this.texture = null;
+        }
     }
 }

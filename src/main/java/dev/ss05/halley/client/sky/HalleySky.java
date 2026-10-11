@@ -1,5 +1,8 @@
 package dev.ss05.halley.client.sky;
 
+import java.util.OptionalInt;
+import net.minecraft.util.ARGB;
+import dev.ss05.halley.client.render.Gfx;
 import com.mojang.blaze3d.buffers.Std140Builder;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -7,12 +10,12 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.MeshData;
-import com.mojang.renderpearl.api.buffers.GpuBuffer;
-import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
-import com.mojang.renderpearl.api.commands.RenderPass;
-import com.mojang.renderpearl.api.device.GpuDevice;
-import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
-import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.systems.GpuDevice;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.client.HalleyFx;
@@ -22,15 +25,15 @@ import dev.ss05.halley.client.render.HalleyPipelines;
 import dev.ss05.halley.client.render.ShaderPacks;
 import java.nio.ByteBuffer;
 import java.util.Optional;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.ProjectionMatrixBuffer;
+import net.minecraft.client.renderer.PerspectiveProjectionMatrixBuffer;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.state.level.SkyRenderState;
+import net.minecraft.client.renderer.state.SkyRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.util.Mth;
 import net.minecraft.world.attribute.EnvironmentAttributeSystem;
 import net.minecraft.world.attribute.EnvironmentAttributes;
@@ -61,10 +64,10 @@ public final class HalleySky {
     private static final Vec3[] VEIL_HORIZON_BY_PALETTE = {new Vec3(0.63, 0.84, 0.98), new Vec3(0.62, 0.38, 0.20)};
     /** The land's light at night (the overworld's sky_light_factor and sky_light_color then). */
     private static final float NIGHT_LIGHT = 0.24F;
-    private static final Vector3fc NIGHT_TINT = new Vector3f(0x7A / 255.0F, 0x7A / 255.0F, 1.0F);
+    private static final int NIGHT_TINT = 0xFF7A7AFF;
     /** Faint, starlit blue: a little lighter than the dark sky behind them, so clouds don't read as holes in it. */
-    private static final Vector4fc NIGHT_CLOUDS = new Vector4f(0.085F, 0.13F, 0.24F, 1.0F);
-    private static final Vector4fc ICY_CLOUDS = new Vector4f(0.88F, 0.95F, 1.0F, 1.0F);
+    private static final int NIGHT_CLOUDS = ARGB.colorFromFloat(1.0F, 0.085F, 0.13F, 0.24F);
+    private static final int ICY_CLOUDS = ARGB.colorFromFloat(1.0F, 0.88F, 0.95F, 1.0F);
     /** Half the size of the cube drawn round the camera (well inside the far plane at any render distance). */
     private static final float SIZE = 50.0F;
     /** Six vec4s: see the HalleySky block in halley_sky.fsh. */
@@ -93,7 +96,7 @@ public final class HalleySky {
         if (minecraft.level == null || (HalleyFx.active().isEmpty() && MoonFx.active().isEmpty()) || !HalleyClientConfig.sky()) {
             return;
         }
-        Vec3 camera = minecraft.gameRenderer.mainCamera().position();
+        Vec3 camera = minecraft.gameRenderer.getMainCamera().position();
         SkyLook best = null;
         float bestStrength = 0.0F;
         for (HalleyFx fx : HalleyFx.active()) {
@@ -127,14 +130,14 @@ public final class HalleySky {
      * From client/mixin, right after Minecraft has drawn the sky (its own render pass is closed again, the world's view
      * rotation is on the model-view stack and the world's projection is bound).
      */
-    public static void renderDome(SkyRenderState state, RenderTarget target) {
+    public static void renderDome() {
         SkyLook look = current;
         Minecraft minecraft = Minecraft.getInstance();
         ClientLevel level = minecraft.level;
-        if (look == null || level == null || state.skybox != DimensionType.Skybox.OVERWORLD) {
+        if (look == null || level == null) {
             return;
         }
-        Camera camera = minecraft.gameRenderer.mainCamera();
+        Camera camera = minecraft.gameRenderer.getMainCamera();
         if (camera.getFluidInCamera() != FogType.NONE) {
             // as with the vanilla sky: nothing to see under water (blindness skips the whole sky pass already)
             return;
@@ -146,12 +149,12 @@ public final class HalleySky {
         float partial = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(true);
         GpuBuffer values = writeUniforms(0, look, level, camera, partial, false, 0.0F);
         GpuBuffer box = cube();
-        GpuBufferSlice transforms = RenderSystem.getDynamicUniforms().writeTransform(RenderSystem.getModelViewMatrixCopy(),
-            new Vector4f(1.0F, 1.0F, 1.0F, 1.0F));
-        RenderSystem.AutoStorageIndexBuffer indices = RenderSystem.getSequentialBuffer(PrimitiveTopology.QUADS);
+        GpuBufferSlice transforms = Gfx.levelTransforms();
+        RenderSystem.AutoStorageIndexBuffer indices = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS);
         GpuBuffer indexBuffer = indices.getBuffer(36);
+        RenderTarget target = minecraft.getMainRenderTarget();
         try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "SS-05 Halley sky",
-            target.getColorTextureView(), Optional.empty())) {
+            target.getColorTextureView(), OptionalInt.empty())) {
             drawCube(pass, HalleyPipelines.SKY, transforms, values, box, indexBuffer, indices);
         }
     }
@@ -159,12 +162,12 @@ public final class HalleySky {
     private static void drawCube(RenderPass pass, RenderPipeline pipeline, GpuBufferSlice transforms, GpuBuffer values, GpuBuffer box,
                                  GpuBuffer indexBuffer, RenderSystem.AutoStorageIndexBuffer indices) {
         RenderSystem.bindDefaultUniforms(pass);
-        pass.setPipeline(RenderSystem.getCompiledPipeline(pipeline));
+        pass.setPipeline(pipeline);
         pass.setUniform("DynamicTransforms", transforms);
         pass.setUniform("HalleySky", values);
-        pass.setVertexBuffer(0, box.slice());
+        pass.setVertexBuffer(0, box);
         pass.setIndexBuffer(indexBuffer, indices.type());
-        pass.drawIndexed(36, 1, 0, 0, 0);
+        pass.drawIndexed(0, 0, 36, 1);
     }
 
     /**
@@ -221,7 +224,7 @@ public final class HalleySky {
             {-s, -s, -s, -s, s, -s, s, s, -s, s, -s, -s},
         };
         try (ByteBufferBuilder bytes = ByteBufferBuilder.exactlySized(24 * DefaultVertexFormat.POSITION.getVertexSize())) {
-            BufferBuilder b = new BufferBuilder(bytes, PrimitiveTopology.QUADS, DefaultVertexFormat.POSITION);
+            BufferBuilder b = new BufferBuilder(bytes, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
             for (float[] f : faces) {
                 for (int i = 0; i < 12; i += 3) {
                     b.addVertex(f[i], f[i + 1], f[i + 2]);
@@ -277,7 +280,7 @@ public final class HalleySky {
     @Nullable
     private static GpuBuffer faces;
     @Nullable
-    private static ProjectionMatrixBuffer flat;
+    private static PerspectiveProjectionMatrixBuffer flat;
     private static boolean paintedBase;
     private static boolean paintedLight;
     /** How much of the old sky the painted one would cover (the same everywhere). */
@@ -304,13 +307,13 @@ public final class HalleySky {
         if (!base && !light) {
             return;
         }
-        Camera camera = minecraft.gameRenderer.mainCamera();
+        Camera camera = minecraft.gameRenderer.getMainCamera();
         GpuBuffer box = faces();
         if (flat == null) {
-            flat = new ProjectionMatrixBuffer("SS-05 Halley sky faces");
+            flat = new PerspectiveProjectionMatrixBuffer("SS-05 Halley sky faces");
         }
         GpuBufferSlice identity = flat.getBuffer(new Matrix4f());
-        RenderSystem.AutoStorageIndexBuffer indices = RenderSystem.getSequentialBuffer(PrimitiveTopology.QUADS);
+        RenderSystem.AutoStorageIndexBuffer indices = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS);
         GpuBuffer indexBuffer = indices.getBuffer(36);
         if (base) {
             paintFaces(BASE, writeUniforms(1, look, level, camera, partial, true, 1.0F), box, identity, indexBuffer, indices);
@@ -337,32 +340,32 @@ public final class HalleySky {
                 face[4] / 3.0F, face[7] / 2.0F, 0.0F, 0.0F,
                 face[5] / 3.0F, face[8] / 2.0F, 0.0F, 0.0F,
                 (2.0F * col - 2.0F) / 3.0F, row - 0.5F, 0.0F, 1.0F);
-            transforms[f] = RenderSystem.getDynamicUniforms().writeTransform(m, new Vector4f(1.0F, 1.0F, 1.0F, 1.0F));
+            transforms[f] = Gfx.transforms(m);
         }
         try (RenderPass pass = target.begin(true)) {
             RenderSystem.bindDefaultUniforms(pass);
             pass.setUniform("Projection", identity);
             pass.setUniform("HalleySky", values);
-            pass.setPipeline(RenderSystem.getCompiledPipeline(HalleyPipelines.SKY_PAINT));
-            pass.setVertexBuffer(0, box.slice());
+            pass.setPipeline(HalleyPipelines.SKY_PAINT);
+            pass.setVertexBuffer(0, box);
             pass.setIndexBuffer(indexBuffer, indices.type());
             for (int f = 0; f < FACES.length; f++) {
                 pass.setUniform("DynamicTransforms", transforms[f]);
-                pass.drawIndexed(6, 1, f * 6, 0, 0);
+                pass.drawIndexed(0, f * 6, 6, 1);
             }
         }
     }
 
     /**
-     * Fabric's {@code LevelRenderEvents.COLLECT_SUBMITS}, while a shader pack is on: the painted faces on a cube round
+     * Fabric's {@code WorldRenderEvents.AFTER_ENTITIES}, while a shader pack is on: the painted faces on a cube round
      * the camera, out beyond the land and the clouds, handed to Minecraft as glowing-eyes geometry. The pack draws it
      * adding its light, so it shows wherever the pack's own sky does.
      */
-    public static void submitForShaderPack(LevelRenderContext context) {
+    public static void submitForShaderPack(WorldRenderContext context) {
         if (!ShaderPacks.active() || !paintedBase && !paintedLight) {
             return;
         }
-        float radius = context.levelState().cameraRenderState.depthFar * 0.85F;
+        float radius = (float) (Gfx.depthFar() * 0.85);
         if (paintedLight && LIGHT.ready()) {
             submitCube(context, LIGHT, LIGHT_FACE, radius, 1.0F);
         }
@@ -371,9 +374,9 @@ public final class HalleySky {
         }
     }
 
-    private static void submitCube(LevelRenderContext context, BakedTexture texture, int size, float radius, float strength) {
+    private static void submitCube(WorldRenderContext context, BakedTexture texture, int size, float radius, float strength) {
         float inset = 0.5F / size;
-        context.submitNodeCollector().submitCustomGeometry(context.poseStack(), RenderTypes.eyes(texture.location()), (pose, out) -> {
+        context.commandQueue().submitCustomGeometry(context.matrices(), RenderTypes.eyes(texture.location()), (pose, out) -> {
             for (int f = 0; f < FACES.length; f++) {
                 float[] face = FACES[f];
                 // both windings: the glowing-eyes pipeline culls back faces, and this is seen from inside
@@ -388,7 +391,7 @@ public final class HalleySky {
                         .setColor(strength, strength, strength, 1.0F)
                         .setUv(u, v)
                         .setOverlay(OverlayTexture.NO_OVERLAY)
-                        .setLight(LightCoordsUtil.FULL_BRIGHT)
+                        .setLight(LightTexture.FULL_BRIGHT)
                         .setNormal(0.0F, 1.0F, 0.0F);
                 }
             }
@@ -401,7 +404,7 @@ public final class HalleySky {
             return faces;
         }
         try (ByteBufferBuilder bytes = ByteBufferBuilder.exactlySized(24 * DefaultVertexFormat.POSITION.getVertexSize())) {
-            BufferBuilder b = new BufferBuilder(bytes, PrimitiveTopology.QUADS, DefaultVertexFormat.POSITION);
+            BufferBuilder b = new BufferBuilder(bytes, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
             for (float[] face : FACES) {
                 for (int c = 0; c < 4; c++) {
                     float s = c == 1 || c == 2 ? 1.0F : -1.0F;
@@ -421,7 +424,7 @@ public final class HalleySky {
     /** From client/mixin: the fog takes on the new sky's colour at the horizon, so the land fades into it. */
     public static void fogColor(Vector4f fog) {
         SkyLook look = current;
-        if (look == null || Minecraft.getInstance().gameRenderer.mainCamera().getFluidInCamera() != FogType.NONE) {
+        if (look == null || Minecraft.getInstance().gameRenderer.getMainCamera().getFluidInCamera() != FogType.NONE) {
             return;
         }
         // the same mix as the shader's at the horizon: the night, the haze over it, what's left of the vanilla sky
@@ -448,15 +451,16 @@ public final class HalleySky {
         });
         layers.addTimeBasedLayer(EnvironmentAttributes.SKY_LIGHT_COLOR, (value, tick) -> {
             float dark = darkLand();
-            return dark <= 0.0F ? value : value.lerp(NIGHT_TINT, dark, new Vector3f());
+            return dark <= 0.0F ? value : ARGB.srgbLerp(dark, value, NIGHT_TINT);
         });
         layers.addTimeBasedLayer(EnvironmentAttributes.CLOUD_COLOR, (value, tick) -> {
             SkyLook look = current;
             if (look == null) {
                 return value;
             }
-            Vector4f c = value.lerp(NIGHT_CLOUDS, look.night(), new Vector4f());
-            return c.lerp(ICY_CLOUDS, look.veil() * 0.4F, c).setComponent(3, value.w());
+            int c = ARGB.srgbLerp(look.night(), value, NIGHT_CLOUDS);
+            c = ARGB.srgbLerp(look.veil() * 0.4F, c, ICY_CLOUDS);
+            return ARGB.color(ARGB.alpha(value), c);
         });
     }
 

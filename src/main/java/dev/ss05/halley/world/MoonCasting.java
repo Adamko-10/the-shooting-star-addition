@@ -52,7 +52,7 @@ public final class MoonCasting {
     /**
      * 26.3 replaced the old single day/night clock with named, datapack-driven {@code WorldClock}s and time
      * markers; there's no {@code isNight()}/{@code getTimeOfDay(partial)} left to call. This reads the
-     * dimension's own clock ({@code Level.getDefaultClockTime()}) and falls back to vanilla's long-standing
+     * dimension's own clock ({@code Level.getDayTime()}) and falls back to vanilla's long-standing
      * 24000-tick day (night from tick 13000 to 23000), which is what every default world clock still uses.
      */
     private static boolean isNight(ServerLevel level) {
@@ -74,6 +74,6 @@ public final class MoonCasting {
     }
 
     private static long dayTicks(ServerLevel level) {
-        return Math.floorMod(level.getDefaultClockTime(), 24000L);
+        return Math.floorMod(level.getDayTime(), 24000L);
     }
 }

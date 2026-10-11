@@ -14,7 +14,7 @@ import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.phys.Vec3;
@@ -88,7 +88,7 @@ final class HalleyFxAdapter extends SpellFx {
     }
 
     @Override
-    public void hud(GuiGraphicsExtractor graphics, Frame frame) {
+    public void hud(GuiGraphics graphics, Frame frame) {
         HalleyHud.world(graphics, this.fx, frame.partial(), Overlay.width(graphics));
         HalleyHud.marker(graphics, this.fx, frame.partial(), Overlay.width(graphics), Overlay.height(graphics));
     }

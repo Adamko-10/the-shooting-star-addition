@@ -67,8 +67,8 @@ public final class MoonBuild {
     }
 
     private static double sqrDistToMark(ChunkPos pos, MoonPlan plan) {
-        double dx = pos.x() * 16.0 + 8.0 - plan.target.x;
-        double dz = pos.z() * 16.0 + 8.0 - plan.target.z;
+        double dx = pos.x * 16.0 + 8.0 - plan.target.x;
+        double dz = pos.z * 16.0 + 8.0 - plan.target.z;
         return dx * dx + dz * dz;
     }
 
@@ -114,8 +114,8 @@ public final class MoonBuild {
 
         for (int i = this.next; i < end; i++) {
             ChunkPos pos = this.order.get(i);
-            int x0 = pos.x() * 16;
-            int z0 = pos.z() * 16;
+            int x0 = pos.x * 16;
+            int z0 = pos.z * 16;
             for (int dx = 0; dx < 16; dx++) {
                 int x = x0 + dx;
                 double ex = x + 0.5 - this.plan.restCentre.x;

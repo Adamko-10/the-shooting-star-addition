@@ -34,7 +34,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.clock.WorldClock;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Avatar;
@@ -50,7 +49,6 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.WorldDimensions;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
-import net.minecraft.world.level.saveddata.WeatherData;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
@@ -98,14 +96,14 @@ final class Harness {
         mc.options.tutorialStep = TutorialSteps.NONE;
         // nobody is at the keyboard: losing focus (another window) must not pause the game mid-strike
         mc.options.pauseOnLostFocus = false;
-        if (mc.gui.screen() instanceof PauseScreen) {
-            mc.gui.setScreen(null);
+        if (mc.screen instanceof PauseScreen) {
+            mc.setScreen(null);
         }
-        mc.gui.toastManager().clear();
+        mc.getToastManager().clear();
 
         if (System.currentTimeMillis() >= nextStatusLogMillis) {
             nextStatusLogMillis = System.currentTimeMillis() + 2000;
-            log("status: screen=" + (mc.gui.screen() == null ? "null" : mc.gui.screen().getClass().getName())
+            log("status: screen=" + (mc.screen == null ? "null" : mc.screen.getClass().getName())
                 + " level=" + (mc.level != null) + " player=" + (mc.player != null)
                 + " singleplayerServer=" + (mc.getSingleplayerServer() != null)
                 + " worldCreateRequested=" + worldCreateRequested + " placed=" + placed
@@ -124,11 +122,11 @@ final class Harness {
                 // anything else that isn't the title screen. Bulldoze straight to the title screen. Once world
                 // creation has actually been requested, leave the screen alone - it is legitimately a loading
                 // screen (LevelLoadingScreen/ReceivingLevelScreen) that clears itself once the level arrives.
-                if (!(mc.gui.screen() instanceof TitleScreen)) {
-                    if (mc.gui.screen() != null) {
-                        log("skipping screen " + mc.gui.screen().getClass().getName() + " (no human here to click through it)");
+                if (!(mc.screen instanceof TitleScreen)) {
+                    if (mc.screen != null) {
+                        log("skipping screen " + mc.screen.getClass().getName() + " (no human here to click through it)");
                     }
-                    mc.gui.setScreen(new TitleScreen());
+                    mc.setScreen(new TitleScreen());
                     return;
                 }
                 worldCreateRequested = true;
@@ -186,12 +184,12 @@ final class Harness {
             log("couldn't delete the old test save (continuing anyway): " + e);
         }
 
-        LevelSettings levelSettings = new LevelSettings(LEVEL_ID, GameType.CREATIVE,
-            new LevelSettings.DifficultySettings(Difficulty.PEACEFUL, false, false), true, WorldDataConfiguration.DEFAULT);
+        LevelSettings levelSettings = new LevelSettings(LEVEL_ID, GameType.CREATIVE, false, Difficulty.PEACEFUL, true,
+            new GameRules(WorldDataConfiguration.DEFAULT.enabledFeatures()), WorldDataConfiguration.DEFAULT);
         WorldOptions worldOptions = WorldOptions.defaultWithRandomSeed();
         Function<HolderLookup.Provider, WorldDimensions> dimensions = access ->
             access.lookupOrThrow(Registries.WORLD_PRESET).getOrThrow(WorldPresets.FLAT).value().createWorldDimensions();
-        Screen parent = mc.gui.screen() != null ? mc.gui.screen() : new TitleScreen();
+        Screen parent = mc.screen != null ? mc.screen : new TitleScreen();
 
         log("creating world '" + LEVEL_ID + "'");
         mc.createWorldOpenFlows().createFreshLevel(LEVEL_ID, levelSettings, worldOptions, dimensions, parent);
@@ -220,14 +218,10 @@ final class Harness {
             MinecraftServer mcServer = level.getServer();
             ServerPlayer player = mcServer.getPlayerList().getPlayers().get(0);
 
-            Holder<WorldClock> clock = level.dimensionType().defaultClock().orElseThrow();
-            level.clockManager().setTotalTicks(clock, HarnessParams.TIME);
+            level.setDayTime(HarnessParams.TIME);
             level.getGameRules().set(GameRules.ADVANCE_TIME, false, mcServer);
             level.getGameRules().set(GameRules.ADVANCE_WEATHER, false, mcServer);
-            WeatherData weather = mcServer.getWeatherData();
-            weather.setClearWeatherTime(Integer.MAX_VALUE);
-            weather.setRaining(false);
-            weather.setThundering(false);
+            level.setWeatherParameters(Integer.MAX_VALUE, 0, false, false);
 
             // Force the spawn column loaded so getHeight below is accurate, not a fallback guess.
             level.getChunk(0, 0);
@@ -371,8 +365,9 @@ final class Harness {
 
     private static void takeScreenshot(Minecraft mc, long tick) {
         String fileName = HarnessParams.SKILL + "_" + String.format("%05d", tick) + ".png";
+        log("camera at tick " + tick + ": " + mc.gameRenderer.getMainCamera().position() + " xRot " + mc.gameRenderer.getMainCamera().xRot() + " yRot " + mc.gameRenderer.getMainCamera().yRot() + " player " + (mc.player == null ? null : mc.player.position()) + " window " + mc.getWindow().getWidth() + "x" + mc.getWindow().getHeight());
         try {
-            Screenshot.grab(mc.gameDirectory, fileName, mc.gameRenderer.mainRenderTarget(), 1,
+            Screenshot.grab(mc.gameDirectory, fileName, mc.getMainRenderTarget(), 1,
                 component -> log("shot " + new File(new File(mc.gameDirectory, "screenshots"), fileName)));
         } catch (Throwable t) {
             log("exception taking screenshot for tick " + tick + ": " + t);

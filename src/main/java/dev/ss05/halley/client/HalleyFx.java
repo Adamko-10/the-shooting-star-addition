@@ -134,7 +134,7 @@ public final class HalleyFx {
         this.extras = new CometExtras(this.plan);
         ParticleStatus status = minecraft.options.particles().get();
         this.particles = status == ParticleStatus.ALL ? 1.0F : status == ParticleStatus.DECREASED ? 0.45F : 0.12F;
-        long day = minecraft.level == null ? 6000L : Math.floorMod(minecraft.level.getDefaultClockTime(), 24000L);
+        long day = minecraft.level == null ? 6000L : Math.floorMod(minecraft.level.getDayTime(), 24000L);
         this.toNight = day >= 13000L && day < 23000L ? 0L : Math.floorMod(18000L - day, 24000L);
         ACTIVE.add(this);
     }
@@ -841,7 +841,7 @@ public final class HalleyFx {
     }
 
     public static Vec3 camera() {
-        return Minecraft.getInstance().gameRenderer.mainCamera().position();
+        return Minecraft.getInstance().gameRenderer.getMainCamera().position();
     }
 
     /** The point within {@code radius} of {@code centre} nearest the listener: a wide event is heard from its edge. */

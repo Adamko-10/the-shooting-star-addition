@@ -3,7 +3,7 @@
   "id": "shooting_star_addition",
   "version": "${version}",
   "name": "The Shooting Star Addition",
-  "description": "An unofficial addon for The Shooting Star. Adds SS-05 Halley and SS-06 Luna to the Stellar Remote. SS-05: a comet called down onto your crosshair. It comes in low over the horizon, ploughs a frozen trench toward your mark and detonates on it, leaving an icy crater with the comet's glowing heart standing in it. SS-06: at night the moon itself falls on your crosshair and stays there, a moon of edible moon cheese with a molten heart. Made for The Shooting Star (Demo) 1.3.3 and newer (tested with 1.3.4) on Fabric 26.3.",
+  "description": "An unofficial addon for The Shooting Star. Adds SS-05 Halley and SS-06 Luna to the Stellar Remote. SS-05: a comet called down onto your crosshair. It comes in low over the horizon, ploughs a frozen trench toward your mark and detonates on it, leaving an icy crater with the comet's glowing heart standing in it. SS-06: at night the moon itself falls on your crosshair and stays there, a moon of edible moon cheese with a molten heart. Made for The Shooting Star (Demo) 1.3.3 and newer (tested with 1.3.4) on Fabric, Minecraft 1.21.11.",
   "authors": [
     "adamko_10"
   ],
@@ -33,9 +33,9 @@
     }
   ],
   "depends": {
-    "fabricloader": ">=0.19.5",
-    "minecraft": "~26.3",
-    "java": ">=25",
+    "fabricloader": ">=0.17.0",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
     "fabric-api": "*",
     "${shooting_star_mod_id}": "${shooting_star_version_range}"
   }

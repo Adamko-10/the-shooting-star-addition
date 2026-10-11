@@ -5,15 +5,15 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
-import com.mojang.renderpearl.api.commands.RenderPass;
-import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.ss05.halley.HalleyAddon;
 import java.util.Arrays;
-import net.minecraft.client.renderer.ProjectionMatrixBuffer;
+import net.minecraft.client.renderer.PerspectiveProjectionMatrixBuffer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.client.renderer.LightTexture;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 import org.joml.Vector4f;
@@ -48,7 +48,7 @@ public final class GlowAtlas {
     private static final ByteBufferBuilder BYTES = new ByteBufferBuilder(TILES.length * 4 * DefaultVertexFormat.POSITION_TEX_COLOR.getVertexSize());
     private static final DynamicMesh MESH = new DynamicMesh("SS-05 Halley glow atlas");
     @Nullable
-    private static ProjectionMatrixBuffer projection;
+    private static PerspectiveProjectionMatrixBuffer projection;
     private static boolean paintedStill;
 
     static {
@@ -80,7 +80,7 @@ public final class GlowAtlas {
      */
     public static void paint() {
         boolean all = !paintedStill || !TEXTURE.ready();
-        BufferBuilder b = new BufferBuilder(BYTES, PrimitiveTopology.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        BufferBuilder b = new BufferBuilder(BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
         for (int i = 0; i < TILES.length; i++) {
             int shape = TILES[i][0];
             if (!all && !moves(shape)) {
@@ -99,15 +99,15 @@ public final class GlowAtlas {
             return;
         }
         if (projection == null) {
-            projection = new ProjectionMatrixBuffer("SS-05 Halley glow atlas");
+            projection = new PerspectiveProjectionMatrixBuffer("SS-05 Halley glow atlas");
         }
         GpuBufferSlice ortho = projection.getBuffer(new Matrix4f().setOrtho(0.0F, COLUMNS, 0.0F, ROWS, -1.0F, 1.0F));
-        GpuBufferSlice transforms = RenderSystem.getDynamicUniforms().writeTransform(new Matrix4f(), new Vector4f(1.0F, 1.0F, 1.0F, 1.0F));
+        GpuBufferSlice transforms = Gfx.transforms(new Matrix4f());
         try (RenderPass pass = TEXTURE.begin(all)) {
             RenderSystem.bindDefaultUniforms(pass);
             pass.setUniform("Projection", ortho);
             pass.setUniform("DynamicTransforms", transforms);
-            pass.setPipeline(RenderSystem.getCompiledPipeline(HalleyPipelines.BAKE));
+            pass.setPipeline(HalleyPipelines.BAKE);
             MESH.draw(pass);
         }
         paintedStill = true;
@@ -133,7 +133,7 @@ public final class GlowAtlas {
                 .setColor(r * a, g * a, b * a, 1.0F)
                 .setUv(tu, tv)
                 .setOverlay(OverlayTexture.NO_OVERLAY)
-                .setLight(LightCoordsUtil.FULL_BRIGHT)
+                .setLight(LightTexture.FULL_BRIGHT)
                 .setNormal(0.0F, 1.0F, 0.0F);
         };
     }

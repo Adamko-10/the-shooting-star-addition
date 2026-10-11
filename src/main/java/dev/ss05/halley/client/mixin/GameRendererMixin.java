@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /** Once a frame, before Minecraft gathers up what it is about to draw: SS-05 decides how this frame's sky looks. */
 @Mixin(GameRenderer.class)
 abstract class GameRendererMixin {
-    @Inject(method = "extract(Lnet/minecraft/client/DeltaTracker;Z)V", at = @At("HEAD"))
+    @Inject(method = "render(Lnet/minecraft/client/DeltaTracker;Z)V", at = @At("HEAD"))
     private void ss05halley$frameStart(DeltaTracker deltaTracker, boolean advanceGameTime, CallbackInfo ci) {
         HalleyClient.frameStart(deltaTracker);
     }

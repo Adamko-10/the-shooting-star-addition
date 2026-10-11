@@ -194,7 +194,7 @@ public final class MoonStrike {
                 continue;
             }
             if (this.horizontal(player.getX(), player.getZ()) <= range) {
-                player.sendOverlayMessage(message);
+                player.displayClientMessage(message, true);
             }
         }
     }

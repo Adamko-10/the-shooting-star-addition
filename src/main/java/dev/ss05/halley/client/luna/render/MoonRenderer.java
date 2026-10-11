@@ -1,13 +1,14 @@
 package dev.ss05.halley.client.luna.render;
 
+import dev.ss05.halley.client.render.Gfx;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
-import com.mojang.renderpearl.api.commands.RenderPass;
-import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.render.CometVisuals;
 import dev.ss05.halley.client.render.DynamicMesh;
@@ -17,12 +18,12 @@ import dev.ss05.halley.client.render.HalleyPipelines;
 import dev.ss05.halley.client.render.ShaderPacks;
 import java.util.Optional;
 import java.util.OptionalDouble;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
@@ -50,8 +51,8 @@ public final class MoonRenderer {
     private MoonRenderer() {
     }
 
-    /** Fabric's {@code LevelRenderEvents.END_MAIN}: the main pass is over and no render pass is open. */
-    public static void render(LevelRenderContext context) {
+    /** Fabric's {@code WorldRenderEvents.END_MAIN}: the main pass is over and no render pass is open. */
+    public static void render(WorldRenderContext context) {
         if (MoonFx.active().isEmpty() || ShaderPacks.active()) {
             return;
         }
@@ -60,17 +61,17 @@ public final class MoonRenderer {
         if (level == null) {
             return;
         }
-        CameraRenderState state = context.levelState().cameraRenderState;
-        Camera camera = minecraft.gameRenderer.mainCamera();
+        CameraRenderState state = context.worldState().cameraRenderState;
+        Camera camera = minecraft.gameRenderer.getMainCamera();
         Vec3 eye = state.pos;
         remember(state);
         float partial = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(true);
-        double far = state.depthFar * 0.9;
+        double far = Gfx.depthFar() * 0.9;
         CometVisuals.Land land = land(level);
         Vector3f left = new Vector3f(camera.leftVector());
         Vector3f up = new Vector3f(camera.upVector());
-        BufferBuilder world = new BufferBuilder(WORLD_BYTES, PrimitiveTopology.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-        BufferBuilder glare = new BufferBuilder(GLARE_BYTES, PrimitiveTopology.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        BufferBuilder world = new BufferBuilder(WORLD_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        BufferBuilder glare = new BufferBuilder(GLARE_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
         GlowBatch worldBatch = new GlowBatch((x, y, z, u, v, r, g, b, a) -> world.addVertex(x, y, z).setUv(u, v).setColor(r, g, b, a),
             eye, left, up, far);
         GlowBatch glareBatch = new GlowBatch((x, y, z, u, v, r, g, b, a) -> glare.addVertex(x, y, z).setUv(u, v).setColor(r, g, b, a),
@@ -89,30 +90,27 @@ public final class MoonRenderer {
         if (!drawWorld && !drawGlare) {
             return;
         }
-        RenderTarget target = minecraft.gameRenderer.mainRenderTarget();
-        GpuBufferSlice transforms = RenderSystem.getDynamicUniforms().writeTransform(RenderSystem.getModelViewMatrixCopy(),
-            new Vector4f(1.0F, 1.0F, 1.0F, 1.0F));
-        try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "SS-06 Luna",
-            target.getColorTextureView(), Optional.empty(), target.getDepthTextureView(), OptionalDouble.empty())) {
+        GpuBufferSlice transforms = Gfx.levelTransforms();
+        try (RenderPass pass = Gfx.levelPass("SS-06 Luna")) {
             RenderSystem.bindDefaultUniforms(pass);
             pass.setUniform("DynamicTransforms", transforms);
             if (drawWorld) {
-                pass.setPipeline(RenderSystem.getCompiledPipeline(HalleyPipelines.GLOW));
+                pass.setPipeline(HalleyPipelines.GLOW);
                 WORLD_MESH.draw(pass);
             }
             if (drawGlare) {
-                pass.setPipeline(RenderSystem.getCompiledPipeline(HalleyPipelines.GLARE));
+                pass.setPipeline(HalleyPipelines.GLARE);
                 GLARE_MESH.draw(pass);
             }
         }
     }
 
     /**
-     * Fabric's {@code LevelRenderEvents.COLLECT_SUBMITS}, while a shader pack is on: the same light handed to
+     * Fabric's {@code WorldRenderEvents.AFTER_ENTITIES}, while a shader pack is on: the same light handed to
      * Minecraft as glowing-eyes geometry from the painted shapes ({@link GlowAtlas}), which the pack then draws with
      * its own programs. The flashes that are seen through everything are drawn right in front of the camera instead.
      */
-    public static void submitForShaderPack(LevelRenderContext context) {
+    public static void submitForShaderPack(WorldRenderContext context) {
         if (MoonFx.active().isEmpty() || !ShaderPacks.active() || !GlowAtlas.ready()) {
             return;
         }
@@ -121,16 +119,16 @@ public final class MoonRenderer {
         if (level == null) {
             return;
         }
-        CameraRenderState state = context.levelState().cameraRenderState;
-        Camera camera = minecraft.gameRenderer.mainCamera();
+        CameraRenderState state = context.worldState().cameraRenderState;
+        Camera camera = minecraft.gameRenderer.getMainCamera();
         Vec3 eye = state.pos;
         remember(state);
         float partial = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(true);
-        double far = state.depthFar * 0.9;
+        double far = Gfx.depthFar() * 0.9;
         CometVisuals.Land land = land(level);
         Vector3f left = new Vector3f(camera.leftVector());
         Vector3f up = new Vector3f(camera.upVector());
-        context.submitNodeCollector().submitCustomGeometry(context.poseStack(), RenderTypes.eyes(GlowAtlas.location()), (pose, out) -> {
+        context.commandQueue().submitCustomGeometry(context.matrices(), RenderTypes.eyes(GlowAtlas.location()), (pose, out) -> {
             Matrix4f matrix = pose.pose();
             GlowBatch world = new GlowBatch(quads(GlowAtlas.sink(out, matrix), false), eye, left, up, far);
             GlowBatch glare = new GlowBatch(quads(GlowAtlas.sink(out, matrix), true), eye, left, up, far);
@@ -179,7 +177,7 @@ public final class MoonRenderer {
     }
 
     private static void remember(CameraRenderState state) {
-        VIEW_PROJECTION.set(state.projectionMatrix).mul(state.viewRotationMatrix);
+        VIEW_PROJECTION.set(Gfx.projection()).mul(Gfx.viewRotation());
         lastCamera = state.pos;
     }
 

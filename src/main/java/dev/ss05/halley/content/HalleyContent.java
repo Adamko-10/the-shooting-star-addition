@@ -5,7 +5,7 @@ import dev.ss05.halley.MoonConfig;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
-import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -43,10 +43,10 @@ public final class HalleyContent {
         .mapColor(MapColor.ICE)
         .sound(SoundType.AMETHYST)
         .lightLevel(state -> 15)
-        .emissiveRendering(state -> true)
+        .emissiveRendering((state, level, pos) -> true)
         .requiresCorrectToolForDrops()
         .isValidSpawn((state, level, pos, type) -> false)
-        .pushReaction(PushReaction.IMMOVEABLE));
+        .pushReaction(PushReaction.BLOCK));
 
     /** The frozen streak the nucleus scored down the floor of the trench. Pickaxe-minable, drops itself. */
     public static final Block COMET_TRAIL = block("comet_trail", p -> p
@@ -54,11 +54,11 @@ public final class HalleyContent {
         .mapColor(MapColor.COLOR_LIGHT_BLUE)
         .sound(SoundType.GLASS)
         .lightLevel(state -> 10)
-        .emissiveRendering(state -> true)
+        .emissiveRendering((state, level, pos) -> true)
         .friction(0.98F)
         .requiresCorrectToolForDrops()
         .isValidSpawn((state, level, pos, type) -> false)
-        .pushReaction(PushReaction.IMMOVEABLE));
+        .pushReaction(PushReaction.BLOCK));
 
     /**
      * What the fallen moon is made of (SS-06). Mined like soft stone; its item is eaten like a golden carrot.
@@ -69,7 +69,7 @@ public final class HalleyContent {
         .mapColor(MapColor.COLOR_YELLOW)
         .sound(SoundType.TUFF)
         // drawn self-lit (only how it looks, no light is cast), so a fallen moon still reads as a moon at night
-        .emissiveRendering(state -> true));
+        .emissiveRendering((state, level, pos) -> true));
 
     /** The single block at the very heart of the fallen moon: glowing, molten. Eating it gives the molten might. */
     public static final Block MOLTEN_MOON_CHEESE = block("molten_moon_cheese", p -> p
@@ -77,7 +77,7 @@ public final class HalleyContent {
         .mapColor(MapColor.COLOR_ORANGE)
         .sound(SoundType.HONEY_BLOCK)
         .lightLevel(state -> 15)
-        .emissiveRendering(state -> true));
+        .emissiveRendering((state, level, pos) -> true));
 
     /** What eating molten moon cheese gives: the raised max health (see {@link MoltenMightEffect}); Strength is vanilla's own effect, applied alongside it. */
     public static final Holder<MobEffect> MOLTEN_MIGHT = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT,
@@ -173,11 +173,11 @@ public final class HalleyContent {
     /** Registers everything (loading this class does it); called once while mods initialise. */
     public static void register() {
         HalleyAddon.LOG.debug("SS-05 Halley's blocks and sounds are registered ({}, {})", COMET_HEART, MARK.location());
-        CreativeModeTabEvents.modifyOutputEvent(FOOD_AND_DRINKS_TAB).register(output -> {
+        ItemGroupEvents.modifyEntriesEvent(FOOD_AND_DRINKS_TAB).register(output -> {
             output.accept(MOON_CHEESE_ITEM);
             output.accept(MOLTEN_MOON_CHEESE_ITEM);
         });
-        CreativeModeTabEvents.modifyOutputEvent(NATURAL_BLOCKS_TAB).register(output -> {
+        ItemGroupEvents.modifyEntriesEvent(NATURAL_BLOCKS_TAB).register(output -> {
             output.accept(COMET_HEART_ITEM);
             output.accept(COMET_TRAIL_ITEM);
             output.accept(MOON_CHEESE_ITEM);

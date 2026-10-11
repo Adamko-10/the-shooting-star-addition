@@ -124,7 +124,7 @@ public final class MoonFx {
         this.random = RandomSource.create(seed ^ 0x6C75_6E61_06L);
         ParticleStatus status = minecraft.options.particles().get();
         this.particles = status == ParticleStatus.ALL ? 1.0F : status == ParticleStatus.DECREASED ? 0.45F : 0.12F;
-        long day = minecraft.level == null ? 6000L : Math.floorMod(minecraft.level.getDefaultClockTime(), 24000L);
+        long day = minecraft.level == null ? 6000L : Math.floorMod(minecraft.level.getDayTime(), 24000L);
         this.toNight = day >= 13000L && day < 23000L ? 0L : Math.floorMod(18000L - day, 24000L);
         ACTIVE.add(this);
     }
@@ -683,7 +683,7 @@ public final class MoonFx {
     }
 
     public static Vec3 camera() {
-        return Minecraft.getInstance().gameRenderer.mainCamera().position();
+        return Minecraft.getInstance().gameRenderer.getMainCamera().position();
     }
 
     /** The moon's direction of travel at time {@code t} (straight down the fall line, then straight down into the crater). */

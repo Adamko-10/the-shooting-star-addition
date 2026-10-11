@@ -1,12 +1,15 @@
-// The Shooting Star Addition: an unofficial addon for The Shooting Star (Fabric, Minecraft 26.3), built with Loom.
+// The Shooting Star Addition: an unofficial addon for The Shooting Star (Fabric, Minecraft 1.21.11), built with Loom.
 //
 //   1. Put The Shooting Star's Fabric jar in libs/ (the file from its download page, the-shooting-star*.jar).
 //   2. ./gradlew build        -> build/libs/shooting_star_addition-<version>.jar
 //      ./gradlew runClient    -> a dev game with The Shooting Star and this addon loaded
 //
-// Versions live in gradle.properties. Minecraft 26.x is not obfuscated, so there are no mappings to set up.
+// Versions live in gradle.properties. Unlike 26.x, Minecraft 1.21.11 is still obfuscated: Fabric mods (The Shooting
+// Star's 1.21.11 build included) are published in intermediary names, so this is the classic remapping Loom plugin
+// with Mojang's mappings, The Shooting Star goes through the mod* configurations (remapped for dev), and the release
+// jar is remapped to intermediary with a mixin refmap.
 plugins {
-    id 'net.fabricmc.fabric-loom' version "${loom_version}"
+    id 'fabric-loom' version "${loom_version}"
 }
 
 version = project.mod_version
@@ -58,20 +61,20 @@ loom {
     }
 }
 
-// The Shooting Star is downloaded as one jar for several Minecraft versions, with its 26.3 build nested inside
-// (META-INF/jars/...+mc26.3.jar): that inner jar is what the addon is compiled against and what the dev runs load.
-// The inner jar on its own in libs/ works too. Neither is ever shipped inside this jar (its licence is All Rights
-// Reserved).
+// The Shooting Star is downloaded as one jar for several Minecraft versions, with its 1.21.11 build nested inside
+// (META-INF/jars/...+mc1.21.11.jar): that inner jar is what the addon is compiled against and what the dev runs
+// load. The inner jar on its own in libs/ works too. Neither is ever shipped inside this jar (its licence is All
+// Rights Reserved).
 def shootingStarJars = fileTree(dir: 'libs', include: 'the-shooting-star*.jar').files.sort()
 def extractShootingStar = tasks.register('extractShootingStar', Sync) {
     into layout.buildDirectory.dir('shooting-star')
     includeEmptyDirs = false
     shootingStarJars.each { jar ->
-        if (jar.name.contains('+mc26.3')) {
+        if (jar.name.contains('+mc1.21.11')) {
             from(jar)
         } else {
             from(zipTree(jar)) {
-                include 'META-INF/jars/*+mc26.3.jar'
+                include 'META-INF/jars/*+mc1.21.11.jar'
                 eachFile { it.relativePath = new RelativePath(true, it.name) }
             }
         }
@@ -81,11 +84,12 @@ def shootingStar = files(extractShootingStar).asFileTree.matching { include '*.j
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
-    compileOnly shootingStar
-    localRuntime shootingStar
+    modCompileOnly shootingStar
+    modLocalRuntime shootingStar
 
     // The clienttest source set sees exactly what 'main' sees (Minecraft, Fabric, The Shooting Star), plus this
     // addon's own compiled classes (to call StarBridge/HalleyContent) - only 'main' gets Loom's modding
@@ -101,7 +105,7 @@ tasks.named('compileJava') {
     def found = shootingStar
     doFirst {
         if (found.isEmpty()) {
-            throw new GradleException("Put The Shooting Star's Fabric jar (the-shooting-star*.jar, with its Minecraft 26.3 build inside) in libs/ first - see libs/README.txt")
+            throw new GradleException("Put The Shooting Star's Fabric jar (the-shooting-star*.jar, with its Minecraft 1.21.11 build inside) in libs/ first - see libs/README.txt")
         }
     }
 }
@@ -120,11 +124,52 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 25
+    it.options.release = 21
     it.options.encoding = 'UTF-8'
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+// Dev-only: ./gradlew prodClientTest -Dss05.clienttest.skill=moon ... runs the clienttest harness against the
+// *release* jar in a production-style game (intermediary names, as players get it), with Fabric API and The
+// Shooting Star's own 1.21.11 jar. The proof that Loom's in-place mixin remapping hooks everything (there is no
+// refmap). Its game directory is run/prodclient.
+configurations {
+    prodMods {
+        canBeConsumed = false
+        transitive = false
+    }
+}
+dependencies {
+    prodMods "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+def clienttestJar = tasks.register('clienttestJar', Jar) {
+    from sourceSets.clienttest.output
+    archiveClassifier = 'clienttest-dev'
+    destinationDirectory = layout.buildDirectory.dir('devlibs')
+}
+def remapClienttestJar = tasks.register('remapClienttestJar', net.fabricmc.loom.task.RemapJarTask) {
+    inputFile = clienttestJar.flatMap { it.archiveFile }
+    archiveClassifier = 'clienttest'
+    destinationDirectory = layout.buildDirectory.dir('prodtest')
+    classpath.from(sourceSets.clienttest.compileClasspath)
+}
+tasks.register('prodClientTest', net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+    dependsOn extractShootingStar
+    mods.from(tasks.named('remapJar'), remapClienttestJar, configurations.prodMods, shootingStar)
+    runDir = file('run/prodclient')
+    jvmArgs.add('-Dss05.clienttest=true')
+    ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat'].each { key ->
+        var propertyName = "ss05.clienttest.${key}"
+        var value = project.findProperty(propertyName) ?: System.getProperty(propertyName)
+        if (value != null) {
+            jvmArgs.add("-D${propertyName}=${value}")
+        }
+    }
 }

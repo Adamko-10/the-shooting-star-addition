@@ -6,7 +6,7 @@ import java.util.Locale;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3x2fStack;
@@ -30,7 +30,7 @@ public final class HalleyHud {
     }
 
     /** For anyone near the strike, outside the film: what is coming, and how long until it lands. */
-    public static void world(GuiGraphicsExtractor g, HalleyFx fx, float partial, int w) {
+    public static void world(GuiGraphics g, HalleyFx fx, float partial, int w) {
         Minecraft minecraft = Minecraft.getInstance();
         HalleyPlan p = fx.plan;
         float t = fx.time(partial);
@@ -60,7 +60,7 @@ public final class HalleyHud {
      * Outside the film, while the comet is coming in: an arrow at the edge of the screen pointing at it whenever it is
      * out of view, so nobody misses it.
      */
-    public static void marker(GuiGraphicsExtractor g, HalleyFx fx, float partial, int w, int h) {
+    public static void marker(GuiGraphics g, HalleyFx fx, float partial, int w, int h) {
         HalleyPlan p = fx.plan;
         float t = fx.time(partial);
         Minecraft minecraft = Minecraft.getInstance();
@@ -110,7 +110,7 @@ public final class HalleyHud {
     }
 
     /** The caster's film: an uplink overlay with the comet's telemetry. */
-    public static void film(GuiGraphicsExtractor g, HalleyFx fx, float partial, int w, int h, Projector project) {
+    public static void film(GuiGraphics g, HalleyFx fx, float partial, int w, int h, Projector project) {
         float ct = fx.filmTime(partial);
         if (Float.isNaN(ct)) {
             return;
@@ -193,12 +193,12 @@ public final class HalleyHud {
 
     // ---- Drawing helpers (the same look as the remote's own HUD). ---------------------------------------------------
 
-    static void corner(GuiGraphicsExtractor g, int x, int y, int arm, int dx, int dy, int color) {
+    static void corner(GuiGraphics g, int x, int y, int arm, int dx, int dy, int color) {
         g.fill(Math.min(x, x + dx * arm), y, Math.max(x, x + dx * arm), y + dy, color);
         g.fill(x, Math.min(y, y + dy * arm), x + dx, Math.max(y, y + dy * arm), color);
     }
 
-    static void box(GuiGraphicsExtractor g, int x, int y, int size, int color) {
+    static void box(GuiGraphics g, int x, int y, int size, int color) {
         int arm = Math.max(3, size / 3);
         corner(g, x - size, y - size, arm, 1, 1, color);
         corner(g, x + size, y - size, arm, -1, 1, color);
@@ -206,24 +206,24 @@ public final class HalleyHud {
         corner(g, x + size, y + size, arm, -1, -1, color);
     }
 
-    static void text(GuiGraphicsExtractor g, Font font, String s, int x, int y, int color, float scale) {
+    static void text(GuiGraphics g, Font font, String s, int x, int y, int color, float scale) {
         Matrix3x2fStack pose = g.pose();
         pose.pushMatrix();
         pose.translate((float) x, (float) y);
         pose.scale(scale, scale);
-        g.text(font, s, 0, 0, color, false);
+        g.drawString(font, s, 0, 0, color, false);
         pose.popMatrix();
     }
 
-    static void right(GuiGraphicsExtractor g, Font font, String s, int x, int y, int color, float scale) {
+    static void right(GuiGraphics g, Font font, String s, int x, int y, int color, float scale) {
         text(g, font, s, x - (int) (font.width(s) * scale), y, color, scale);
     }
 
-    static void centered(GuiGraphicsExtractor g, Font font, String s, int cx, int y, int color, float scale) {
+    static void centered(GuiGraphics g, Font font, String s, int cx, int y, int color, float scale) {
         text(g, font, s, cx - (int) (font.width(s) * scale / 2.0F), y, color, scale);
     }
 
-    static void bracketed(GuiGraphicsExtractor g, Font font, String s, int cx, int y, int color, float scale) {
+    static void bracketed(GuiGraphics g, Font font, String s, int cx, int y, int color, float scale) {
         centered(g, font, "[ " + s + " ]", cx, y, color, scale);
     }
 }

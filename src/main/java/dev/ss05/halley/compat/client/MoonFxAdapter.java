@@ -14,7 +14,7 @@ import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.MoonHud;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.phys.Vec3;
@@ -85,7 +85,7 @@ final class MoonFxAdapter extends SpellFx {
     }
 
     @Override
-    public void hud(GuiGraphicsExtractor graphics, Frame frame) {
+    public void hud(GuiGraphics graphics, Frame frame) {
         MoonHud.hud(graphics, this.fx, frame.partial(), Overlay.width(graphics), Overlay.height(graphics));
     }
 

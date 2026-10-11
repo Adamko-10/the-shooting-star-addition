@@ -1,7 +1,7 @@
 package dev.ss05.halley.compat.mixin;
 
 import dev.ss05.halley.compat.client.StarClientBridge;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
@@ -15,8 +15,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Pseudo
 @Mixin(targets = "cyou.rimuru.shootingstardemo.client.fx.FxManager", remap = false)
 abstract class FxManagerMixin {
-    @Inject(method = "renderFilmHud(Lnet/minecraft/client/gui/GuiGraphicsExtractor;F)V", at = @At("TAIL"), require = 0, remap = false)
-    private static void ss05halley$filmHud(GuiGraphicsExtractor graphics, float partial, CallbackInfo ci) {
+    @Inject(method = "renderFilmHud(Lnet/minecraft/client/gui/GuiGraphics;F)V", at = @At("TAIL"), require = 0, remap = false)
+    private static void ss05halley$filmHud(GuiGraphics graphics, float partial, CallbackInfo ci) {
         StarClientBridge.renderFilmHud(graphics, partial);
     }
 }

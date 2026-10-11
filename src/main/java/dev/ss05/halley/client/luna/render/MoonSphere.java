@@ -1,13 +1,14 @@
 package dev.ss05.halley.client.luna.render;
 
+import dev.ss05.halley.client.render.Gfx;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
-import com.mojang.renderpearl.api.commands.RenderPass;
-import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.client.luna.MoonFx;
@@ -18,14 +19,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector4f;
@@ -161,9 +162,9 @@ public final class MoonSphere {
         return out;
     }
 
-    /** Fabric's {@code LevelRenderEvents.END_MAIN}, registered before {@code MoonRenderer}'s glow so the glow's
+    /** Fabric's {@code WorldRenderEvents.END_MAIN}, registered before {@code MoonRenderer}'s glow so the glow's
      * depth test already sees this sphere. Without a shader pack: its own render pass, its own pipelines. */
-    public static void renderSolid(LevelRenderContext context) {
+    public static void renderSolid(WorldRenderContext context) {
         if (MoonFx.active().isEmpty() || ShaderPacks.active()) {
             return;
         }
@@ -171,17 +172,17 @@ public final class MoonSphere {
         if (minecraft.level == null) {
             return;
         }
-        CameraRenderState state = context.levelState().cameraRenderState;
+        CameraRenderState state = context.worldState().cameraRenderState;
         Vec3 camera = state.pos;
-        double maxDistance = state.depthFar * 0.9;
+        double maxDistance = Gfx.depthFar() * 0.9;
         float partial = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(true);
         List<Placement> placements = placements(camera, maxDistance, partial);
         if (placements.isEmpty()) {
             return;
         }
 
-        BufferBuilder base = new BufferBuilder(BASE_BYTES, PrimitiveTopology.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-        BufferBuilder seam = new BufferBuilder(SEAM_BYTES, PrimitiveTopology.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        BufferBuilder base = new BufferBuilder(BASE_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        BufferBuilder seam = new BufferBuilder(SEAM_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
         Sink baseSink = (x, y, z, u, v, r, g, b, a) -> base.addVertex(x, y, z).setUv(u, v).setColor(r, g, b, a);
         Sink seamSink = (x, y, z, u, v, r, g, b, a) -> seam.addVertex(x, y, z).setUv(u, v).setColor(r, g, b, a);
         for (Placement placement : placements) {
@@ -193,34 +194,31 @@ public final class MoonSphere {
         if (!drawBase && !drawSeam) {
             return;
         }
-        RenderTarget target = minecraft.gameRenderer.mainRenderTarget();
-        GpuBufferSlice transforms = RenderSystem.getDynamicUniforms().writeTransform(RenderSystem.getModelViewMatrixCopy(),
-            new Vector4f(1.0F, 1.0F, 1.0F, 1.0F));
+        GpuBufferSlice transforms = Gfx.levelTransforms();
         AbstractTexture baseTex = minecraft.getTextureManager().getTexture(SURFACE);
         AbstractTexture seamTex = minecraft.getTextureManager().getTexture(SEAMS);
-        try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "SS-06 Luna moon",
-            target.getColorTextureView(), Optional.empty(), target.getDepthTextureView(), OptionalDouble.empty())) {
+        try (RenderPass pass = Gfx.levelPass("SS-06 Luna moon")) {
             RenderSystem.bindDefaultUniforms(pass);
             pass.setUniform("DynamicTransforms", transforms);
             if (drawBase) {
-                pass.setPipeline(RenderSystem.getCompiledPipeline(HalleyPipelines.MOON));
-                pass.setUniform("Sampler0", baseTex.getTextureView(), baseTex.getSampler());
+                pass.setPipeline(HalleyPipelines.MOON);
+                pass.bindTexture("Sampler0", baseTex.getTextureView(), baseTex.getSampler());
                 BASE_MESH.draw(pass);
             }
             if (drawSeam) {
-                pass.setPipeline(RenderSystem.getCompiledPipeline(HalleyPipelines.MOON_EMISSIVE));
-                pass.setUniform("Sampler0", seamTex.getTextureView(), seamTex.getSampler());
+                pass.setPipeline(HalleyPipelines.MOON_EMISSIVE);
+                pass.bindTexture("Sampler0", seamTex.getTextureView(), seamTex.getSampler());
                 SEAM_MESH.draw(pass);
             }
         }
     }
 
     /**
-     * Fabric's {@code LevelRenderEvents.COLLECT_SUBMITS}, while a shader pack is on: the same sphere, with its own
+     * Fabric's {@code WorldRenderEvents.AFTER_ENTITIES}, while a shader pack is on: the same sphere, with its own
      * real textures (no atlas needed, unlike the glow), submitted as glowing-eyes geometry, which every shader pack
      * draws adding its own light.
      */
-    public static void submitForShaderPack(LevelRenderContext context) {
+    public static void submitForShaderPack(WorldRenderContext context) {
         if (MoonFx.active().isEmpty() || !ShaderPacks.active()) {
             return;
         }
@@ -228,24 +226,24 @@ public final class MoonSphere {
         if (minecraft.level == null) {
             return;
         }
-        CameraRenderState state = context.levelState().cameraRenderState;
+        CameraRenderState state = context.worldState().cameraRenderState;
         Vec3 camera = state.pos;
-        double maxDistance = state.depthFar * 0.9;
+        double maxDistance = Gfx.depthFar() * 0.9;
         float partial = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(true);
         List<Placement> placements = placements(camera, maxDistance, partial);
         if (placements.isEmpty()) {
             return;
         }
-        context.submitNodeCollector().submitCustomGeometry(context.poseStack(), RenderTypes.eyes(SURFACE), (pose, out) -> {
+        context.commandQueue().submitCustomGeometry(context.matrices(), RenderTypes.eyes(SURFACE), (pose, out) -> {
             Sink sink = (x, y, z, u, v, r, g, b, a) -> out.addVertex(pose, x, y, z).setColor(r, g, b, a).setUv(u, v)
-                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightCoordsUtil.FULL_BRIGHT).setNormal(0.0F, 1.0F, 0.0F);
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightTexture.FULL_BRIGHT).setNormal(0.0F, 1.0F, 0.0F);
             for (Placement placement : placements) {
                 build(sink, Sink.NONE, camera, placement);
             }
         });
-        context.submitNodeCollector().submitCustomGeometry(context.poseStack(), RenderTypes.eyes(SEAMS), (pose, out) -> {
+        context.commandQueue().submitCustomGeometry(context.matrices(), RenderTypes.eyes(SEAMS), (pose, out) -> {
             Sink sink = (x, y, z, u, v, r, g, b, a) -> out.addVertex(pose, x, y, z).setColor(r, g, b, a).setUv(u, v)
-                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightCoordsUtil.FULL_BRIGHT).setNormal(0.0F, 1.0F, 0.0F);
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightTexture.FULL_BRIGHT).setNormal(0.0F, 1.0F, 0.0F);
             for (Placement placement : placements) {
                 build(Sink.NONE, sink, camera, placement);
             }

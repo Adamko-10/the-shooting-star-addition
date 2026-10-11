@@ -9,9 +9,9 @@ molten heart.
 
 ![SS-05 Halley in game](docs/screenshots/overview.jpg)
 
-> **Compatibility:** this branch is the **Fabric, Minecraft 26.3** version, for **The Shooting Star [Demo] 1.3.3
-> [Fabric] or newer** (tested with 1.3.4) (1.3.3 renamed The Shooting Star's code, so older versions of the addon can't attach to it, and this one can't attach to anything before 1.3.3). The **NeoForge 1.21.1** version is on the `main` branch and the
-> **Forge 1.20.1** version on `forge-1.20.1`. See
+> **Compatibility:** this branch is the **Fabric, Minecraft 1.21.11** version, for **The Shooting Star [Demo] 1.3.3
+> [Fabric] or newer** (tested with 1.3.4) (1.3.3 renamed The Shooting Star's code, so older versions of the addon can't attach to it, and this one can't attach to anything before 1.3.3). The **NeoForge 1.21.1** version is on the `main` branch,
+> **Forge and NeoForge 1.20.1** on `forge-1.20.1`, **Forge 1.21.1** on `forge-1.21.1` and **Fabric 26.3** on `fabric-26.3`. See
 > [Will it work with future versions?](#will-it-work-with-future-versions-of-the-shooting-star) below.
 
 ## SS-05 · Halley
@@ -32,9 +32,7 @@ land round it.
   and hands them to the pack as glowing geometry, and the dark sky becomes the pack's own night: the sky's clock races
   through a dusk into the night as the comet comes in, and on through a dawn after the impact. Only what you see
   changes, never the world's actual time.
-- **Works with Sodium and Distant Horizons.** SS-05's own drawing works on both of 26.3's graphics backends, but The
-  Shooting Star itself needs **OpenGL**: on Vulkan it stops at a warning screen. Set *Video Settings → Graphics API*
-  to *Prefer OpenGL* and restart.
+- **Works with Sodium and Distant Horizons.**
 - Pieces break off the comet and burst in the sky, the fireball sheds sparks and throws lens flares, ice is thrown
   out of the crater on long arcs, glowing cracks race across the land, a wall of snow rides the shock front, and the
   comet heart shines a beam into the sky.
@@ -79,14 +77,11 @@ buried: a whole moon of **moon cheese**, with one block of **molten moon cheese*
 
 ## Installing
 
-1. Minecraft **26.3** with **Fabric Loader 0.19.5** or newer, and **Fabric API**.
+1. Minecraft **1.21.11** with **Fabric Loader 0.17.0** or newer, and **Fabric API**.
 2. **The Shooting Star [Demo] 1.3.3 [Fabric] or newer**, e.g. `the-shooting-star-demo-1.3.4-fabric.jar`, one file for every
-   Minecraft version it supports, 26.3 included.
-3. `shooting_star_addition-1.3.0+fabric-26.3.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
+   Minecraft version it supports, 1.21.11 included.
+3. `The Shooting Star Addition 1.3.0 [Fabric 1.21.11].jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
-
-Minecraft must be drawing with OpenGL (*Video Settings → Graphics API → Prefer OpenGL*), or The Shooting Star
-won't start.
 
 In game: hold the Stellar Remote, press **O** for SS-05 or **Y** for SS-06 (or pick them in the remote's menu, **H**),
 aim at the ground and right-click. The keys can be changed in Controls or from the remote's menu like the others.
@@ -153,14 +148,14 @@ attaches itself to some of its internals (the remote's skill list, its effect sy
 The Shooting Star is updated often. That means:
 
 - **Small updates** that don't touch those parts should keep working: the addon accepts The Shooting Star 1.3.3
-  and anything newer on Fabric 26.3.
+  and anything newer on Fabric 1.21.11.
 - **Updates that change those parts** won't crash your game. The addon checks everything before it attaches, and if
   something has moved it switches SS-05 off, logs why, and tells server operators in chat. It stays off until this
   addon is updated. The optional touches (the remote's cover animation, the cutscene overlay) quietly switch
   themselves off instead.
 - **If The Shooting Star changes its mod id** (for example when it stops being a demo), this addon won't load until
   it is updated.
-- **Other mod loaders and Minecraft versions** beyond NeoForge 1.21.1 and Fabric 26.3 are not supported. They would
+- **Other mod loaders and Minecraft versions** beyond NeoForge 1.21.1, Forge 1.21.1, Forge and NeoForge 1.20.1, Fabric 26.3 and Fabric 1.21.11 are not supported. They would
   each need their own port.
 
 ## Plans
@@ -176,13 +171,16 @@ welcome in the issues.
 
 ### Building
 
-Requires JDK 25. Put The Shooting Star's Fabric jar in `libs/` as you downloaded it (see `libs/README.txt`; the
-build takes its Minecraft 26.3 part out of it), then:
+Requires JDK 21. Put The Shooting Star's Fabric jar in `libs/` as you downloaded it (see `libs/README.txt`; the
+build takes its Minecraft 1.21.11 part out of it), then:
 
 - `./gradlew build` → `build/libs/shooting_star_addition-<version>.jar`
 - `./gradlew runClient` / `./gradlew runServer` → a dev game with both mods loaded
 
-Minecraft 26.x isn't obfuscated, so there are no mappings: the code uses Mojang's names throughout.
+Minecraft 1.21.11 is obfuscated: the code uses Mojang's names (`loom.officialMojangMappings()`), and Loom remaps the
+release jar, its mixin refmap and The Shooting Star's jar (`modCompileOnly`/`modLocalRuntime`) to intermediary names.
+`./gradlew runClientTest -Dss05.clienttest.skill=moon|halley` casts a skill in a fresh world and takes screenshots
+(see `src/clienttest`).
 
 ### When The Shooting Star updates
 
