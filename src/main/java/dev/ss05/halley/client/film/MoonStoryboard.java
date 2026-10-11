@@ -7,7 +7,7 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * The caster's cutscene for SS-06, shot by shot - modelled directly on {@code client/film/HalleyStoryboard} (see
- * there for how {@code k} and {@code stage} work). compat/client/MoonCutscene turns these into The Shooting Star's
+ * there for how {@code k} and {@code stage} work). compat/tss/client/MoonCutscene turns these into The Shooting Star's
  * cutscene, played full-frame and skippable with the remote's cutscene key.
  */
 public final class MoonStoryboard {

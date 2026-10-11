@@ -62,33 +62,18 @@ loom {
 }
 
 // The Shooting Star is downloaded as one jar for several Minecraft versions, with its 1.21.11 build nested inside
-// (META-INF/jars/...+mc1.21.11.jar): that inner jar is what the addon is compiled against and what the dev runs
-// load. The inner jar on its own in libs/ works too. Neither is ever shipped inside this jar (its licence is All
-// Rights Reserved).
-def shootingStarJars = fileTree(dir: 'libs', include: 'the-shooting-star*.jar').files.sort()
-def extractShootingStar = tasks.register('extractShootingStar', Sync) {
-    into layout.buildDirectory.dir('shooting-star')
-    includeEmptyDirs = false
-    shootingStarJars.each { jar ->
-        if (jar.name.contains('+mc1.21.11')) {
-            from(jar)
-        } else {
-            from(zipTree(jar)) {
-                include 'META-INF/jars/*+mc1.21.11.jar'
-                eachFile { it.relativePath = new RelativePath(true, it.name) }
-            }
-        }
-    }
-}
-def shootingStar = files(extractShootingStar).asFileTree.matching { include '*.jar' }
+// (META-INF/jars/...+mc1.21.11.jar): that inner jar is what the addon is compiled against and what the dev runs load
+// (gradle/tss.gradle takes it out). The inner jar on its own in libs/ works too. libs/ holds one such jar per version
+// of The Shooting Star the addon supports; none is ever shipped inside this jar (its licence is All Rights Reserved).
+def shootingStarJars = fileTree(dir: 'libs', include: 'the-shooting-star*.jar')
 
-// The Shooting Star 1.4.0+ is obfuscated: compile and run against a readable copy of it, and map the release jar back
-// (see gradle/tss.gradle).
-ext.tssObf = shootingStar
+// The Shooting Star 1.4.0+ is obfuscated: compile and run against a readable copy of the newest one in libs/, and
+// make the release jar work with every one in libs/ (see gradle/tss.gradle).
+ext.tssObf = shootingStarJars
 ext.tssPrefix = 'cyou/rimuru/shootingstardemo/'
 ext.tssNested = '+mc1.21.11'
 apply from: 'gradle/tss.gradle'
-tssReobf(tasks.named('remapJar'))
+tssPack(tasks.named('remapJar'))
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -97,7 +82,7 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
     // Loom remaps mod dependencies while configuring: the readable copy is made right away (see gradle/tss.gradle)
-    def tssNamedNow = shootingStarJars.isEmpty() ? files() : tssDeobfNow(tssNestedNow(shootingStarJars[0], '+mc1.21.11'))
+    def tssNamedNow = tssVersions.isEmpty() ? files() : tssDeobfNow(tssVersions[0].jar)
     modCompileOnly tssNamedNow
     modLocalRuntime tssNamedNow
 
@@ -112,7 +97,7 @@ configurations {
 }
 
 tasks.named('compileJava') {
-    def found = shootingStar
+    def found = shootingStarJars
     doFirst {
         if (found.isEmpty()) {
             throw new GradleException("Put The Shooting Star's Fabric jar (the-shooting-star*.jar, with its Minecraft 1.21.11 build inside) in libs/ first - see libs/README.txt")
@@ -125,7 +110,7 @@ processResources {
     var replaceProperties = [
         version                    : project.mod_version,
         shooting_star_mod_id       : project.shooting_star_mod_id,
-        shooting_star_version_range: project.shooting_star_version_range,
+        shooting_star_versions     : tssVersionList.join('", "'),
     ]
     inputs.properties replaceProperties
     filesMatching('fabric.mod.json') {
@@ -149,7 +134,8 @@ java {
 // Dev-only: ./gradlew prodClientTest -Dss05.clienttest.skill=moon ... runs the clienttest harness against the
 // *release* jar in a production-style game (intermediary names, as players get it), with Fabric API and The
 // Shooting Star's own 1.21.11 jar. The proof that Loom's in-place mixin remapping hooks everything (there is no
-// refmap). Its game directory is run/prodclient.
+// refmap). Its game directory is run/prodclient. -PtssTest=1.4.0 picks which version of The Shooting Star in libs/
+// (default the newest).
 configurations {
     prodMods {
         canBeConsumed = false
@@ -172,9 +158,8 @@ def remapClienttestJar = tasks.register('remapClienttestJar', net.fabricmc.loom.
 }
 def reobfClienttest = tssReobf(remapClienttestJar, 'tssReobfClienttest', 'prodtest')
 tasks.register('prodClientTest', net.fabricmc.loom.task.prod.ClientProductionRunTask) {
-    dependsOn extractShootingStar
-    // setFrom: Loom adds the project's own jar by default, which here is the one before tssReobf (build/libs-raw)
-    mods.setFrom(tasks.named('tssReobf'), reobfClienttest, configurations.prodMods, shootingStar)
+    // setFrom: Loom adds the project's own jar by default, which here is the one before tssPack (build/libs-raw)
+    mods.setFrom(tasks.named('tssPack'), reobfClienttest, configurations.prodMods, tssTestJar)
     runDir = file('run/prodclient')
     jvmArgs.add('-Dss05.clienttest=true')
     ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat'].each { key ->

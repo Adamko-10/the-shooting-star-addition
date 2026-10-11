@@ -1,25 +1,25 @@
-package dev.ss05.halley.compat.client;
+package dev.ss05.halley.compat.tss.client;
 
 import cyou.rimuru.shootingstardemo.client.cinematic.CameraPose;
 import cyou.rimuru.shootingstardemo.client.cinematic.Cutscene;
 import cyou.rimuru.shootingstardemo.client.cinematic.Shot;
 import cyou.rimuru.shootingstardemo.client.cinematic.Subject;
-import dev.ss05.halley.client.HalleyFx;
-import dev.ss05.halley.client.film.HalleyStoryboard;
-import dev.ss05.halley.compat.StarBridge;
+import dev.ss05.halley.client.film.MoonStoryboard;
+import dev.ss05.halley.client.luna.MoonFx;
+import dev.ss05.halley.compat.tss.TssLink;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.world.phys.Vec3;
 
-/** Turns {@link HalleyStoryboard}'s takes into a cutscene for The Shooting Star's director. */
-final class HalleyCutscene {
-    private HalleyCutscene() {
+/** Turns {@link MoonStoryboard}'s takes into a cutscene for The Shooting Star's director (see {@code HalleyCutscene}). */
+final class MoonCutscene {
+    private MoonCutscene() {
     }
 
-    static Cutscene of(HalleyFxAdapter adapter) {
-        HalleyFx fx = adapter.halley();
+    static Cutscene of(MoonFxAdapter adapter) {
+        MoonFx fx = adapter.moon();
         Subject subject = adapter.subject();
-        HalleyStoryboard.Stage stage = new HalleyStoryboard.Stage() {
+        MoonStoryboard.Stage stage = new MoonStoryboard.Stage() {
             @Override
             public Vec3 feet(float partial) {
                 return subject.feet(partial);
@@ -37,15 +37,14 @@ final class HalleyCutscene {
         };
 
         List<Shot> shots = new ArrayList<>();
-        for (HalleyStoryboard.Take take : HalleyStoryboard.takes(fx.plan, fx.visuals)) {
-            HalleyStoryboard.Path path = take.path();
+        for (MoonStoryboard.Take take : MoonStoryboard.takes(fx.plan)) {
+            MoonStoryboard.Path path = take.path();
             shots.add(new Shot(take.start(), take.end(), take.blendIn(), (x, partial, k) -> {
-                HalleyStoryboard.Pose pose = path.pose(stage, partial, k);
+                MoonStoryboard.Pose pose = path.pose(stage, partial, k);
                 return new CameraPose(pose.position(), pose.look(), pose.fov(), pose.roll());
             }));
         }
-        // full frame, cut straight in, and ahead of the built-in skills' films if two are cast at once (as theirs are)
-        return new Cutscene(subject, StarBridge.SKILL.tier(), StarBridge.SKILL.title(), StarBridge.SKILL.color(), 0, shots)
+        return new Cutscene(subject, TssLink.MOON.tier(), TssLink.MOON.title(), TssLink.MOON.color(), 0, shots)
             .hardCut()
             .fullFrame()
             .priority(2);

@@ -28,7 +28,7 @@
       "environment": "client"
     },
     {
-      "config": "shooting_star_addition.compat.mixins.json",
+      "config": "shooting_star_addition.tss.mixins.json",
       "environment": "client"
     }
   ],
@@ -37,6 +37,6 @@
     "minecraft": "~1.21.11",
     "java": ">=21",
     "fabric-api": "*",
-    "${shooting_star_mod_id}": "${shooting_star_version_range}"
+    "${shooting_star_mod_id}": ["${shooting_star_versions}"]
   }
 }

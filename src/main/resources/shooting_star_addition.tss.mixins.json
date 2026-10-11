@@ -1,7 +1,8 @@
 {
   "required": false,
   "minVersion": "0.8",
-  "package": "dev.ss05.halley.compat.mixin",
+  "package": "dev.ss05.halley.compat.tss.mixin",
+  "plugin": "dev.ss05.halley.compat.TssMixins",
   "compatibilityLevel": "JAVA_21",
   "client": [
     "FxManagerMixin",

@@ -7,7 +7,7 @@ import dev.ss05.halley.client.render.CometRenderer;
 import dev.ss05.halley.client.render.GlowAtlas;
 import dev.ss05.halley.client.render.ShaderPacks;
 import dev.ss05.halley.client.sky.HalleySky;
-import dev.ss05.halley.compat.client.StarClientBridge;
+import dev.ss05.halley.compat.StarBridge;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -34,7 +34,7 @@ public final class HalleyClient implements ClientModInitializer {
             MoonRenderer.submitForShaderPack(context);
         });
         // once every mod's client has started, The Shooting Star's effect handling is in place to be hooked
-        ClientLifecycleEvents.CLIENT_STARTED.register(client -> StarClientBridge.install());
+        ClientLifecycleEvents.CLIENT_STARTED.register(client -> StarBridge.installClient());
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> HalleyClientConfig.SPEC.load());
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             HalleyFx.clearAll();

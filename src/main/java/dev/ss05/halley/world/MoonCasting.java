@@ -3,7 +3,6 @@ package dev.ss05.halley.world;
 import dev.ss05.halley.MoonConfig;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.MoonPlan;
-import dev.ss05.halley.compat.MoonSpell;
 import dev.ss05.halley.compat.StarBridge;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -25,7 +24,7 @@ public final class MoonCasting {
 
     /** Returns false (and tells the player why) if the moon can't be called right now. */
     public static boolean cast(ServerPlayer player) {
-        if (StarBridge.alreadyFlying(StarBridge.MOON, player)) {
+        if (StarBridge.moonAlreadyFalling(player)) {
             StarBridge.deny(player, MoonInfo.title() + ": the moon is already falling");
             return false;
         }
@@ -45,7 +44,7 @@ public final class MoonCasting {
         float timeOfDay = timeOfDay(level);
         Vec3 sky = MoonPlan.skyDirection(isNight(level) ? timeOfDay : timeOfDay + 0.5F);
         long seed = player.getRandom().nextLong();
-        StarBridge.start(new MoonSpell(player, target, seed, MoonParams.of(tuning, Mth.floor(target.y), sky)));
+        StarBridge.startMoon(player, target, seed, MoonParams.of(tuning, Mth.floor(target.y), sky));
         return true;
     }
 

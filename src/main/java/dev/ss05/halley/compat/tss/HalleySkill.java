@@ -1,4 +1,4 @@
-package dev.ss05.halley.compat;
+package dev.ss05.halley.compat.tss;
 
 import cyou.rimuru.shootingstardemo.magic.Skill;
 import dev.ss05.halley.HalleyConfig;
