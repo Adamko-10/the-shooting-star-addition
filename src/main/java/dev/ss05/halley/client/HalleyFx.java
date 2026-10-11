@@ -40,7 +40,7 @@ import org.joml.Vector3f;
  * drawn by {@link CometVisuals}. The server decides what happens; this only shows it, from the same
  * {@link HalleyPlan}.
  *
- * <p>Nothing here touches The Shooting Star directly. It is driven through compat/client (which hands it a
+ * <p>Nothing here touches The Shooting Star directly. It is driven through compat/tss/client (which hands it a
  * {@link Host} and calls {@link #tick}, {@link #screen}, the HUD and so on), so an update of that mod never needs
  * changes in this file.
  */
@@ -61,7 +61,7 @@ public final class HalleyFx {
     /** Further than this from the strike, nobody sees its particles anyway. */
     private static final double PARTICLE_RANGE = 700.0;
 
-    /** What the film needs from The Shooting Star (implemented in compat/client). */
+    /** What the film needs from The Shooting Star (implemented in compat/tss/client). */
     public interface Host {
         /** How much of the screen this strike's cutscene has, 0..1 (0 when it isn't being filmed). */
         float filmWeight();
@@ -77,7 +77,7 @@ public final class HalleyFx {
         SoundEvent remoteSound(boolean press);
     }
 
-    /** The screen effects SS-05 uses: The Shooting Star's post-processing, reached through compat/client. */
+    /** The screen effects SS-05 uses: The Shooting Star's post-processing, reached through compat/tss/client. */
     public interface Screen {
         void shake(float k);
 

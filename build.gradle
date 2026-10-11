@@ -115,13 +115,15 @@ tasks.matching { it.name == 'runServerTest' }.configureEach {
 // Its 1.20.1 classes use SRG names, so it goes through the remapping configurations, both to compile and for the dev runs.
 var shootingStar = fileTree(dir: 'libs', include: 'the-shooting-star*.jar')
 
-// The Shooting Star 1.4.0+ is obfuscated: compile and run against a readable copy of it, and map the release jar back
-// (see gradle/tss.gradle). The remapping configurations resolve it before any task runs, so the copy is made right away.
+// The Shooting Star 1.4.0+ is obfuscated: compile and run against a readable copy of the newest one in libs/, and
+// make the release jar work with every one in libs/ (see gradle/tss.gradle). The remapping configurations resolve
+// the readable copy before any task runs, so it is made right away (tssDeobfNow).
 ext.tssObf = shootingStar
 ext.tssPrefix = 'cyou/rimuru/shootingstardemo/mc1201/'
+ext.tssNested = null
 apply from: 'gradle/tss.gradle'
-tssReobf(tasks.named('reobfJar'))
-var shootingStarNamed = shootingStar.files.collect { tssDeobfNow(it).singleFile }
+tssPack(tasks.named('reobfJar'))
+var shootingStarNamed = tssVersions.isEmpty() ? files() : tssDeobfNow(tssVersions[0].jar)
 
 dependencies {
     // The remapping configurations only take modules, so each jar is named as a flatDir module. It needs a group and a
@@ -135,13 +137,19 @@ dependencies {
 }
 
 // Forge 1.20.1 runs with SRG names, so the mixins need a refmap; and it reads mixin configs from the manifest only.
+// The ones into The Shooting Star itself (shooting_star_addition.tss.mixins.json) use remap = false (TssPack rewrites
+// their @Mixin target strings and method strings directly, per version), so they need no refmap entries of their own.
 mixin {
     add sourceSets.main, "${mod_id}.refmap.json"
     config "${mod_id}.mixins.json"
+    config "${mod_id}.tss.mixins.json"
 }
 
 tasks.named('jar', Jar) {
-    manifest.attributes(['MixinConfigs': "${mod_id}.mixins.json"])
+    // The tss config listed first: TssPack looks for its exact file name in the manifest's raw bytes before parsing
+    // it, and the standard jar manifest format wraps long attribute lines at 72 bytes, which would otherwise split
+    // that name across two lines.
+    manifest.attributes(['MixinConfigs': "${mod_id}.tss.mixins.json,${mod_id}.mixins.json"])
 }
 
 tasks.named('compileJava') {
@@ -159,7 +167,7 @@ var generateModMetadata = tasks.register('generateModMetadata', ProcessResources
         forge_version_range        : forge_version_range,
         loader_version_range       : loader_version_range,
         shooting_star_mod_id       : shooting_star_mod_id,
-        shooting_star_version_range: shooting_star_version_range,
+        shooting_star_version_range: tssVersionRange,
         mod_id                     : mod_id,
         mod_name                   : mod_name,
         mod_license                : mod_license,

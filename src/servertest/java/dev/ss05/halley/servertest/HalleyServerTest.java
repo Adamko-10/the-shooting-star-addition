@@ -236,7 +236,7 @@ public final class HalleyServerTest {
             return;
         }
 
-        Skill skill = StarBridge.SKILL;
+        Skill skill = (Skill) StarBridge.skill(false);
         SkillSet owner = SkillSet.of(skill);
         this.record("skill_owned_by_stellar_remote", owner == ModSkills.STELLAR_REMOTE, "owner=" + owner);
 
@@ -269,7 +269,7 @@ public final class HalleyServerTest {
         int highest = 0;
         for (Skill s : owner.skills) {
             java.util.regex.Matcher m = java.util.regex.Pattern.compile("SS-(\\d+)").matcher(String.valueOf(s.title()));
-            if (s != StarBridge.SKILL && s != StarBridge.MOON && m.find()) {
+            if (s != (Skill) StarBridge.skill(false) && s != (Skill) StarBridge.skill(true) && m.find()) {
                 highest = Math.max(highest, Integer.parseInt(m.group(1)));
             }
         }
@@ -282,7 +282,7 @@ public final class HalleyServerTest {
             return;
         }
 
-        Skill skill = StarBridge.MOON;
+        Skill skill = (Skill) StarBridge.skill(true);
         SkillSet owner = SkillSet.of(skill);
         this.record("moon_skill_owned_by_stellar_remote", owner == ModSkills.STELLAR_REMOTE, "owner=" + owner);
 
@@ -344,14 +344,14 @@ public final class HalleyServerTest {
     }
 
     private void postCast() {
-        boolean running = SpellEngine.running(StarBridge.SKILL, this.caster.getUUID());
+        boolean running = SpellEngine.running((Skill) StarBridge.skill(false), this.caster.getUUID());
         this.record("cast_starts_spell", running, running ? "" : "SpellEngine.running() is false right after the cast");
 
         ActiveSpell found = null;
         try {
             for (Object o : this.activeSpells()) {
                 ActiveSpell as = (ActiveSpell) o;
-                if (as.skill == StarBridge.SKILL && as.casterId.equals(this.caster.getUUID())) {
+                if (as.skill == (Skill) StarBridge.skill(false) && as.casterId.equals(this.caster.getUUID())) {
                     found = as;
                     break;
                 }
@@ -394,7 +394,7 @@ public final class HalleyServerTest {
             int before = this.countActive();
             this.request(this.skillIndexAtCast);
             int after = this.countActive();
-            int remaining = Casting.remaining(this.caster, StarBridge.SKILL);
+            int remaining = Casting.remaining(this.caster, (Skill) StarBridge.skill(false));
             int expected = HalleyConfig.tuning().cooldownTicks();
             boolean pass = after == before && remaining > 0 && remaining <= expected && remaining >= expected - 40;
             this.record("cooldown_refuses_second_cast", pass,
@@ -415,7 +415,7 @@ public final class HalleyServerTest {
         int n = 0;
         for (Object o : this.activeSpells()) {
             ActiveSpell as = (ActiveSpell) o;
-            if (as.skill == StarBridge.SKILL && as.casterId.equals(this.caster.getUUID())) {
+            if (as.skill == (Skill) StarBridge.skill(false) && as.casterId.equals(this.caster.getUUID())) {
                 n++;
             }
         }
@@ -454,7 +454,7 @@ public final class HalleyServerTest {
 
     private void watch() {
         int elapsed = this.tick - this.castTick;
-        boolean running = SpellEngine.running(StarBridge.SKILL, this.caster.getUUID());
+        boolean running = SpellEngine.running((Skill) StarBridge.skill(false), this.caster.getUUID());
         if (running) {
             this.wasRunning = true;
         }
@@ -527,7 +527,7 @@ public final class HalleyServerTest {
         this.checkMob("beside_mob_hurt_and_frozen", this.besideMob, false);
         this.checkControlMob();
 
-        boolean notRunning = !SpellEngine.running(StarBridge.SKILL, this.caster.getUUID());
+        boolean notRunning = !SpellEngine.running((Skill) StarBridge.skill(false), this.caster.getUUID());
         this.record("spell_completes_and_stops", notRunning, notRunning ? "" : "SpellEngine still reports it running");
     }
 
@@ -574,7 +574,7 @@ public final class HalleyServerTest {
         this.record("arena_is_day_for_refusal_check", isDay, "isDay=" + isDay + " isNight=" + this.level.isNight());
         try {
             this.request(this.moonSkillIndexAtCast);
-            boolean running = SpellEngine.running(StarBridge.MOON, this.caster.getUUID());
+            boolean running = SpellEngine.running((Skill) StarBridge.skill(true), this.caster.getUUID());
             this.record("moon_day_cast_refused", !running, running ? "a moonfall started during the day" : "");
         } catch (Throwable ex) {
             this.record("moon_day_cast_refused", false, "threw " + ex);
@@ -595,14 +595,14 @@ public final class HalleyServerTest {
     }
 
     private void moonPostCast() {
-        boolean running = SpellEngine.running(StarBridge.MOON, this.caster.getUUID());
+        boolean running = SpellEngine.running((Skill) StarBridge.skill(true), this.caster.getUUID());
         this.record("moon_cast_starts_spell", running, running ? "" : "SpellEngine.running() is false right after the cast");
 
         ActiveSpell found = null;
         try {
             for (Object o : this.activeSpells()) {
                 ActiveSpell as = (ActiveSpell) o;
-                if (as.skill == StarBridge.MOON && as.casterId.equals(this.caster.getUUID())) {
+                if (as.skill == (Skill) StarBridge.skill(true) && as.casterId.equals(this.caster.getUUID())) {
                     found = as;
                     break;
                 }
@@ -666,7 +666,7 @@ public final class HalleyServerTest {
 
     private void moonWatch() {
         int elapsed = this.tick - this.moonCastTick;
-        boolean running = SpellEngine.running(StarBridge.MOON, this.caster.getUUID());
+        boolean running = SpellEngine.running((Skill) StarBridge.skill(true), this.caster.getUUID());
         if (running) {
             this.moonWasRunning = true;
         }
@@ -739,7 +739,7 @@ public final class HalleyServerTest {
         this.checkMob("moon_inside_mob_erased", this.moonInsideMob, true);
         this.checkMob("moon_beside_mob_hurt", this.moonBesideMob, false);
 
-        boolean notRunning = !SpellEngine.running(StarBridge.MOON, this.caster.getUUID());
+        boolean notRunning = !SpellEngine.running((Skill) StarBridge.skill(true), this.caster.getUUID());
         this.record("moon_spell_completes_and_stops", notRunning, notRunning ? "" : "SpellEngine still reports it running");
     }
 

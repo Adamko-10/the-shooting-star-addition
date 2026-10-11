@@ -4,15 +4,16 @@ An **unofficial**, fan-made addon for [The Shooting Star [Demo]](https://www.cur
 by rimuru_dev. It adds two new skills to the Stellar Remote: **Halley**, a comet called down onto your
 crosshair, and **Luna**, which at night brings the moon itself down, leaving a moon of edible moon cheese with a
 molten heart. On the remote they come after The Shooting Star's own skills and are numbered after them:
-with The Shooting Star 1.4.0, which has its own SS-05 · Tesseract, they are **SS-06 · Halley** and **SS-07 · Luna**.
+with The Shooting Star 1.4.x, which has its own SS-05 · Tesseract, they are **SS-06 · Halley** and **SS-07 · Luna**
+(with 1.3.x, SS-05 and SS-06).
 
 **Download:** [The Shooting Star Addition on CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition)
 
 ![Halley in game](docs/screenshots/overview.jpg)
 
 > **Compatibility:** this branch (`forge-1.20.1`) is the **Forge and NeoForge, Minecraft 1.20.1** version (one jar for both), for **The Shooting
-> Star [Demo] 1.4.0** (its Forge file, which carries the 1.20.1 build; exactly that version: 1.4.0 is obfuscated, see
-> below). Other versions of the addon: NeoForge 1.21.1 (`main`), Forge 1.21.1 (`forge-1.21.1`), Fabric 26.3
+> Star [Demo] 1.3.3, 1.3.4, 1.4.0 and 1.4.1** (its Forge file, which carries the 1.20.1 build; one jar for all of
+> them). Other versions of the addon: NeoForge 1.21.1 (`main`), Forge 1.21.1 (`forge-1.21.1`), Fabric 26.3
 > (`fabric-26.3`) and Fabric 1.21.11 (`fabric-1.21.11`). See
 > [Will it work with future versions?](#will-it-work-with-future-versions-of-the-shooting-star) below.
 
@@ -77,8 +78,9 @@ buried: a whole moon of **moon cheese**, with one block of **molten moon cheese*
 ## Installing
 
 1. Minecraft **1.20.1** with **Forge 47.1 or newer** (47.4.x recommended) or **NeoForge 1.20.1** (47.1.x).
-2. **The Shooting Star [Demo] 1.4.0**: its Forge file on Forge, its NeoForge file on NeoForge (both carry the 1.20.1 build).
-3. `shooting_star_addition-1.3.0+1.20.1.jar` ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
+2. **The Shooting Star [Demo]** 1.3.3, 1.3.4, 1.4.0 or 1.4.1: its Forge file on Forge, its NeoForge file on NeoForge
+   (both carry the 1.20.1 build), e.g. `the-shooting-star-demo-1.4.1-forge.jar`.
+3. This addon's jar ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
 
 In game: hold the Stellar Remote, press **O** for Halley or **J** for Luna (or pick them in the remote's menu,
@@ -139,13 +141,14 @@ Each player can set these for themselves; they only change what you see.
 ## Will it work with future versions of The Shooting Star?
 
 Not without an update of this addon. Since 1.4.0, The Shooting Star is obfuscated: the names inside its code are
-scrambled (`a`, `b`, `c`...) and can change with every release. It has no official way for other mods to add skills,
-so this addon attaches to its internals by those names, and each version of the addon is made for one version of The
-Shooting Star:
+scrambled (`a`, `b`, `c`...) and change with every release. It has no official way for other mods to add skills, so
+this addon attaches to its internals by those names. It carries a separate attachment for each version of The
+Shooting Star it knows, and uses the one for the version you have:
 
-- This version needs **The Shooting Star 1.4.0**. With any other version the game says so when it starts, instead of
-  crashing.
-- When The Shooting Star updates, wait for the matching update of this addon.
+- This version works with **The Shooting Star 1.3.3, 1.3.4, 1.4.0 and 1.4.1** (and 1.4.0A, which is 1.4.0). With any
+  other version the game says so when it starts, instead of crashing.
+- When The Shooting Star updates, wait for the next update of this addon. It adds the new version and keeps the old
+  ones, so you can update the two mods in either order.
 - On the remote, The Shooting Star's own skills keep their numbers and Halley and Luna take the next ones: if it adds
   an SS-06 of its own, they become SS-07 and SS-08 by themselves.
 - If something it attaches to has really changed, the addon doesn't crash your game: it switches its skills off, logs
@@ -153,8 +156,8 @@ Shooting Star:
 - **If The Shooting Star changes its mod id** (for example when it stops being a demo), this addon won't load until
   it is updated.
 
-- **Other mod loaders and Minecraft versions** each need their own build: this one is Forge 1.20.1; there are also
-  NeoForge 1.21.1 and Fabric 26.3 versions.
+- **Other mod loaders and Minecraft versions** each need their own build: this one is Forge and NeoForge 1.20.1;
+  there are also Forge 1.21.1, NeoForge 1.21.1, Fabric 26.3 and Fabric 1.21.11 versions.
 
 
 ## Plans
@@ -170,11 +173,12 @@ welcome in the issues.
 
 ### Building
 
-Gradle runs on JDK 17-21 and fetches JDK 17 for the build itself. Put The Shooting Star's Forge jar in `libs/` (see
-`libs/README.txt`); the build remaps it to Mojang names for compiling and for the dev runs (ModDevGradle Legacy), then:
+Gradle runs on JDK 17-21 and fetches JDK 17 for the build itself. Put The Shooting Star's Forge jars in `libs/`, one
+for every version the addon should support (see `libs/README.txt`); the build remaps the newest one to Mojang names
+for compiling and for the dev runs (ModDevGradle Legacy), then:
 
-- `./gradlew build` → `build/libs/shooting_star_addition-<version>.jar`, reobfuscated to SRG names with a mixin
-  refmap: that's the one to release (`build/devlibs/` holds the dev-named jar, not for release)
+- `./gradlew build` → `build/libs/shooting_star_addition-<version>.jar`, for all of them, reobfuscated to SRG names
+  with a mixin refmap: that's the one to release (`build/devlibs/` holds the dev-named jar, not for release)
 - `./gradlew runServer` → a dev server with both mods loaded
 - `./gradlew runServerTest` → a dev server that casts Halley for real in a fresh world, checks what it did and stops
   (`src/servertest`, not part of the addon's jar; look for `[SS05TEST]` in `run/servertest/logs/latest.log`)
@@ -186,39 +190,49 @@ Gradle runs on JDK 17-21 and fetches JDK 17 for the build itself. Put The Shooti
 
 ### When The Shooting Star updates
 
-Since 1.4.0 The Shooting Star is obfuscated. `compat/` (the only code that touches it) is still written against its
-readable names, those of 1.3.x: the build makes a readable copy of its jar with a mapping (`gradle/tss.gradle`, tools in
-`tools/tss/`), compiles and runs against that copy, and maps the release jar back to the real names. Mappings are
-made on your own machine and kept out of git (`libs/mappings/`): the repository never carries a de-obfuscation map of
-The Shooting Star.
+Since 1.4.0 The Shooting Star is obfuscated, with different names in every release. `compat/tss/` (the only code
+that touches it) is written against its readable names, those of 1.3.x, and the build (`gradle/tss.gradle`, tools in
+`tools/tss/`) does the rest:
 
-1. Keep a readable build of the previous version: `build/shooting-star-named/<jar>` from the last build (for 1.4.0,
-   the 1.3.4 jar itself is the readable one). Then put the new jar in `libs/` in place of the old one.
-2. `./gradlew tssMappings -PtssNamed=<that readable jar>` matches the two by their structure and writes
-   `libs/mappings/<name>.tiny`, with a `.report.txt` of what it couldn't match (what's new in the update, and anything
-   that changed). Nothing `compat/` uses should be in the report.
-3. Set `shooting_star_version_range` in `gradle.properties` to the new version and run `./gradlew build`. It compiles
-   against the readable copy, and `tssReobf` checks every reference into The Shooting Star against the real jar: the
-   build fails if one doesn't exist there.
-4. **Compile errors** are in `compat/` only, where something really changed: each helper is a one-line wrapper at the
-   bottom of `compat/StarBridge.java`; the skills are `compat/HalleySkill.java`/`MoonSkill.java`, the spells
-   `compat/HalleySpell.java`/`MoonSpell.java`, the effects `compat/client/*.java`.
-5. Start the game. The log should say `SS-06 · Halley (Halley) joined the Stellar Remote as skill #N` (with the number
-   that follows The Shooting Star's own skills). If it says "couldn't attach", the remote's skill list (`SkillSet`)
-   changed shape: `StarBridge.install()` finds the fields it needs by their types.
-6. **Smaller things that may stop without breaking anything** — optional mixins in `compat/mixin/` that switch
-   themselves off if their target moved:
-   - the remote's cover/button/screen not animating for Halley and Luna or Luna → `RemoteRendererMixin` (`strikeTime`);
-   - no Halley/Luna overlay on the cutscene → `FxManagerMixin` (`renderFilmHud`);
-   - the caster's arm not raising (vanilla target, very unlikely to change) → `PlayerModelMixin`;
-   - the land not dimming under the dark sky (vanilla target, very unlikely to change) → `ClientLevelMixin`;
+- it compiles and runs against a readable copy of the newest jar in `libs/`, made with a mapping;
+- `tssPack` makes the release jar: for **every** jar in `libs/` it maps `compat/tss/` to that version's real names,
+  checks every reference against that real jar (the build fails if one doesn't exist there), and puts that copy in
+  the jar as `compat/v1_4_1/` etc. At run time `compat/StarBridge` picks the copy for the version that is loaded
+  (`compat/TssVersion`), and `compat/TssMixins` lets only that copy's mixins apply. The mod's dependency range is
+  made from the versions in `libs/`.
+
+Mappings are made on your own machine and kept out of git (`libs/mappings/`): the repository never carries a
+de-obfuscation map of The Shooting Star.
+
+1. Put the new jar in `libs/` **next to** the old ones (one jar per version; a re-upload under the same version
+   number, like 1.4.0A, replaces its jar).
+2. `./gradlew tssMappings` matches the newest jar against the version before it (made readable with its own mapping)
+   and writes `libs/mappings/<name>.tiny`, with a `.report.txt` of what it couldn't match (what's new in the update,
+   and anything that changed). Nothing `compat/tss/` uses should be in the report.
+3. `./gradlew build`. It compiles against the new version and checks every version in `libs/`.
+4. **Compile errors** are in `compat/tss/` only, where something really changed: each helper is a one-line wrapper at
+   the bottom of `compat/tss/TssLink.java`; the skills are `HalleySkill.java`/`MoonSkill.java`, the spells
+   `HalleySpell.java`/`MoonSpell.java`, the effects `client/*.java`. If the old versions need the old code, the
+   change has to work with both (the build checks all of them); the rest of the addon only sees `compat/StarLink`.
+5. Start the game (`./gradlew runServer` or `runServerTest`). The log should say `Attaching to The Shooting Star
+   <version> through dev.ss05.halley.compat.tss` (the dev runs use the plain, unversioned `compat/tss/`) and
+   `SS-06 · Halley (Halley) joined the Stellar Remote as skill #N`. If it says "couldn't attach", the remote's skill
+   list (`SkillSet`) changed shape: `TssLink.install()` finds the fields it needs by their types.
+6. **Smaller things that may stop without breaking anything** — optional mixins that switch themselves off if their
+   target moved:
+   - the remote's cover/button/screen not animating for Halley and Luna → `compat/tss/mixin/RemoteRendererMixin`
+     (`strikeTime`);
+   - no Halley/Luna overlay on the cutscene → `compat/tss/mixin/FxManagerMixin` (`renderFilmHud`);
+   - the caster's arm not raising (vanilla target, very unlikely to change) → `compat/mixin/PlayerModelMixin`;
+   - the land not dimming under the dark sky (vanilla target, very unlikely to change) → `compat/mixin/ClientLevelMixin`;
    - with a shader pack on, the sky not going to night (vanilla target, very unlikely to change) →
-     `ClientLevelTimeMixin`;
+     `compat/mixin/ClientLevelTimeMixin`;
    - the vanilla moon showing through Luna's own moon (vanilla target, very unlikely to change) →
-     `LevelRendererMoonMixin`.
+     `compat/mixin/LevelRendererMoonMixin`.
 7. **A new built-in skill takes the O or N key** → change `DEFAULT_KEY` in `world/HalleyInfo.java` or
    `world/MoonInfo.java`. Its SS number needs nothing: Halley and Luna are numbered after the remote's own skills
    (`world/SkillNumbers.java`).
+8. To drop an old version, take its jar out of `libs/`.
 
 ### Changing the skill
 
@@ -245,7 +259,9 @@ src/main/java/dev/ss05/halley/
   HalleyConfig.java      the settings file
   HalleyPlan.java        timeline and geometry, shared by server and client
   HalleyParams.java      the sizes of one strike, sent to clients with it
-  compat/                everything that touches The Shooting Star (server side, client side, mixins)
+  compat/                how the addon reaches The Shooting Star (StarBridge), and vanilla mixins
+  compat/tss/            everything that touches The Shooting Star (server side, client side, mixins); one copy
+                         per supported version in the release jar
   content/               blocks, sounds, damage type
   world/                 what the strike does to the world (server)
   client/                what it looks and sounds like (renderer, effects, HUD, cutscene)

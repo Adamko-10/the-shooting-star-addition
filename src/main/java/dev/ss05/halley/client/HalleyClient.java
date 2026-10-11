@@ -10,7 +10,7 @@ import dev.ss05.halley.client.render.GlowAtlas;
 import dev.ss05.halley.client.render.HalleyRenderTypes;
 import dev.ss05.halley.client.render.ShaderPacks;
 import dev.ss05.halley.client.sky.HalleySky;
-import dev.ss05.halley.compat.client.StarClientBridge;
+import dev.ss05.halley.compat.StarBridge;
 import java.io.IOException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ShaderInstance;
@@ -67,7 +67,7 @@ public final class HalleyClient {
 
     /** Once every mod is constructed (The Shooting Star has set up its client by then). */
     public static void afterConstruction() {
-        StarClientBridge.install();
+        StarBridge.installClient();
     }
 
     private static void registerShaders(RegisterShadersEvent event) {

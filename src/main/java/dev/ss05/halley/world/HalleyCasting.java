@@ -3,7 +3,6 @@ package dev.ss05.halley.world;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.HalleyPlan;
-import dev.ss05.halley.compat.HalleySpell;
 import dev.ss05.halley.compat.StarBridge;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -32,7 +31,7 @@ public final class HalleyCasting {
         int ground = surface(player.serverLevel(), probe.touchdown.x, probe.touchdown.z, Mth.floor(target.y));
 
         long seed = player.getRandom().nextLong();
-        StarBridge.start(new HalleySpell(player, target, seed, HalleyParams.of(tuning, ground)));
+        StarBridge.startHalley(player, target, seed, HalleyParams.of(tuning, ground));
         return true;
     }
 

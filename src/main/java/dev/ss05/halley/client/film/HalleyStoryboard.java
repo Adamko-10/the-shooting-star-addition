@@ -7,7 +7,7 @@ import java.util.List;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * The caster's cutscene, shot by shot. Each take is a camera path over a span of the strike's timeline; compat/client
+ * The caster's cutscene, shot by shot. Each take is a camera path over a span of the strike's timeline; compat/tss/client
  * turns them into The Shooting Star's cutscene (it plays them full-frame, skippable with the remote's cutscene key).
  *
  * <p>All cameras stay near the caster and the mark, where the land is actually loaded, and the aftermath is filmed from
