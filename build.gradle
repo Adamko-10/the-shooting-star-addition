@@ -98,6 +98,11 @@ ext.tssNested = null
 apply from: 'gradle/tss.gradle'
 tssPack(tasks.named('jar'))
 
+// ForgeGradle 7 points compileJava's output at build/sourceSets/main only while the build is configured, so a
+// compileJava taken from the build cache restores its classes elsewhere and the jar ends up without them. Never take
+// it from the cache (the configuration cache is off in gradle.properties for the same reason).
+tasks.named('compileJava') { outputs.cacheIf { false } }
+
 // Resolved once; calling minecraft.dependency(...) a second time with the same coordinate (e.g. for the clienttest
 // source set below) duplicates Mavenizer's internal task registration and fails the build, so the same
 // MavenizerInstance is reused for every source set instead.
