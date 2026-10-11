@@ -31,10 +31,10 @@ public final class HalleyConfig {
     static {
         ConfigFile b = SPEC;
 
-        b.section("skill", "SS-05 Halley: a comet called down onto your crosshair. It comes in low over the horizon in front of",
+        b.section("skill", "Halley: a comet called down onto your crosshair. It comes in low over the horizon in front of",
             "you, touches down beyond the mark, ploughs a trench toward you and detonates on the mark.");
         COOLDOWN_SECONDS = b.defineInRange("cooldown_seconds", 60, 1, 3600,
-            "Seconds before SS-05 can be fired again (the other Stellar Remote skills use 60).",
+            "Seconds before Halley can be fired again (the other Stellar Remote skills use 60).",
             "Creative mode always uses 1 second, like the other skills.");
         REACH = b.defineInRange("reach", 420, 32, 1024, "How far away (in blocks) your crosshair can place the mark.");
 

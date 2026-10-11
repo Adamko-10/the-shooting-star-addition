@@ -38,11 +38,11 @@ public final class MoonConfig {
 
     /** Adds SS-06's sections to {@code b} (the shared {@code shooting_star_addition-common.toml} spec). */
     static void define(ConfigFile b) {
-        b.section("moonfall", "SS-06 Luna: at night, the Stellar Remote can shut the Earth system down and bring the moon down onto",
+        b.section("moonfall", "Luna: at night, the Stellar Remote can shut the Earth system down and bring the moon down onto",
             "your crosshair. It leaves a moon of moon cheese half-buried in a crater, with one block of molten moon",
             "cheese at its very heart.");
         cooldownSeconds = b.defineInRange("cooldown_seconds", 120, 1, 3600,
-            "Seconds before SS-06 can be fired again. Creative mode always uses 1 second, like the other skills.");
+            "Seconds before Luna can be fired again. Creative mode always uses 1 second, like the other skills.");
         reach = b.defineInRange("reach", 420, 32, 1024, "How far away (in blocks) your crosshair can place the mark.");
         nightOnly = b.define("require_night", false, "Only answer at night. By default (false) it can be called any time: like SS-05, the sky falls",
             "to night for the strike (only what players see; the world's real time is untouched).");

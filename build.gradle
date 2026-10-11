@@ -82,14 +82,24 @@ def extractShootingStar = tasks.register('extractShootingStar', Sync) {
 }
 def shootingStar = files(extractShootingStar).asFileTree.matching { include '*.jar' }
 
+// The Shooting Star 1.4.0+ is obfuscated: compile and run against a readable copy of it, and map the release jar back
+// (see gradle/tss.gradle).
+ext.tssObf = shootingStar
+ext.tssPrefix = 'cyou/rimuru/shootingstardemo/'
+ext.tssNested = '+mc1.21.11'
+apply from: 'gradle/tss.gradle'
+tssReobf(tasks.named('remapJar'))
+
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
-    modCompileOnly shootingStar
-    modLocalRuntime shootingStar
+    // Loom remaps mod dependencies while configuring: the readable copy is made right away (see gradle/tss.gradle)
+    def tssNamedNow = shootingStarJars.isEmpty() ? files() : tssDeobfNow(tssNestedNow(shootingStarJars[0], '+mc1.21.11'))
+    modCompileOnly tssNamedNow
+    modLocalRuntime tssNamedNow
 
     // The clienttest source set sees exactly what 'main' sees (Minecraft, Fabric, The Shooting Star), plus this
     // addon's own compiled classes (to call StarBridge/HalleyContent) - only 'main' gets Loom's modding
@@ -160,9 +170,11 @@ def remapClienttestJar = tasks.register('remapClienttestJar', net.fabricmc.loom.
     destinationDirectory = layout.buildDirectory.dir('prodtest')
     classpath.from(sourceSets.clienttest.compileClasspath)
 }
+def reobfClienttest = tssReobf(remapClienttestJar, 'tssReobfClienttest', 'prodtest')
 tasks.register('prodClientTest', net.fabricmc.loom.task.prod.ClientProductionRunTask) {
     dependsOn extractShootingStar
-    mods.from(tasks.named('remapJar'), remapClienttestJar, configurations.prodMods, shootingStar)
+    // setFrom: Loom adds the project's own jar by default, which here is the one before tssReobf (build/libs-raw)
+    mods.setFrom(tasks.named('tssReobf'), reobfClienttest, configurations.prodMods, shootingStar)
     runDir = file('run/prodclient')
     jvmArgs.add('-Dss05.clienttest=true')
     ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat'].each { key ->

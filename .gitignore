@@ -12,3 +12,6 @@ bin/
 libs/*.jar
 # Python caches from the art scripts
 __pycache__/
+libs/mappings/
+# a local fix for The Shooting Star 1.4.0's own data, for the test harness only (its data: never committed)
+src/clienttest/resources/data/shooting_star_demo/

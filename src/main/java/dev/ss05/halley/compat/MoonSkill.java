@@ -22,7 +22,7 @@ public final class MoonSkill implements Skill {
 
     @Override
     public String title() {
-        return MoonInfo.TITLE;
+        return MoonInfo.title();
     }
 
     @Override
@@ -47,6 +47,6 @@ public final class MoonSkill implements Skill {
 
     @Override
     public String toString() {
-        return "SS-06 Luna";
+        return MoonInfo.title();
     }
 }
