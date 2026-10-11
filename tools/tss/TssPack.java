@@ -79,6 +79,7 @@ public class TssPack {
                     result.put(config, json.getBytes(StandardCharsets.UTF_8));
                     configs.add(config);
                 }
+                if (n == 0) throw new IllegalStateException(in.getFileName() + " has no compat/tss/ classes - did it compile?");
                 System.out.println("   " + n + " files as " + target);
             } finally {
                 Files.deleteIfExists(mapped);
