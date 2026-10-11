@@ -9,15 +9,22 @@ import cyou.rimuru.shootingstardemo.mc1201.spell.SpellEngine;
 import cyou.rimuru.shootingstardemo.mc1201.spell.SpellUtil;
 import cyou.rimuru.shootingstardemo.mc1201.star.Carving;
 import cyou.rimuru.shootingstardemo.mc1201.star.Erasure;
+import dev.ss05.halley.world.HalleyInfo;
+import dev.ss05.halley.world.MoonInfo;
+import dev.ss05.halley.world.SkillNumbers;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.world.Excavation;
 import dev.ss05.halley.world.HalleyCasting;
 import dev.ss05.halley.world.MoonCasting;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -35,21 +42,13 @@ import net.minecraft.world.phys.Vec3;
  * this package:
  * <ul>
  *   <li>Renamed packages or classes - fix the imports at the top of the files in {@code compat/}.</li>
- *   <li>The remote's skill list ({@code SkillSet}) changed shape - adjust {@link #install()}; the field names it needs
- *       are the constants just below.</li>
+ *   <li>The remote's skill list ({@code SkillSet}) changed shape - adjust {@link #install()}; it finds the fields it
+ *       needs by their types.</li>
  *   <li>A helper moved (spells, carving, erasure, the evac lift) - fix the one-line wrapper for it at the bottom.</li>
  * </ul>
  * Nothing outside {@code compat/} imports The Shooting Star, so nothing else should need to change.
  */
 public final class StarBridge {
-    // Private members of SkillSet that SS-05 has to write to, because the Stellar Remote's skill list is built
-    // once, from an enum, and has no public "add a skill" hook.
-    private static final String SET_SKILLS = "skills";
-    private static final String SET_CASTER = "caster";
-    private static final String TABLE_ALL = "ALL";
-    private static final String TABLE_OWNER = "OWNER";
-    private static final String TABLE_INDEX = "INDEX";
-
     /** SS-05 as The Shooting Star sees it. */
     public static final HalleySkill SKILL = new HalleySkill();
     /** SS-06 as The Shooting Star sees it. */
@@ -86,16 +85,29 @@ public final class StarBridge {
             }
 
             // Look everything up first, so that a renamed field fails before anything has been changed.
-            List<Skill> all = (List<Skill>) staticField(TABLE_ALL).get(null);
-            Map<Skill, SkillSet> owner = (Map<Skill, SkillSet>) staticField(TABLE_OWNER).get(null);
-            Map<Skill, Integer> index = (Map<Skill, Integer>) staticField(TABLE_INDEX).get(null);
-            Field skillsField = instanceField(SET_SKILLS);
-            Field casterField = instanceField(SET_CASTER);
+            // SkillSet's private tables and the remote's own list and caster: SS-05 has to write to them, because the
+            // Stellar Remote's skill list is built once, from an enum, with no public "add a skill" hook. The Shooting
+            // Star 1.4.0+ is obfuscated, so they are found by their types (all distinct), not their names.
+            List<Skill> all = (List<Skill>) field(true, List.class, Skill.class).get(null);
+            Map<Skill, SkillSet> owner = (Map<Skill, SkillSet>) field(true, Map.class, Skill.class, SkillSet.class).get(null);
+            Map<Skill, Integer> index = (Map<Skill, Integer>) field(true, Map.class, Skill.class, Integer.class).get(null);
+            Field skillsField = field(false, List.class, Skill.class);
+            Field casterField = field(false, SkillSet.Caster.class, Skill.class);
             SkillSet.Caster<Skill> builtIn = (SkillSet.Caster<Skill>) casterField.get(remote);
             List<Skill> before = remote.skills;
             if (builtIn == null || before == null || before.isEmpty()) {
                 throw new IllegalStateException("the Stellar Remote has no skills to join");
             }
+
+            // The Shooting Star's own skills keep their SS numbers; Halley and Luna take the next two after the highest.
+            int highest = 0;
+            for (Skill skill : before) {
+                Matcher number = Pattern.compile("SS-(\\d+)").matcher(String.valueOf(skill.title()));
+                if (number.find()) {
+                    highest = Math.max(highest, Integer.parseInt(number.group(1)));
+                }
+            }
+            SkillNumbers.after(highest);
 
             List<Skill> after = new ArrayList<>(before);
             after.add(SKILL);
@@ -126,33 +138,43 @@ public final class StarBridge {
 
             installed = true;
             problem = "";
-            HalleyAddon.LOG.info("SS-05 Halley joined the Stellar Remote as skill #{} (key slot {}).", after.indexOf(SKILL) + 1, SkillSet.indexOf(SKILL));
-            HalleyAddon.LOG.info("SS-06 Luna joined the Stellar Remote as skill #{} (key slot {}).", after.indexOf(MOON) + 1, SkillSet.indexOf(MOON));
+            HalleyAddon.LOG.info("{} (Halley) joined the Stellar Remote as skill #{} (key slot {}).", HalleyInfo.title(), after.indexOf(SKILL) + 1, SkillSet.indexOf(SKILL));
+            HalleyAddon.LOG.info("{} (Luna) joined the Stellar Remote as skill #{} (key slot {}).", MoonInfo.title(), after.indexOf(MOON) + 1, SkillSet.indexOf(MOON));
             return true;
         } catch (Throwable failed) {
             problem = failed.getClass().getSimpleName() + ": " + failed.getMessage();
-            HalleyAddon.LOG.error("SS-05 Halley couldn't attach to The Shooting Star, so the skill is disabled. "
+            HalleyAddon.LOG.error("Halley and Luna couldn't attach to The Shooting Star, so the skills are disabled. "
                 + "This usually means The Shooting Star was updated - see compat/StarBridge.java.", failed);
             return false;
         }
     }
 
-    private static Field staticField(String name) throws NoSuchFieldException {
-        Field field = SkillSet.class.getDeclaredField(name);
-        if (!Modifier.isStatic(field.getModifiers())) {
-            throw new NoSuchFieldException("SkillSet." + name + " is no longer static");
+    /** SkillSet's one field (static or not) of type {@code raw<args>}. */
+    private static Field field(boolean isStatic, Class<?> raw, Class<?>... args) throws NoSuchFieldException {
+        Field found = null;
+        for (Field field : SkillSet.class.getDeclaredFields()) {
+            if (Modifier.isStatic(field.getModifiers()) != isStatic || field.getType() != raw
+                || !(field.getGenericType() instanceof ParameterizedType type) || !Arrays.equals(type.getActualTypeArguments(), args)) {
+                continue;
+            }
+            if (found != null) {
+                throw new NoSuchFieldException("SkillSet has more than one " + describe(isStatic, raw, args));
+            }
+            found = field;
         }
-        field.setAccessible(true);
-        return field;
+        if (found == null) {
+            throw new NoSuchFieldException("SkillSet has no " + describe(isStatic, raw, args));
+        }
+        found.setAccessible(true);
+        return found;
     }
 
-    private static Field instanceField(String name) throws NoSuchFieldException {
-        Field field = SkillSet.class.getDeclaredField(name);
-        if (Modifier.isStatic(field.getModifiers())) {
-            throw new NoSuchFieldException("SkillSet." + name + " is now static");
+    private static String describe(boolean isStatic, Class<?> raw, Class<?>... args) {
+        StringBuilder b = new StringBuilder(isStatic ? "static " : "").append(raw.getSimpleName()).append('<');
+        for (int i = 0; i < args.length; i++) {
+            b.append(i == 0 ? "" : ", ").append(args[i].getSimpleName());
         }
-        field.setAccessible(true);
-        return field;
+        return b.append("> field").toString();
     }
 
     /** The index The Shooting Star uses for SS-05 in its packets, or -1 when it isn't attached. */

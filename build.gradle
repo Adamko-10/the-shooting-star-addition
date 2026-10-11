@@ -41,8 +41,9 @@ configurations {
 
 repositories {
     mavenLocal()
-    // libs/ holds the user's own copy of The Shooting Star (see below).
-    flatDir { dirs 'libs' }
+    // The user's own copy of The Shooting Star goes in libs/; the build compiles against a readable copy of it.
+    // The Shooting Star, as the readable copy gradle/tss.gradle makes of it (see below)
+    flatDir { dirs layout.buildDirectory.dir('shooting-star-named') }
 }
 
 legacyForge {
@@ -114,10 +115,18 @@ tasks.matching { it.name == 'runServerTest' }.configureEach {
 // Its 1.20.1 classes use SRG names, so it goes through the remapping configurations, both to compile and for the dev runs.
 var shootingStar = fileTree(dir: 'libs', include: 'the-shooting-star*.jar')
 
+// The Shooting Star 1.4.0+ is obfuscated: compile and run against a readable copy of it, and map the release jar back
+// (see gradle/tss.gradle). The remapping configurations resolve it before any task runs, so the copy is made right away.
+ext.tssObf = shootingStar
+ext.tssPrefix = 'cyou/rimuru/shootingstardemo/mc1201/'
+apply from: 'gradle/tss.gradle'
+tssReobf(tasks.named('reobfJar'))
+var shootingStarNamed = shootingStar.files.collect { tssDeobfNow(it).singleFile }
+
 dependencies {
-    // The remapping configurations only take modules, so each jar in libs/ is named as a flatDir module. It needs a
-    // group and a version (any) for the remapping to match it; flatDir ignores the group and finds <name>.jar.
-    shootingStar.files.each { File jar ->
+    // The remapping configurations only take modules, so each jar is named as a flatDir module. It needs a group and a
+    // version (any) for the remapping to match it; flatDir ignores the group and finds <name>.jar.
+    shootingStarNamed.each { File jar ->
         var module = "local:${jar.name - '.jar'}:0"
         modCompileOnly module
         modRuntimeOnly module

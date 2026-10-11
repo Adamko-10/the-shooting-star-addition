@@ -71,7 +71,7 @@ public final class HalleyAddon {
     /** If The Shooting Star changed under us, say so in chat instead of failing silently. */
     private static void warnIfDetached(PlayerEvent.PlayerLoggedInEvent event) {
         if (!StarBridge.installed() && event.getEntity() instanceof ServerPlayer player && player.hasPermissions(2)) {
-            player.sendSystemMessage(Component.literal("[The Shooting Star Addition] SS-05 Halley couldn't attach to The Shooting Star ("
+            player.sendSystemMessage(Component.literal("[The Shooting Star Addition] Halley and Luna couldn't attach to The Shooting Star ("
                     + StarBridge.problem() + "). The skill is disabled until the addon is updated for this version - see the log.")
                 .withStyle(ChatFormatting.RED));
         }

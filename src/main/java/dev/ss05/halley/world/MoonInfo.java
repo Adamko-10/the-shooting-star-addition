@@ -1,7 +1,7 @@
 package dev.ss05.halley.world;
 
 /**
- * How SS-06 is named and shown on the Stellar Remote. The menu also reads its description and key name from the
+ * How Luna is named and shown on the Stellar Remote. The menu also reads its description and key name from the
  * language file (assets/shooting_star_addition/lang/en_us.json), so wording changes go there.
  */
 public final class MoonInfo {
@@ -9,7 +9,11 @@ public final class MoonInfo {
     public static final String ID = "luna";
     /** The platform all the remote's skills belong to. */
     public static final String TIER = "The Shooting Star";
-    public static final String TITLE = "SS-06 · Luna";
+    /** "SS-07 · Luna": the number follows The Shooting Star's own skills (see {@link SkillNumbers}). */
+    public static String title() {
+        return SkillNumbers.luna() + " · Luna";
+    }
+
     /** What the remote announces when it fires: shown big across the screen, and in the action bar to others. */
     public static final String ALERT = "EARTH SYSTEM SHUT DOWN";
     /** Moon-cheese gold (SS-05 is ice-cyan). */
@@ -19,7 +23,7 @@ public final class MoonInfo {
      * toggle the cutscene) and H (the menu), so not those. (A plain number so the dedicated server never needs the
      * client's GLFW classes.) Players can rebind it in Controls or from the remote's menu.
      */
-    public static final int DEFAULT_KEY = 89;
+    public static final int DEFAULT_KEY = 78;
 
     private MoonInfo() {
     }

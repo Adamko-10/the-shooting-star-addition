@@ -1,0 +1,159 @@
+// The Shooting Star 1.4.0+ ships obfuscated: its classes and members are named a, b, c... compat/ is written against
+// its readable names (as in 1.3.x), so:
+//
+//   - tssDeobf makes a readable copy of The Shooting Star's jar, using the mapping for it in libs/mappings/, and the
+//     build compiles (and the dev runs run) against that copy;
+//   - tssReobf maps the release jar's references back to The Shooting Star's real, obfuscated names, and checks that
+//     every class, field and method of it the jar uses really exists in The Shooting Star's jar (the build fails
+//     otherwise).
+//
+// The mapping is made on your own machine, never committed (libs/ is git-ignored): the repository must not carry a
+// de-obfuscation map of The Shooting Star. When The Shooting Star updates:
+//
+//   ./gradlew tssMappings -PtssNamed=<a readable build of it for the same loader and Minecraft version>
+//
+// where the readable build is the 1.3.4 jar (for 1.4.0), or for later versions build/shooting-star-named/<jar> left
+// by the previous version's tssDeobf. Then check libs/mappings/<name>.tiny.report.txt: nothing compat/ uses may be in
+// it, and the build must compile. With a readable The Shooting Star (no mapping for it) both steps just copy the jar.
+//
+// Used from build.gradle as:
+//   ext.tssObf = <FileCollection: The Shooting Star's jar, as the loader would load it>   (before applying this)
+//   ext.tssPrefix = 'cyou/rimuru/shootingstardemo/' (+ 'mc1201/' etc. on Forge/NeoForge)
+//   ext.tssNested = '+mc26.3' (Fabric: which nested jar of the bundle -PtssNamed points at), else null
+//   apply from: 'gradle/tss.gradle'
+//   ...then depend on tssNamed instead of the jar, and call tssReobf(<the task making the release jar>).
+
+repositories {
+    maven {
+        url = 'https://maven.fabricmc.net/'
+        content { includeGroup 'net.fabricmc' }
+    }
+    mavenCentral()
+}
+
+configurations {
+    tssTools
+}
+dependencies {
+    tssTools 'net.fabricmc:tiny-remapper:0.12.3'
+    tssTools 'org.ow2.asm:asm-tree:9.9.1'
+}
+
+// The two tools (tools/tss), compiled on their own: they never go into the addon.
+def tssToolsDir = layout.buildDirectory.dir('tss-tools')
+def tssCompileTools = tasks.register('tssCompileTools', JavaCompile) {
+    source = fileTree('tools/tss') { include '*.java' }
+    classpath = configurations.tssTools
+    destinationDirectory = tssToolsDir
+    options.release = 17
+    options.encoding = 'UTF-8'
+}
+def tssToolsClasspath = files(tssToolsDir) { builtBy tssCompileTools } + configurations.tssTools
+
+def tssTag = tssPrefix.replaceAll('^cyou/rimuru/shootingstardemo/?', '').replace('/', '')
+def tssMappingsDir = file('libs/mappings')
+def tssMappingFor = { File jar -> new File(tssMappingsDir, "${jar.name - '.jar'}${tssTag ? '.' + tssTag : ''}.tiny") }
+def tssProjectDir = projectDir
+
+def tssNamedDir = layout.buildDirectory.dir('shooting-star-named')
+def tssDeobf = tasks.register('tssDeobf', JavaExec) {
+    def obf = tssObf
+    inputs.files(obf)
+    inputs.files(fileTree('libs/mappings') { include '*.tiny' })
+    outputs.dir(tssNamedDir)
+    classpath = tssToolsClasspath
+    mainClass = 'TssRemap'
+    def out = tssNamedDir
+    def mappingFor = tssMappingFor
+    argumentProviders.add({
+        def jar = obf.singleFile
+        ['deobf', jar.path, out.get().file(jar.name).asFile.path, mappingFor(jar).path]
+    } as CommandLineArgumentProvider)
+    doFirst { out.get().asFile.deleteDir() }
+    notCompatibleWithConfigurationCache('runs an external tool over a file collection')
+}
+ext.tssNamed = files(tssNamedDir) { builtBy tssDeobf }.asFileTree.matching { include '*.jar' }
+
+tasks.register('tssMappings', JavaExec) {
+    description = 'Matches The Shooting Star\'s obfuscated jar against a readable build of it: -PtssNamed=<jar>'
+    def obf = tssObf
+    def named = providers.gradleProperty('tssNamed')
+    def prefix = tssPrefix
+    def nested = project.findProperty('tssNested') ?: ''
+    def mappingFor = tssMappingFor
+    inputs.files(obf)
+    classpath = tssToolsClasspath
+    mainClass = 'TssMatch'
+    argumentProviders.add({
+        def jar = obf.singleFile
+        def mapping = mappingFor(jar)
+        mapping.parentFile.mkdirs()
+        def namedJar = new File(named.get())
+        if (!namedJar.absolute) namedJar = new File(tssProjectDir, named.get())
+        def a = [namedJar.path, jar.path, mapping.path, prefix]
+        if (nested) a << nested
+        a
+    } as CommandLineArgumentProvider)
+    notCompatibleWithConfigurationCache('runs an external tool over a file collection')
+}
+
+// The release jar: the loader's own jar task writes to build/libs-raw, and this writes the final one to build/libs.
+// (Also used for the dev-only test harness jars: another task name and output folder.)
+ext.tssReobf = { TaskProvider<? extends AbstractArchiveTask> jarTask, String taskName = 'tssReobf', String outDir = 'libs' ->
+    jarTask.configure { destinationDirectory = layout.buildDirectory.dir(outDir + '-raw') }
+    def obf = tssObf
+    def mappingFor = tssMappingFor
+    def named = tssNamed
+    def reobf = tasks.register(taskName, JavaExec) {
+        def input = jarTask.flatMap { it.archiveFile }
+        def output = layout.buildDirectory.file(jarTask.flatMap { it.archiveFileName }.map { outDir + '/' + it })
+        inputs.file(input)
+        inputs.files(obf, named)
+        inputs.files(fileTree('libs/mappings') { include '*.tiny' })
+        outputs.file(output)
+        classpath = tssToolsClasspath
+        mainClass = 'TssRemap'
+        argumentProviders.add({
+            ['reobf', input.get().asFile.path, output.get().asFile.path, mappingFor(obf.singleFile).path, obf.singleFile.path] + named.files*.path
+        } as CommandLineArgumentProvider)
+        notCompatibleWithConfigurationCache('runs an external tool over a file collection')
+    }
+    if (taskName == 'tssReobf') {
+        tasks.named('assemble') { dependsOn reobf }
+    }
+    return reobf
+}
+
+// Loom on obfuscated Minecraft (Fabric 1.21.11 and older) resolves and remaps mod dependencies while it configures the
+// project, before any task runs, so there the readable copy has to exist by then: tssDeobfNow(jar) makes it right away
+// (when it is missing or older than the jar or its mapping) and returns it.
+ext.tssDeobfNow = { File obfJar ->
+    def out = layout.buildDirectory.dir('shooting-star-named').get().file(obfJar.name).asFile
+    def mapping = tssMappingFor(obfJar)
+    if (!out.exists() || out.lastModified() < obfJar.lastModified() || (mapping.exists() && out.lastModified() < mapping.lastModified())) {
+        def launcher = javaToolchains.launcherFor { languageVersion = java.toolchain.languageVersion }.get()
+        providers.exec {
+            commandLine launcher.executablePath.asFile.path, '-cp', configurations.tssTools.asPath,
+                file('tools/tss/TssRemap.java').path, 'deobf', obfJar.path, out.path, mapping.path
+        }.result.get()
+    }
+    return files(out)
+}
+
+// The nested jar of a Fabric bundle whose name contains filter, taken out of it now (see tssDeobfNow).
+ext.tssNestedNow = { File bundle, String filter ->
+    if (bundle.name.contains(filter)) return bundle
+    def zip = new java.util.zip.ZipFile(bundle)
+    try {
+        def entry = zip.entries().find { it.name.startsWith('META-INF/jars/') && it.name.contains(filter) }
+        if (entry == null) throw new GradleException("${bundle.name} holds no ${filter} build")
+        def out = layout.buildDirectory.dir('shooting-star').get().file(entry.name.substring(entry.name.lastIndexOf('/') + 1)).asFile
+        if (!out.exists() || out.lastModified() < bundle.lastModified()) {
+            out.parentFile.mkdirs()
+            out.withOutputStream { it << zip.getInputStream(entry) }
+        }
+        return out
+    } finally {
+        zip.close()
+    }
+}

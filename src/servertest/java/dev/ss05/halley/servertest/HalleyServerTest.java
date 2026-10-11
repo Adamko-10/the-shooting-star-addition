@@ -240,10 +240,15 @@ public final class HalleyServerTest {
         SkillSet owner = SkillSet.of(skill);
         this.record("skill_owned_by_stellar_remote", owner == ModSkills.STELLAR_REMOTE, "owner=" + owner);
 
+        // The Shooting Star's own skills come first and keep their numbers: Halley right after them, numbered after
+        // the highest of theirs (SS-06 with The Shooting Star 1.4.0, whose SS-05 is Tesseract).
+        int builtIns = SkillSet.skillCount() - 2;
         int index = SkillSet.indexOf(skill);
-        this.record("skill_index_is_3", index == 3, "index=" + index);
+        this.record("skill_index_after_builtins", index == builtIns, "index=" + index + " builtIns=" + builtIns);
+        String number = String.format("SS-%02d", highestBuiltInNumber(owner) + 1);
+        this.record("skill_numbered_after_builtins", skill.title().equals(number + " · Halley"), "title=" + skill.title());
         this.record("skill_id_is_halley", "halley".equals(skill.id()), "id=" + skill.id());
-        this.record("skill_default_key_is_O", skill.defaultKey() == HalleyInfo.DEFAULT_KEY, "key=" + skill.defaultKey());
+        this.record("skill_default_key_is_O", skill.defaultKey() == 79 && skill.defaultKey() == HalleyInfo.DEFAULT_KEY, "key=" + skill.defaultKey());
         this.record("skill_cooldown_matches_config", skill.cooldown() == HalleyConfig.tuning().cooldownTicks(),
             "cooldown=" + skill.cooldown() + " config=" + HalleyConfig.tuning().cooldownTicks());
         int expectedDuration = HalleyPlan.durationFor(HalleyConfig.tuning().trenchLength());
@@ -259,7 +264,19 @@ public final class HalleyServerTest {
         }
     }
 
-    /** Same shape as {@link #checkSkillRegistration()}, for SS-06 Luna (skill index 4, key J). */
+    /** The highest SS number among The Shooting Star's own skills on the remote. */
+    private static int highestBuiltInNumber(SkillSet owner) {
+        int highest = 0;
+        for (Skill s : owner.skills) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("SS-(\\d+)").matcher(String.valueOf(s.title()));
+            if (s != StarBridge.SKILL && s != StarBridge.MOON && m.find()) {
+                highest = Math.max(highest, Integer.parseInt(m.group(1)));
+            }
+        }
+        return highest;
+    }
+
+    /** Same shape as {@link #checkSkillRegistration()}, for Luna (right after Halley, key N). */
     private void checkMoonSkillRegistration() {
         if (!StarBridge.installed()) {
             return;
@@ -269,10 +286,13 @@ public final class HalleyServerTest {
         SkillSet owner = SkillSet.of(skill);
         this.record("moon_skill_owned_by_stellar_remote", owner == ModSkills.STELLAR_REMOTE, "owner=" + owner);
 
+        int builtIns = SkillSet.skillCount() - 2;
         int index = SkillSet.indexOf(skill);
-        this.record("moon_skill_index_is_4", index == 4, "index=" + index);
+        this.record("moon_skill_index_after_halley", index == builtIns + 1, "index=" + index + " builtIns=" + builtIns);
+        String number = String.format("SS-%02d", highestBuiltInNumber(owner) + 2);
+        this.record("moon_skill_numbered_after_halley", skill.title().equals(number + " · Luna"), "title=" + skill.title());
         this.record("moon_skill_id_is_luna", "luna".equals(skill.id()), "id=" + skill.id());
-        this.record("moon_skill_default_key_is_Y", skill.defaultKey() == MoonInfo.DEFAULT_KEY, "key=" + skill.defaultKey());
+        this.record("moon_skill_default_key_is_N", skill.defaultKey() == 78 && skill.defaultKey() == MoonInfo.DEFAULT_KEY, "key=" + skill.defaultKey());
         this.record("moon_skill_cooldown_matches_config", skill.cooldown() == MoonConfig.tuning().cooldownTicks(),
             "cooldown=" + skill.cooldown() + " config=" + MoonConfig.tuning().cooldownTicks());
         this.record("moon_skill_duration_matches_plan", skill.duration() == MoonPlan.DURATION,
