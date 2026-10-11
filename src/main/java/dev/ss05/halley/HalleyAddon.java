@@ -24,7 +24,7 @@ import org.slf4j.Logger;
  *
  * <p>Where things live:
  * <ul>
- *   <li>{@code compat/}  — the ONLY code that touches The Shooting Star. When that mod updates, start there.</li>
+ *   <li>{@code compat/tss/}  — the ONLY code that touches The Shooting Star. When that mod updates, start there.</li>
  *   <li>{@link HalleyConfig} — every number you might want to tune (also written to config/shooting_star_addition-common.toml).</li>
  *   <li>{@link HalleyClientConfig} — how it looks on each player's screen (config/shooting_star_addition-client.toml).</li>
  *   <li>{@link HalleyPlan} — the timeline and the shape of the strike, shared by the server and the client film.</li>

@@ -1,4 +1,4 @@
-package dev.ss05.halley.compat;
+package dev.ss05.halley.compat.tss;
 
 import cyou.rimuru.shootingstardemo.mc1211.spell.ActiveSpell;
 import dev.ss05.halley.MoonParams;
@@ -15,7 +15,7 @@ public final class MoonSpell extends ActiveSpell {
     private final MoonStrike strike;
 
     public MoonSpell(ServerPlayer caster, Vec3 target, long seed, MoonParams params) {
-        super(StarBridge.MOON, caster, caster.position(), target, seed, false);
+        super(TssLink.MOON, caster, caster.position(), target, seed, false);
         MoonPlan plan = new MoonPlan(this.origin, this.target, seed, params);
         this.strike = new MoonStrike(this.level, plan, caster);
     }

@@ -6,10 +6,8 @@
   "client": [
     "ClientLevelMixin",
     "ClientLevelTimeMixin",
-    "FxManagerMixin",
     "LevelRendererMoonMixin",
-    "PlayerModelMixin",
-    "RemoteRendererMixin"
+    "PlayerModelMixin"
   ],
   "injectors": {
     "defaultRequire": 0

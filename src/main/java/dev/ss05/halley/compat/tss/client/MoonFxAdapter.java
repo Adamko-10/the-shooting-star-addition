@@ -1,4 +1,4 @@
-package dev.ss05.halley.compat.client;
+package dev.ss05.halley.compat.tss.client;
 
 import cyou.rimuru.shootingstardemo.mc1211.client.cinematic.CutsceneDirector;
 import cyou.rimuru.shootingstardemo.mc1211.client.cinematic.Subject;

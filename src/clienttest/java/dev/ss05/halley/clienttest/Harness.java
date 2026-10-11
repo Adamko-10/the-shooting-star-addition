@@ -213,7 +213,7 @@ final class Harness {
             ServerLevel level = server.overworld();
             ServerPlayer player = level.getServer().getPlayerList().getPlayers().get(0);
 
-            Skill skill = HarnessParams.MOON ? StarBridge.MOON : StarBridge.SKILL;
+            Skill skill = (Skill) StarBridge.skill(HarnessParams.MOON);
             int index = HarnessParams.MOON ? StarBridge.moonIndex() : StarBridge.skillIndex();
             if (index < 0) {
                 log("SS-05/SS-06 never attached to the Stellar Remote (StarBridge.problem(): " + StarBridge.problem() + ")");

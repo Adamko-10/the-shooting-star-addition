@@ -93,6 +93,6 @@ surface textures for the sky moon: `assets/shooting_star_addition/textures/luna/
 | Name, colour, key, alert text | `world/MoonInfo` |
 | Casting (night check, aim) | `world/MoonCasting` |
 | What it does to the world | `world/MoonStrike` |
-| Remote entry, spell | `compat/MoonSkill`, `compat/MoonSpell`; registered with SS-05 in `compat/StarBridge` |
-| Client effects | `client/luna/` (`MoonFx`, rendering, HUD), `client/film/MoonStoryboard`, `compat/client/MoonFxAdapter`, `MoonCutscene` |
+| Remote entry, spell | `compat/tss/MoonSkill`, `compat/tss/MoonSpell`; registered with Halley in `compat/tss/TssLink` |
+| Client effects | `client/luna/` (`MoonFx`, rendering, HUD), `client/film/MoonStoryboard`, `compat/tss/client/MoonFxAdapter`, `MoonCutscene` |
 | Blocks, items, effect, sounds | `content/` |

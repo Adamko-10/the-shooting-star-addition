@@ -1,30 +1,10 @@
 package dev.ss05.halley.compat;
 
-import cyou.rimuru.shootingstardemo.mc1211.magic.Casting;
-import cyou.rimuru.shootingstardemo.mc1211.magic.Skill;
-import cyou.rimuru.shootingstardemo.mc1211.magic.SkillSet;
-import cyou.rimuru.shootingstardemo.mc1211.registry.ModSkills;
-import cyou.rimuru.shootingstardemo.mc1211.spell.GreaterTeleportation;
-import cyou.rimuru.shootingstardemo.mc1211.spell.SpellEngine;
-import cyou.rimuru.shootingstardemo.mc1211.spell.SpellUtil;
-import cyou.rimuru.shootingstardemo.mc1211.star.Carving;
-import cyou.rimuru.shootingstardemo.mc1211.star.Erasure;
-import dev.ss05.halley.world.HalleyInfo;
-import dev.ss05.halley.world.MoonInfo;
-import dev.ss05.halley.world.SkillNumbers;
 import dev.ss05.halley.HalleyAddon;
+import dev.ss05.halley.HalleyParams;
+import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.world.Excavation;
-import dev.ss05.halley.world.HalleyCasting;
-import dev.ss05.halley.world.MoonCasting;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -34,34 +14,27 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * The one place the addon reaches into The Shooting Star (server and common side; the client side is
- * {@link dev.ss05.halley.compat.client.StarClientBridge}).
+ * How the rest of the addon reaches The Shooting Star. The code that touches it is {@code compat/tss/}, and the
+ * release jar holds one copy of that per version of The Shooting Star it supports ({@code compat/v1_4_1/} and so on,
+ * each mapped to that version's obfuscated names). {@link #install()} picks the copy for the version that is running
+ * ({@link TssVersion}); everything else here hands over to it.
  *
- * <h2>When The Shooting Star updates</h2>
- * Rebuild against the new jar. If it no longer compiles, or the game logs "SS-05 couldn't attach", the fix is in
- * this package:
- * <ul>
- *   <li>Renamed packages or classes - fix the imports at the top of the files in {@code compat/}.</li>
- *   <li>The remote's skill list ({@code SkillSet}) changed shape - adjust {@link #install()}; it finds the fields it
- *       needs by their types.</li>
- *   <li>A helper moved (spells, carving, erasure, the evac lift) - fix the one-line wrapper for it at the bottom.</li>
- * </ul>
- * Nothing outside {@code compat/} imports The Shooting Star, so nothing else should need to change.
+ * <p>In the dev runs nothing is copied yet, so the plain {@code compat/tss/} is used.
  */
 public final class StarBridge {
-    /** SS-05 as The Shooting Star sees it. */
-    public static final HalleySkill SKILL = new HalleySkill();
-    /** SS-06 as The Shooting Star sees it. */
-    public static final MoonSkill MOON = new MoonSkill();
+    /** Where the copies of compat/tss/ live in the release jar: this, then the version's {@link TssVersion#tag}. */
+    public static final String VERSIONED = "dev.ss05.halley.compat.";
+    /** compat/tss/ itself (dev runs only; the release jar has only the copies). */
+    public static final String UNVERSIONED = "dev.ss05.halley.compat.tss";
 
-    private static volatile boolean installed;
+    private static volatile StarLink link;
     private static volatile String problem = "not installed yet";
 
     private StarBridge() {
     }
 
     public static boolean installed() {
-        return installed;
+        return link != null;
     }
 
     public static String problem() {
@@ -69,203 +42,125 @@ public final class StarBridge {
     }
 
     /**
-     * Adds SS-05 and SS-06 to the Stellar Remote: after the built-in skills, each with its own index, key binding,
+     * Adds Halley and Luna to the Stellar Remote: after the built-in skills, each with its own index, key binding,
      * menu row, tooltip line and cooldown, exactly as if they had been among them. Safe to call more than once.
      */
-    @SuppressWarnings("unchecked")
     public static synchronized boolean install() {
-        if (installed) {
+        if (link != null) {
             return true;
         }
         try {
-            SkillSet remote = ModSkills.STELLAR_REMOTE;
-            if (SkillSet.of(SKILL) != null) {
-                installed = true;
-                return true;
-            }
-
-            // Look everything up first, so that a renamed field fails before anything has been changed.
-            // SkillSet's private tables and the remote's own list and caster: SS-05 has to write to them, because the
-            // Stellar Remote's skill list is built once, from an enum, with no public "add a skill" hook. The Shooting
-            // Star 1.4.0+ is obfuscated, so they are found by their types (all distinct), not their names.
-            List<Skill> all = (List<Skill>) field(true, List.class, Skill.class).get(null);
-            Map<Skill, SkillSet> owner = (Map<Skill, SkillSet>) field(true, Map.class, Skill.class, SkillSet.class).get(null);
-            Map<Skill, Integer> index = (Map<Skill, Integer>) field(true, Map.class, Skill.class, Integer.class).get(null);
-            Field skillsField = field(false, List.class, Skill.class);
-            Field casterField = field(false, SkillSet.Caster.class, Skill.class);
-            SkillSet.Caster<Skill> builtIn = (SkillSet.Caster<Skill>) casterField.get(remote);
-            List<Skill> before = remote.skills;
-            if (builtIn == null || before == null || before.isEmpty()) {
-                throw new IllegalStateException("the Stellar Remote has no skills to join");
-            }
-
-            // The Shooting Star's own skills keep their SS numbers; Halley and Luna take the next two after the highest.
-            int highest = 0;
-            for (Skill skill : before) {
-                Matcher number = Pattern.compile("SS-(\\d+)").matcher(String.valueOf(skill.title()));
-                if (number.find()) {
-                    highest = Math.max(highest, Integer.parseInt(number.group(1)));
-                }
-            }
-            SkillNumbers.after(highest);
-
-            List<Skill> after = new ArrayList<>(before);
-            after.add(SKILL);
-            after.add(MOON);
-            // The Shooting Star 1.3.2+ hands every cast a Tuning (the remote's power/speed gauge). SS-05 has no power()
-            // to tune, so it casts the same way whatever the gauge says; the built-in skills get theirs unchanged.
-            SkillSet.Caster<Skill> caster = (player, skill, tuning) -> skill == SKILL ? HalleyCasting.cast(player)
-                : skill == MOON ? MoonCasting.cast(player) : builtIn.cast(player, skill, tuning);
-
-            for (Skill added : List.<Skill>of(SKILL, MOON)) {
-                index.put(added, all.size());
-                all.add(added);
-                owner.put(added, remote);
-            }
-            try {
-                skillsField.set(remote, List.copyOf(after));
-                casterField.set(remote, caster);
-            } catch (ReflectiveOperationException | RuntimeException failed) {
-                for (Skill added : List.<Skill>of(SKILL, MOON)) {
-                    all.remove(added);
-                    owner.remove(added);
-                    index.remove(added);
-                }
-                skillsField.set(remote, before);
-                casterField.set(remote, builtIn);
-                throw failed;
-            }
-
-            installed = true;
+            StarLink found = find();
+            found.install();
+            link = found;
             problem = "";
-            HalleyAddon.LOG.info("{} (Halley) joined the Stellar Remote as skill #{} (key slot {}).", HalleyInfo.title(), after.indexOf(SKILL) + 1, SkillSet.indexOf(SKILL));
-            HalleyAddon.LOG.info("{} (Luna) joined the Stellar Remote as skill #{} (key slot {}).", MoonInfo.title(), after.indexOf(MOON) + 1, SkillSet.indexOf(MOON));
             return true;
         } catch (Throwable failed) {
             problem = failed.getClass().getSimpleName() + ": " + failed.getMessage();
             HalleyAddon.LOG.error("Halley and Luna couldn't attach to The Shooting Star, so the skills are disabled. "
-                + "This usually means The Shooting Star was updated - see compat/StarBridge.java.", failed);
+                + "This usually means The Shooting Star was updated - see compat/tss/TssLink.java.", failed);
             return false;
         }
     }
 
-    /** SkillSet's one field (static or not) of type {@code raw<args>}. */
-    private static Field field(boolean isStatic, Class<?> raw, Class<?>... args) throws NoSuchFieldException {
-        Field found = null;
-        for (Field field : SkillSet.class.getDeclaredFields()) {
-            if (Modifier.isStatic(field.getModifiers()) != isStatic || field.getType() != raw
-                || !(field.getGenericType() instanceof ParameterizedType type) || !Arrays.equals(type.getActualTypeArguments(), args)) {
+    /** The copy of compat/tss/ built for the running version of The Shooting Star. */
+    private static StarLink find() throws ReflectiveOperationException {
+        String version = TssVersion.running();
+        if (version == null) {
+            throw new IllegalStateException("The Shooting Star isn't loaded");
+        }
+        ClassLoader loader = StarBridge.class.getClassLoader();
+        for (String pkg : new String[] {VERSIONED + TssVersion.tag(version), UNVERSIONED}) {
+            Class<?> type;
+            try {
+                type = Class.forName(pkg + ".TssLink", true, loader);
+            } catch (ClassNotFoundException absent) {
                 continue;
             }
-            if (found != null) {
-                throw new NoSuchFieldException("SkillSet has more than one " + describe(isStatic, raw, args));
-            }
-            found = field;
+            HalleyAddon.LOG.info("Attaching to The Shooting Star {} through {}", version, pkg);
+            return (StarLink) type.getDeclaredConstructor().newInstance();
         }
-        if (found == null) {
-            throw new NoSuchFieldException("SkillSet has no " + describe(isStatic, raw, args));
-        }
-        found.setAccessible(true);
-        return found;
+        throw new IllegalStateException("this build of The Shooting Star Addition doesn't support The Shooting Star " + version);
     }
 
-    private static String describe(boolean isStatic, Class<?> raw, Class<?>... args) {
-        StringBuilder b = new StringBuilder(isStatic ? "static " : "").append(raw.getSimpleName()).append('<');
-        for (int i = 0; i < args.length; i++) {
-            b.append(i == 0 ? "" : ", ").append(args[i].getSimpleName());
+    /** The client half: catches Halley's and Luna's effect packets. Does nothing if the server half didn't attach. */
+    public static void installClient() {
+        if (link != null) {
+            link.installClient();
         }
-        return b.append("> field").toString();
     }
 
-    /** The index The Shooting Star uses for SS-05 in its packets, or -1 when it isn't attached. */
+    /** The index The Shooting Star uses for Halley in its packets, or -1 when it isn't attached. */
     public static int skillIndex() {
-        return installed ? SkillSet.indexOf(SKILL) : -1;
+        return link != null ? link.skillIndex() : -1;
     }
 
-    /** The index The Shooting Star uses for SS-06 in its packets, or -1 when it isn't attached. */
+    /** The index The Shooting Star uses for Luna in its packets, or -1 when it isn't attached. */
     public static int moonIndex() {
-        return installed ? SkillSet.indexOf(MOON) : -1;
+        return link != null ? link.moonIndex() : -1;
     }
 
-    // ---- Thin wrappers over The Shooting Star's helpers. One line each, so an update only touches these. ----------
-
-    /** Starts a spell and broadcasts its effect packet to nearby players, like the built-in skills. */
-    public static void start(HalleySpell spell) {
-        SpellEngine.start(spell);
+    /** Halley's or Luna's {@code Skill} object, or null when it isn't attached (for the test harness). */
+    public static Object skill(boolean moon) {
+        return link != null ? link.skill(moon) : null;
     }
 
-    public static void start(MoonSpell spell) {
-        SpellEngine.start(spell);
+    private static StarLink link() {
+        StarLink current = link;
+        if (current == null) {
+            throw new IllegalStateException("The Shooting Star Addition isn't attached to The Shooting Star (" + problem + ")");
+        }
+        return current;
+    }
+
+    // ---- Handed over to the attached compat/tss/ (see StarLink for what each does) ---------------------------------
+
+    public static void startHalley(ServerPlayer caster, Vec3 target, long seed, HalleyParams params) {
+        link().startHalley(caster, target, seed, params);
+    }
+
+    public static void startMoon(ServerPlayer caster, Vec3 target, long seed, MoonParams params) {
+        link().startMoon(caster, target, seed, params);
     }
 
     public static boolean alreadyFlying(ServerPlayer player) {
-        return alreadyFlying(SKILL, player);
+        return link().alreadyFlying(false, player);
     }
 
-    public static boolean alreadyFlying(Skill skill, ServerPlayer player) {
-        return SpellEngine.running(skill, player.getUUID());
+    public static boolean moonAlreadyFalling(ServerPlayer player) {
+        return link().alreadyFlying(true, player);
     }
 
-    /** The point on the ground under the crosshair (or under a creature in it), the way the built-in skills aim. */
     public static Vec3 aimGround(ServerPlayer player, double reach, double fallback) {
-        return SpellEngine.aimGround(player, reach, fallback);
+        return link().aimGround(player, reach, fallback);
     }
 
-    /** The purple action-bar message the remote uses when it refuses. */
     public static void deny(ServerPlayer player, String message) {
-        Casting.deny(player, message);
+        link().deny(player, message);
     }
 
-    /** Resistance and fire resistance, refreshed every half second while the caster's own spell runs. */
     public static void ward(ServerPlayer caster) {
-        SpellUtil.ward(caster);
+        link().ward(caster);
     }
 
-    /** Whether a spell from {@code caster} may hit this entity (not the caster, their pets, armour stands...). */
     public static boolean affects(Entity entity, ServerPlayer caster) {
-        return SpellUtil.affects(entity, caster);
+        return link().affects(entity, caster);
     }
 
-    /** Kills outright, the way the other skills' strike zones do (bosses included). */
     public static void erase(ServerLevel level, LivingEntity victim, ServerPlayer attacker) {
-        Erasure.strike(level, victim, attacker);
+        link().erase(level, victim, attacker);
     }
 
-    /** Teleports a caster standing within {@code zone} of the target out to {@code refuge}, held in the air. */
     public static boolean liftClear(ServerPlayer caster, Vec3 target, double zone, double refuge, int ticks) {
-        return GreaterTeleportation.lift(caster, target, zone, refuge, ticks) != null;
+        return link().liftClear(caster, target, zone, refuge, ticks);
     }
 
-    /** Places blocks fast (straight into the chunk sections), relights and resends the chunks. */
     public static void paint(ServerLevel level, Map<BlockPos, BlockState> blocks) {
-        Carving.paint(level, blocks);
+        link().paint(level, blocks);
     }
 
-    /**
-     * Cuts everything above a floor away, a chunk at a time, nearest {@code centre} first: the same fast carver the
-     * built-in skills use. {@code floor} returns {@link dev.ss05.halley.HalleyPlan#UNTOUCHED} outside the shape.
-     */
     public static Excavation excavate(ServerLevel level, Vec3 centre, double radius, Excavation.Floor floor,
                                       Excavation.Surface surface, BlockPos spared, String name, int chunksPerTick) {
-        Carving carving = Carving.flatten(level, centre, radius, floor::floor, surface::at, spared)
-            .perTick(chunksPerTick)
-            .lazy()
-            .named(name);
-        return new Excavation() {
-            @Override
-            public void tick(double front) {
-                carving.tick(front);
-            }
-
-            @Override
-            public boolean done() {
-                return carving.done();
-            }
-
-            @Override
-            public void finish() {
-                carving.finish();
-            }
-        };
+        return link().excavate(level, centre, radius, floor, surface, spared, name, chunksPerTick);
     }
 }

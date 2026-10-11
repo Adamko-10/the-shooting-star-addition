@@ -1,4 +1,4 @@
-package dev.ss05.halley.compat;
+package dev.ss05.halley.compat.tss;
 
 import cyou.rimuru.shootingstardemo.mc1211.spell.ActiveSpell;
 import dev.ss05.halley.HalleyParams;
@@ -15,7 +15,7 @@ public final class HalleySpell extends ActiveSpell {
     private final HalleyStrike strike;
 
     public HalleySpell(ServerPlayer caster, Vec3 target, long seed, HalleyParams params) {
-        super(StarBridge.SKILL, caster, caster.position(), target, seed, false);
+        super(TssLink.SKILL, caster, caster.position(), target, seed, false);
         HalleyPlan plan = new HalleyPlan(this.origin, this.target, caster.getYRot(), seed, params);
         this.strike = new HalleyStrike(this.level, plan, caster);
     }

@@ -35,7 +35,7 @@ import org.joml.Vector3f;
  * One SS-06 moonfall as a client sees it: its sounds, particles, screen effects, sky look, raised arm and the
  * sphere/glow drawn by {@link dev.ss05.halley.client.luna.render.MoonRenderer}. Modelled directly on
  * {@code client/HalleyFx}, trimmed to what the moon needs; nothing here touches The Shooting Star (that's
- * {@code compat/client/MoonFxAdapter}, which hands this a {@link Host} and drives {@link #tick}, {@link #screen}
+ * {@code compat/tss/client/MoonFxAdapter}, which hands this a {@link Host} and drives {@link #tick}, {@link #screen}
  * and the HUD).
  *
  * <h2>Handing over to the block moon</h2>
@@ -62,7 +62,7 @@ public final class MoonFx {
     /** How long the cooling molten-shell look lingers after handover, in ticks (see the same places). */
     public static final float COOLING_TICKS = 100.0F;
 
-    /** What the film needs from The Shooting Star (implemented in compat/client). */
+    /** What the film needs from The Shooting Star (implemented in compat/tss/client). */
     public interface Host {
         float filmWeight();
 
@@ -74,7 +74,7 @@ public final class MoonFx {
         SoundEvent remoteSound(boolean press);
     }
 
-    /** The screen effects SS-06 uses: The Shooting Star's post-processing, reached through compat/client. */
+    /** The screen effects SS-06 uses: The Shooting Star's post-processing, reached through compat/tss/client. */
     public interface Screen {
         void shake(float k);
 

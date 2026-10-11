@@ -12,10 +12,15 @@ authors = "${mod_authors}"
 logoFile = "shooting_star_addition_icon.png"
 description = '''${mod_description}'''
 
-# Optional touches inside The Shooting Star (the remote's cover animation, the caster's raised arm, the film
-# overlay). If The Shooting Star changes, these simply switch themselves off; the skill keeps working.
+# Optional touches (the remote's cover animation, the caster's raised arm, the film overlay, the sky). If their
+# targets change, these simply switch themselves off; the skills keep working.
 [[mixins]]
 config = "shooting_star_addition.mixins.json"
+
+# The ones into The Shooting Star itself. The release jar has one of these per supported version of The Shooting Star
+# (the build writes them in here), and only the running version's applies.
+[[mixins]]
+config = "shooting_star_addition.tss.mixins.json"
 
 [[dependencies.${mod_id}]]
 modId = "neoforge"

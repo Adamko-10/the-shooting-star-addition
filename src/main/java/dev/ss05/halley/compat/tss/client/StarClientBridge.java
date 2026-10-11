@@ -1,4 +1,4 @@
-package dev.ss05.halley.compat.client;
+package dev.ss05.halley.compat.tss.client;
 
 import cyou.rimuru.shootingstardemo.mc1211.client.cinematic.CutsceneDirector;
 import cyou.rimuru.shootingstardemo.mc1211.client.fx.CastTitles;
@@ -14,18 +14,20 @@ import dev.ss05.halley.client.HalleyHud;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.MoonHud;
 import dev.ss05.halley.compat.StarBridge;
+import dev.ss05.halley.compat.tss.TssLink;
 import java.util.function.Consumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 
 /**
- * The client half of {@link StarBridge}: the only client code that touches The Shooting Star. It catches SS-05's
- * effect packets on their way to the remote's effect manager and starts {@link HalleyFx} for them instead.
+ * The client half of {@link TssLink}: the only client code that touches The Shooting Star. It catches Halley's and
+ * Luna's effect packets on their way to the remote's effect manager and starts {@link HalleyFx} / MoonFx for them
+ * instead.
  *
  * <h2>When The Shooting Star updates</h2>
- * Fix the imports here and in {@link HalleyFxAdapter} and {@link HalleyCutscene}. The three small mixins in
- * {@code compat/mixin} (film overlay, remote animation, raised arm) switch themselves off if their targets move; the
- * skill and its effects keep working without them.
+ * Fix the imports here and in {@link HalleyFxAdapter} and {@link HalleyCutscene}. The two small mixins in
+ * {@code compat/tss/mixin} (film overlay, remote animation) switch themselves off if their targets move; the skills
+ * and their effects keep working without them.
  */
 public final class StarClientBridge {
     private static boolean installed;
@@ -51,7 +53,7 @@ public final class StarClientBridge {
             installed = true;
         } catch (Throwable failed) {
             HalleyAddon.LOG.error("SS-05 Halley couldn't hook its effects into The Shooting Star; strikes will happen "
-                + "but won't be shown. See compat/client/StarClientBridge.java.", failed);
+                + "but won't be shown. See compat/tss/client/StarClientBridge.java.", failed);
         }
     }
 
@@ -61,7 +63,7 @@ public final class StarClientBridge {
         if (fx.halley().mine && CutsceneDirector.automatic()) {
             CutsceneDirector.play(HalleyCutscene.of(fx));
         } else if (!fx.halley().mine) {
-            CastTitles.show(StarBridge.SKILL, false, fx.focus());
+            CastTitles.show(TssLink.SKILL, false, fx.focus());
         }
     }
 
@@ -72,7 +74,7 @@ public final class StarClientBridge {
         if (fx.moon().mine && CutsceneDirector.automatic()) {
             CutsceneDirector.play(MoonCutscene.of(fx));
         } else if (!fx.moon().mine) {
-            CastTitles.show(StarBridge.MOON, false, fx.focus());
+            CastTitles.show(TssLink.MOON, false, fx.focus());
         }
     }
 

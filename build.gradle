@@ -117,12 +117,13 @@ neoForge.addModdingDependenciesTo(sourceSets.clienttest)
 // The Shooting Star is compiled against but never shipped inside this jar (its licence is All Rights Reserved).
 var shootingStar = fileTree(dir: 'libs', include: 'the-shooting-star*.jar')
 
-// The Shooting Star 1.4.0+ is obfuscated: compile and run against a readable copy of it, and map the release jar back
-// (see gradle/tss.gradle).
+// The Shooting Star 1.4.0+ is obfuscated: compile and run against a readable copy of the newest one in libs/, and
+// make the release jar work with every one in libs/ (see gradle/tss.gradle).
 ext.tssObf = shootingStar
 ext.tssPrefix = 'cyou/rimuru/shootingstardemo/mc1211/'
+ext.tssNested = null
 apply from: 'gradle/tss.gradle'
-tssReobf(tasks.named('jar'))
+tssPack(tasks.named('jar'))
 
 dependencies {
     compileOnly tssNamed
@@ -133,13 +134,16 @@ dependencies {
 
 // The dev runs load mods from a 'mods' folder next to their game directory, so The Shooting Star is copied there
 // before every run. The clientTest run has its own game directory (run/clienttest), so it gets its own copy too.
-var copyShootingStar = tasks.register('copyShootingStar', Copy) {
+// (Only one The Shooting Star at a time: a copy of another version left there from before is removed.)
+var copyShootingStar = tasks.register('copyShootingStar', Sync) {
     from tssNamed
     into layout.projectDirectory.dir('run/mods')
+    preserve { exclude 'the-shooting-star*.jar' }
 }
-var copyShootingStarForClientTest = tasks.register('copyShootingStarForClientTest', Copy) {
+var copyShootingStarForClientTest = tasks.register('copyShootingStarForClientTest', Sync) {
     from tssNamed
     into layout.projectDirectory.dir('run/clienttest/mods')
+    preserve { exclude 'the-shooting-star*.jar' }
 }
 tasks.matching { it.name.startsWith('run') && it.name != 'runProdClientTest' }.configureEach {
     dependsOn copyShootingStar, copyShootingStarForClientTest
@@ -147,7 +151,7 @@ tasks.matching { it.name.startsWith('run') && it.name != 'runProdClientTest' }.c
 
 // Dev-only: ./gradlew runProdClientTest -Dss05.clienttest.skill=moon ... runs the harness against the *release* jar
 // and The Shooting Star's own (obfuscated, 1.4.0+) jar, all loaded from run/prodclient/mods as players load them: the
-// proof that tssReobf mapped every reference back.
+// proof that tssPack mapped every reference back. -PtssTest=1.4.0 picks which of the jars in libs/ (default the newest).
 var clienttestJar = tasks.register('clienttestJar', Jar) {
     from sourceSets.clienttest.output
     archiveClassifier = 'clienttest'
@@ -155,7 +159,7 @@ var clienttestJar = tasks.register('clienttestJar', Jar) {
 }
 var reobfClienttest = tssReobf(clienttestJar, 'tssReobfClienttest', 'prodtest')
 var copyProdMods = tasks.register('copyProdMods', Sync) {
-    from tasks.named('tssReobf'), reobfClienttest, shootingStar
+    from tasks.named('tssPack'), reobfClienttest, tssTestJar
     into layout.projectDirectory.dir('run/prodclient/mods')
 }
 tasks.matching { it.name == 'runProdClientTest' }.configureEach {
@@ -177,7 +181,7 @@ var generateModMetadata = tasks.register('generateModMetadata', ProcessResources
         neo_version_range          : neo_version_range,
         loader_version_range       : loader_version_range,
         shooting_star_mod_id       : shooting_star_mod_id,
-        shooting_star_version_range: shooting_star_version_range,
+        shooting_star_version_range: tssVersionRange,
         mod_id                     : mod_id,
         mod_name                   : mod_name,
         mod_license                : mod_license,
