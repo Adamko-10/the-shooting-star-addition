@@ -3,7 +3,7 @@ package dev.ss05.halley;
 import dev.ss05.halley.config.ConfigFile;
 
 /**
- * Every tunable number of SS-06 Luna (the moonfall) and of moon cheese. They live in the same file as SS-05's,
+ * Every tunable number of Luna (the moonfall) and of moon cheese. They live in the same file as Halley's,
  * {@code config/shooting_star_addition-common.toml}, in the sections starting with {@code moonfall}; {@link #define}
  * is called from {@link HalleyConfig}'s static initializer to add them to the shared {@link ConfigFile}.
  *
@@ -15,16 +15,15 @@ public final class MoonConfig {
     public static final int MAX_MOON_RADIUS = 200;
     public static final int MIN_CRATER_RADIUS = 4;
     public static final int MAX_CRATER_RADIUS = 320;
-    public static final int MIN_CRATER_DEPTH = 1;
-    public static final int MAX_CRATER_DEPTH = 256;
+    public static final int MAX_RIM_HEIGHT = 96;
 
     private static ConfigFile.IntValue cooldownSeconds;
     private static ConfigFile.IntValue reach;
     private static ConfigFile.BoolValue nightOnly;
     private static ConfigFile.IntValue moonRadius;
     private static ConfigFile.IntValue craterRadius;
-    private static ConfigFile.IntValue craterDepth;
-    private static ConfigFile.IntValue sinkPercent;
+    private static ConfigFile.IntValue rimHeight;
+    private static ConfigFile.IntValue buriedPercent;
     private static ConfigFile.DoubleValue blastReach;
     private static ConfigFile.IntValue chunksPerTick;
     private static ConfigFile.BoolValue carveTerrain;
@@ -38,28 +37,29 @@ public final class MoonConfig {
 
     /** Adds SS-06's sections to {@code b} (the shared {@code shooting_star_addition-common.toml} spec). */
     static void define(ConfigFile b) {
-        b.section("moonfall", "Luna: at night, the Stellar Remote can shut the Earth system down and bring the moon down onto",
-            "your crosshair. It leaves a moon of moon cheese half-buried in a crater, with one block of molten moon",
-            "cheese at its very heart.");
+        b.section("moonfall", "Luna: the Stellar Remote shuts the Earth system down and brings the moon down onto your crosshair. It",
+            "drives itself half into the ground, shoving the land up round it, and stays: a moon of moon cheese with",
+            "one block of molten moon cheese at its very heart.");
         cooldownSeconds = b.defineInRange("cooldown_seconds", 120, 1, 3600,
             "Seconds before Luna can be fired again. Creative mode always uses 1 second, like the other skills.");
         reach = b.defineInRange("reach", 420, 32, 1024, "How far away (in blocks) your crosshair can place the mark.");
-        nightOnly = b.define("require_night", false, "Only answer at night. By default (false) it can be called any time: like SS-05, the sky falls",
+        nightOnly = b.define("require_night", false, "Only answer at night. By default (false) it can be called any time: like Halley, the sky falls",
             "to night for the strike (only what players see; the world's real time is untouched).");
 
-        b.section("moonfall_size", "How big it all is. Anything from a pebble to a monster works, but every block of moon and crater has to be",
+        b.section("moonfall_size", "How big it all is. Anything from a pebble to a monster works, but every block of moon and ground has to be",
             "placed or cut: a radius-200 moon is ~33 million blocks and will take the server a long while (it is",
             "built a few chunks per tick, so the game keeps running). Very big moons also stick out of the build height.");
         moonRadius = b.defineInRange("moon_radius", 48, MIN_MOON_RADIUS, MAX_MOON_RADIUS, "Radius of the moon, in blocks (the default is 96 blocks across).");
-        craterRadius = b.defineInRange("crater_radius", 90, MIN_CRATER_RADIUS, MAX_CRATER_RADIUS, "Radius of the crater it digs, in blocks. Everything inside it is erased.");
-        craterDepth = b.defineInRange("crater_depth", 30, MIN_CRATER_DEPTH, MAX_CRATER_DEPTH, "Depth of the crater at its centre, in blocks.");
-        sinkPercent = b.defineInRange("sink_percent", 35, 0, 90, "How much of the moon's height ends up buried below the ground, in percent.");
-        blastReach = b.defineInRange("blast_reach", 3.0, 1.0, 6.0, "How far the shock wave throws and hurts things, as a multiple of the crater radius.");
-        chunksPerTick = b.defineInRange("chunks_per_tick", 8, 1, 64, "How many chunks of crater and moon are cut or built each tick. Higher finishes big moons",
+        craterRadius = b.defineInRange("crater_radius", 90, MIN_CRATER_RADIUS, MAX_CRATER_RADIUS, "Radius of the impact zone, in blocks: the moon and the ring of ground it shoves up round",
+            "itself. Everything inside it is erased.");
+        rimHeight = b.defineInRange("rim_height", 22, 0, MAX_RIM_HEIGHT, "How high the ground shoved up round the moon rises at its tallest, in blocks (0: none).");
+        buriedPercent = b.defineInRange("buried_percent", 55, 0, 90, "How much of the moon's height ends up driven into the ground, in percent.");
+        blastReach = b.defineInRange("blast_reach", 3.0, 1.0, 6.0, "How far the shock wave throws and hurts things, as a multiple of the impact zone's radius.");
+        chunksPerTick = b.defineInRange("chunks_per_tick", 8, 1, 64, "How many chunks of ground and moon are cut or built each tick. Higher finishes big moons",
             "sooner but makes those ticks longer.");
 
         b.section("moonfall_world", "What the moonfall leaves behind.");
-        carveTerrain = b.define("carve_terrain", true, "Dig the crater and leave the moon in the world. If false the moonfall is purely visual and",
+        carveTerrain = b.define("carve_terrain", true, "Change the land and leave the moon in the world. If false the moonfall is purely visual and",
             "only hurts creatures (handy on servers that protect their terrain).");
         moltenCore = b.define("molten_core", true, "Put one block of molten moon cheese at the very centre of the moon.");
 
@@ -71,9 +71,9 @@ public final class MoonConfig {
 
     /** An immutable snapshot of the config, taken once per moonfall (or per bite). Defaults before the config loads. */
     public record Tuning(int cooldownTicks, int reach, boolean nightOnly, int moonRadius, int craterRadius,
-                         int craterDepth, int sinkPercent, double blastReach, int chunksPerTick, boolean carveTerrain,
+                         int rimHeight, int buriedPercent, double blastReach, int chunksPerTick, boolean carveTerrain,
                          boolean moltenCore, int moltenHearts, int moltenStrength, int moltenMinutes) {
-        public static final Tuning DEFAULTS = new Tuning(120 * 20, 420, false, 48, 90, 30, 35, 3.0, 8, true, true, 500, 255, 10);
+        public static final Tuning DEFAULTS = new Tuning(120 * 20, 420, false, 48, 90, 22, 55, 3.0, 8, true, true, 500, 255, 10);
     }
 
     public static Tuning tuning() {
@@ -86,8 +86,8 @@ public final class MoonConfig {
             nightOnly.get(),
             moonRadius.get(),
             craterRadius.get(),
-            craterDepth.get(),
-            sinkPercent.get(),
+            rimHeight.get(),
+            buriedPercent.get(),
             blastReach.get(),
             chunksPerTick.get(),
             carveTerrain.get(),
