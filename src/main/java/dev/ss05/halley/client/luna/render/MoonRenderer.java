@@ -11,6 +11,7 @@ import dev.ss05.halley.client.render.GlowAtlas;
 import dev.ss05.halley.client.render.GlowBatch;
 import dev.ss05.halley.client.render.HalleyRenderTypes;
 import dev.ss05.halley.client.render.ShaderPacks;
+import dev.ss05.halley.client.render.WorldFrame;
 import javax.annotation.Nullable;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -18,7 +19,6 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 
@@ -40,8 +40,9 @@ public final class MoonRenderer {
     private MoonRenderer() {
     }
 
-    public static void render(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES || MoonFx.active().isEmpty() || !HalleyRenderTypes.ready()) {
+    /** Right after the world's particles (see {@code HalleyClient.afterParticles}). */
+    public static void render(WorldFrame frame) {
+        if (MoonFx.active().isEmpty() || !HalleyRenderTypes.ready()) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
@@ -49,11 +50,11 @@ public final class MoonRenderer {
         if (level == null) {
             return;
         }
-        Camera camera = event.getCamera();
+        Camera camera = frame.camera();
         Vec3 eye = camera.getPosition();
-        VIEW_PROJECTION.set(event.getProjectionMatrix()).mul(event.getPoseStack().last().pose());
+        VIEW_PROJECTION.set(frame.projection()).mul(frame.view());
         lastCamera = eye;
-        float partial = event.getPartialTick();
+        float partial = frame.partial();
         double far = minecraft.gameRenderer.getDepthFar() * 0.9;
         CometVisuals.Land land = new CometVisuals.Land() {
             @Override
@@ -102,7 +103,7 @@ public final class MoonRenderer {
         // model-view is back to identity after the particles), so it is put on the model-view for these two draws
         PoseStack view = RenderSystem.getModelViewStack();
         view.pushPose();
-        view.mulPoseMatrix(event.getPoseStack().last().pose());
+        view.mulPoseMatrix(frame.view());
         RenderSystem.applyModelViewMatrix();
         (pack ? HalleyRenderTypes.PACK_GLOW : HalleyRenderTypes.GLOW).end(world, RenderSystem.getVertexSorting());
         (pack ? HalleyRenderTypes.PACK_GLARE : HalleyRenderTypes.GLARE).end(glare, RenderSystem.getVertexSorting());

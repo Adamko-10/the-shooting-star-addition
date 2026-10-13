@@ -8,6 +8,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.client.luna.MoonFx;
+import dev.ss05.halley.client.render.WorldFrame;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
@@ -15,7 +16,6 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
 
 /**
  * SS-06's moon as a solid, lit, textured sphere: {@code surface.png} for the albedo, {@code seams.png} (an emissive
@@ -128,17 +128,18 @@ public final class MoonSphere {
         return new Placement(drawCentre, radius, axis, p.spin(t), MoonPlan.crack(t) * flicker, heat);
     }
 
-    public static void renderSolid(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_ENTITIES || MoonFx.active().isEmpty()) {
+    /** Among the entities, solid and depth-tested (see {@code HalleyClient}). */
+    public static void renderSolid(WorldFrame frame) {
+        if (MoonFx.active().isEmpty()) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
             return;
         }
-        Vec3 camera = event.getCamera().getPosition();
+        Vec3 camera = frame.camera().getPosition();
         double maxDistance = minecraft.gameRenderer.getDepthFar() * 0.9;
-        float partial = event.getPartialTick();
+        float partial = frame.partial();
 
         BufferBuilder base = BASE_BUILDER;
         BufferBuilder seam = SEAM_BUILDER;
@@ -164,7 +165,7 @@ public final class MoonSphere {
         // PoseStack at this stage, not on the shared model-view, so it is put there around these two draws
         PoseStack view = RenderSystem.getModelViewStack();
         view.pushPose();
-        view.mulPoseMatrix(event.getPoseStack().last().pose());
+        view.mulPoseMatrix(frame.view());
         RenderSystem.applyModelViewMatrix();
         try {
             (dev.ss05.halley.client.render.ShaderPacks.active() ? PACK_BASE : BASE).end(base, RenderSystem.getVertexSorting());

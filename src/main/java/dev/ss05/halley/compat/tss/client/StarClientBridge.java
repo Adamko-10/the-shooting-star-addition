@@ -1,13 +1,12 @@
 package dev.ss05.halley.compat.tss.client;
 
-import cyou.rimuru.shootingstardemo.mc1201.client.cinematic.CutsceneDirector;
-import cyou.rimuru.shootingstardemo.mc1201.client.fx.CastTitles;
-import cyou.rimuru.shootingstardemo.mc1201.client.fx.FxManager;
-import cyou.rimuru.shootingstardemo.mc1201.client.fx.Overlay;
-import cyou.rimuru.shootingstardemo.mc1201.client.fx.SpellFx;
-import cyou.rimuru.shootingstardemo.mc1201.net.Network;
-import cyou.rimuru.shootingstardemo.mc1201.net.SpellFxPayload;
-import cyou.rimuru.shootingstardemo.mc1201.star.StarSkill;
+import cyou.rimuru.shootingstardemo.client.cinematic.CutsceneDirector;
+import cyou.rimuru.shootingstardemo.client.fx.CastTitles;
+import cyou.rimuru.shootingstardemo.client.fx.FxManager;
+import cyou.rimuru.shootingstardemo.client.fx.Overlay;
+import cyou.rimuru.shootingstardemo.client.fx.SpellFx;
+import cyou.rimuru.shootingstardemo.net.SpellFxPayload;
+import cyou.rimuru.shootingstardemo.star.StarSkill;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
@@ -15,7 +14,8 @@ import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.MoonHud;
 import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.compat.tss.TssLink;
-import java.util.function.Consumer;
+import javax.annotation.Nullable;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 
@@ -36,29 +36,46 @@ public final class StarClientBridge {
     private StarClientBridge() {
     }
 
+    /**
+     * Wraps The Shooting Star's receiver for its effect packet (registered in its client initializer, so this runs
+     * once every mod's client has started): Halley's and Luna's packets start their own effects, everything else goes
+     * on to the remote's own handler untouched. (Fabric hands these packets over on the game's own thread.)
+     */
     public static synchronized void install() {
         if (installed) {
             return;
         }
         try {
-            Consumer<SpellFxPayload> builtIn = Network.clientSpellFx;
-            Network.clientSpellFx = payload -> {
-                if (StarBridge.installed() && payload.spell() == StarBridge.skillIndex()) {
-                    start(payload);
-                } else if (StarBridge.installed() && payload.spell() == StarBridge.moonIndex()) {
-                    startMoon(payload);
+            @Nullable ClientPlayNetworking.PlayPacketHandler<SpellFxPayload> builtIn = ClientPlayNetworking.unregisterGlobalReceiver(SpellFxPayload.TYPE);
+            if (builtIn == null) {
+                HalleyAddon.LOG.warn("Halley found no receiver for The Shooting Star's effect packets; it is adding one "
+                    + "that hands every other skill's packets straight to the remote's effect manager.");
+            }
+            boolean registered = ClientPlayNetworking.registerGlobalReceiver(SpellFxPayload.TYPE, (packet, player, sender) -> {
+                if (StarBridge.installed() && packet.spell() == StarBridge.skillIndex()) {
+                    start(packet);
+                } else if (StarBridge.installed() && packet.spell() == StarBridge.moonIndex()) {
+                    startMoon(packet);
+                } else if (builtIn != null) {
+                    builtIn.receive(packet, player, sender);
                 } else {
-                    builtIn.accept(payload);
+                    FxManager.start(packet);
                 }
-            };
+            });
+            if (!registered) {
+                throw new IllegalStateException("the effect packet's receiver couldn't be replaced");
+            }
             installed = true;
         } catch (Throwable failed) {
-            HalleyAddon.LOG.error("SS-05 Halley couldn't hook its effects into The Shooting Star; strikes will happen "
+            HalleyAddon.LOG.error("Halley couldn't hook its effects into The Shooting Star; strikes will happen "
                 + "but won't be shown. See compat/tss/client/StarClientBridge.java.", failed);
         }
     }
 
     private static void start(SpellFxPayload payload) {
+        if (Minecraft.getInstance().level == null) {
+            return;
+        }
         HalleyFxAdapter fx = new HalleyFxAdapter(payload);
         FxManager.add(fx);
         if (fx.halley().mine && CutsceneDirector.automatic()) {
@@ -70,6 +87,9 @@ public final class StarClientBridge {
 
     /** SS-06's effects (and its film, for the caster). */
     private static void startMoon(SpellFxPayload payload) {
+        if (Minecraft.getInstance().level == null) {
+            return;
+        }
         MoonFxAdapter fx = new MoonFxAdapter(payload);
         FxManager.add(fx);
         if (fx.moon().mine && CutsceneDirector.automatic()) {

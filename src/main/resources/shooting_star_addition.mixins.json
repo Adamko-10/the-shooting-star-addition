@@ -3,11 +3,13 @@
   "minVersion": "0.8",
   "package": "dev.ss05.halley.compat.mixin",
   "compatibilityLevel": "JAVA_17",
-  "refmap": "shooting_star_addition.refmap.json",
   "client": [
     "ClientLevelMixin",
     "ClientLevelTimeMixin",
+    "FogRendererMixin",
+    "GameRendererMixin",
     "LevelRendererMoonMixin",
+    "LevelRendererStagesMixin",
     "PlayerModelMixin"
   ],
   "injectors": {

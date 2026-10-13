@@ -1,10 +1,10 @@
 package dev.ss05.halley.clienttest;
 
-import cyou.rimuru.shootingstardemo.mc1201.client.cinematic.CutsceneDirector;
-import cyou.rimuru.shootingstardemo.mc1201.magic.Casting;
-import cyou.rimuru.shootingstardemo.mc1201.magic.Skill;
-import cyou.rimuru.shootingstardemo.mc1201.magic.Tuning;
-import cyou.rimuru.shootingstardemo.mc1201.registry.ModItems;
+import cyou.rimuru.shootingstardemo.client.cinematic.CutsceneDirector;
+import cyou.rimuru.shootingstardemo.magic.Casting;
+import cyou.rimuru.shootingstardemo.magic.Skill;
+import cyou.rimuru.shootingstardemo.magic.Tuning;
+import cyou.rimuru.shootingstardemo.registry.ModItems;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.compat.StarBridge;
@@ -37,7 +37,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.WorldDimensions;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
-import net.minecraftforge.event.TickEvent;
+import net.minecraft.server.MinecraftServer;
 
 /**
  * The actual harness (Forge 1.20.1): creates a flat creative world, places the player, casts a skill for real through
@@ -45,7 +45,7 @@ import net.minecraftforge.event.TickEvent;
  * {@link HarnessParams}; see that class for what each property does. The same harness as the other branches', trimmed
  * to what 1.20.1 needs: the views that film from a fixed spot use a camera of this client's own.
  */
-final class Harness {
+public final class Harness {
     private static final String LEVEL_ID = "ss05test";
     private static final double SPAWN_X = 0.5;
     private static final double SPAWN_Z = 0.5;
@@ -66,8 +66,8 @@ final class Harness {
 
     // ---- The slow state machine: world creation, placement, settling, casting. --------------------------------
 
-    static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || done) {
+    public static void onClientTick() {
+        if (done) {
             return;
         }
         Minecraft mc = Minecraft.getInstance();
@@ -232,7 +232,7 @@ final class Harness {
     }
 
     /** Not used on 1.20.1 (the camera is this client's own, see {@link #onRenderTick}); kept for the mod's wiring. */
-    static void onServerTick(TickEvent.ServerTickEvent event) {
+    public static void onServerTick(MinecraftServer server) {
     }
 
     // ---- The camera and the screenshots, frame by frame. ---------------------------------------------------------
@@ -272,12 +272,13 @@ final class Harness {
     private static long finalSince;
     private static int finalFrames;
 
-    static void onRenderTick(TickEvent.RenderTickEvent event) {
+    /** Before ({@code start}) and after each frame is drawn (from the harness's own mixin on the game renderer). */
+    public static void onRenderTick(boolean start) {
         Minecraft mc = Minecraft.getInstance();
         if (done || !placed || mc.screen != null || mc.level == null || mc.player == null) {
             return;
         }
-        if (event.phase == TickEvent.Phase.START) {
+        if (start) {
             // (in place as soon as the player is, so the land the camera looks at is what gets built first)
             placeCamera(mc);
             return;

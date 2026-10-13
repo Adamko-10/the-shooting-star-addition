@@ -1,6 +1,7 @@
 package dev.ss05.halley.client;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.render.MoonRenderer;
@@ -9,82 +10,105 @@ import dev.ss05.halley.client.render.CometRenderer;
 import dev.ss05.halley.client.render.GlowAtlas;
 import dev.ss05.halley.client.render.HalleyRenderTypes;
 import dev.ss05.halley.client.render.ShaderPacks;
+import dev.ss05.halley.client.render.WorldFrame;
 import dev.ss05.halley.client.sky.HalleySky;
 import dev.ss05.halley.compat.StarBridge;
-import java.io.IOException;
+import javax.annotation.Nullable;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.client.event.RegisterShadersEvent;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.client.event.ViewportEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
+import org.joml.Matrix4f;
 
 /**
- * The client side of SS-05 and SS-06: their shaders, their renderers (the comet, the moon and the sky), and their
- * hook into the remote's effects.
+ * The client side of SA-01 and SA-02: their shaders, their renderers (the comet, the moon, the sky), their config, and
+ * the hook into the remote's effects. The hooks into Minecraft's own drawing are in {@code compat/mixin}.
  */
-public final class HalleyClient {
-    private HalleyClient() {
-    }
+public final class HalleyClient implements ClientModInitializer {
+    /** Whether the glow has been drawn after the particles this frame (see {@link #afterParticles}). */
+    private static boolean glowDrawn;
 
-    /** During mod construction. */
-    public static void init(IEventBus modBus) {
-        modBus.addListener(HalleyClient::registerShaders);
-        MinecraftForge.EVENT_BUS.addListener(CometRenderer::render);
-        MinecraftForge.EVENT_BUS.addListener(MoonRenderer::render);
-        MinecraftForge.EVENT_BUS.addListener(MoonSphere::renderSolid);
-        MinecraftForge.EVENT_BUS.addListener(HalleyClient::frameStart);
-        MinecraftForge.EVENT_BUS.addListener(HalleySky::render);
-        MinecraftForge.EVENT_BUS.addListener(HalleySky::fog);
-        MinecraftForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> {
+    @Override
+    public void onInitializeClient() {
+        HalleyClientConfig.SPEC.load();
+        CoreShaderRegistrationCallback.EVENT.register(context -> {
+            try {
+                context.register(HalleyAddon.id("halley_glow"), DefaultVertexFormat.POSITION_TEX_COLOR, HalleyRenderTypes::setShader);
+            } catch (Exception failed) {
+                // the skill still works, it just isn't drawn
+                HalleyAddon.LOG.error("Halley's glow shader didn't load, so the comet won't be drawn", failed);
+                HalleyRenderTypes.setShader(null);
+            }
+            try {
+                context.register(HalleyAddon.id("halley_sky"), DefaultVertexFormat.POSITION, HalleySky::setShader);
+            } catch (Exception failed) {
+                HalleyAddon.LOG.error("Halley's sky shader didn't load, so the sky won't change during a strike", failed);
+                HalleySky.setShader(null);
+            }
+        });
+        // the moon sphere among the entities, solid and depth-tested, so the glow drawn later tests against its depth
+        WorldRenderEvents.AFTER_ENTITIES.register(context -> {
+            WorldFrame frame = frame(context);
+            if (frame != null) {
+                MoonSphere.renderSolid(frame);
+            }
+        });
+        // the glow goes right after the world's particles (compat/mixin); should that hook be missing (another mod
+        // reworking the level renderer), at the very end of the world instead
+        WorldRenderEvents.LAST.register(context -> {
+            WorldFrame frame = glowDrawn ? null : frame(context);
+            if (frame != null) {
+                drawGlow(frame);
+            }
+            glowDrawn = false;
+        });
+        // once every mod's client has started, The Shooting Star's effect handling is in place to be hooked
+        ClientLifecycleEvents.CLIENT_STARTED.register(client -> StarBridge.installClient());
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> HalleyClientConfig.SPEC.load());
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
         });
     }
 
+    @Nullable
+    private static WorldFrame frame(WorldRenderContext context) {
+        PoseStack pose = context.matrixStack();
+        return pose == null ? null
+            : new WorldFrame(context.camera(), context.projectionMatrix(), new Matrix4f(pose.last().pose()), context.tickDelta());
+    }
+
     /**
-     * Once a frame, before anything is drawn: how this frame is drawn (with or without a shader pack), the sky, and
-     * with a shader pack on, SS-05's and SS-06's light painted onto textures while their own shaders can still run.
-     *
-     * <p>Forge 1.20.1 has no {@code RenderFrameEvent.Pre}: {@code TickEvent.RenderTickEvent} fires twice a frame
-     * (before and after rendering), so this only runs on the {@code START} phase, which lands at the same point.
+     * From compat/mixin, once a frame before anything is drawn: how this frame is drawn (with or without a shader
+     * pack), the sky, and with a shader pack on, the comet's and the moon's light painted onto textures while their own
+     * shaders can still run.
      */
-    private static void frameStart(TickEvent.RenderTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) {
-            return;
-        }
+    public static void frameStart(float partial) {
         ShaderPacks.update();
-        HalleySky.update(event);
+        HalleySky.update(partial);
         if (ShaderPacks.active() && Minecraft.getInstance().level != null
             && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty())) {
             GlowAtlas.paint(HalleyRenderTypes.shader());
-            HalleySky.paint(event.renderTickTime);
+            HalleySky.paint(partial);
         }
     }
 
-    /** Once every mod is constructed (The Shooting Star has set up its client by then). */
-    public static void afterConstruction() {
-        StarBridge.installClient();
+    /** From compat/mixin, right after the vanilla sky: the strike's sky dome. */
+    public static void afterSky(WorldFrame frame) {
+        HalleySky.render(frame);
     }
 
-    private static void registerShaders(RegisterShadersEvent event) {
-        try {
-            event.registerShader(new ShaderInstance(event.getResourceProvider(), HalleyAddon.id("halley_glow"),
-                DefaultVertexFormat.POSITION_TEX_COLOR), HalleyRenderTypes::setShader);
-        } catch (IOException failed) {
-            // the skill still works, it just isn't drawn
-            HalleyAddon.LOG.error("SS-05 Halley's glow shader didn't load, so the comet won't be drawn", failed);
-            HalleyRenderTypes.setShader(null);
-        }
-        try {
-            event.registerShader(new ShaderInstance(event.getResourceProvider(), HalleyAddon.id("halley_sky"),
-                DefaultVertexFormat.POSITION), HalleySky::setShader);
-        } catch (IOException failed) {
-            HalleyAddon.LOG.error("SS-05 Halley's sky shader didn't load, so the sky won't change during a strike", failed);
-            HalleySky.setShader(null);
-        }
+    /** From compat/mixin, right after the world's particles (so the glow sorts with them, also under Fabulous). */
+    public static void afterParticles(WorldFrame frame) {
+        glowDrawn = true;
+        drawGlow(frame);
+    }
+
+    private static void drawGlow(WorldFrame frame) {
+        CometRenderer.render(frame);
+        MoonRenderer.render(frame);
     }
 }

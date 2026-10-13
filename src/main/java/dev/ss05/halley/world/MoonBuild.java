@@ -114,9 +114,9 @@ public final class MoonBuild {
         int minY = this.level.getMinBuildHeight();
         int maxY = this.level.getMaxBuildHeight() - 1;
         double r = this.plan.params.moonRadius();
-        BlockState cheese = HalleyContent.MOON_CHEESE.get().defaultBlockState();
-        BlockState holey = HalleyContent.HOLEY_MOON_CHEESE.get().defaultBlockState();
-        BlockState molten = HalleyContent.MOLTEN_MOON_CHEESE.get().defaultBlockState();
+        BlockState cheese = HalleyContent.MOON_CHEESE.defaultBlockState();
+        BlockState holey = HalleyContent.HOLEY_MOON_CHEESE.defaultBlockState();
+        BlockState molten = HalleyContent.MOLTEN_MOON_CHEESE.defaultBlockState();
         boolean core = this.plan.params.core();
         Map<BlockPos, BlockState> out = new HashMap<>();
 

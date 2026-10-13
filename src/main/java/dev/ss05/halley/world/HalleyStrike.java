@@ -234,7 +234,7 @@ public final class HalleyStrike {
         Vec3 from = caster.position();
         if (StarBridge.liftClear(caster, this.plan.target, zone, zone + 36.0, this.plan.duration - HalleyPlan.EVAC)) {
             for (Vec3 at : new Vec3[]{from, caster.position()}) {
-                this.level.playSound(null, at.x, at.y, at.z, HalleyContent.EVAC.get(), SoundSource.PLAYERS, 1.2F, 1.0F);
+                this.level.playSound(null, at.x, at.y, at.z, HalleyContent.EVAC, SoundSource.PLAYERS, 1.2F, 1.0F);
             }
             caster.connection.send(new ClientboundSetTitlesAnimationPacket(2, 30, 12));
             caster.connection.send(new ClientboundSetSubtitleTextPacket(
@@ -321,12 +321,12 @@ public final class HalleyStrike {
     }
 
     private BlockState trenchSurface(int x, int y, int z, BlockState was) {
-        if (!was.getFluidState().isEmpty() || was.is(HalleyContent.COMET_TRAIL.get()) || was.is(HalleyContent.COMET_HEART.get())) {
+        if (!was.getFluidState().isEmpty() || was.is(HalleyContent.COMET_TRAIL) || was.is(HalleyContent.COMET_HEART)) {
             return null;
         }
         double lat = Math.abs(this.plan.across(x + 0.5, z + 0.5));
         if (this.params.heart() && lat < 1.6) {
-            return HalleyContent.COMET_TRAIL.get().defaultBlockState();
+            return HalleyContent.COMET_TRAIL.defaultBlockState();
         }
         double cross = this.plan.trenchCross(x + 0.5, z + 0.5);
         double roll = this.plan.hash(x * 3 + 1, z * 5 - 2);
@@ -383,7 +383,7 @@ public final class HalleyStrike {
     }
 
     private BlockState craterSurface(int x, int y, int z, BlockState was) {
-        if (!was.getFluidState().isEmpty() || was.is(HalleyContent.COMET_HEART.get())) {
+        if (!was.getFluidState().isEmpty() || was.is(HalleyContent.COMET_HEART)) {
             return null;
         }
         double k = this.plan.craterK(x + 0.5, z + 0.5) + (this.plan.hash(x, z) - 0.5) * 0.16;
@@ -395,7 +395,7 @@ public final class HalleyStrike {
     private void placeHeart() {
         this.heartPlaced = true;
         Map<BlockPos, BlockState> out = new HashMap<>();
-        BlockState ice = HalleyContent.COMET_HEART.get().defaultBlockState();
+        BlockState ice = HalleyContent.COMET_HEART.defaultBlockState();
         Vec3 t = this.plan.target;
         int floor = this.plan.craterFloor(Mth.floor(t.x), Mth.floor(t.z), this.level.getMinBuildHeight());
         double baseX = Mth.floor(t.x) + 0.5;
@@ -458,7 +458,7 @@ public final class HalleyStrike {
                     BlockPos top = new BlockPos(x, this.level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1, z);
                     BlockState was = this.level.getBlockState(top);
                     if (was.isAir() || !was.getFluidState().isEmpty() || was.is(BlockTags.LEAVES) || !was.isCollisionShapeFullBlock(this.level, top)
-                            || was.hasBlockEntity() || was.is(HalleyContent.COMET_HEART.get()) || was.is(HalleyContent.COMET_TRAIL.get())) {
+                            || was.hasBlockEntity() || was.is(HalleyContent.COMET_HEART) || was.is(HalleyContent.COMET_TRAIL)) {
                         continue;
                     }
                     out.put(top, this.plan.hash(x, z * 3) < 0.18 ? Blocks.PACKED_ICE.defaultBlockState() : Blocks.SNOW_BLOCK.defaultBlockState());

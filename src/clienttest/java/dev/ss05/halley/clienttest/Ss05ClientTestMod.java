@@ -1,7 +1,8 @@
 package dev.ss05.halley.clienttest;
 
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.Mod;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
 /**
  * Dev-only mod: a scripted, automated in-game screenshot harness for Halley and Luna, so an effect can be looked at
@@ -9,19 +10,16 @@ import net.minecraftforge.fml.common.Mod;
  *
  * <p>Does nothing at all unless the JVM system property {@code ss05.clienttest} is set (the {@code clientTest}
  * Gradle run sets it). See {@link Harness} for the actual state machine; {@link HarnessParams} for the
- * system-property parameters it reads.
+ * system-property parameters it reads. Its frame hooks are a mixin ({@code mixin/GameRendererFrameMixin}).
  */
-@Mod(Ss05ClientTestMod.MOD_ID)
-public final class Ss05ClientTestMod {
-    public static final String MOD_ID = "ss05_clienttest";
-
-    public Ss05ClientTestMod() {
+public final class Ss05ClientTestMod implements ClientModInitializer {
+    @Override
+    public void onInitializeClient() {
         if (!HarnessParams.ACTIVE) {
             return;
         }
-        MinecraftForge.EVENT_BUS.addListener(Harness::onClientTick);
-        MinecraftForge.EVENT_BUS.addListener(Harness::onRenderTick);
-        MinecraftForge.EVENT_BUS.addListener(Harness::onServerTick);
+        ClientTickEvents.END_CLIENT_TICK.register(client -> Harness.onClientTick());
+        ServerTickEvents.END_SERVER_TICK.register(Harness::onServerTick);
         Harness.log("harness armed: " + HarnessParams.describe());
     }
 }

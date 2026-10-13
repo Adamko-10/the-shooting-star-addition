@@ -227,7 +227,7 @@ public final class MoonStrike {
         Vec3 from = caster.position();
         if (StarBridge.liftClear(caster, this.plan.target, zone, zone + 36.0, MoonPlan.DURATION - MoonPlan.EVAC)) {
             for (Vec3 at : new Vec3[]{from, caster.position()}) {
-                this.level.playSound(null, at.x, at.y, at.z, HalleyContent.EVAC.get(), SoundSource.PLAYERS, 1.2F, 1.0F);
+                this.level.playSound(null, at.x, at.y, at.z, HalleyContent.EVAC, SoundSource.PLAYERS, 1.2F, 1.0F);
             }
             caster.connection.send(new ClientboundSetTitlesAnimationPacket(2, 30, 12));
             caster.connection.send(new ClientboundSetSubtitleTextPacket(
@@ -299,8 +299,8 @@ public final class MoonStrike {
             return;
         }
         Map<BlockPos, BlockState> out = new HashMap<>();
-        BlockState cheese = HalleyContent.MOON_CHEESE.get().defaultBlockState();
-        BlockState holey = HalleyContent.HOLEY_MOON_CHEESE.get().defaultBlockState();
+        BlockState cheese = HalleyContent.MOON_CHEESE.defaultBlockState();
+        BlockState holey = HalleyContent.HOLEY_MOON_CHEESE.defaultBlockState();
         for (int i = 0; i < this.plan.debrisCount(); i++) {
             Vec3 land = this.plan.debrisLanding(i);
             int x = Mth.floor(land.x);

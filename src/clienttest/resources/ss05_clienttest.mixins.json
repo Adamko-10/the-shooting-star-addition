@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.ss05.halley.clienttest.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "GameRendererFrameMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

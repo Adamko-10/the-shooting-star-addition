@@ -1,14 +1,14 @@
 package dev.ss05.halley.compat.tss.client;
 
-import cyou.rimuru.shootingstardemo.mc1201.client.cinematic.CutsceneDirector;
-import cyou.rimuru.shootingstardemo.mc1201.client.cinematic.Subject;
-import cyou.rimuru.shootingstardemo.mc1201.client.fx.Frame;
-import cyou.rimuru.shootingstardemo.mc1201.client.fx.FxManager;
-import cyou.rimuru.shootingstardemo.mc1201.client.fx.Overlay;
-import cyou.rimuru.shootingstardemo.mc1201.client.fx.SpellFx;
-import cyou.rimuru.shootingstardemo.mc1201.client.render.ScreenFx;
-import cyou.rimuru.shootingstardemo.mc1201.net.SpellFxPayload;
-import cyou.rimuru.shootingstardemo.mc1201.registry.ModSounds;
+import cyou.rimuru.shootingstardemo.client.cinematic.CutsceneDirector;
+import cyou.rimuru.shootingstardemo.client.cinematic.Subject;
+import cyou.rimuru.shootingstardemo.client.fx.Frame;
+import cyou.rimuru.shootingstardemo.client.fx.FxManager;
+import cyou.rimuru.shootingstardemo.client.fx.Overlay;
+import cyou.rimuru.shootingstardemo.client.fx.SpellFx;
+import cyou.rimuru.shootingstardemo.client.render.ScreenFx;
+import cyou.rimuru.shootingstardemo.net.SpellFxPayload;
+import cyou.rimuru.shootingstardemo.registry.ModSounds;
 import dev.ss05.halley.HalleyPlan;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
