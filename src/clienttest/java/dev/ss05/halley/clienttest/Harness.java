@@ -5,6 +5,8 @@ import cyou.rimuru.shootingstardemo.mc1211.magic.Casting;
 import cyou.rimuru.shootingstardemo.mc1211.magic.Skill;
 import cyou.rimuru.shootingstardemo.mc1211.magic.Tuning;
 import cyou.rimuru.shootingstardemo.mc1211.registry.ModItems;
+import dev.ss05.halley.client.HalleyFx;
+import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.compat.StarBridge;
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +28,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.entity.player.Abilities;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Marker;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
@@ -67,6 +70,7 @@ final class Harness {
     private static int nextShotIndex;
     private static volatile boolean done;
     private static volatile double groundY;
+    private static long sectionsWaitSince = -1;
 
     private Harness() {
     }
@@ -103,15 +107,16 @@ final class Harness {
             if (!worldCreateRequested) {
                 // Nothing here to click through a first-run screen: Minecraft's own accessibility onboarding,
                 // The Shooting Star's GPU warning (GpuIncompatibleScreen, which only offers "Exit game"), or
-                // anything else that isn't the title screen. Bulldoze straight to the title screen. Once world
-                // creation has actually been requested, leave the screen alone - it is legitimately a loading
-                // screen (LevelLoadingScreen/ReceivingLevelScreen) that clears itself once the level arrives.
-                if (!(mc.screen instanceof TitleScreen)) {
-                    if (mc.screen != null) {
-                        log("skipping screen " + mc.screen.getClass().getName() + " (no human here to click through it)");
-                    }
-                    mc.setScreen(new TitleScreen());
+                // anything else that isn't the title screen. The Shooting Star puts its GPU warning back every time
+                // the title screen opens (a software renderer such as llvmpipe always fails its check), so the world
+                // is created straight from whatever screen is up, once the game has finished loading. After that,
+                // leave the screen alone - it is legitimately a loading screen (LevelLoadingScreen /
+                // ReceivingLevelScreen) that clears itself once the level arrives.
+                if (mc.getOverlay() != null || mc.screen == null) {
                     return;
+                }
+                if (!(mc.screen instanceof TitleScreen)) {
+                    log("skipping screen " + mc.screen.getClass().getName() + " (no human here to click through it)");
                 }
                 worldCreateRequested = true;
                 createWorld(mc);
@@ -125,12 +130,29 @@ final class Harness {
         if (!placed) {
             placed = true;
             placePlayerAndSetUpWorld(mc);
-            // "wait ~3s for the world to settle" = 60 ticks.
+            return;
+        }
+        // Still "Loading terrain..." (slow with a software renderer): the shots would only show that screen.
+        if (mc.screen != null) {
+            settleUntilTick = -1;
+            return;
+        }
+        if (settleUntilTick < 0) {
+            // "wait ~3s for the world to settle" = 60 ticks, counted from when the terrain screen went away.
             settleUntilTick = mc.level.getGameTime() + 60;
             return;
         }
-
         if (mc.level.getGameTime() < settleUntilTick) {
+            return;
+        }
+        // and until the land round the mark has arrived and been built: a slow client (a software renderer on a small
+        // machine) is sent its chunks slowly, and a shot of a strike over land that isn't there yet shows nothing.
+        // Four minutes at the most.
+        if (sectionsWaitSince < 0) {
+            sectionsWaitSince = System.currentTimeMillis();
+        }
+        if (System.currentTimeMillis() - sectionsWaitSince < 240_000L
+                && (!landArrived(mc) || !mc.levelRenderer.hasRenderedAllSections())) {
             return;
         }
 
@@ -142,6 +164,23 @@ final class Harness {
             castGameTime = mc.level.getGameTime();
             castAndMaybeRepositionCamera(mc);
         }
+    }
+
+    /** Whether this client has every chunk within {@link HarnessParams#LAND} blocks of the mark. */
+    private static boolean landArrived(Minecraft mc) {
+        double markX = SPAWN_X + HarnessParams.DISTANCE;
+        double markZ = SPAWN_Z;
+        int r = (int) Math.ceil(HarnessParams.LAND / 16.0);
+        int cx = (int) Math.floor(markX) >> 4;
+        int cz = (int) Math.floor(markZ) >> 4;
+        for (int x = cx - r; x <= cx + r; x++) {
+            for (int z = cz - r; z <= cz + r; z++) {
+                if (!mc.level.getChunkSource().hasChunk(x, z)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private static void createWorld(Minecraft mc) {
@@ -157,7 +196,7 @@ final class Harness {
         WorldOptions worldOptions = WorldOptions.defaultWithRandomSeed();
         Function<RegistryAccess, WorldDimensions> dimensions = access ->
             access.registryOrThrow(Registries.WORLD_PRESET).getOrThrow(WorldPresets.FLAT).createWorldDimensions();
-        Screen parent = mc.screen != null ? mc.screen : new TitleScreen();
+        Screen parent = new TitleScreen();
 
         log("creating world '" + LEVEL_ID + "'");
         mc.createWorldOpenFlows().createFreshLevel(LEVEL_ID, levelSettings, worldOptions, dimensions, parent);
@@ -267,21 +306,7 @@ final class Harness {
         double markZ = SPAWN_Z;
         double markY = groundY;
 
-        if ("wide".equals(HarnessParams.VIEW)) {
-            double camX = markX;
-            double camY = markY + 40;
-            double camZ = markZ + 180;
-
-            Abilities abilities = player.getAbilities();
-            if (!abilities.flying) {
-                abilities.flying = true;
-                player.onUpdateAbilities();
-            }
-
-            // Aim a bit above the mark, not at it, so the sky it falls out of is in frame too.
-            float[] yawPitch = lookAt(camX, camY, camZ, markX, markY + 60, markZ);
-            teleportAndFace(level, player, camX, camY, camZ, yawPitch[0], yawPitch[1]);
-        } else if ("up".equals(HarnessParams.VIEW)) {
+        if ("up".equals(HarnessParams.VIEW)) {
             // Stay at the cast spot; just look back up along the line the moon (or comet) comes in on - toward
             // the mark horizontally, tipped up into the sky - so the fall is centred instead of looking at the
             // ground the whole time.
@@ -317,7 +342,7 @@ final class Harness {
         if (!castRequested || done) {
             return;
         }
-        if (!"wide".equals(HarnessParams.VIEW) && !"up".equals(HarnessParams.VIEW)) {
+        if (!"up".equals(HarnessParams.VIEW)) {
             return;
         }
         MinecraftServer server = event.getServer();
@@ -329,6 +354,101 @@ final class Harness {
 
     // ---- Screenshots, frame-precise. -----------------------------------------------------------------------------
 
+    /**
+     * How far the strike has got, in ticks: its own clock on this client (the newest running HalleyFx/MoonFx), or -1
+     * before it has started. Not the level's game time: a slow client (a software renderer) falls behind the server
+     * and its game time then jumps ahead to catch up, while the strike's effects run tick by tick.
+     */
+    private static long strikeAge() {
+        int age = -1;
+        if (HarnessParams.MOON) {
+            for (MoonFx fx : MoonFx.active()) {
+                age = fx.age();
+            }
+        } else {
+            for (HalleyFx fx : HalleyFx.active()) {
+                age = fx.age();
+            }
+        }
+        long now = Minecraft.getInstance().level.getGameTime();
+        if (age >= 0) {
+            lastAge = age;
+            lastAgeAt = now;
+            return age;
+        }
+        // once the strike is over its effects are gone: carry on counting from where they left off
+        return lastAge < 0 ? -1 : lastAge + (now - lastAgeAt);
+    }
+
+    private static long lastAge = -1;
+    private static long lastAgeAt;
+
+    /** What the strike left in the world, as the server has it: the land's height along two lines out from the mark. */
+    private static void probeLand(Minecraft mc) {
+        IntegratedServer server = mc.getSingleplayerServer();
+        if (server == null) {
+            return;
+        }
+        server.execute(() -> {
+            ServerLevel level = server.overworld();
+            int mx = (int) Math.floor(SPAWN_X + HarnessParams.DISTANCE);
+            int mz = (int) Math.floor(SPAWN_Z);
+            StringBuilder east = new StringBuilder();
+            StringBuilder south = new StringBuilder();
+            for (int d = 0; d <= 140; d += 4) {
+                east.append(d).append('=').append(level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, mx + d, mz) - (int) groundY).append(' ');
+                south.append(d).append('=').append(level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, mx, mz + d) - (int) groundY).append(' ');
+            }
+            log("land east of the mark (height over the old ground): " + east);
+            log("land south of the mark (height over the old ground): " + south);
+            log("block at the mark's core: " + level.getBlockState(new net.minecraft.core.BlockPos(mx, (int) groundY - 5, mz)));
+        });
+    }
+
+    @org.jetbrains.annotations.Nullable
+    private static Marker camera;
+
+    /**
+     * The views that film from a fixed spot (not through the caster's eyes) use a camera of their own on this client,
+     * so nothing the strike does to the caster (lifting them clear, holding them while the remote fires) moves it.
+     * {@code -Dss05.clienttest.cam=dx,dy,dz,lx,ly,lz} places it at the mark plus (dx, dy, dz), looking at the mark plus
+     * (lx, ly, lz); the named views are presets of that.
+     */
+    static void onRenderFramePre(RenderFrameEvent.Pre event) {
+        Minecraft mc = Minecraft.getInstance();
+        // (in place as soon as the player is, so the land the camera looks at is what gets built first)
+        if (done || !placed || mc.screen != null || mc.level == null || mc.player == null) {
+            return;
+        }
+        double[] cam = finalView >= 0 ? HarnessParams.camera(HarnessParams.FINAL_VIEWS[finalView]) : HarnessParams.camera();
+        if (cam == null) {
+            return;
+        }
+        double markX = SPAWN_X + HarnessParams.DISTANCE;
+        double markY = groundY;
+        double markZ = SPAWN_Z;
+        double x = markX + cam[0], y = markY + cam[1], z = markZ + cam[2];
+        float[] yawPitch = lookAt(x, y, z, markX + cam[3], markY + cam[4], markZ + cam[5]);
+        if (camera == null || camera.level() != mc.level) {
+            camera = new Marker(EntityType.MARKER, mc.level);
+        }
+        camera.setPos(x, y, z);
+        camera.xo = x;
+        camera.yo = y;
+        camera.zo = z;
+        camera.xOld = x;
+        camera.yOld = y;
+        camera.zOld = z;
+        camera.setYRot(yawPitch[0]);
+        camera.setXRot(yawPitch[1]);
+        camera.yRotO = yawPitch[0];
+        camera.xRotO = yawPitch[1];
+        if (mc.getCameraEntity() != camera) {
+            mc.setCameraEntity(camera);
+        }
+        mc.options.hideGui = !HarnessParams.HUD;
+    }
+
     static void onRenderFrame(RenderFrameEvent.Post event) {
         if (done || castGameTime < 0) {
             return;
@@ -337,26 +457,59 @@ final class Harness {
         if (mc.level == null) {
             return;
         }
-        long gameTime = mc.level.getGameTime();
+        long gameTime = strikeAge();
+        if (gameTime < 0) {
+            return;
+        }
         long[] shots = HarnessParams.SHOTS;
-        while (nextShotIndex < shots.length && gameTime >= castGameTime + shots[nextShotIndex]) {
+        while (nextShotIndex < shots.length && gameTime >= shots[nextShotIndex]) {
             takeScreenshot(mc, shots[nextShotIndex]);
             nextShotIndex++;
         }
-        if (nextShotIndex >= shots.length) {
-            done = true;
-            log("done");
-            mc.stop();
+        if (nextShotIndex < shots.length) {
+            return;
         }
+        // the final views: once the strike is over, each from its own spot once everything in view is drawn again
+        if (finalView < HarnessParams.FINAL_VIEWS.length) {
+            if (finalView < 0) {
+                if (MoonFx.active().isEmpty() && HalleyFx.active().isEmpty()) {
+                    finalView = 0;
+                    finalSince = System.currentTimeMillis();
+                    finalFrames = 0;
+                }
+                return;
+            }
+            finalFrames++;
+            boolean drawn = finalFrames > 30 && mc.levelRenderer.hasRenderedAllSections();
+            if (drawn || System.currentTimeMillis() - finalSince > 300_000L) {
+                takeScreenshot(mc, "final_" + HarnessParams.FINAL_VIEWS[finalView].trim());
+                finalView++;
+                finalSince = System.currentTimeMillis();
+                finalFrames = 0;
+            }
+            return;
+        }
+        done = true;
+        probeLand(mc);
+        log("done");
+        mc.stop();
     }
 
+    private static int finalView = -1;
+    private static long finalSince;
+    private static int finalFrames;
+
     private static void takeScreenshot(Minecraft mc, long tick) {
-        String fileName = HarnessParams.SKILL + "_" + String.format("%05d", tick) + ".png";
+        takeScreenshot(mc, String.format("%05d", tick));
+    }
+
+    private static void takeScreenshot(Minecraft mc, String name) {
+        String fileName = HarnessParams.SKILL + "_" + name + ".png";
         try {
             Screenshot.grab(mc.gameDirectory, fileName, mc.getMainRenderTarget(),
                 component -> log("shot " + new File(new File(mc.gameDirectory, "screenshots"), fileName)));
         } catch (Throwable t) {
-            log("exception taking screenshot for tick " + tick + ": " + t);
+            log("exception taking screenshot " + name + ": " + t);
         }
     }
 

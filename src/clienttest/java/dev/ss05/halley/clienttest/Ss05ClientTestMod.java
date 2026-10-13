@@ -26,6 +26,7 @@ public final class Ss05ClientTestMod {
             return;
         }
         NeoForge.EVENT_BUS.addListener(ClientTickEvent.Post.class, Harness::onClientTick);
+        NeoForge.EVENT_BUS.addListener(RenderFrameEvent.Pre.class, Harness::onRenderFramePre);
         NeoForge.EVENT_BUS.addListener(RenderFrameEvent.Post.class, Harness::onRenderFrame);
         NeoForge.EVENT_BUS.addListener(ServerTickEvent.Post.class, Harness::onServerTick);
         Harness.log("harness armed: " + HarnessParams.describe());

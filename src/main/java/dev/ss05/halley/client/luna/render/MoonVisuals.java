@@ -9,13 +9,16 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Everything SS-06 draws in the world as additive glow quads: the gold mark on the ground, the burning shroud and
- * flame streamers of atmospheric entry, fragments breaking off and bursting, the flash and shock ring of the impact,
- * the dust dome, and embers glowing in the aftermath. Pure geometry from a {@link MoonPlan} and a time, drawn with
- * the same {@code halley_glow} shader and shapes SS-05's comet uses (see {@code client/render/Shapes}), so no new
- * shader or atlas is needed; only the tint differs (warm fire colours instead of Halley's ice).
+ * Everything Luna draws in the world as additive glow quads: the gold mark on the ground, the burning shroud and flame
+ * streamers of atmospheric entry, fragments breaking off and bursting, the air under the moon superheating just before
+ * it lands, and the impact: the flash and the fireball, jets of flame squirting out from under it, the molten line
+ * where moon and land meet, a wall of dust racing out over the land, the dust thrown up off the heaving rim, glowing
+ * lumps of moon and crust flung out in arcs, the mushroom cloud, cracks racing out and cooling, embers in the
+ * aftermath. Pure geometry from a {@link MoonPlan} and a time, drawn with the same {@code halley_glow} shader and shapes
+ * Halley's comet uses (see {@code client/render/Shapes}), so no new shader or atlas is needed; only the tint differs
+ * (warm fire colours instead of Halley's ice).
  *
- * <p>Two batches come in, exactly as for SS-05: {@code world} is hidden behind terrain, {@code light} is not (only
+ * <p>Two batches come in, exactly as for Halley: {@code world} is hidden behind terrain, {@code light} is not (only
  * for the brief, blinding moments whose glare would otherwise be cut off sharply at the ground).
  */
 public final class MoonVisuals {
@@ -26,6 +29,10 @@ public final class MoonVisuals {
     static final int WHITE = 0xFFFFFF;
     static final int ASH = 0x8A7A6C;
     static final int GOLD = 0xFFC93C;
+    /** Dust lit by fire. */
+    static final int DUST = 0xC0703C;
+    /** Molten rock cooling down: dark red. */
+    static final int EMBER = 0x8A1C0A;
 
     private static final int FRAGMENTS = 6;
 
@@ -65,8 +72,16 @@ public final class MoonVisuals {
             entry(world, light, p, t, map);
             fragments(world, light, p, t, map);
         }
+        if (t >= MoonPlan.CONTACT - 45.0 && t < MoonPlan.CONTACT + 6.0) {
+            compression(world, light, p, t, land);
+        }
         if (t >= MoonPlan.CONTACT) {
             detonation(world, light, p, t, land);
+            jets(world, light, p, t, land);
+            contactLine(world, light, p, t, land);
+            shockWall(world, p, t, land);
+            rimDust(world, p, t, land);
+            ejecta(world, light, p, t, land);
             cracks(world, p, t, land);
         }
         if (t >= MoonPlan.SETTLE) {
@@ -215,27 +230,82 @@ public final class MoonVisuals {
         }
     }
 
-    /** The flash, the expanding dust dome, the shock ring racing out over the land and glowing debris arcs - far
-     * bigger and more devastating than before, kept in step with the server's blast. */
+    /**
+     * The last moments before it lands: the air trapped under the moon is crushed white-hot, a column of it glowing
+     * between the moon and the ground, and the ground's dust is blown out from under it in a ring.
+     */
+    private static void compression(GlowBatch world, GlowBatch light, MoonPlan p, double t, CometVisuals.Land land) {
+        if (!land.has(p.target.x, p.target.z)) {
+            return;
+        }
+        double r = p.params.moonRadius();
+        float k = CometVisuals.smooth((t - (MoonPlan.CONTACT - 45.0)) / 45.0);
+        float out = 1.0F - CometVisuals.smooth((t - MoonPlan.CONTACT) / 6.0);
+        Vec3 c = p.target;
+        world.flat(c.add(0.0, 0.3, 0.0), p.travel, r * (0.5 + 0.9 * k), r * (0.5 + 0.9 * k), Shapes.GLOW, Shapes.HAZE, FIRE,
+            0.9F * k * k * out);
+        world.flat(c.add(0.0, 0.35, 0.0), p.travel, r * (0.25 + 0.4 * k), r * (0.25 + 0.4 * k), Shapes.GLOW, 0, HOT,
+            0.7F * k * k * k * out);
+        double gap = Math.max(0.0, p.centre(t).y - r - c.y);
+        if (gap > 0.5) {
+            world.column(c, gap + 2.0, r * 0.32 * k, Shapes.STREAK, Shapes.PLASMA, FIRE, 0.55F * k * out);
+        }
+        // the dust blown out from under it, racing ahead of the impact
+        float blow = CometVisuals.smooth((t - (MoonPlan.CONTACT - 26.0)) / 26.0);
+        if (blow > 0.0F) {
+            double ring = r * (0.6 + 2.4 * blow);
+            world.flat(c.add(0.0, 0.6, 0.0), p.travel, ring / 0.9, ring / 0.9, Shapes.SHOCK, 1, DUST, 0.55F * blow * out);
+            world.flat(c.add(0.0, 2.5, 0.0), p.travel, ring * 0.8 / 0.9, ring * 0.8 / 0.9, Shapes.SHOCK, 3, ASH, 0.3F * blow * out);
+        }
+    }
+
+    /** The flash, the fireball welling up round the moon, the dust column and the mushroom cloud over it, and the
+     * shock ring racing out over the land - kept in step with the server's blast. */
     private static void detonation(GlowBatch world, GlowBatch light, MoonPlan p, double t, CometVisuals.Land land) {
         double a = t - MoonPlan.CONTACT;
-        double radius = p.params.craterRadius();
+        double zone = p.rimOuter;
+        double r = p.params.moonRadius();
         Vec3 c = p.target;
 
         if (a < 50.0) {
-            light.billboard(c.add(0.0, radius * 0.35, 0.0), radius * 4.6, Shapes.GLOW, 0, WHITE, 2.2F * (float) Math.exp(-a / 5.0), 0.0);
-            light.rect(c.add(0.0, radius * 0.35, 0.0), radius * 38.0, radius * 0.45, Shapes.FLARE, 0, HOT, 1.7F * (float) Math.exp(-a / 7.0));
+            light.billboard(c.add(0.0, zone * 0.35, 0.0), zone * 4.6, Shapes.GLOW, 0, WHITE, 2.2F * (float) Math.exp(-a / 5.0), 0.0);
+            light.rect(c.add(0.0, zone * 0.35, 0.0), zone * 38.0, zone * 0.45, Shapes.FLARE, 0, HOT, 1.7F * (float) Math.exp(-a / 7.0));
+            light.rect(c.add(0.0, zone * 0.2, 0.0), zone * 22.0, zone * 0.2, Shapes.FLARE, 0, FIRE, 1.2F * (float) Math.exp(-a / 10.0));
+        }
+        if (a < 90.0) {
+            // the fireball: plasma and molten rock welling up round the moon as it drives in, rolling over and dying
+            float ball = (float) Math.exp(-a / 22.0) * CometVisuals.smooth(a / 2.0);
+            Vec3 top = p.centre(t).add(0.0, r * 0.35, 0.0);
+            world.billboard(top, r * (1.5 + 1.6 * CometVisuals.smooth(a / 14.0)), Shapes.GLOW, Shapes.HAZE, FIRE, 0.75F * ball, 0.0);
+            world.billboard(top, r * (1.0 + 0.9 * CometVisuals.smooth(a / 10.0)), Shapes.GLOW, 0, HOT, 0.6F * ball, 0.0);
+            for (int i = 0; i < 6; i++) {
+                double angle = i * Math.PI / 3.0 + p.phase(i);
+                double reach = r * (0.9 + 0.8 * CometVisuals.smooth(a / 18.0));
+                Vec3 at = c.add(Math.cos(angle) * reach, r * (0.2 + 0.5 * CometVisuals.smooth(a / 24.0)), Math.sin(angle) * reach);
+                world.billboard(at, r * 0.75, Shapes.GLOW, Shapes.HAZE, i % 2 == 0 ? FIRE : DUST, 0.45F * ball, 0.0);
+            }
         }
         if (a < 260.0) {
-            double height = radius * (1.4 + 5.4 * (1.0 - Math.exp(-a / 11.0)));
-            world.column(c.add(0.0, -2.0, 0.0), height, radius * (0.3 + 0.28 * (1.0 - Math.exp(-a / 24.0))),
+            double height = zone * (1.4 + 5.4 * (1.0 - Math.exp(-a / 11.0)));
+            world.column(c.add(0.0, -2.0, 0.0), height, zone * (0.3 + 0.28 * (1.0 - Math.exp(-a / 24.0))),
                 Shapes.STREAK, Shapes.DUST, ASH, 0.9F * (float) Math.exp(-a / 85.0));
-            world.column(c, height * 0.75, radius * 0.13, Shapes.STREAK, Shapes.ION, FIRE, 0.75F * (float) Math.exp(-a / 24.0));
-            // an expanding dome of light rising off the crater in the first instants, over and above the column
+            world.column(c, height * 0.75, zone * 0.13, Shapes.STREAK, Shapes.ION, FIRE, 0.75F * (float) Math.exp(-a / 24.0));
+            // the mushroom cloud's cap, spreading out on top of the column, its underside lit by the fire below
+            if (a > 6.0) {
+                double capHeight = height * 0.92;
+                double capR = zone * (0.5 + 1.6 * (1.0 - Math.exp(-(a - 6.0) / 45.0)));
+                float cap = CometVisuals.smooth((a - 6.0) / 20.0) * (float) Math.exp(-a / 120.0);
+                Vec3 at = c.add(0.0, capHeight, 0.0);
+                world.billboard(at, capR, Shapes.GLOW, Shapes.HAZE, ASH, 0.55F * cap, 0.0);
+                world.billboard(at.add(0.0, -capR * 0.25, 0.0), capR * 0.8, Shapes.GLOW, Shapes.HAZE, DUST, 0.4F * cap, 0.0);
+                world.flat(at.add(0.0, -capR * 0.2, 0.0), p.travel, capR * 1.15, capR * 1.15, Shapes.SHOCK, 2, FIRE,
+                    0.35F * cap * (float) Math.exp(-a / 70.0));
+            }
+            // an expanding dome of light rising off the impact in the first instants, over and above the column
             if (a < 36.0) {
-                double domeHeight = radius * 0.5 * CometVisuals.smooth(a / 20.0);
+                double domeHeight = zone * 0.5 * CometVisuals.smooth(a / 20.0);
                 for (int i = 0; i < 3; i++) {
-                    double domeR = radius * (0.65 + 0.22 * i) * CometVisuals.smooth(a / 14.0);
+                    double domeR = zone * (0.65 + 0.22 * i) * CometVisuals.smooth(a / 14.0);
                     world.billboard(c.add(0.0, domeHeight * (0.3 + 0.35 * i), 0.0), domeR, Shapes.GLOW, Shapes.HAZE, HOT,
                         0.5F * (float) Math.exp(-a / 16.0) / (1.0F + i), 0.0);
                 }
@@ -244,53 +314,213 @@ public final class MoonVisuals {
         if (!land.has(c.x, c.z)) {
             return;
         }
-        double reach = radius * p.params.blastReach();
+        double reach = p.blastRadius();
         if (a < 50.0) {
             double k = Math.pow(Mth.clamp(a / 32.0, 0.0, 1.0), 0.6);
-            double front = radius + (reach - radius) * k + Math.max(0.0, a - 32.0) * 0.7;
+            double front = zone + (reach - zone) * k + Math.max(0.0, a - 32.0) * 0.7;
             float s = (1.0F - CometVisuals.smooth((a - 6.0) / 40.0)) * CometVisuals.smooth(a / 1.5);
             for (int i = 0; i < 4; i++) {
                 world.flat(c.add(0.0, 0.7 + i * 3.2, 0.0), p.travel, front / 0.9, front / 0.9, Shapes.SHOCK, i, HOT,
                     s * (i == 0 ? 1.1F : i == 1 ? 0.5F : i == 2 ? 0.28F : 0.14F));
             }
-            // a wall of dust riding just behind the shock front, thrown out all round the crater
-            world.flat(c.add(0.0, 0.5, 0.0), p.travel, front * 0.96, front * 0.96, Shapes.RING, 3, ASH, s * 0.5F);
         }
-        float frost = CometVisuals.smooth((a - 4.0) / 20.0) * (1.0F - 0.6F * CometVisuals.smooth((a - 70.0) / 140.0))
-            * (1.0F - CometVisuals.smooth((t - (MoonPlan.DURATION - 24.0)) / 24.0));
-        double r = radius * 1.1 / 0.86;
-        world.flat(c.add(0.0, 0.6, 0.0), p.travel, r, r, Shapes.RING, 2, DEEP, 0.5F * frost);
+    }
+
+    /** Jets of flame and molten rock squirting out along the ground from under the moon as it slams in. */
+    private static void jets(GlowBatch world, GlowBatch light, MoonPlan p, double t, CometVisuals.Land land) {
+        double a = t - MoonPlan.CONTACT;
+        if (a > 34.0 || !land.has(p.target.x, p.target.z)) {
+            return;
+        }
+        double r = p.params.moonRadius();
+        double from = Math.max(p.footprint(t), r * 0.3);
+        float fade = (float) Math.exp(-a / 9.0) * CometVisuals.smooth(a / 1.2);
+        int count = 14;
+        for (int i = 0; i < count; i++) {
+            double angle = (i + 0.5) / count * Math.PI * 2.0 + (p.hash(i, 51, 0) - 0.5) * 0.35;
+            double length = r * (0.5 + 1.9 * CometVisuals.smooth(a / 7.0)) * (0.65 + 0.7 * p.hash(i, 53, 1));
+            Vec3 dir = new Vec3(Math.cos(angle), 0.0, Math.sin(angle));
+            Vec3 tail = p.target.add(dir.scale(from)).add(0.0, 2.0, 0.0);
+            Vec3 head = p.target.add(dir.scale(from + length)).add(0.0, 1.0 + r * 0.06, 0.0);
+            world.ribbon(tail, head, new Vec3(0.0, r * 0.08, 0.0), r * 0.16, r * 0.42, 10, Shapes.STREAK, Shapes.PLASMA,
+                FIRE, 0.95F * fade);
+            world.ribbon(tail, tail.add(head.subtract(tail).scale(0.6)), Vec3.ZERO, r * 0.07, r * 0.16, 8, Shapes.STREAK,
+                Shapes.ION, HOT, 0.8F * fade);
+        }
     }
 
     /**
-     * Glowing cracks racing out across the land from the crater's rim along {@link MoonPlan}'s own crack lines
-     * (shared with the server, which cuts fissures along exactly these - see {@code CometExtras.cracks}, SS-05's
-     * Gungnir-style ground cracks, which this is modelled on), cooling over a few seconds.
+     * The line of molten rock where moon and land meet: a ring that widens with the moon as it drives in, white hot at
+     * first and cooling through orange to a dull red (the server leaves lava and magma along it).
+     */
+    private static void contactLine(GlowBatch world, GlowBatch light, MoonPlan p, double t, CometVisuals.Land land) {
+        double rf = p.footprint(t);
+        if (rf < 1.0 || !land.has(p.target.x, p.target.z)) {
+            return;
+        }
+        float heat = MoonPlan.heat(t) * (1.0F - CometVisuals.smooth((t - (MoonPlan.DURATION - 40.0)) / 40.0));
+        if (heat < 0.01F) {
+            return;
+        }
+        int core = heat > 0.65F ? HOT : heat > 0.3F ? FIRE : DEEP;
+        int haze = heat > 0.45F ? FIRE : heat > 0.18F ? DEEP : EMBER;
+        double seam = MoonPlan.seamWidth(p.params.moonRadius());
+        double radius = rf + seam * 0.5;
+        int count = Math.max(24, (int) (radius * Math.PI * 2.0 / 4.0));
+        double y = p.target.y + 0.25;
+        for (int i = 0; i < count; i++) {
+            double angle = (i + 0.5) / count * Math.PI * 2.0;
+            Vec3 radial = new Vec3(Math.cos(angle), 0.0, Math.sin(angle));
+            Vec3 at = new Vec3(p.target.x + radial.x * radius, y, p.target.z + radial.z * radius);
+            float flicker = 0.75F + 0.25F * (float) Math.sin(t * 0.6 + i * 1.7 + p.phase(i));
+            // tangent dash along the ring
+            world.flat(at, new Vec3(-radial.z, 0.0, radial.x), radius * Math.PI / count * 1.25, seam * (0.6 + 0.5 * heat),
+                Shapes.DASH, 0, core, 1.1F * heat * flicker);
+            if (i % 2 == 0) {
+                world.billboard(at.add(0.0, 1.5 + 2.5 * heat, 0.0), seam * (1.6 + 2.2 * heat), Shapes.GLOW, Shapes.HAZE, haze,
+                    0.45F * heat * flicker, 0.0);
+            }
+        }
+        world.flat(p.target.add(0.0, 0.3, 0.0), p.travel, (radius + seam) / 0.86, (radius + seam) / 0.86, Shapes.RING, 3,
+            haze, 0.55F * heat);
+    }
+
+    /** A wall of dust and fire thrown up by the shock front, racing out over the land and thinning as it goes. */
+    private static void shockWall(GlowBatch world, MoonPlan p, double t, CometVisuals.Land land) {
+        double a = t - MoonPlan.CONTACT;
+        if (a > 70.0 || !land.has(p.target.x, p.target.z)) {
+            return;
+        }
+        double r = p.params.moonRadius();
+        double inner = Math.max(p.rimInner, r);
+        double front = inner + (p.blastRadius() - inner) * (1.0 - Math.exp(-a / 15.0));
+        double height = r * (0.18 + 0.75 * Math.exp(-a / 22.0));
+        float s = (float) Math.exp(-a / 24.0) * CometVisuals.smooth(a / 2.0);
+        int count = Math.max(32, Math.min(96, (int) (front * Math.PI * 2.0 / 12.0)));
+        Vec3 prev = null;
+        for (int i = 0; i <= count; i++) {
+            double angle = (double) i / count * Math.PI * 2.0;
+            double y = land.surface(p.target.x + Math.cos(angle) * front, p.target.z + Math.sin(angle) * front);
+            Vec3 at = new Vec3(p.target.x + Math.cos(angle) * front, Double.isNaN(y) ? p.target.y : y, p.target.z + Math.sin(angle) * front);
+            if (prev != null) {
+                world.wall(prev, at, height, Shapes.WALL, i % 4, DUST, 0.75F * s);
+                world.wall(prev.add(0.0, -0.5, 0.0), at.add(0.0, -0.5, 0.0), height * 0.45, Shapes.WALL, (i + 2) % 4, FIRE,
+                    0.35F * s * (float) Math.exp(-a / 10.0));
+            }
+            prev = at;
+        }
+    }
+
+    /** Dust, grit and fire thrown up off the rim as the ground heaves up round the moon (hiding its blocks rising). */
+    private static void rimDust(GlowBatch world, MoonPlan p, double t, CometVisuals.Land land) {
+        double a = t - MoonPlan.CONTACT;
+        double span = MoonPlan.SETTLE - MoonPlan.CONTACT + 80.0;
+        if (a > span || p.params.rimHeight() <= 0 || p.rimOuter <= p.rimInner + 1.0 || !land.has(p.target.x, p.target.z)) {
+            return;
+        }
+        double rate = (MoonPlan.rise(t + 1.0) - MoonPlan.rise(t - 1.0)) * 0.5;
+        float heave = (float) Mth.clamp(rate * 22.0, 0.0, 1.0);
+        float linger = 1.0F - CometVisuals.smooth(a / span);
+        float s = Math.max(heave, 0.35F * linger) * CometVisuals.smooth(a / 3.0);
+        if (s < 0.01F) {
+            return;
+        }
+        double rimH = p.params.rimHeight() * MoonPlan.rise(t);
+        double at = p.rimInner + (p.rimOuter - p.rimInner) * 0.12;
+        int count = Math.max(24, (int) (at * Math.PI * 2.0 / 6.0));
+        Vec3 prev = null;
+        for (int i = 0; i <= count; i++) {
+            double angle = (double) i / count * Math.PI * 2.0;
+            Vec3 point = new Vec3(p.target.x + Math.cos(angle) * at, p.target.y, p.target.z + Math.sin(angle) * at);
+            if (prev != null) {
+                world.wall(prev, point, rimH * 1.6 + 3.0, Shapes.WALL, i % 4, DUST, 0.5F * s);
+            }
+            if (i % 3 == 0) {
+                double lift = rimH + 3.0 + 10.0 * (1.0 - heave) * (float) Math.min(1.0, a / 40.0);
+                world.billboard(point.add(0.0, lift, 0.0), 5.0 + p.params.rimHeight() * 0.55, Shapes.GLOW, Shapes.HAZE,
+                    i % 2 == 0 ? DUST : ASH, 0.4F * s, 0.0);
+            }
+            prev = point;
+        }
+    }
+
+    /** Glowing lumps of moon and crust flung out of the impact in arcs, landing where the server leaves them. */
+    private static void ejecta(GlowBatch world, GlowBatch light, MoonPlan p, double t, CometVisuals.Land land) {
+        double a = t - MoonPlan.CONTACT;
+        if (a > 80.0 || !land.has(p.target.x, p.target.z)) {
+            return;
+        }
+        double r = p.params.moonRadius();
+        for (int i = 0; i < p.debrisCount(); i++) {
+            double flight = p.debrisFlight(i);
+            if (a > flight + 6.0) {
+                continue;
+            }
+            Vec3 land1 = p.debrisLanding(i);
+            double gy = land.surface(land1.x, land1.z);
+            Vec3 end = new Vec3(land1.x, Double.isNaN(gy) ? p.target.y : gy, land1.z);
+            Vec3 out = new Vec3(end.x - p.target.x, 0.0, end.z - p.target.z).normalize();
+            Vec3 start = p.target.add(out.scale(p.restFootprint * 0.85)).add(0.0, r * 0.25, 0.0);
+            double apex = start.distanceTo(end) * (0.35 + 0.3 * p.hash(i, 61, 2)) + r * 0.3;
+            boolean cheese = p.hash(i, 5, 3) < 0.6;
+            int hot = cheese ? GOLD : FIRE;
+            if (a <= flight) {
+                double s = a / flight;
+                Vec3 at = arc(start, end, apex, s);
+                Vec3 behind = arc(start, end, apex, Math.max(0.0, s - 0.07));
+                double size = 1.3 + 1.6 * p.hash(i, 67, 4);
+                float glow = 1.0F - 0.5F * (float) s;
+                world.billboard(at, size * 2.2, Shapes.GLOW, 0, hot, 0.9F * glow, 0.0);
+                world.ribbon(at, behind, Vec3.ZERO, size * 0.9, size * 0.2, 6, Shapes.STREAK, Shapes.DUST, FIRE, 0.55F * glow);
+            } else {
+                float land2 = (float) Math.exp(-(a - flight) / 1.8);
+                light.billboard(end.add(0.0, 1.0, 0.0), 5.0, Shapes.GLOW, 0, hot, 0.9F * land2, 0.0);
+                world.flat(end.add(0.0, 0.2, 0.0), p.travel, 4.0, 4.0, Shapes.SHOCK, i % 4, DUST, 0.6F * land2);
+            }
+        }
+    }
+
+    private static Vec3 arc(Vec3 start, Vec3 end, double apex, double s) {
+        return start.lerp(end, s).add(0.0, 4.0 * apex * s * (1.0 - s), 0.0);
+    }
+
+    /**
+     * Glowing cracks racing out across the land from the rim along {@link MoonPlan}'s own crack lines, branching as
+     * they go (shared with the server, which cuts fissures along exactly these), white-gold as they open and cooling
+     * through orange to dull red.
      */
     private static void cracks(GlowBatch world, MoonPlan p, double t, CometVisuals.Land land) {
         double a = t - MoonPlan.CONTACT;
-        if (a > 150.0 || !land.has(p.target.x, p.target.z)) {
+        if (!land.has(p.target.x, p.target.z)) {
             return;
         }
-        float glow = CometVisuals.smooth(a / 6.0) * (1.0F - CometVisuals.smooth((a - 30.0) / 110.0));
+        float heat = MoonPlan.heat(t) * (1.0F - CometVisuals.smooth((t - (MoonPlan.DURATION - 40.0)) / 40.0));
+        float glow = CometVisuals.smooth(a / 4.0) * heat;
         if (glow <= 0.01F) {
             return;
         }
-        double front = MoonPlan.crackFront(t);
-        int pieces = 10;
-        for (int i = 0; i < MoonPlan.CRACKS; i++) {
+        int core = heat > 0.7F ? GOLD : heat > 0.35F ? FIRE : DEEP;
+        int haze = heat > 0.5F ? FIRE : heat > 0.2F ? DEEP : EMBER;
+        for (int i = 0; i < p.crackCount(); i++) {
+            double front = p.crackFront(i, t);
+            if (front <= 0.0) {
+                continue;
+            }
+            int pieces = p.crackIsBranch(i) ? 6 : 12;
             Vec3 prev = onLand(p.crackPoint(i, 0.0), land, p);
             for (int k = 1; k <= pieces; k++) {
                 double along = front * k / (double) pieces;
-                if (along > 1.0) {
-                    break;
-                }
                 Vec3 next = onLand(p.crackPoint(i, along), land, p);
-                float taper = 1.0F - 0.55F * (float) along;
-                double hw = p.crackHalfWidth(i, along);
-                dash(world, prev, next, hw, GOLD, glow * taper);
-                dash(world, prev, next, hw * 4.0, FIRE, glow * taper * 0.35F);
+                float taper = 1.0F - 0.5F * (float) along;
+                double hw = Math.max(0.35, p.crackHalfWidth(i, along));
+                // the freshest stretch, right behind the running tip, burns brightest
+                float tip = front < 1.0 ? 1.0F + 0.8F * (float) Math.exp(-(front - along) * 6.0) : 1.0F;
+                dash(world, prev, next, hw, core, glow * taper * tip);
+                dash(world, prev, next, hw * 3.5, haze, glow * taper * 0.4F);
                 prev = next;
+            }
+            if (front < 1.0) {
+                world.billboard(prev.add(0.0, 1.2, 0.0), 2.5 + p.crackHalfWidth(i, front) * 3.0, Shapes.GLOW, 0, HOT, 0.8F * glow, 0.0);
             }
         }
     }

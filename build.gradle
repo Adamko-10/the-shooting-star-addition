@@ -82,7 +82,7 @@ neoForge {
             // Forwarded straight from the Gradle invocation (-Dss05.clienttest.xxx=... works; Gradle re-applies
             // -D system properties on every build even when a daemon is reused) so the harness's parameters can
             // be changed without recompiling.
-            ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat'].each { key ->
+            ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat', 'hud', 'cam', 'land', 'final'].each { key ->
                 var propertyName = "ss05.clienttest.${key}"
                 var value = project.findProperty(propertyName) ?: System.getProperty(propertyName)
                 if (value != null) {
@@ -95,7 +95,7 @@ neoForge {
             gameDirectory = layout.projectDirectory.dir('run/prodclient')
             loadedMods.set([])
             systemProperty 'ss05.clienttest', 'true'
-            ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat'].each { key ->
+            ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat', 'hud', 'cam', 'land', 'final'].each { key ->
                 var propertyName = "ss05.clienttest.${key}"
                 var value = project.findProperty(propertyName) ?: System.getProperty(propertyName)
                 if (value != null) {

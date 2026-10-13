@@ -3,24 +3,25 @@ package dev.ss05.halley;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * The sizes of one SS-06 moonfall, fixed when it is called down. Like {@link HalleyParams}, the server sends them to
- * every client inside the strike's effect packet (as a short int array), so the film always matches the crater the
- * server cuts and the moon it leaves. {@code sky} is the unit vector toward where the moon stood in the caster's sky
- * when it was called (it falls from there).
+ * The sizes of one Luna moonfall, fixed when it is called down. Like {@link HalleyParams}, the server sends them to
+ * every client inside the strike's effect packet (as a short int array), so the film always matches the ground the
+ * server shoves up and the moon it leaves. {@code sky} is the unit vector toward where the moon stood in the caster's
+ * sky when it was called (it falls from there).
  */
-public record MoonParams(int moonRadius, int craterRadius, int craterDepth, int sinkPercent, double blastReach,
+public record MoonParams(int moonRadius, int craterRadius, int rimHeight, int buriedPercent, double blastReach,
                          int groundY, Vec3 sky, int flags) {
     public static final int FLAG_CARVE = 1;
     public static final int FLAG_CORE = 2;
 
-    /** Marks the int array as SS-06's (SS-05 uses 0x055A1E), followed by its layout version. */
+    /** Marks the int array as Luna's (Halley's uses 0x055A1E), followed by its layout version. */
     private static final int MAGIC = 0x0600A1;
-    private static final int VERSION = 1;
+    /** 2: the rim height and the buried share (1 had a crater depth and a sink share in those places). */
+    private static final int VERSION = 2;
     private static final int LENGTH = 12;
 
     public static MoonParams of(MoonConfig.Tuning tuning, int groundY, Vec3 sky) {
         int flags = (tuning.carveTerrain() ? FLAG_CARVE : 0) | (tuning.moltenCore() ? FLAG_CORE : 0);
-        return new MoonParams(tuning.moonRadius(), tuning.craterRadius(), tuning.craterDepth(), tuning.sinkPercent(),
+        return new MoonParams(tuning.moonRadius(), tuning.craterRadius(), tuning.rimHeight(), tuning.buriedPercent(),
             tuning.blastReach(), groundY, sky.normalize(), flags);
     }
 
@@ -33,18 +34,18 @@ public record MoonParams(int moonRadius, int craterRadius, int craterDepth, int 
         return (this.flags & FLAG_CORE) != 0;
     }
 
-    /** How much of the moon's diameter ends up below the ground, 0..0.9. */
-    public double sink() {
-        return this.sinkPercent / 100.0;
+    /** How much of the moon's height ends up below the ground, 0..0.9. */
+    public double buried() {
+        return this.buriedPercent / 100.0;
     }
 
     public int[] encode() {
-        return new int[]{MAGIC, VERSION, this.moonRadius, this.craterRadius, this.craterDepth, this.sinkPercent,
+        return new int[]{MAGIC, VERSION, this.moonRadius, this.craterRadius, this.rimHeight, this.buriedPercent,
             (int) Math.round(this.blastReach * 100.0), this.groundY, (int) Math.round(this.sky.x * 10000.0),
             (int) Math.round(this.sky.y * 10000.0), (int) Math.round(this.sky.z * 10000.0), this.flags};
     }
 
-    /** Whether an effect packet's int array is one of these (and not SS-05's). */
+    /** Whether an effect packet's int array is one of these (and not Halley's). */
     public static boolean isMoon(int[] data) {
         return data != null && data.length >= 2 && data[0] == MAGIC;
     }
@@ -60,7 +61,7 @@ public record MoonParams(int moonRadius, int craterRadius, int craterDepth, int 
         }
         return new MoonParams(clamp(data[2], MoonConfig.MIN_MOON_RADIUS, MoonConfig.MAX_MOON_RADIUS),
             clamp(data[3], MoonConfig.MIN_CRATER_RADIUS, MoonConfig.MAX_CRATER_RADIUS),
-            clamp(data[4], MoonConfig.MIN_CRATER_DEPTH, MoonConfig.MAX_CRATER_DEPTH), clamp(data[5], 0, 90),
+            clamp(data[4], 0, MoonConfig.MAX_RIM_HEIGHT), clamp(data[5], 0, 90),
             Math.max(1.0, data[6] / 100.0), data[7], sky.normalize(), data[11]);
     }
 
