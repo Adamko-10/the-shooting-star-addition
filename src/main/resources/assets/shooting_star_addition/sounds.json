@@ -103,6 +103,14 @@
       }
     ]
   },
+  "luna_uplink": {
+    "subtitle": "subtitles.shooting_star_addition.luna_uplink",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_uplink"
+      }
+    ]
+  },
   "luna_alarm": {
     "subtitle": "subtitles.shooting_star_addition.luna_alarm",
     "sounds": [
@@ -116,6 +124,14 @@
     "sounds": [
       {
         "name": "shooting_star_addition:luna_crack"
+      }
+    ]
+  },
+  "luna_tear": {
+    "subtitle": "subtitles.shooting_star_addition.luna_tear",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_tear"
       }
     ]
   },
@@ -135,6 +151,14 @@
       }
     ]
   },
+  "luna_rumble": {
+    "subtitle": "subtitles.shooting_star_addition.luna_rumble",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_rumble"
+      }
+    ]
+  },
   "luna_impact": {
     "subtitle": "subtitles.shooting_star_addition.luna_impact",
     "sounds": [
@@ -143,11 +167,35 @@
       }
     ]
   },
+  "luna_shockwave": {
+    "subtitle": "subtitles.shooting_star_addition.luna_shockwave",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_shockwave"
+      }
+    ]
+  },
   "luna_settle": {
     "subtitle": "subtitles.shooting_star_addition.luna_settle",
     "sounds": [
       {
         "name": "shooting_star_addition:luna_settle"
+      }
+    ]
+  },
+  "luna_aftershock": {
+    "subtitle": "subtitles.shooting_star_addition.luna_aftershock",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_aftershock"
+      }
+    ]
+  },
+  "luna_sizzle": {
+    "subtitle": "subtitles.shooting_star_addition.luna_sizzle",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_sizzle"
       }
     ]
   },

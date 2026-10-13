@@ -21,6 +21,7 @@ public final class Ss05ClientTestMod {
             return;
         }
         MinecraftForge.EVENT_BUS.addListener(Harness::onClientTick);
+        MinecraftForge.EVENT_BUS.addListener(Harness::onRenderFramePre);
         MinecraftForge.EVENT_BUS.addListener(Harness::onRenderFrame);
         MinecraftForge.EVENT_BUS.addListener(Harness::onServerTick);
         Harness.log("harness armed: " + HarnessParams.describe());

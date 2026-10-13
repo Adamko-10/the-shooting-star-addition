@@ -9,9 +9,9 @@ public final class MoonInfo {
     public static final String ID = "luna";
     /** The platform all the remote's skills belong to. */
     public static final String TIER = "The Shooting Star";
-    /** "SS-07 · Luna": the number follows The Shooting Star's own skills (see {@link SkillNumbers}). */
+    /** "SA-02 · Luna" (see {@link Codenames}). */
     public static String title() {
-        return SkillNumbers.luna() + " · Luna";
+        return Codenames.LUNA + " · Luna";
     }
 
     /** What the remote announces when it fires: shown big across the screen, and in the action bar to others. */
