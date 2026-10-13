@@ -1,7 +1,40 @@
 {
   "variants": {
-    "": {
-      "model": "shooting_star_addition:block/moon_cheese"
-    }
+    "": [
+      {
+        "model": "shooting_star_addition:block/moon_cheese"
+      },
+      {
+        "model": "shooting_star_addition:block/moon_cheese",
+        "y": 90
+      },
+      {
+        "model": "shooting_star_addition:block/moon_cheese",
+        "y": 180
+      },
+      {
+        "model": "shooting_star_addition:block/moon_cheese",
+        "y": 270
+      },
+      {
+        "model": "shooting_star_addition:block/moon_cheese",
+        "x": 90
+      },
+      {
+        "model": "shooting_star_addition:block/moon_cheese",
+        "x": 90,
+        "y": 90
+      },
+      {
+        "model": "shooting_star_addition:block/moon_cheese",
+        "x": 180,
+        "y": 90
+      },
+      {
+        "model": "shooting_star_addition:block/moon_cheese",
+        "x": 270,
+        "y": 180
+      }
+    ]
   }
 }
