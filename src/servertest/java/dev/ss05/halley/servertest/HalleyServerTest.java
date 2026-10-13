@@ -732,7 +732,7 @@ public final class HalleyServerTest {
                 BlockPos top = this.sampleTopBlockAt(plan.target.x + Math.cos(angle) * d, plan.target.z + Math.sin(angle) * d);
                 BlockState state = this.level.getBlockState(top);
                 found.append(state.getBlock()).append(' ');
-                if (this.isOneOf(state, Blocks.MAGMA_BLOCK, Blocks.LAVA, Blocks.BLACKSTONE) || state.is(HalleyContent.MOON_CHEESE.get())) {
+                if (this.isOneOf(state, Blocks.MAGMA_BLOCK, Blocks.LAVA, Blocks.BLACKSTONE) || HalleyContent.isMoonCheese(state)) {
                     molten++;
                 }
             }
@@ -756,7 +756,7 @@ public final class HalleyServerTest {
             BlockPos sample2 = BlockPos.containing(plan.restCentre.x - r * 0.3, plan.restCentre.y + r * 0.2, plan.restCentre.z);
             BlockState state1 = this.level.getBlockState(sample1);
             BlockState state2 = this.level.getBlockState(sample2);
-            boolean ok = state1.is(HalleyContent.MOON_CHEESE.get()) && state2.is(HalleyContent.MOON_CHEESE.get());
+            boolean ok = HalleyContent.isMoonCheese(state1) && HalleyContent.isMoonCheese(state2);
             this.record("moon_cheese_sphere_painted", ok,
                 "block at " + sample1 + " = " + state1.getBlock() + ", at " + sample2 + " = " + state2.getBlock());
         } catch (Throwable ex) {
@@ -793,10 +793,23 @@ public final class HalleyServerTest {
         }
 
         try {
+            // starving first: it should fill the hunger bar and its saturation right to the top; and slowed: like milk,
+            // it clears that (but keeps its own effects, given after)
+            this.caster.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 600, 1));
+            this.caster.getFoodData().setFoodLevel(3);
+            this.caster.getFoodData().setSaturation(0.0F);
             ItemStack stack = new ItemStack(HalleyContent.MOLTEN_MOON_CHEESE_ITEM.get());
             this.caster.setItemInHand(InteractionHand.MAIN_HAND, stack);
             ItemStack after = stack.finishUsingItem(this.level, this.caster);
             this.caster.setItemInHand(InteractionHand.MAIN_HAND, after);
+
+            int food = this.caster.getFoodData().getFoodLevel();
+            float saturation = this.caster.getFoodData().getSaturationLevel();
+            this.record("molten_fills_hunger_and_saturation", food == 20 && saturation >= 20.0F,
+                "food=" + food + " saturation=" + saturation + " (expected 20 / 20)");
+            this.record("molten_clears_effects_like_milk", !this.caster.hasEffect(MobEffects.MOVEMENT_SLOWDOWN)
+                    && this.caster.hasEffect(HalleyContent.MOLTEN_MIGHT.get()),
+                "effects after eating: " + this.caster.getActiveEffects());
 
             double maxHealth = this.caster.getAttributeValue(Attributes.MAX_HEALTH);
             double expectedMaxHealth = MoonConfig.tuning().moltenHearts() * 2.0;
@@ -816,6 +829,8 @@ public final class HalleyServerTest {
             this.record("molten_healed_to_new_max", this.caster.getHealth() == (float) maxHealth,
                 "health=" + this.caster.getHealth() + " maxHealth=" + maxHealth);
         } catch (Throwable ex) {
+            this.record("molten_fills_hunger_and_saturation", false, "threw " + ex);
+            this.record("molten_clears_effects_like_milk", false, "threw " + ex);
             this.record("molten_max_health_raised", false, "threw " + ex);
             this.record("molten_strength_amplifier", false, "threw " + ex);
             this.record("molten_strength_duration", false, "threw " + ex);
@@ -832,8 +847,24 @@ public final class HalleyServerTest {
             int afterLevel = this.caster.getFoodData().getFoodLevel();
             this.record("moon_cheese_food_level_plus_6", afterLevel - before == 6,
                 "before=" + before + " after=" + afterLevel);
+            this.record("moon_cheese_clears_effects_like_milk", this.caster.getActiveEffects().isEmpty(),
+                "effects after eating: " + this.caster.getActiveEffects());
         } catch (Throwable ex) {
             this.record("moon_cheese_food_level_plus_6", false, "threw " + ex);
+            this.record("moon_cheese_clears_effects_like_milk", false, "threw " + ex);
+        }
+
+        try {
+            // the holey kind is the same cheese
+            this.caster.addEffect(new MobEffectInstance(MobEffects.POISON, 600, 0));
+            ItemStack stack = new ItemStack(HalleyContent.HOLEY_MOON_CHEESE_ITEM.get());
+            this.caster.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            ItemStack after = stack.finishUsingItem(this.level, this.caster);
+            this.caster.setItemInHand(InteractionHand.MAIN_HAND, after);
+            this.record("holey_moon_cheese_clears_effects_like_milk", this.caster.getActiveEffects().isEmpty(),
+                "effects after eating: " + this.caster.getActiveEffects());
+        } catch (Throwable ex) {
+            this.record("holey_moon_cheese_clears_effects_like_milk", false, "threw " + ex);
         }
     }
 

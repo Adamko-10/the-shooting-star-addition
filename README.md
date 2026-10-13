@@ -66,8 +66,8 @@ buried: a whole moon of **moon cheese**, with one block of **molten moon cheese*
 - Fissures tear out across the land all round the crater (like Gungnir's cracks), and the shock wave throws, burns and hurts far beyond it.
 - Its own key (**N** by default), menu card, cooldown (120 s), cutscene (skippable), sounds and alarm.
 - Everything in the crater is erased; past it, the shock wave throws, burns and hurts whatever it meets.
-- **Moon cheese**: right-click a block to place it, right-click the air to eat it. It's as good as a golden carrot.
-- **Molten moon cheese**: eat it for **500 hearts** and **Strength 255** for 10 minutes (Molten Might).
+- **Moon cheese** (and **holey moon cheese**, the cheese's eyes, scattered all through the moon): right-click a block to place it, right-click the air to eat it. It's as good as a golden carrot, and being cheese it clears your effects like milk.
+- **Molten moon cheese**: eat it for **500 hearts** and **Strength 255** for 10 minutes (Molten Might), and a full hunger bar with full saturation (it clears your other effects first, like all moon cheese).
 - **Any size**: the moon, crater and shock wave are server settings, from a pebble to a monster (see below).
 - **It permanently changes the land.** Back up worlds you care about.
 

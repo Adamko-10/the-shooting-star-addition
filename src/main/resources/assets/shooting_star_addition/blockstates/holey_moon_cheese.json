@@ -1,0 +1,51 @@
+{
+  "variants": {
+    "": [
+      {
+        "model": "shooting_star_addition:block/holey_moon_cheese_0"
+      },
+      {
+        "model": "shooting_star_addition:block/holey_moon_cheese_0",
+        "y": 90
+      },
+      {
+        "model": "shooting_star_addition:block/holey_moon_cheese_0",
+        "y": 180
+      },
+      {
+        "model": "shooting_star_addition:block/holey_moon_cheese_0",
+        "y": 270
+      },
+      {
+        "model": "shooting_star_addition:block/holey_moon_cheese_1"
+      },
+      {
+        "model": "shooting_star_addition:block/holey_moon_cheese_1",
+        "y": 90
+      },
+      {
+        "model": "shooting_star_addition:block/holey_moon_cheese_1",
+        "y": 180
+      },
+      {
+        "model": "shooting_star_addition:block/holey_moon_cheese_1",
+        "y": 270
+      },
+      {
+        "model": "shooting_star_addition:block/holey_moon_cheese_2"
+      },
+      {
+        "model": "shooting_star_addition:block/holey_moon_cheese_2",
+        "y": 90
+      },
+      {
+        "model": "shooting_star_addition:block/holey_moon_cheese_2",
+        "y": 180
+      },
+      {
+        "model": "shooting_star_addition:block/holey_moon_cheese_2",
+        "y": 270
+      }
+    ]
+  }
+}

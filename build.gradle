@@ -126,6 +126,9 @@ legacyForge {
         configureEach {
             systemProperty 'forge.logging.markers', 'REGISTRIES'
             logLevel = org.slf4j.event.Level.INFO
+            // the refmaps' SRG names mapped to Mojang's, The Shooting Star's included (see tssDevSrg below)
+            systemProperty 'mixin.env.remapRefMap', 'true'
+            systemProperty 'mixin.env.refMapRemappingFile', project.layout.buildDirectory.file('tss-dev/srg-to-named.srg').get().asFile.absolutePath
         }
     }
 }
@@ -154,9 +157,87 @@ ext.tssPrefix = 'cyou/rimuru/shootingstardemo/mc1201/'
 ext.tssNested = null
 apply from: 'gradle/tss.gradle'
 tssPack(tasks.named('reobfJar'))
-// (-PtssTest=1.3.4 picks another one for the dev runs: the client test runs against 1.3.4, as the dev client can't load
-// 1.4's own mixins - they name their targets by SRG name, with no refmap to map them for a dev game)
+// (-PtssTest=1.3.4 picks another one for the dev runs)
 var shootingStarNamed = tssVersions.isEmpty() ? files() : tssDeobfNow(tssTest.jar)
+
+// ---- The Shooting Star in a dev game --------------------------------------------------------------------------------
+// The dev game runs with Mojang's names, and Mixin maps the SRG names in every mod's refmap to those as it loads them
+// (mixin.env.remapRefMap) - but The Shooting Star's mixins name their targets by SRG name with no refmap at all, so in a
+// dev game they find nothing and the game stops. Its readable copy (for compiling and the dev runs only: nothing of The
+// Shooting Star is ever shipped) gets an empty refmap for each of its mixin configs, so the same remapping covers its
+// targets too; the runs get that remapping (SRG to Mojang's names, made from the Minecraft artifacts' own mapping).
+def tssDevRefmaps = { File jar ->
+    def configs = []
+    new java.util.zip.ZipFile(jar).withCloseable { zip ->
+        zip.entries().each { e ->
+            if (!e.directory && e.name.endsWith('.mixins.json')
+                && new groovy.json.JsonSlurper().parse(zip.getInputStream(e), 'UTF-8').refmap == null) {
+                configs << e.name
+            }
+        }
+    }
+    if (configs.isEmpty()) {
+        return
+    }
+    def tmp = new File(jar.path + '.tmp')
+    new java.util.zip.ZipOutputStream(new FileOutputStream(tmp)).withCloseable { out ->
+        new java.util.zip.ZipFile(jar).withCloseable { zip ->
+            zip.entries().each { e ->
+                byte[] bytes = zip.getInputStream(e).bytes
+                if (e.name in configs) {
+                    def config = new groovy.json.JsonSlurper().parse(bytes, 'UTF-8')
+                    def refmap = e.name.substring(e.name.lastIndexOf('/') + 1).replace('.mixins.json', '.dev-refmap.json')
+                    config.refmap = refmap
+                    bytes = groovy.json.JsonOutput.toJson(config).getBytes('UTF-8')
+                    out.putNextEntry(new java.util.zip.ZipEntry(refmap))
+                    out.write('{"mappings":{},"data":{}}'.getBytes('UTF-8'))
+                    out.closeEntry()
+                }
+                out.putNextEntry(new java.util.zip.ZipEntry(e.name))
+                if (!e.directory) {
+                    out.write(bytes)
+                }
+                out.closeEntry()
+            }
+        }
+    }
+    jar.delete()
+    tmp.renameTo(jar)
+    logger.lifecycle("Gave The Shooting Star's mixin configs ${configs} an empty refmap for the dev game")
+}
+shootingStarNamed.each { tssDevRefmaps(it) }
+
+def tssDevSrg = tasks.register('tssDevSrg') {
+    description = 'SRG to Mojang names, the way Mixin reads them, for the refmaps in the dev runs'
+    dependsOn 'createMinecraftArtifacts'
+    def from = layout.buildDirectory.file('moddev/artifacts/namedToIntermediate.tsrg')
+    def to = layout.buildDirectory.file('tss-dev/srg-to-named.srg')
+    outputs.file(to)
+    doLast {
+        def out = new StringBuilder()
+        String owner = null
+        from.get().asFile.eachLine('UTF-8') { line ->
+            if (line.isBlank() || line.startsWith('#') || line.startsWith('tsrg2 ') || line.startsWith('\t\t')) {
+                return
+            }
+            if (!line.startsWith('\t')) {
+                owner = line.split(' ')[0]
+                return
+            }
+            def p = line.trim().split(' ')
+            if (p.length == 3 && p[1].startsWith('(')) {
+                out << "MD: ${owner}/${p[2]} ${p[1]} ${owner}/${p[0]} ${p[1]}\n"
+            } else if (p.length >= 2) {
+                out << "FD: ${owner}/${p[-1]} ${owner}/${p[0]}\n"
+            }
+        }
+        to.get().asFile.parentFile.mkdirs()
+        to.get().asFile.setText(out.toString(), 'UTF-8')
+    }
+}
+tasks.matching { it.name.startsWith('prepare') && it.name.endsWith('Run') }.configureEach {
+    dependsOn tssDevSrg
+}
 
 // Dev-only: the servertest mod as a real Forge 1.20.1 server loads it, to run the game-logic test against the *release*
 // jar and The Shooting Star's own (obfuscated) jar. ./gradlew prodServerTestJars -PtssTest=1.4.0 writes
