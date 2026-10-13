@@ -107,7 +107,7 @@ public final class HalleyContent {
     public static final Item MOLTEN_MOON_CHEESE_ITEM = item("molten_moon_cheese", key -> new BlockItem(MOLTEN_MOON_CHEESE, new Item.Properties().setId(key)
         .food(new FoodProperties.Builder().nutrition(4).saturationModifier(1.2F).alwaysEdible().build(), moltenConsumable())));
 
-    // Sounds. The remote's own clicks (the cover and the button) are The Shooting Star's, everything after is SS-05's.
+    // Sounds. The remote's own clicks (the cover and the button) are The Shooting Star's, everything after is ours.
     public static final SoundEvent MARK = sound("halley_mark");
     public static final SoundEvent COUNTDOWN = sound("halley_countdown");
     public static final SoundEvent SIGHT = sound("halley_sight");
@@ -121,19 +121,31 @@ public final class HalleyContent {
     public static final SoundEvent EVAC = sound("halley_evac");
     public static final SoundEvent DUSK = sound("halley_dusk");
     public static final SoundEvent BURST = sound("halley_burst");
-    // SS-06 Luna.
+    // Luna.
+    /** The uplink locking on as the button goes down. */
+    public static final SoundEvent MOON_UPLINK = sound("luna_uplink");
     /** The alarm under "EARTH SYSTEM SHUT DOWN". */
     public static final SoundEvent MOON_ALARM = sound("luna_alarm");
     /** The moon cracking open in the sky. */
     public static final SoundEvent MOON_CRACK = sound("luna_crack");
+    /** The moon tearing loose from its place in the sky. */
+    public static final SoundEvent MOON_TEAR = sound("luna_tear");
     /** The long, rising roar of the fall. */
     public static final SoundEvent MOON_FALL = sound("luna_fall");
     /** Burning through the atmosphere. */
     public static final SoundEvent MOON_ENTRY = sound("luna_entry");
+    /** The ground rumbling and the air howling in the last seconds before it lands. */
+    public static final SoundEvent MOON_RUMBLE = sound("luna_rumble");
     /** The impact. */
     public static final SoundEvent MOON_IMPACT = sound("luna_impact");
-    /** Grinding down into the crater and settling. */
+    /** The shock wave rolling over (a moment after the impact, later the further off you are). */
+    public static final SoundEvent MOON_SHOCKWAVE = sound("luna_shockwave");
+    /** Grinding down into the earth while the ground heaves up round it. */
     public static final SoundEvent MOON_SETTLE = sound("luna_settle");
+    /** Aftershocks: the ground settling, rock sliding off the rim. */
+    public static final SoundEvent MOON_AFTERSHOCK = sound("luna_aftershock");
+    /** The molten seam round the moon hissing and spitting. */
+    public static final SoundEvent MOON_SIZZLE = sound("luna_sizzle");
     /** Debris and rubble raining down afterwards. */
     public static final SoundEvent MOON_DEBRIS = sound("luna_debris");
 

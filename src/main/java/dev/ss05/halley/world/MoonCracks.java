@@ -12,10 +12,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 /**
- * The fissures SS-06 tears into the land round its crater (like Gungnir's cracks): cut along {@link MoonPlan}'s crack
- * lines, the same ones the client draws glowing, racing outward from the rim over {@link MoonPlan#CRACK_TICKS}.
- * Deepest and widest at the rim, a magma floor glowing at the bottom, scorched walls. Only loaded chunks are touched
- * (the cracks can reach past the area the strike keeps loaded, and must never make the server generate terrain).
+ * The fissures Luna tears into the land round the rim (like Gungnir's cracks): cut along {@link MoonPlan}'s crack
+ * lines, the same ones the client draws glowing, racing outward and branching as they go. Deepest and widest where they
+ * leave the rim; a floor of magma with lava pooled in the deep stretches, scorched walls and a buckled, burnt lip.
+ * Only loaded chunks are touched (the cracks can reach past the area the strike keeps loaded, and must never make the
+ * server generate terrain).
  */
 final class MoonCracks {
     private static final Palette WALL = Palette.of(Blocks.BLACKSTONE, 45, Blocks.BASALT, 35, Blocks.SMOOTH_BASALT, 20);
@@ -23,44 +24,55 @@ final class MoonCracks {
     private final ServerLevel level;
     private final MoonPlan plan;
     /** How far (0..1) each crack has been cut so far. */
-    private double cut;
+    private final double[] cut;
+    private boolean done;
 
     MoonCracks(ServerLevel level, MoonPlan plan) {
         this.level = level;
         this.plan = plan;
+        this.cut = new double[plan.crackCount()];
     }
 
     boolean done() {
-        return this.cut >= 1.0;
+        return this.done;
     }
 
     /** Cuts every crack out to where it has run by time {@code t}. */
     void tick(double t) {
-        this.cutTo(MoonPlan.crackFront(t));
+        Map<BlockPos, BlockState> out = new HashMap<>();
+        boolean all = true;
+        for (int i = 0; i < this.cut.length; i++) {
+            this.cutTo(i, this.plan.crackFront(i, t), out);
+            all &= this.cut[i] >= 1.0;
+        }
+        if (!out.isEmpty()) {
+            StarBridge.paint(this.level, out);
+        }
+        this.done = all;
     }
 
     /** Cuts what is left at once (the spell was cut short). */
     void finish() {
-        this.cutTo(1.0);
-    }
-
-    private void cutTo(double front) {
-        if (front <= this.cut) {
-            return;
-        }
         Map<BlockPos, BlockState> out = new HashMap<>();
-        int maxDepth = Math.max(2, Mth.ceil(this.plan.params.craterDepth() * 0.45));
-        for (int i = 0; i < MoonPlan.CRACKS; i++) {
-            double length = this.plan.crackLength(i);
-            double step = 0.6 / Math.max(1.0, length);
-            for (double along = this.cut; along <= front; along += step) {
-                this.cutAt(i, along, maxDepth, out);
-            }
+        for (int i = 0; i < this.cut.length; i++) {
+            this.cutTo(i, 1.0, out);
         }
-        this.cut = front;
         if (!out.isEmpty()) {
             StarBridge.paint(this.level, out);
         }
+        this.done = true;
+    }
+
+    private void cutTo(int i, double front, Map<BlockPos, BlockState> out) {
+        if (front <= this.cut[i]) {
+            return;
+        }
+        int maxDepth = Math.max(3, Mth.ceil(this.plan.params.moonRadius() * (this.plan.crackIsBranch(i) ? 0.11 : 0.18)));
+        double step = 0.6 / Math.max(1.0, this.plan.crackLength(i));
+        for (double along = this.cut[i]; along <= front; along += step) {
+            this.cutAt(i, along, maxDepth, out);
+        }
+        this.cut[i] = front;
     }
 
     private void cutAt(int i, double along, int maxDepth, Map<BlockPos, BlockState> out) {
@@ -69,7 +81,7 @@ final class MoonCracks {
         if (half < 0.35) {
             return;
         }
-        int reach = Mth.ceil(half + 1.0);
+        int reach = Mth.ceil(half + 1.5);
         int cx = Mth.floor(centre.x);
         int cz = Mth.floor(centre.z);
         for (int dx = -reach; dx <= reach; dx++) {
@@ -77,31 +89,37 @@ final class MoonCracks {
                 int x = cx + dx;
                 int z = cz + dz;
                 double d = Math.hypot(x + 0.5 - centre.x, z + 0.5 - centre.z);
-                if (d > half + 1.0 || !this.level.hasChunk(x >> 4, z >> 4)) {
+                if (d > half + 1.5 || !this.level.hasChunk(x >> 4, z >> 4)) {
                     continue;
                 }
                 int top = this.level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1;
-                if (top <= this.level.getMinY() + 4) {
+                if (top < this.level.getMinY()) {
                     continue;
                 }
                 if (d > half) {
-                    // the lip: scorch the ground right at the edge of the fissure
+                    // the lip: the ground at the edge of the fissure is scorched, and here and there buckled up a block
                     this.put(out, new BlockPos(x, top, z), WALL.pick(this.plan.hash(x, top, z)));
+                    if (d < half + 1.0 && this.plan.hash(x, 7, z) < 0.3) {
+                        this.put(out, new BlockPos(x, top + 1, z), WALL.pick(this.plan.hash(z, top, x)));
+                    }
                     continue;
                 }
                 double k = 1.0 - (d / half) * (d / half);
-                int depth = Math.max(1, (int) Math.round(maxDepth * (1.0 - along * 0.75) * k + this.plan.hash(x, 3, z) * 1.5));
+                int depth = Math.max(1, (int) Math.round(maxDepth * (1.0 - along * 0.7) * k + this.plan.hash(x, 3, z) * 1.5));
                 int floor = top - depth;
                 for (int y = floor + 1; y <= top; y++) {
                     this.put(out, new BlockPos(x, y, z), Blocks.AIR.defaultBlockState());
                 }
-                this.put(out, new BlockPos(x, floor, z), this.plan.hash(x, floor, z) < 0.7
-                    ? Blocks.MAGMA_BLOCK.defaultBlockState() : WALL.pick(this.plan.hash(z, floor, x)));
+                // lava only pools where the fissure is deep enough to hold it
+                double roll = this.plan.hash(x, floor, z);
+                BlockState bottom = depth >= 3 && roll < 0.4 ? Blocks.LAVA.defaultBlockState()
+                    : roll < 0.8 ? Blocks.MAGMA_BLOCK.defaultBlockState() : WALL.pick(this.plan.hash(z, floor, x));
+                this.put(out, new BlockPos(x, floor, z), bottom);
             }
         }
     }
 
-    /** Never cuts into fluids, block entities (chests...) or bedrock-like blocks. */
+    /** Never cuts into fluids, block entities (chests...) or unbreakable blocks. */
     private void put(Map<BlockPos, BlockState> out, BlockPos at, BlockState state) {
         if (out.containsKey(at)) {
             return;

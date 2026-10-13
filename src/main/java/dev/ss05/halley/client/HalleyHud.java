@@ -1,6 +1,6 @@
 package dev.ss05.halley.client;
 
-import dev.ss05.halley.world.SkillNumbers;
+import dev.ss05.halley.world.Codenames;
 import dev.ss05.halley.HalleyPlan;
 import dev.ss05.halley.client.render.CometRenderer;
 import java.util.Locale;
@@ -132,7 +132,7 @@ public final class HalleyHud {
         corner(g, w - m, m, arm, -1, 1, ink);
         corner(g, m, h - m, arm, 1, -1, ink);
         corner(g, w - m, h - m, arm, -1, -1, ink);
-        text(g, font, "UPLINK // " + SkillNumbers.halley() + " > HALLEY", m + 6, m + 6, flicker ? dim : ink, 1.0F);
+        text(g, font, "UPLINK // " + Codenames.HALLEY + " > HALLEY", m + 6, m + 6, flicker ? dim : ink, 1.0F);
         text(g, font, String.format(Locale.ROOT, "T+%05.2f", ct / 20.0F), m + 6, m + 17, dim, 1.0F);
         String clock = ct < p.impact ? String.format(Locale.ROOT, "IMPACT T-%05.2f", Math.max(0.0F, (p.impact - ct) / 20.0F)) : "IMPACT CONFIRMED";
         right(g, font, clock, w - m - 6, m + 6, ink, 1.0F);
