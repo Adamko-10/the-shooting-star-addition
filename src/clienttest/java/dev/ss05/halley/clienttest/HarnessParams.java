@@ -81,6 +81,8 @@ final class HarnessParams {
             case "rim" -> new double[] {-40, 30, 115, 0, 5, 0};
             // straight down from high above
             case "top" -> new double[] {0.5, 230, 0.6, 0, 0, 0};
+            // close up on the moon's side, to see the cheese itself
+            case "cheese" -> new double[] {-25, 40, 62, 0, 25, 0};
             default -> null;
         };
     }
