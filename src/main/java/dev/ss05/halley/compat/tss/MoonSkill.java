@@ -1,6 +1,6 @@
 package dev.ss05.halley.compat.tss;
 
-import cyou.rimuru.shootingstardemo.mc1211.magic.Skill;
+import cyou.rimuru.shootingstardemo.magic.Skill;
 import dev.ss05.halley.MoonConfig;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.world.MoonInfo;

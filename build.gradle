@@ -1,84 +1,52 @@
-// The Shooting Star Addition: an unofficial addon for The Shooting Star (NeoForge 1.21.1), built with ModDevGradle.
+// The Shooting Star Addition: an unofficial addon for The Shooting Star (Fabric, Minecraft 1.21.1), built with Loom.
 //
-//   1. Put The Shooting Star's jar in libs/ (any file named the-shooting-star*.jar).
+//   1. Put The Shooting Star's Fabric jar in libs/ (the file from its download page, the-shooting-star*.jar).
 //   2. ./gradlew build        -> build/libs/shooting_star_addition-<version>.jar
 //      ./gradlew runClient    -> a dev game with The Shooting Star and this addon loaded
 //
-// Versions live in gradle.properties.
+// Versions live in gradle.properties. Unlike 26.x, Minecraft 1.21.1 is still obfuscated: Fabric mods (The Shooting
+// Star's 1.21.1 build included) are published in intermediary names, so this is the classic remapping Loom plugin
+// with Mojang's mappings, The Shooting Star goes through the mod* configurations (remapped for dev), and the release
+// jar is remapped to intermediary with a mixin refmap.
 plugins {
-    id 'java-library'
-    id 'idea'
-    // any ModDevGradle 2.0.x works for NeoForge 1.21.1
-    id 'net.neoforged.moddev' version '2.0.+'
+    id 'fabric-loom' version "${loom_version}"
 }
 
-tasks.named('wrapper', Wrapper).configure {
-    distributionType = Wrapper.DistributionType.BIN
-}
-
-version = mod_version
-group = mod_group_id
+version = project.mod_version
+group = project.maven_group
 
 base {
-    archivesName = mod_id
+    archivesName = project.archives_base_name
 }
-
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 repositories {
-    mavenLocal()
 }
 
-// A dev-only source set for the in-game screenshot harness used by the main session to look at an effect without a
-// human (see src/clienttest). It is never built into the release jar and never loaded by the normal runs - only by
-// the 'clientTest' run below, as its own second mod. Default conventions give it src/clienttest/java and
-// src/clienttest/resources.
+// Dev-only: the automated screenshot harness (see src/clienttest). Never built into the release jar, never loaded
+// by the normal runs - only by the 'clientTest' run below, as its own second mod. Default conventions give it
+// src/clienttest/java and src/clienttest/resources.
 sourceSets {
     clienttest {}
 }
 
-// Captured so the 'runs' block below can restrict exactly which mods each run loads (otherwise every run would load
-// every mod registered in 'mods', including the clienttest-only one).
-var mainMod
-var clientTestMod
-
-neoForge {
-    version = project.neo_version
-
-    parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
-    }
-
+loom {
     mods {
         "${mod_id}" {
-            sourceSet(sourceSets.main)
+            sourceSet sourceSets.main
         }
         ss05_clienttest {
-            sourceSet(sourceSets.clienttest)
+            sourceSet sourceSets.clienttest
         }
     }
-    mainMod = mods.getByName(mod_id)
-    clientTestMod = mods.getByName('ss05_clienttest')
-
     runs {
-        client {
-            client()
-            loadedMods.set([mainMod])
-        }
-        server {
-            server()
-            programArgument '--nogui'
-            loadedMods.set([mainMod])
-        }
-        // Dev-only: ./gradlew runClientTest -Dss05.clienttest.skill=halley ...
+        // Dev-only: ./gradlew runClientTest -Dss05.clienttest.skill=moon ...
         // Opens its own game directory (run/clienttest) with The Shooting Star, the addon and the harness mod
         // loaded, and drives a scripted cast + screenshots. See src/clienttest/java for the harness itself.
         clientTest {
             client()
-            gameDirectory = layout.projectDirectory.dir('run/clienttest')
-            loadedMods.set([mainMod, clientTestMod])
-            systemProperty 'ss05.clienttest', 'true'
+            source sourceSets.clienttest
+            runDir 'run/clienttest'
+            property 'ss05.clienttest', 'true'
             // Forwarded straight from the Gradle invocation (-Dss05.clienttest.xxx=... works; Gradle re-applies
             // -D system properties on every build even when a daemon is reused) so the harness's parameters can
             // be changed without recompiling.
@@ -86,124 +54,119 @@ neoForge {
                 var propertyName = "ss05.clienttest.${key}"
                 var value = project.findProperty(propertyName) ?: System.getProperty(propertyName)
                 if (value != null) {
-                    systemProperty propertyName, value.toString()
+                    property propertyName, value.toString()
                 }
             }
-        }
-        prodClientTest {
-            client()
-            gameDirectory = layout.projectDirectory.dir('run/prodclient')
-            loadedMods.set([])
-            systemProperty 'ss05.clienttest', 'true'
-            ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat', 'hud', 'cam', 'land', 'final', 'world'].each { key ->
-                var propertyName = "ss05.clienttest.${key}"
-                var value = project.findProperty(propertyName) ?: System.getProperty(propertyName)
-                if (value != null) {
-                    systemProperty propertyName, value.toString()
-                }
-            }
-        }
-        configureEach {
-            systemProperty 'forge.logging.markers', 'REGISTRIES'
-            logLevel = org.slf4j.event.Level.INFO
         }
     }
 }
 
-// The clienttest source set needs the Minecraft/NeoForge dependencies too (sourceSet(sourceSets.main) above gets
-// these automatically as the plugin's primary source set; any other source set needs this explicitly).
-neoForge.addModdingDependenciesTo(sourceSets.clienttest)
-
-// The Shooting Star is compiled against but never shipped inside this jar (its licence is All Rights Reserved).
-var shootingStar = fileTree(dir: 'libs', include: 'the-shooting-star*.jar')
+// The Shooting Star is downloaded as one jar for several Minecraft versions, with its 1.21.1 build nested inside
+// (META-INF/jars/...+mc1.21.1.jar): that inner jar is what the addon is compiled against and what the dev runs load
+// (gradle/tss.gradle takes it out). The inner jar on its own in libs/ works too. libs/ holds one such jar per version
+// of The Shooting Star the addon supports; none is ever shipped inside this jar (its licence is All Rights Reserved).
+def shootingStarJars = fileTree(dir: 'libs', include: 'the-shooting-star*.jar')
 
 // The Shooting Star 1.4.0+ is obfuscated: compile and run against a readable copy of the newest one in libs/, and
 // make the release jar work with every one in libs/ (see gradle/tss.gradle).
-ext.tssObf = shootingStar
-ext.tssPrefix = 'cyou/rimuru/shootingstardemo/mc1211/'
-ext.tssNested = null
+ext.tssObf = shootingStarJars
+ext.tssPrefix = 'cyou/rimuru/shootingstardemo/'
+ext.tssNested = '+mc1.21.1'
 apply from: 'gradle/tss.gradle'
-tssPack(tasks.named('jar'))
+tssPack(tasks.named('remapJar'))
 
 dependencies {
-    compileOnly tssNamed
-    // The harness sees main's classes (StarBridge, etc.) and compiles against The Shooting Star the same way.
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+    // Loom remaps mod dependencies while configuring: the readable copy is made right away (see gradle/tss.gradle)
+    def tssNamedNow = tssVersions.isEmpty() ? files() : tssDeobfNow(tssVersions[0].jar)
+    modCompileOnly tssNamedNow
+    modLocalRuntime tssNamedNow
+
+    // The clienttest source set sees exactly what 'main' sees (Minecraft, Fabric, The Shooting Star), plus this
+    // addon's own compiled classes (to call StarBridge/HalleyContent) - only 'main' gets Loom's modding
+    // dependencies automatically, so its resolved classpaths are extended onto clienttest's directly.
     clienttestImplementation sourceSets.main.output
-    clienttestCompileOnly tssNamed
 }
-
-// The dev runs load mods from a 'mods' folder next to their game directory, so The Shooting Star is copied there
-// before every run. The clientTest run has its own game directory (run/clienttest), so it gets its own copy too.
-// (Only one The Shooting Star at a time: a copy of another version left there from before is removed.)
-var copyShootingStar = tasks.register('copyShootingStar', Sync) {
-    from tssNamed
-    into layout.projectDirectory.dir('run/mods')
-    preserve { exclude 'the-shooting-star*.jar' }
-}
-var copyShootingStarForClientTest = tasks.register('copyShootingStarForClientTest', Sync) {
-    from tssNamed
-    into layout.projectDirectory.dir('run/clienttest/mods')
-    preserve { exclude 'the-shooting-star*.jar' }
-}
-tasks.matching { it.name.startsWith('run') && it.name != 'runProdClientTest' }.configureEach {
-    dependsOn copyShootingStar, copyShootingStarForClientTest
-}
-
-// Dev-only: ./gradlew runProdClientTest -Dss05.clienttest.skill=moon ... runs the harness against the *release* jar
-// and The Shooting Star's own (obfuscated, 1.4.0+) jar, all loaded from run/prodclient/mods as players load them: the
-// proof that tssPack mapped every reference back. -PtssTest=1.4.0 picks which of the jars in libs/ (default the newest).
-var clienttestJar = tasks.register('clienttestJar', Jar) {
-    from sourceSets.clienttest.output
-    archiveClassifier = 'clienttest'
-    destinationDirectory = layout.buildDirectory.dir('prodtest')
-}
-var reobfClienttest = tssReobf(clienttestJar, 'tssReobfClienttest', 'prodtest')
-var copyProdMods = tasks.register('copyProdMods', Sync) {
-    from tasks.named('tssPack'), reobfClienttest, tssTestJar
-    into layout.projectDirectory.dir('run/prodclient/mods')
-}
-tasks.matching { it.name == 'runProdClientTest' }.configureEach {
-    dependsOn copyProdMods
+configurations {
+    clienttestCompileClasspath.extendsFrom compileClasspath
+    clienttestRuntimeClasspath.extendsFrom runtimeClasspath
 }
 
 tasks.named('compileJava') {
+    def found = shootingStarJars
     doFirst {
-        if (shootingStar.isEmpty()) {
-            throw new GradleException("Put The Shooting Star's jar (the-shooting-star*.jar) in libs/ first - see libs/README.txt")
+        if (found.isEmpty()) {
+            throw new GradleException("Put The Shooting Star's Fabric jar (the-shooting-star*.jar, with its Minecraft 1.21.1 build inside) in libs/ first - see libs/README.txt")
         }
     }
 }
 
-// neoforge.mods.toml is filled in from gradle.properties.
-var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+// fabric.mod.json is filled in from gradle.properties.
+processResources {
     var replaceProperties = [
-        minecraft_version_range    : minecraft_version_range,
-        neo_version_range          : neo_version_range,
-        loader_version_range       : loader_version_range,
-        shooting_star_mod_id       : shooting_star_mod_id,
-        shooting_star_version_range: tssVersionRange,
-        mod_id                     : mod_id,
-        mod_name                   : mod_name,
-        mod_license                : mod_license,
-        mod_version                : mod_version,
-        mod_authors                : mod_authors,
-        mod_description            : mod_description,
+        version                    : project.mod_version,
+        shooting_star_mod_id       : project.shooting_star_mod_id,
+        shooting_star_versions     : tssVersionList.join('", "'),
     ]
     inputs.properties replaceProperties
-    expand replaceProperties
-    from 'src/main/templates'
-    into 'build/generated/sources/modMetadata'
+    filesMatching('fabric.mod.json') {
+        expand replaceProperties
+    }
 }
-sourceSets.main.resources.srcDir generateModMetadata
-neoForge.ideSyncTask generateModMetadata
 
 tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
+    it.options.release = 21
+    it.options.encoding = 'UTF-8'
 }
 
-idea {
-    module {
-        downloadSources = true
-        downloadJavadoc = true
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+// Dev-only: ./gradlew prodClientTest -Dss05.clienttest.skill=moon ... runs the clienttest harness against the
+// *release* jar in a production-style game (intermediary names, as players get it), with Fabric API and The
+// Shooting Star's own 1.21.1 jar. The proof that Loom's in-place mixin remapping hooks everything (there is no
+// refmap). Its game directory is run/prodclient. -PtssTest=1.4.0 picks which version of The Shooting Star in libs/
+// (default the newest).
+configurations {
+    prodMods {
+        canBeConsumed = false
+        transitive = false
+    }
+}
+dependencies {
+    prodMods "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+def clienttestJar = tasks.register('clienttestJar', Jar) {
+    from sourceSets.clienttest.output
+    archiveClassifier = 'clienttest-dev'
+    destinationDirectory = layout.buildDirectory.dir('devlibs')
+}
+def remapClienttestJar = tasks.register('remapClienttestJar', net.fabricmc.loom.task.RemapJarTask) {
+    inputFile = clienttestJar.flatMap { it.archiveFile }
+    archiveClassifier = 'clienttest'
+    destinationDirectory = layout.buildDirectory.dir('prodtest')
+    classpath.from(sourceSets.clienttest.compileClasspath)
+}
+def reobfClienttest = tssReobf(remapClienttestJar, 'tssReobfClienttest', 'prodtest')
+tasks.register('prodClientTest', net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+    // setFrom: Loom adds the project's own jar by default, which here is the one before tssPack (build/libs-raw)
+    mods.setFrom(tasks.named('tssPack'), reobfClienttest, configurations.prodMods, tssTestJar)
+    runDir = file('run/prodclient')
+    jvmArgs.add('-Dss05.clienttest=true')
+    ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat', 'hud', 'cam', 'land', 'final', 'world'].each { key ->
+        var propertyName = "ss05.clienttest.${key}"
+        var value = project.findProperty(propertyName) ?: System.getProperty(propertyName)
+        if (value != null) {
+            jvmArgs.add("-D${propertyName}=${value}")
+        }
     }
 }

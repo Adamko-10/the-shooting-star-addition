@@ -6,7 +6,10 @@
   "client": [
     "ClientLevelMixin",
     "ClientLevelTimeMixin",
+    "FogRendererMixin",
+    "GameRendererMixin",
     "LevelRendererMoonMixin",
+    "LevelRendererStagesMixin",
     "PlayerModelMixin"
   ],
   "injectors": {

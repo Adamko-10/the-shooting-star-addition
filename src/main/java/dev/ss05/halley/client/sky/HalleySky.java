@@ -16,6 +16,7 @@ import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.render.BakedTexture;
 import dev.ss05.halley.client.render.HalleyRenderTypes;
 import dev.ss05.halley.client.render.ShaderPacks;
+import dev.ss05.halley.client.render.WorldFrame;
 import javax.annotation.Nullable;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -30,9 +31,6 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.event.RenderFrameEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import net.neoforged.neoforge.client.event.ViewportEvent;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
 
@@ -81,13 +79,12 @@ public final class HalleySky {
     }
 
     /** Once a frame, before anything is drawn: the look of the strike that changes the sky most from here. */
-    public static void update(RenderFrameEvent.Pre event) {
+    public static void update(float partial) {
         current = null;
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null || (HalleyFx.active().isEmpty() && MoonFx.active().isEmpty()) || !HalleyClientConfig.sky()) {
             return;
         }
-        float partial = event.getPartialTick().getGameTimeDeltaPartialTick(true);
         Vec3 camera = minecraft.gameRenderer.getMainCamera().getPosition();
         SkyLook best = null;
         float bestStrength = 0.0F;
@@ -118,10 +115,8 @@ public final class HalleySky {
 
     // ---- The dome. -------------------------------------------------------------------------------------------------
 
-    public static void render(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_SKY) {
-            return;
-        }
+    /** Right after the vanilla sky (see {@code HalleyClient.afterSky}). */
+    public static void render(WorldFrame frame) {
         SkyLook look = current;
         ShaderInstance program = shader;
         Minecraft minecraft = Minecraft.getInstance();
@@ -129,22 +124,22 @@ public final class HalleySky {
         if (look == null || program == null || level == null || level.effects().skyType() != DimensionSpecialEffects.SkyType.NORMAL) {
             return;
         }
-        Camera camera = event.getCamera();
+        Camera camera = frame.camera();
         if (camera.getFluidInCamera() != FogType.NONE || camera.getEntity() instanceof LivingEntity living
             && (living.hasEffect(MobEffects.BLINDNESS) || living.hasEffect(MobEffects.DARKNESS))) {
             // as with the vanilla sky: nothing to see under water, or blinded
             return;
         }
         if (ShaderPacks.active()) {
-            renderPainted(event);
+            renderPainted(frame);
             return;
         }
-        uniforms(program, look, level, event.getPartialTick().getGameTimeDeltaPartialTick(true), false);
+        uniforms(program, look, level, frame.partial(), false);
 
         Matrix4fStack view = RenderSystem.getModelViewStack();
         view.pushMatrix();
         view.identity();
-        view.mul(event.getModelViewMatrix());
+        view.mul(frame.view());
         RenderSystem.applyModelViewMatrix();
         RenderSystem.setShader(() -> program);
         RenderSystem.enableBlend();
@@ -300,14 +295,14 @@ public final class HalleySky {
      * The painted faces on a cube round the camera: the old sky darkened where the new one covers it and the new one's
      * colour added (together, the new sky painted over the old), then its light added on top.
      */
-    private static void renderPainted(RenderLevelStageEvent event) {
+    private static void renderPainted(WorldFrame frame) {
         if (!paintedBase && !paintedLight) {
             return;
         }
         Matrix4fStack view = RenderSystem.getModelViewStack();
         view.pushMatrix();
         view.identity();
-        view.mul(event.getModelViewMatrix());
+        view.mul(frame.view());
         RenderSystem.applyModelViewMatrix();
         if (paintedBase) {
             HalleyRenderTypes.PACK_SKY_DARKEN.draw(darkeningCube(paintedCover));
@@ -398,11 +393,15 @@ public final class HalleySky {
         return real + (long) look.timeShift();
     }
 
-    /** The fog takes on the new sky's colour at the horizon, so the land fades into it. */
-    public static void fog(ViewportEvent.ComputeFogColor event) {
+    /**
+     * From compat/mixin, as the fog's colour is worked out: the fog takes on the new sky's colour at the horizon, so
+     * the land fades into it. The new colour, or null to leave it as it is.
+     */
+    @Nullable
+    public static float[] fogColor(Camera camera, float red, float green, float blue) {
         SkyLook look = current;
-        if (look == null || event.getCamera().getFluidInCamera() != FogType.NONE) {
-            return;
+        if (look == null || camera.getFluidInCamera() != FogType.NONE) {
+            return null;
         }
         // the same mix as the shader's at the horizon: the night, the haze over it, what's left of the vanilla sky
         int palette = Math.max(0, Math.min(NIGHT_HORIZON.length - 1, look.palette()));
@@ -412,9 +411,10 @@ public final class HalleySky {
         float veil = look.veil() * 0.75F;
         float night = look.night() * (1.0F - veil);
         float flash = look.flash() * 0.6F;
-        event.setRed(Math.min(1.0F, (float) (horizon.x * night + veilHorizon.x * veil) + event.getRed() * keep + flash));
-        event.setGreen(Math.min(1.0F, (float) (horizon.y * night + veilHorizon.y * veil) + event.getGreen() * keep + flash));
-        event.setBlue(Math.min(1.0F, (float) (horizon.z * night + veilHorizon.z * veil) + event.getBlue() * keep + flash));
+        return new float[]{
+            Math.min(1.0F, (float) (horizon.x * night + veilHorizon.x * veil) + red * keep + flash),
+            Math.min(1.0F, (float) (horizon.y * night + veilHorizon.y * veil) + green * keep + flash),
+            Math.min(1.0F, (float) (horizon.z * night + veilHorizon.z * veil) + blue * keep + flash)};
     }
 
     /** From compat/mixin: the land's daylight (ClientLevel.getSkyDarken), turned down under the dark sky. */

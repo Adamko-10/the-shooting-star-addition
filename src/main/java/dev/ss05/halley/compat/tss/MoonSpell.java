@@ -1,6 +1,6 @@
 package dev.ss05.halley.compat.tss;
 
-import cyou.rimuru.shootingstardemo.mc1211.spell.ActiveSpell;
+import cyou.rimuru.shootingstardemo.spell.ActiveSpell;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.world.MoonStrike;

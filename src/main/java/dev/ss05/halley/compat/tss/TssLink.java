@@ -1,14 +1,14 @@
 package dev.ss05.halley.compat.tss;
 
-import cyou.rimuru.shootingstardemo.mc1211.magic.Casting;
-import cyou.rimuru.shootingstardemo.mc1211.magic.Skill;
-import cyou.rimuru.shootingstardemo.mc1211.magic.SkillSet;
-import cyou.rimuru.shootingstardemo.mc1211.registry.ModSkills;
-import cyou.rimuru.shootingstardemo.mc1211.spell.GreaterTeleportation;
-import cyou.rimuru.shootingstardemo.mc1211.spell.SpellEngine;
-import cyou.rimuru.shootingstardemo.mc1211.spell.SpellUtil;
-import cyou.rimuru.shootingstardemo.mc1211.star.Carving;
-import cyou.rimuru.shootingstardemo.mc1211.star.Erasure;
+import cyou.rimuru.shootingstardemo.magic.Casting;
+import cyou.rimuru.shootingstardemo.magic.Skill;
+import cyou.rimuru.shootingstardemo.magic.SkillSet;
+import cyou.rimuru.shootingstardemo.registry.ModSkills;
+import cyou.rimuru.shootingstardemo.spell.GreaterTeleportation;
+import cyou.rimuru.shootingstardemo.spell.SpellEngine;
+import cyou.rimuru.shootingstardemo.spell.SpellUtil;
+import cyou.rimuru.shootingstardemo.star.Carving;
+import cyou.rimuru.shootingstardemo.star.Erasure;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.MoonParams;

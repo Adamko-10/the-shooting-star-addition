@@ -1,5 +1,5 @@
 Put The Shooting Star's jars here, as they are: one for every version the addon should work with, for example
-the-shooting-star-demo-1.3.3-neoforge.jar, -1.3.4-, -1.4.0- and -1.4.1-neoforge.jar.
+the-shooting-star-demo-1.3.3-fabric.jar, -1.3.4-, -1.4.0- and -1.4.1-fabric.jar.
 
 The addon is compiled against the newest one, and the dev runs load it. The release jar is made to work with every
 one of them (gradle/tss.gradle), but none of them is ever copied into it. When The Shooting Star updates, add the new

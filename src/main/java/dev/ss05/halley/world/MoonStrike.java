@@ -227,7 +227,7 @@ public final class MoonStrike {
         Vec3 from = caster.position();
         if (StarBridge.liftClear(caster, this.plan.target, zone, zone + 36.0, MoonPlan.DURATION - MoonPlan.EVAC)) {
             for (Vec3 at : new Vec3[]{from, caster.position()}) {
-                this.level.playSound(null, at.x, at.y, at.z, HalleyContent.EVAC.get(), SoundSource.PLAYERS, 1.2F, 1.0F);
+                this.level.playSound(null, at.x, at.y, at.z, HalleyContent.EVAC, SoundSource.PLAYERS, 1.2F, 1.0F);
             }
             caster.connection.send(new ClientboundSetTitlesAnimationPacket(2, 30, 12));
             caster.connection.send(new ClientboundSetSubtitleTextPacket(
@@ -299,7 +299,8 @@ public final class MoonStrike {
             return;
         }
         Map<BlockPos, BlockState> out = new HashMap<>();
-        BlockState cheese = HalleyContent.MOON_CHEESE.get().defaultBlockState();
+        BlockState cheese = HalleyContent.MOON_CHEESE.defaultBlockState();
+        BlockState holey = HalleyContent.HOLEY_MOON_CHEESE.defaultBlockState();
         for (int i = 0; i < this.plan.debrisCount(); i++) {
             Vec3 land = this.plan.debrisLanding(i);
             int x = Mth.floor(land.x);
@@ -313,7 +314,8 @@ public final class MoonStrike {
                     || !below.isCollisionShapeFullBlock(this.level, top.below()) || !this.level.getBlockState(top).isAir()) {
                 continue;
             }
-            BlockState lump = this.plan.hash(i, 5, 3) < 0.6 ? cheese : CRUST_LUMP.pick(this.plan.hash(i, 9, 1));
+            BlockState lump = this.plan.hash(i, 5, 3) < 0.6 ? (this.plan.hash(i, 19, 4) < 0.2 ? holey : cheese)
+                : CRUST_LUMP.pick(this.plan.hash(i, 9, 1));
             out.put(top, lump);
             // the bigger lumps: a second block beside or on top
             if (this.plan.hash(i, 13, 7) < 0.35) {

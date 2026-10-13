@@ -1,10 +1,10 @@
 package dev.ss05.halley.clienttest;
 
-import cyou.rimuru.shootingstardemo.mc1211.client.cinematic.CutsceneDirector;
-import cyou.rimuru.shootingstardemo.mc1211.magic.Casting;
-import cyou.rimuru.shootingstardemo.mc1211.magic.Skill;
-import cyou.rimuru.shootingstardemo.mc1211.magic.Tuning;
-import cyou.rimuru.shootingstardemo.mc1211.registry.ModItems;
+import cyou.rimuru.shootingstardemo.client.cinematic.CutsceneDirector;
+import cyou.rimuru.shootingstardemo.magic.Casting;
+import cyou.rimuru.shootingstardemo.magic.Skill;
+import cyou.rimuru.shootingstardemo.magic.Tuning;
+import cyou.rimuru.shootingstardemo.registry.ModItems;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.compat.StarBridge;
@@ -40,9 +40,6 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.WorldDimensions;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.RenderFrameEvent;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
  * The actual harness: creates a flat creative world, places the player, casts a skill for real through The
@@ -57,7 +54,7 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
  *       happen at the end of an actually-rendered frame, not merely "when a tick happens".</li>
  * </ul>
  */
-final class Harness {
+public final class Harness {
     private static final String LEVEL_ID = "ss05test";
     private static final double SPAWN_X = 0.5;
     private static final double SPAWN_Z = 0.5;
@@ -79,7 +76,7 @@ final class Harness {
 
     private static long nextStatusLogMillis = 0;
 
-    static void onClientTick(ClientTickEvent.Post event) {
+    public static void onClientTick() {
         if (done) {
             return;
         }
@@ -272,9 +269,9 @@ final class Harness {
     /** -Dss05.clienttest.eat=true: eats one of each moon cheese through the real item path and logs what it did. */
     private static void eatCheck(ServerLevel level, ServerPlayer player) {
         player.getFoodData().setFoodLevel(5);
-        new net.minecraft.world.item.ItemStack(dev.ss05.halley.content.HalleyContent.MOON_CHEESE_ITEM.get()).finishUsingItem(level, player);
+        new net.minecraft.world.item.ItemStack(dev.ss05.halley.content.HalleyContent.MOON_CHEESE_ITEM).finishUsingItem(level, player);
         log("eat moon_cheese: food 5 -> " + player.getFoodData().getFoodLevel() + ", saturation " + player.getFoodData().getSaturationLevel());
-        new net.minecraft.world.item.ItemStack(dev.ss05.halley.content.HalleyContent.MOLTEN_MOON_CHEESE_ITEM.get()).finishUsingItem(level, player);
+        new net.minecraft.world.item.ItemStack(dev.ss05.halley.content.HalleyContent.MOLTEN_MOON_CHEESE_ITEM).finishUsingItem(level, player);
         net.minecraft.world.effect.MobEffectInstance strength = player.getEffect(net.minecraft.world.effect.MobEffects.DAMAGE_BOOST);
         net.minecraft.world.effect.MobEffectInstance might = player.getEffect(dev.ss05.halley.content.HalleyContent.MOLTEN_MIGHT);
         log("eat molten_moon_cheese: maxHealth " + player.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH)
@@ -283,7 +280,7 @@ final class Harness {
             + " molten_might " + (might == null ? "none" : might.getDuration() + " ticks"));
         // a relog, in miniature: save the player and load the data into a fresh player
         net.minecraft.nbt.CompoundTag saved = player.saveWithoutId(new net.minecraft.nbt.CompoundTag());
-        ServerPlayer reloaded = net.neoforged.neoforge.common.util.FakePlayerFactory.get(level,
+        ServerPlayer reloaded = net.fabricmc.fabric.api.entity.FakePlayer.get(level,
             new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "ss05reload"));
         reloaded.load(saved);
         log("after a save/load: maxHealth " + reloaded.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH)
@@ -293,7 +290,7 @@ final class Harness {
         // and again after the effects are gone, as if they ran out
         player.removeEffect(dev.ss05.halley.content.HalleyContent.MOLTEN_MIGHT);
         log("after molten_might removed: maxHealth " + player.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH));
-        new net.minecraft.world.item.ItemStack(dev.ss05.halley.content.HalleyContent.MOLTEN_MOON_CHEESE_ITEM.get()).finishUsingItem(level, player);
+        new net.minecraft.world.item.ItemStack(dev.ss05.halley.content.HalleyContent.MOLTEN_MOON_CHEESE_ITEM).finishUsingItem(level, player);
     }
 
     /**
@@ -338,14 +335,13 @@ final class Harness {
     }
 
     /** Keeps view=wide/up honest for the rest of the strike (see {@link #maintainCamera}). */
-    static void onServerTick(ServerTickEvent.Post event) {
+    public static void onServerTick(MinecraftServer server) {
         if (!castRequested || done) {
             return;
         }
         if (!"up".equals(HarnessParams.VIEW)) {
             return;
         }
-        MinecraftServer server = event.getServer();
         if (!(server instanceof IntegratedServer integrated) || server.getPlayerList().getPlayers().isEmpty()) {
             return;
         }
@@ -432,7 +428,7 @@ final class Harness {
      * {@code -Dss05.clienttest.cam=dx,dy,dz,lx,ly,lz} places it at the mark plus (dx, dy, dz), looking at the mark plus
      * (lx, ly, lz); the named views are presets of that.
      */
-    static void onRenderFramePre(RenderFrameEvent.Pre event) {
+    public static void onRenderFramePre() {
         Minecraft mc = Minecraft.getInstance();
         // (in place as soon as the player is, so the land the camera looks at is what gets built first)
         if (done || !placed || mc.screen != null || mc.level == null || mc.player == null) {
@@ -469,7 +465,7 @@ final class Harness {
         mc.options.hideGui = !HarnessParams.HUD;
     }
 
-    static void onRenderFrame(RenderFrameEvent.Post event) {
+    public static void onRenderFrame() {
         if (done || castGameTime < 0) {
             return;
         }

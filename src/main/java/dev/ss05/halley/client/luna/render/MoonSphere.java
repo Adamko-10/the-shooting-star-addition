@@ -9,6 +9,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.client.luna.MoonFx;
+import dev.ss05.halley.client.render.WorldFrame;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
@@ -16,7 +17,6 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
 /**
  * SS-06's moon as a solid, lit, textured sphere: {@code surface.png} for the albedo, {@code seams.png} (an emissive
@@ -128,17 +128,18 @@ public final class MoonSphere {
         return new Placement(drawCentre, radius, axis, p.spin(t), MoonPlan.crack(t) * flicker, heat);
     }
 
-    public static void renderSolid(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_ENTITIES || MoonFx.active().isEmpty()) {
+    /** Among the entities, solid and depth-tested (see {@code HalleyClient}). */
+    public static void renderSolid(WorldFrame frame) {
+        if (MoonFx.active().isEmpty()) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
             return;
         }
-        Vec3 camera = event.getCamera().getPosition();
+        Vec3 camera = frame.camera().getPosition();
         double maxDistance = minecraft.gameRenderer.getDepthFar() * 0.9;
-        float partial = event.getPartialTick().getGameTimeDeltaPartialTick(true);
+        float partial = frame.partial();
 
         BufferBuilder base = new BufferBuilder(BASE_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.NEW_ENTITY);
         BufferBuilder seam = new BufferBuilder(SEAM_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.NEW_ENTITY);
@@ -161,12 +162,14 @@ public final class MoonSphere {
         float fogStart = RenderSystem.getShaderFogStart();
         RenderSystem.setShaderFogStart(Float.MAX_VALUE);
         try {
-            if (baseMesh != null) {
-                (dev.ss05.halley.client.render.ShaderPacks.active() ? PACK_BASE : BASE).draw(baseMesh);
-            }
-            if (seamMesh != null) {
-                EMISSIVE.draw(seamMesh);
-            }
+            frame.drawInView(() -> {
+                if (baseMesh != null) {
+                    (dev.ss05.halley.client.render.ShaderPacks.active() ? PACK_BASE : BASE).draw(baseMesh);
+                }
+                if (seamMesh != null) {
+                    EMISSIVE.draw(seamMesh);
+                }
+            });
         } finally {
             RenderSystem.setShaderFogStart(fogStart);
         }

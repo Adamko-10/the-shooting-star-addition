@@ -257,7 +257,7 @@ public final class MoonFx {
             }
             loaded++;
             BlockState state = level.getBlockState(pos);
-            if (state.is(HalleyContent.MOON_CHEESE.get()) || state.is(HalleyContent.MOLTEN_MOON_CHEESE.get())) {
+            if (HalleyContent.isMoonCheese(state)) {
                 built++;
             }
         }
@@ -316,28 +316,28 @@ public final class MoonFx {
         }
         // the activation: the uplink locking on, then the alarm as the Earth system shuts down
         if (t == MoonPlan.PRESS) {
-            this.play(HalleyContent.MOON_UPLINK.get(), film ? p.target : caster, 1.3F, 1.0F, film);
+            this.play(HalleyContent.MOON_UPLINK, film ? p.target : caster, 1.3F, 1.0F, film);
         }
         if (t == MoonPlan.ALARM) {
-            this.play(HalleyContent.MOON_ALARM.get(), film ? p.target : caster, 1.5F, 1.0F, film);
+            this.play(HalleyContent.MOON_ALARM, film ? p.target : caster, 1.5F, 1.0F, film);
         }
         // the approach: the moon cracking, tearing loose, the long roar down, the scream of entry, the ground rumbling
         if (t == MoonPlan.BREAK) {
             Vec3 at = p.centre(t);
-            this.play(HalleyContent.MOON_CRACK.get(), sky(camera, at), 1.2F, 1.0F, film);
+            this.play(HalleyContent.MOON_CRACK, sky(camera, at), 1.2F, 1.0F, film);
         }
         if (t == MoonPlan.FALL) {
             Vec3 at = p.centre(t);
-            this.play(HalleyContent.MOON_TEAR.get(), sky(camera, at), 1.6F, 1.0F, film);
-            this.follow(HalleyContent.MOON_FALL.get(), 1.8F, film,
+            this.play(HalleyContent.MOON_TEAR, sky(camera, at), 1.6F, 1.0F, film);
+            this.follow(HalleyContent.MOON_FALL, 1.8F, film,
                 age -> age > MoonPlan.CONTACT ? null : sky(camera(), p.centre(Math.min(age, MoonPlan.CONTACT))));
         }
         if (t == MoonPlan.ENTRY) {
             Vec3 at = p.centre(t);
-            this.boom(HalleyContent.MOON_ENTRY.get(), at, sky(camera, at), 2.2F, film, 0.35F, Double.MAX_VALUE);
+            this.boom(HalleyContent.MOON_ENTRY, at, sky(camera, at), 2.2F, film, 0.35F, Double.MAX_VALUE);
         }
         if (t == MoonPlan.CONTACT - 60) {
-            this.play(HalleyContent.MOON_RUMBLE.get(), near(camera, p.target, p.params.craterRadius() * 1.5), 2.4F, 1.0F, film);
+            this.play(HalleyContent.MOON_RUMBLE, near(camera, p.target, p.params.craterRadius() * 1.5), 2.4F, 1.0F, film);
         }
         if (t > MoonPlan.FALL && t < MoonPlan.CONTACT && t % 4 == 0) {
             this.host.shake(p.centre(t), 0.1F * (float) MoonPlan.fall(t), 650.0);
@@ -347,30 +347,30 @@ public final class MoonFx {
         if (t == MoonPlan.CONTACT) {
             this.stopFilmSounds();
             double reach = p.blastRadius();
-            this.boom(HalleyContent.MOON_IMPACT.get(), p.target, near(camera, p.target, reach), 3.2F, film, 1.4F, 1800.0);
+            this.boom(HalleyContent.MOON_IMPACT, p.target, near(camera, p.target, reach), 3.2F, film, 1.4F, 1800.0);
             double d = Math.hypot(camera.x - p.target.x, camera.z - p.target.z);
             int front = film ? 8 : (int) Mth.clamp(d / 9.0, 6.0, 60.0);
-            this.later.add(new Later(t + front, () -> this.play(HalleyContent.MOON_SHOCKWAVE.get(),
+            this.later.add(new Later(t + front, () -> this.play(HalleyContent.MOON_SHOCKWAVE,
                 near(camera(), p.target, Math.min(d, reach)), 2.6F, 1.0F, film && this.inFilm())));
         }
         if (t == MoonPlan.CONTACT + 5) {
-            this.play(HalleyContent.MOON_SETTLE.get(), near(camera, p.target, p.params.craterRadius()), 2.0F, 1.0F, film);
+            this.play(HalleyContent.MOON_SETTLE, near(camera, p.target, p.params.craterRadius()), 2.0F, 1.0F, film);
         }
         if (t > MoonPlan.CONTACT && t < MoonPlan.SETTLE + 60 && t % 3 == 0) {
             this.host.shake(p.target, 0.16F * Math.max(0.0F, 1.0F - (t - MoonPlan.CONTACT) / 150.0F), 700.0);
         }
         if (t == MoonPlan.SETTLE + 25 || t == MoonPlan.SETTLE + 130) {
-            this.play(HalleyContent.MOON_AFTERSHOCK.get(), near(camera, p.target, p.params.craterRadius() * 1.4),
+            this.play(HalleyContent.MOON_AFTERSHOCK, near(camera, p.target, p.params.craterRadius() * 1.4),
                 t == MoonPlan.SETTLE + 25 ? 1.8F : 1.2F, 0.9F + this.random.nextFloat() * 0.15F, film);
             this.host.shake(p.target, t == MoonPlan.SETTLE + 25 ? 0.3F : 0.18F, 600.0);
         }
         if (t >= MoonPlan.CONTACT + 30 && t < MoonPlan.DURATION - 60 && (t - MoonPlan.CONTACT - 30) % 75 == 0) {
             // the molten seam hissing and spitting, from wherever round it is nearest
-            this.play(HalleyContent.MOON_SIZZLE.get(), this.nearestOnSeam(camera), 1.2F * MoonPlan.heat(t) + 0.3F,
+            this.play(HalleyContent.MOON_SIZZLE, this.nearestOnSeam(camera), 1.2F * MoonPlan.heat(t) + 0.3F,
                 0.9F + this.random.nextFloat() * 0.2F, false);
         }
         if (t > MoonPlan.SETTLE && t < MoonPlan.DURATION - 30 && (t - MoonPlan.SETTLE) % 110 == 0) {
-            this.play(HalleyContent.MOON_DEBRIS.get(), near(camera, p.target, p.params.craterRadius() * 1.3), 1.0F,
+            this.play(HalleyContent.MOON_DEBRIS, near(camera, p.target, p.params.craterRadius() * 1.3), 1.0F,
                 0.9F + this.random.nextFloat() * 0.2F, film);
         }
     }
@@ -578,7 +578,7 @@ public final class MoonFx {
             particle(level, ParticleTypes.EXPLOSION_EMITTER, at.add(Math.cos(a) * ring * 0.9, 2.0 + r.nextDouble() * radius * 0.3,
                 Math.sin(a) * ring * 0.9), 0.0, 0.0, 0.0);
         }
-        BlockParticleOption lava = new BlockParticleOption(ParticleTypes.BLOCK, HalleyContent.MOLTEN_MOON_CHEESE.get().defaultBlockState());
+        BlockParticleOption lava = new BlockParticleOption(ParticleTypes.BLOCK, HalleyContent.MOLTEN_MOON_CHEESE.defaultBlockState());
         BlockParticleOption soil = new BlockParticleOption(ParticleTypes.BLOCK, this.groundState(level));
         for (int i = 0; i < this.count(320); i++) {
             double a = r.nextDouble() * Math.PI * 2.0;

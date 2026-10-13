@@ -13,7 +13,6 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 
@@ -32,8 +31,9 @@ public final class CometRenderer {
     private CometRenderer() {
     }
 
-    public static void render(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES || HalleyFx.active().isEmpty() || !HalleyRenderTypes.ready()) {
+    /** Right after the world's particles (see {@code HalleyClient.afterParticles}). */
+    public static void render(WorldFrame frame) {
+        if (HalleyFx.active().isEmpty() || !HalleyRenderTypes.ready()) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
@@ -41,11 +41,11 @@ public final class CometRenderer {
         if (level == null) {
             return;
         }
-        Camera camera = event.getCamera();
+        Camera camera = frame.camera();
         Vec3 eye = camera.getPosition();
-        VIEW_PROJECTION.set(event.getProjectionMatrix()).mul(event.getModelViewMatrix());
+        VIEW_PROJECTION.set(frame.projection()).mul(frame.view());
         lastCamera = eye;
-        float partial = event.getPartialTick().getGameTimeDeltaPartialTick(true);
+        float partial = frame.partial();
         // anything further out is pulled in along its line of sight to just inside the far plane (see GlowBatch)
         double far = minecraft.gameRenderer.getDepthFar() * 0.9;
         double landRange = minecraft.options.getEffectiveRenderDistance() * 16.0;
@@ -88,14 +88,16 @@ public final class CometRenderer {
             }
         }
 
-        MeshData mesh = world.build();
-        if (mesh != null) {
-            (pack ? HalleyRenderTypes.PACK_GLOW : HalleyRenderTypes.GLOW).draw(mesh);
-        }
-        mesh = glare.build();
-        if (mesh != null) {
-            (pack ? HalleyRenderTypes.PACK_GLARE : HalleyRenderTypes.GLARE).draw(mesh);
-        }
+        MeshData worldMesh = world.build();
+        MeshData glareMesh = glare.build();
+        frame.drawInView(() -> {
+            if (worldMesh != null) {
+                (pack ? HalleyRenderTypes.PACK_GLOW : HalleyRenderTypes.GLOW).draw(worldMesh);
+            }
+            if (glareMesh != null) {
+                (pack ? HalleyRenderTypes.PACK_GLARE : HalleyRenderTypes.GLARE).draw(glareMesh);
+            }
+        });
     }
 
     /**
