@@ -61,7 +61,7 @@ public final class MoonConfig {
                 "itself. Everything inside it is erased.")
             .defineInRange("crater_radius", 90, MIN_CRATER_RADIUS, MAX_CRATER_RADIUS);
         rimHeight = b.comment("How high the ground shoved up round the moon rises at its tallest, in blocks (0: none).")
-            .defineInRange("rim_height", 18, 0, MAX_RIM_HEIGHT);
+            .defineInRange("rim_height", 22, 0, MAX_RIM_HEIGHT);
         buriedPercent = b.comment("How much of the moon's height ends up driven into the ground, in percent.")
             .defineInRange("buried_percent", 55, 0, 90);
         blastReach = b.comment("How far the shock wave throws and hurts things, as a multiple of the impact zone's radius.")
@@ -94,7 +94,7 @@ public final class MoonConfig {
     public record Tuning(int cooldownTicks, int reach, boolean nightOnly, int moonRadius, int craterRadius,
                          int rimHeight, int buriedPercent, double blastReach, int chunksPerTick, boolean carveTerrain,
                          boolean moltenCore, int moltenHearts, int moltenStrength, int moltenMinutes) {
-        public static final Tuning DEFAULTS = new Tuning(120 * 20, 420, false, 48, 90, 18, 55, 3.0, 8, true, true, 500, 255, 10);
+        public static final Tuning DEFAULTS = new Tuning(120 * 20, 420, false, 48, 90, 22, 55, 3.0, 8, true, true, 500, 255, 10);
     }
 
     public static Tuning tuning() {

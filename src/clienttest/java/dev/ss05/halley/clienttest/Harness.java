@@ -194,8 +194,8 @@ final class Harness {
         LevelSettings levelSettings = new LevelSettings(LEVEL_ID, GameType.CREATIVE, false, Difficulty.PEACEFUL,
             true, new GameRules(), WorldDataConfiguration.DEFAULT);
         WorldOptions worldOptions = WorldOptions.defaultWithRandomSeed();
-        Function<RegistryAccess, WorldDimensions> dimensions = access ->
-            access.registryOrThrow(Registries.WORLD_PRESET).getOrThrow(WorldPresets.FLAT).createWorldDimensions();
+        Function<RegistryAccess, WorldDimensions> dimensions = access -> access.registryOrThrow(Registries.WORLD_PRESET)
+            .getOrThrow("normal".equals(HarnessParams.WORLD) ? WorldPresets.NORMAL : WorldPresets.FLAT).createWorldDimensions();
         Screen parent = new TitleScreen();
 
         log("creating world '" + LEVEL_ID + "'");
@@ -380,6 +380,24 @@ final class Harness {
         return lastAge < 0 ? -1 : lastAge + (now - lastAgeAt);
     }
 
+    @org.jetbrains.annotations.Nullable
+    private static net.minecraft.world.phys.Vec3 lastMark;
+
+    /** The running strike's mark, or the last one's, or null before there was one. */
+    @org.jetbrains.annotations.Nullable
+    private static net.minecraft.world.phys.Vec3 strikeMark() {
+        if (HarnessParams.MOON) {
+            for (MoonFx fx : MoonFx.active()) {
+                lastMark = fx.plan.target;
+            }
+        } else {
+            for (HalleyFx fx : HalleyFx.active()) {
+                lastMark = fx.plan.target;
+            }
+        }
+        return lastMark;
+    }
+
     private static long lastAge = -1;
     private static long lastAgeAt;
 
@@ -424,9 +442,11 @@ final class Harness {
         if (cam == null) {
             return;
         }
-        double markX = SPAWN_X + HarnessParams.DISTANCE;
-        double markY = groundY;
-        double markZ = SPAWN_Z;
+        // round the strike's real mark once it has one (the land can have put it somewhere else than aimed at)
+        net.minecraft.world.phys.Vec3 mark = strikeMark();
+        double markX = mark != null ? mark.x : SPAWN_X + HarnessParams.DISTANCE;
+        double markY = mark != null ? mark.y : groundY;
+        double markZ = mark != null ? mark.z : SPAWN_Z;
         double x = markX + cam[0], y = markY + cam[1], z = markZ + cam[2];
         float[] yawPitch = lookAt(x, y, z, markX + cam[3], markY + cam[4], markZ + cam[5]);
         if (camera == null || camera.level() != mc.level) {

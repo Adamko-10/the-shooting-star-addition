@@ -366,23 +366,25 @@ public final class MoonVisuals {
         int haze = heat > 0.45F ? FIRE : heat > 0.18F ? DEEP : EMBER;
         double seam = MoonPlan.seamWidth(p.params.moonRadius());
         double radius = rf + seam * 0.5;
-        int count = Math.max(24, (int) (radius * Math.PI * 2.0 / 4.0));
+        int count = Math.max(32, (int) (radius * Math.PI * 2.0 / 3.0));
         double y = p.target.y + 0.25;
         for (int i = 0; i < count; i++) {
             double angle = (i + 0.5) / count * Math.PI * 2.0;
             Vec3 radial = new Vec3(Math.cos(angle), 0.0, Math.sin(angle));
             Vec3 at = new Vec3(p.target.x + radial.x * radius, y, p.target.z + radial.z * radius);
-            float flicker = 0.75F + 0.25F * (float) Math.sin(t * 0.6 + i * 1.7 + p.phase(i));
-            // tangent dash along the ring
-            world.flat(at, new Vec3(-radial.z, 0.0, radial.x), radius * Math.PI / count * 1.25, seam * (0.6 + 0.5 * heat),
-                Shapes.DASH, 0, core, 1.1F * heat * flicker);
+            float flicker = 0.8F + 0.2F * (float) Math.sin(t * 0.6 + i * 1.7 + p.phase(i));
+            // tangent dashes along the ring, overlapping well so they read as one unbroken band of molten rock
+            world.flat(at, new Vec3(-radial.z, 0.0, radial.x), radius * Math.PI / count * 2.2, seam * (0.7 + 0.6 * heat),
+                Shapes.DASH, 0, core, 0.85F * heat * flicker);
             if (i % 2 == 0) {
-                world.billboard(at.add(0.0, 1.5 + 2.5 * heat, 0.0), seam * (1.6 + 2.2 * heat), Shapes.GLOW, Shapes.HAZE, haze,
-                    0.45F * heat * flicker, 0.0);
+                world.billboard(at.add(0.0, 1.5 + 2.5 * heat, 0.0), seam * (1.8 + 2.4 * heat), Shapes.GLOW, Shapes.HAZE, haze,
+                    0.5F * heat * flicker, 0.0);
             }
         }
-        world.flat(p.target.add(0.0, 0.3, 0.0), p.travel, (radius + seam) / 0.86, (radius + seam) / 0.86, Shapes.RING, 3,
-            haze, 0.55F * heat);
+        // a continuous glow under the band, and a softer one spilling out over the rim's inner lip
+        world.flat(p.target.add(0.0, 0.3, 0.0), p.travel, radius / 0.86, radius / 0.86, Shapes.RING, 3, core, 0.7F * heat);
+        world.flat(p.target.add(0.0, 0.5, 0.0), p.travel, (radius + seam * 2.0) / 0.86, (radius + seam * 2.0) / 0.86,
+            Shapes.RING, 3, haze, 0.5F * heat);
     }
 
     /** A wall of dust and fire thrown up by the shock front, racing out over the land and thinning as it goes. */
@@ -421,7 +423,7 @@ public final class MoonVisuals {
         double rate = (MoonPlan.rise(t + 1.0) - MoonPlan.rise(t - 1.0)) * 0.5;
         float heave = (float) Mth.clamp(rate * 22.0, 0.0, 1.0);
         float linger = 1.0F - CometVisuals.smooth(a / span);
-        float s = Math.max(heave, 0.35F * linger) * CometVisuals.smooth(a / 3.0);
+        float s = Math.max(heave, 0.45F * linger) * CometVisuals.smooth(a / 3.0);
         if (s < 0.01F) {
             return;
         }
@@ -433,7 +435,7 @@ public final class MoonVisuals {
             double angle = (double) i / count * Math.PI * 2.0;
             Vec3 point = new Vec3(p.target.x + Math.cos(angle) * at, p.target.y, p.target.z + Math.sin(angle) * at);
             if (prev != null) {
-                world.wall(prev, point, rimH * 1.6 + 3.0, Shapes.WALL, i % 4, DUST, 0.5F * s);
+                world.wall(prev, point, rimH * 1.6 + 3.0, Shapes.WALL, i % 4, DUST, 0.7F * s);
             }
             if (i % 3 == 0) {
                 double lift = rimH + 3.0 + 10.0 * (1.0 - heave) * (float) Math.min(1.0, a / 40.0);

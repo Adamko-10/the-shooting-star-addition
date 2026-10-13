@@ -38,6 +38,9 @@ final class HarnessParams {
     static final String[] FINAL_VIEWS = System.getProperty(PREFIX + ".final", "").isBlank() ? new String[0]
         : System.getProperty(PREFIX + ".final").split(",");
 
+    /** "flat" (the default: quick to make and to draw) or "normal" (real land: hills, water, trees). */
+    static final String WORLD = System.getProperty(PREFIX + ".world", "flat").toLowerCase(Locale.ROOT);
+
     /** How far round the mark (in blocks) the land must have arrived before the cast (0 = don't wait). */
     static final double LAND = Double.parseDouble(System.getProperty(PREFIX + ".land", "112"));
 
@@ -104,6 +107,6 @@ final class HarnessParams {
 
     static String describe() {
         return "skill=" + SKILL + " shots=" + Arrays.stream(SHOTS).mapToObj(String::valueOf).collect(Collectors.joining(","))
-            + " view=" + VIEW + (CAM.isBlank() ? "" : " cam=" + CAM) + " time=" + TIME + " distance=" + DISTANCE + " film=" + FILM;
+            + " view=" + VIEW + (CAM.isBlank() ? "" : " cam=" + CAM) + " world=" + WORLD + " time=" + TIME + " distance=" + DISTANCE + " film=" + FILM;
     }
 }
