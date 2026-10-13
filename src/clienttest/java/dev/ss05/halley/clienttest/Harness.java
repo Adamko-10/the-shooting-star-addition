@@ -376,11 +376,11 @@ public final class Harness {
         return lastAge < 0 ? -1 : lastAge + (now - lastAgeAt);
     }
 
-    @org.jetbrains.annotations.Nullable
+    @javax.annotation.Nullable
     private static net.minecraft.world.phys.Vec3 lastMark;
 
     /** The running strike's mark, or the last one's, or null before there was one. */
-    @org.jetbrains.annotations.Nullable
+    @javax.annotation.Nullable
     private static net.minecraft.world.phys.Vec3 strikeMark() {
         if (HarnessParams.MOON) {
             for (MoonFx fx : MoonFx.active()) {
@@ -419,7 +419,7 @@ public final class Harness {
         });
     }
 
-    @org.jetbrains.annotations.Nullable
+    @javax.annotation.Nullable
     private static Marker camera;
 
     /**

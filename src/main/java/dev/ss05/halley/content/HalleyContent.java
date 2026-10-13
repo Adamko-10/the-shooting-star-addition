@@ -9,6 +9,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.effect.MobEffect;
@@ -18,7 +19,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.food.Foods;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -177,15 +178,21 @@ public final class HalleyContent {
         return Registry.register(BuiltInRegistries.SOUND_EVENT, HalleyAddon.id(name), SoundEvent.createVariableRangeEvent(HalleyAddon.id(name)));
     }
 
+    // The vanilla tab fields on CreativeModeTabs are private; their registry keys are these fixed ids.
+    private static final ResourceKey<CreativeModeTab> FOOD_AND_DRINKS_TAB =
+        ResourceKey.create(Registries.CREATIVE_MODE_TAB, ResourceLocation.withDefaultNamespace("food_and_drinks"));
+    private static final ResourceKey<CreativeModeTab> NATURAL_BLOCKS_TAB =
+        ResourceKey.create(Registries.CREATIVE_MODE_TAB, ResourceLocation.withDefaultNamespace("natural_blocks"));
+
     /** Registers everything (loading this class does it); called once while mods initialise. */
     public static void register() {
         HalleyAddon.LOG.debug("The addon's blocks and sounds are registered ({}, {})", COMET_HEART, MARK.getLocation());
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.FOOD_AND_DRINKS).register(entries -> {
+        ItemGroupEvents.modifyEntriesEvent(FOOD_AND_DRINKS_TAB).register(entries -> {
             entries.accept(MOON_CHEESE_ITEM);
             entries.accept(HOLEY_MOON_CHEESE_ITEM);
             entries.accept(MOLTEN_MOON_CHEESE_ITEM);
         });
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.NATURAL_BLOCKS).register(entries -> {
+        ItemGroupEvents.modifyEntriesEvent(NATURAL_BLOCKS_TAB).register(entries -> {
             entries.accept(COMET_HEART_ITEM);
             entries.accept(COMET_TRAIL_ITEM);
             entries.accept(MOON_CHEESE_ITEM);

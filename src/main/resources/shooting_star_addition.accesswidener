@@ -1,0 +1,5 @@
+accessWidener	v2	named
+# HalleyRenderTypes makes its own render types (the glow, the glare, the shader-pack ones), as NeoForge and Forge let it
+accessible	method	net/minecraft/client/renderer/RenderType	create	(Ljava/lang/String;Lcom/mojang/blaze3d/vertex/VertexFormat;Lcom/mojang/blaze3d/vertex/VertexFormat$Mode;IZZLnet/minecraft/client/renderer/RenderType$CompositeState;)Lnet/minecraft/client/renderer/RenderType$CompositeRenderType;
+accessible	class	net/minecraft/client/renderer/RenderType$CompositeState
+accessible	class	net/minecraft/client/renderer/RenderType$CompositeRenderType

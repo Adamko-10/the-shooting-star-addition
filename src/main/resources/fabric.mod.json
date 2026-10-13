@@ -14,6 +14,7 @@
   "license": "All-Rights-Reserved",
   "icon": "shooting_star_addition_icon.png",
   "environment": "*",
+  "accessWidener": "shooting_star_addition.accesswidener",
   "entrypoints": {
     "main": [
       "dev.ss05.halley.HalleyAddon"

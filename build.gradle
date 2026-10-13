@@ -30,6 +30,9 @@ sourceSets {
 }
 
 loom {
+    // (the render types HalleyRenderTypes makes need RenderType.create)
+    accessWidenerPath = file('src/main/resources/shooting_star_addition.accesswidener')
+
     mods {
         "${mod_id}" {
             sourceSet sourceSets.main
@@ -80,6 +83,8 @@ dependencies {
     mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    // the @Nullable the shared code marks things with (NeoForge and Forge bring it along; Fabric's Minecraft doesn't)
+    compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
 
     // Loom remaps mod dependencies while configuring: the readable copy is made right away (see gradle/tss.gradle)
     def tssNamedNow = tssVersions.isEmpty() ? files() : tssDeobfNow(tssVersions[0].jar)
@@ -121,6 +126,7 @@ processResources {
 tasks.withType(JavaCompile).configureEach {
     it.options.release = 21
     it.options.encoding = 'UTF-8'
+    it.options.compilerArgs += ['-Xmaxerrs', '1000']
 }
 
 java {
