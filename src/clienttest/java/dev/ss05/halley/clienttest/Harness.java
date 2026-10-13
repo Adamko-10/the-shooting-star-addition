@@ -58,6 +58,7 @@ final class Harness {
     private static volatile boolean done;
     private static volatile double groundY;
     private static long nextStatusLogMillis;
+    private static long landWaitSince = -1;
     private static Marker camera;
 
     private Harness() {
@@ -126,6 +127,14 @@ final class Harness {
         if (mc.level.getGameTime() < settleUntilTick) {
             return;
         }
+        // and until the land round the mark has arrived and been built (a slow client is sent its chunks slowly), for
+        // four minutes at the most
+        if (landWaitSince < 0) {
+            landWaitSince = System.currentTimeMillis();
+        }
+        if (System.currentTimeMillis() - landWaitSince < 240_000L && (!landArrived(mc) || !mc.levelRenderer.hasRenderedAllChunks())) {
+            return;
+        }
 
         if (!castRequested) {
             castRequested = true;
@@ -134,6 +143,21 @@ final class Harness {
             }
             cast(mc);
         }
+    }
+
+    /** Whether this client has every chunk within {@link HarnessParams#LAND} blocks of the mark. */
+    private static boolean landArrived(Minecraft mc) {
+        int r = (int) Math.ceil(HarnessParams.LAND / 16.0);
+        int cx = (int) Math.floor(SPAWN_X + HarnessParams.DISTANCE) >> 4;
+        int cz = (int) Math.floor(SPAWN_Z) >> 4;
+        for (int x = cx - r; x <= cx + r; x++) {
+            for (int z = cz - r; z <= cz + r; z++) {
+                if (!mc.level.getChunkSource().hasChunk(x, z)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private static void createWorld(Minecraft mc) {
@@ -146,7 +170,8 @@ final class Harness {
             true, new GameRules(), WorldDataConfiguration.DEFAULT);
         WorldOptions worldOptions = WorldOptions.defaultWithRandomSeed();
         Function<RegistryAccess, WorldDimensions> dimensions = access ->
-            access.registryOrThrow(Registries.WORLD_PRESET).getOrThrow(WorldPresets.FLAT).createWorldDimensions();
+            access.registryOrThrow(Registries.WORLD_PRESET)
+                .getOrThrow("normal".equals(HarnessParams.WORLD) ? WorldPresets.NORMAL : WorldPresets.FLAT).createWorldDimensions();
         log("creating world '" + LEVEL_ID + "'");
         mc.createWorldOpenFlows().createFreshLevel(LEVEL_ID, levelSettings, worldOptions, dimensions);
     }
@@ -222,22 +247,42 @@ final class Harness {
         if (HarnessParams.MOON) {
             for (MoonFx fx : MoonFx.active()) {
                 age = fx.age();
+                lastMark = fx.plan.target;
             }
         } else {
             for (HalleyFx fx : HalleyFx.active()) {
                 age = fx.age();
+                lastMark = fx.plan.target;
             }
         }
-        return age;
+        long now = Minecraft.getInstance().level.getGameTime();
+        if (age >= 0) {
+            lastAge = age;
+            lastAgeAt = now;
+            return age;
+        }
+        // once the strike is over its effects are gone: carry on counting from where they left off
+        return lastAge < 0 ? -1 : lastAge + (now - lastAgeAt);
     }
+
+    private static long lastAge = -1;
+    private static long lastAgeAt;
+    private static net.minecraft.world.phys.Vec3 lastMark;
+    private static int finalView = -1;
+    private static long finalSince;
+    private static int finalFrames;
 
     static void onRenderTick(TickEvent.RenderTickEvent event) {
         Minecraft mc = Minecraft.getInstance();
-        if (done || !castRequested || mc.level == null || mc.player == null) {
+        if (done || !placed || mc.screen != null || mc.level == null || mc.player == null) {
             return;
         }
         if (event.phase == TickEvent.Phase.START) {
+            // (in place as soon as the player is, so the land the camera looks at is what gets built first)
             placeCamera(mc);
+            return;
+        }
+        if (!castRequested) {
             return;
         }
         long age = strikeAge();
@@ -246,25 +291,46 @@ final class Harness {
         }
         long[] shots = HarnessParams.SHOTS;
         while (nextShotIndex < shots.length && age >= shots[nextShotIndex]) {
-            takeScreenshot(mc, shots[nextShotIndex]);
+            takeScreenshot(mc, String.format("%05d", shots[nextShotIndex]));
             nextShotIndex++;
         }
-        if (nextShotIndex >= shots.length) {
-            done = true;
-            log("done");
-            mc.stop();
+        if (nextShotIndex < shots.length) {
+            return;
         }
+        // the final views: once the strike is over, each from its own spot once everything in view is drawn again
+        if (finalView < HarnessParams.FINAL_VIEWS.length) {
+            if (finalView < 0) {
+                if (MoonFx.active().isEmpty() && HalleyFx.active().isEmpty()) {
+                    finalView = 0;
+                    finalSince = System.currentTimeMillis();
+                    finalFrames = 0;
+                }
+                return;
+            }
+            finalFrames++;
+            if (finalFrames > 30 && mc.levelRenderer.hasRenderedAllChunks() || System.currentTimeMillis() - finalSince > 300_000L) {
+                takeScreenshot(mc, "final_" + HarnessParams.FINAL_VIEWS[finalView].trim());
+                finalView++;
+                finalSince = System.currentTimeMillis();
+                finalFrames = 0;
+            }
+            return;
+        }
+        done = true;
+        log("done");
+        mc.stop();
     }
 
     /** The views that film from a fixed spot use a camera of this client's own (see HarnessParams.camera()). */
     private static void placeCamera(Minecraft mc) {
-        double[] cam = HarnessParams.camera();
+        double[] cam = finalView >= 0 ? HarnessParams.camera(HarnessParams.FINAL_VIEWS[finalView]) : HarnessParams.camera();
         if (cam == null) {
             return;
         }
-        double markX = SPAWN_X + HarnessParams.DISTANCE;
-        double markY = groundY;
-        double markZ = SPAWN_Z;
+        // round the strike's real mark once it has one (the land can have put it somewhere else than aimed at)
+        double markX = lastMark != null ? lastMark.x : SPAWN_X + HarnessParams.DISTANCE;
+        double markY = lastMark != null ? lastMark.y : groundY;
+        double markZ = lastMark != null ? lastMark.z : SPAWN_Z;
         double x = markX + cam[0];
         double y = markY + cam[1];
         double z = markZ + cam[2];
@@ -300,13 +366,13 @@ final class Harness {
         return new float[] {yaw, pitch};
     }
 
-    private static void takeScreenshot(Minecraft mc, long tick) {
-        String fileName = HarnessParams.SKILL + "_" + String.format("%05d", tick) + ".png";
+    private static void takeScreenshot(Minecraft mc, String name) {
+        String fileName = HarnessParams.SKILL + "_" + name + ".png";
         try {
             Screenshot.grab(mc.gameDirectory, fileName, mc.getMainRenderTarget(),
                 component -> log("shot " + new File(new File(mc.gameDirectory, "screenshots"), fileName)));
         } catch (Throwable t) {
-            log("exception taking screenshot for tick " + tick + ": " + t);
+            log("exception taking screenshot " + name + ": " + t);
         }
     }
 

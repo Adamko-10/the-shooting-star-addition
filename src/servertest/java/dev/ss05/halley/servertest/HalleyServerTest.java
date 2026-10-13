@@ -75,7 +75,7 @@ public final class HalleyServerTest {
     private static final int MAX_CHUNK_Z = 28;
     /** Hard stop: 2 minutes of game time after the cast, win or lose. */
     private static final int HARD_TIMEOUT_TICKS = 2400;
-    /** SS-06's strike is much shorter (MoonPlan.DURATION = 600 ticks); half a minute of margin is plenty. */
+    /** Luna's strike is much shorter (MoonPlan.DURATION = 680 ticks); half a minute of margin is plenty. */
     private static final int MOON_HARD_TIMEOUT_TICKS = 1200;
 
     private enum Phase {
@@ -702,19 +702,43 @@ public final class HalleyServerTest {
         MoonPlan plan = this.moonReplicaPlan;
 
         try {
-            // Within the crater radius but outside the moon's own sphere at ground level, so this samples the
-            // crater's cut surface rather than a block the moon build painted over it.
-            BlockPos craterSample = this.sampleTopBlockAt(plan.target.x + plan.params.craterRadius() * 0.7, plan.target.z);
-            BlockState craterState = this.level.getBlockState(craterSample);
-            // the rim's palette keeps the original block a quarter of the time, so what proves the cut is the
-            // surface having been dug well below the ground (or a scorched crater block on top)
-            boolean dug = craterSample.getY() <= plan.target.y - 4.0;
-            boolean craterOk = dug || this.isOneOf(craterState, Blocks.MAGMA_BLOCK, Blocks.BASALT, Blocks.BLACKSTONE,
-                Blocks.COARSE_DIRT, Blocks.COBBLED_DEEPSLATE, Blocks.GRAVEL);
-            this.record("moon_crater_cut", craterOk, "block at " + craterSample + " = " + craterState.getBlock()
-                + " (ground y " + plan.target.y + ")");
+            // The rim: the ground shoved up round the moon. Sampled all round, just outside the molten seam, where it
+            // stands tallest; the plates vary (and there are cracks between them), so most samples, not all, must be up.
+            int raised = 0;
+            StringBuilder heights = new StringBuilder();
+            for (int i = 0; i < 12; i++) {
+                double angle = i * Math.PI / 6.0;
+                double d = plan.rimInner + (plan.rimOuter - plan.rimInner) * 0.06;
+                BlockPos top = this.sampleTopBlockAt(plan.target.x + Math.cos(angle) * d, plan.target.z + Math.sin(angle) * d);
+                int over = top.getY() - (this.groundY - 1);
+                heights.append(over).append(' ');
+                if (over >= 2) {
+                    raised++;
+                }
+            }
+            this.record("moon_rim_raised", raised >= 7, raised + "/12 sampled columns raised (heights over the old ground: " + heights + ")");
         } catch (Throwable ex) {
-            this.record("moon_crater_cut", false, "threw " + ex);
+            this.record("moon_rim_raised", false, "threw " + ex);
+        }
+
+        try {
+            // The molten seam between the moon and the rim: a trench of magma and lava (or the moon itself, where it
+            // bulges out over it).
+            int molten = 0;
+            StringBuilder found = new StringBuilder();
+            for (int i = 0; i < 8; i++) {
+                double angle = i * Math.PI / 4.0 + 0.2;
+                double d = (plan.restFootprint + plan.rimInner) * 0.5;
+                BlockPos top = this.sampleTopBlockAt(plan.target.x + Math.cos(angle) * d, plan.target.z + Math.sin(angle) * d);
+                BlockState state = this.level.getBlockState(top);
+                found.append(state.getBlock()).append(' ');
+                if (this.isOneOf(state, Blocks.MAGMA_BLOCK, Blocks.LAVA, Blocks.BLACKSTONE) || state.is(HalleyContent.MOON_CHEESE.get())) {
+                    molten++;
+                }
+            }
+            this.record("moon_seam_molten", molten >= 6, molten + "/8 (" + found + ")");
+        } catch (Throwable ex) {
+            this.record("moon_seam_molten", false, "threw " + ex);
         }
 
         try {
@@ -749,7 +773,7 @@ public final class HalleyServerTest {
     private BlockPos sampleTopBlockAt(double x, double z) {
         int bx = Mth.floor(x);
         int bz = Mth.floor(z);
-        for (int y = this.groundY + 10; y > this.level.getMinBuildHeight(); y--) {
+        for (int y = this.groundY + 48; y > this.level.getMinBuildHeight(); y--) {
             BlockPos pos = new BlockPos(bx, y, bz);
             if (!this.level.getBlockState(pos).isAir()) {
                 return pos;

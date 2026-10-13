@@ -27,12 +27,13 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
 /**
- * One SS-06 moonfall as a client sees it: its sounds, particles, screen effects, sky look, raised arm and the
+ * One Luna moonfall as a client sees it: its sounds, particles, screen effects, sky look, raised arm and the
  * sphere/glow drawn by {@link dev.ss05.halley.client.luna.render.MoonRenderer}. Modelled directly on
  * {@code client/HalleyFx}, trimmed to what the moon needs; nothing here touches The Shooting Star (that's
  * {@code compat/tss/client/MoonFxAdapter}, which hands this a {@link Host} and drives {@link #tick}, {@link #screen}
@@ -74,7 +75,7 @@ public final class MoonFx {
         SoundEvent remoteSound(boolean press);
     }
 
-    /** The screen effects SS-06 uses: The Shooting Star's post-processing, reached through compat/tss/client. */
+    /** The screen effects Luna uses: The Shooting Star's post-processing, reached through compat/tss/client. */
     public interface Screen {
         void shake(float k);
 
@@ -313,14 +314,21 @@ public final class MoonFx {
                 this.play(click, caster, t == MoonPlan.PRESS ? 0.9F : 0.8F, 1.0F, film);
             }
         }
+        // the activation: the uplink locking on, then the alarm as the Earth system shuts down
+        if (t == MoonPlan.PRESS) {
+            this.play(HalleyContent.MOON_UPLINK.get(), film ? p.target : caster, 1.3F, 1.0F, film);
+        }
         if (t == MoonPlan.ALARM) {
             this.play(HalleyContent.MOON_ALARM.get(), film ? p.target : caster, 1.5F, 1.0F, film);
         }
+        // the approach: the moon cracking, tearing loose, the long roar down, the scream of entry, the ground rumbling
         if (t == MoonPlan.BREAK) {
             Vec3 at = p.centre(t);
             this.play(HalleyContent.MOON_CRACK.get(), sky(camera, at), 1.2F, 1.0F, film);
         }
         if (t == MoonPlan.FALL) {
+            Vec3 at = p.centre(t);
+            this.play(HalleyContent.MOON_TEAR.get(), sky(camera, at), 1.6F, 1.0F, film);
             this.follow(HalleyContent.MOON_FALL.get(), 1.8F, film,
                 age -> age > MoonPlan.CONTACT ? null : sky(camera(), p.centre(Math.min(age, MoonPlan.CONTACT))));
         }
@@ -328,24 +336,51 @@ public final class MoonFx {
             Vec3 at = p.centre(t);
             this.boom(HalleyContent.MOON_ENTRY.get(), at, sky(camera, at), 2.2F, film, 0.35F, Double.MAX_VALUE);
         }
+        if (t == MoonPlan.CONTACT - 60) {
+            this.play(HalleyContent.MOON_RUMBLE.get(), near(camera, p.target, p.params.craterRadius() * 1.5), 2.4F, 1.0F, film);
+        }
         if (t > MoonPlan.FALL && t < MoonPlan.CONTACT && t % 4 == 0) {
             this.host.shake(p.centre(t), 0.1F * (float) MoonPlan.fall(t), 650.0);
         }
+        // the impact, the shock wave rolling over (later the further off you are), the moon grinding in as the crust
+        // heaves up, then aftershocks and the molten seam hissing
         if (t == MoonPlan.CONTACT) {
             this.stopFilmSounds();
-            double reach = p.params.craterRadius() * p.params.blastReach();
+            double reach = p.blastRadius();
             this.boom(HalleyContent.MOON_IMPACT.get(), p.target, near(camera, p.target, reach), 3.2F, film, 1.4F, 1800.0);
+            double d = Math.hypot(camera.x - p.target.x, camera.z - p.target.z);
+            int front = film ? 8 : (int) Mth.clamp(d / 9.0, 6.0, 60.0);
+            this.later.add(new Later(t + front, () -> this.play(HalleyContent.MOON_SHOCKWAVE.get(),
+                near(camera(), p.target, Math.min(d, reach)), 2.6F, 1.0F, film && this.inFilm())));
         }
-        if (t == MoonPlan.CONTACT + 6) {
-            this.play(HalleyContent.MOON_SETTLE.get(), near(camera, p.target, p.params.craterRadius()), 1.3F, 1.0F, film);
+        if (t == MoonPlan.CONTACT + 5) {
+            this.play(HalleyContent.MOON_SETTLE.get(), near(camera, p.target, p.params.craterRadius()), 2.0F, 1.0F, film);
         }
         if (t > MoonPlan.CONTACT && t < MoonPlan.SETTLE + 60 && t % 3 == 0) {
-            this.host.shake(p.target, 0.12F * Math.max(0.0F, 1.0F - (t - MoonPlan.CONTACT) / 140.0F), 600.0);
+            this.host.shake(p.target, 0.16F * Math.max(0.0F, 1.0F - (t - MoonPlan.CONTACT) / 150.0F), 700.0);
+        }
+        if (t == MoonPlan.SETTLE + 25 || t == MoonPlan.SETTLE + 130) {
+            this.play(HalleyContent.MOON_AFTERSHOCK.get(), near(camera, p.target, p.params.craterRadius() * 1.4),
+                t == MoonPlan.SETTLE + 25 ? 1.8F : 1.2F, 0.9F + this.random.nextFloat() * 0.15F, film);
+            this.host.shake(p.target, t == MoonPlan.SETTLE + 25 ? 0.3F : 0.18F, 600.0);
+        }
+        if (t >= MoonPlan.CONTACT + 30 && t < MoonPlan.DURATION - 60 && (t - MoonPlan.CONTACT - 30) % 75 == 0) {
+            // the molten seam hissing and spitting, from wherever round it is nearest
+            this.play(HalleyContent.MOON_SIZZLE.get(), this.nearestOnSeam(camera), 1.2F * MoonPlan.heat(t) + 0.3F,
+                0.9F + this.random.nextFloat() * 0.2F, false);
         }
         if (t > MoonPlan.SETTLE && t < MoonPlan.DURATION - 30 && (t - MoonPlan.SETTLE) % 110 == 0) {
             this.play(HalleyContent.MOON_DEBRIS.get(), near(camera, p.target, p.params.craterRadius() * 1.3), 1.0F,
                 0.9F + this.random.nextFloat() * 0.2F, film);
         }
+    }
+
+    /** The point of the molten seam nearest the camera (on the ground). */
+    private Vec3 nearestOnSeam(Vec3 camera) {
+        MoonPlan p = this.plan;
+        Vec3 flat = new Vec3(camera.x - p.target.x, 0.0, camera.z - p.target.z);
+        Vec3 dir = flat.lengthSqr() < 1.0E-6 ? p.travel : flat.normalize();
+        return p.target.add(dir.scale(p.restFootprint + MoonPlan.seamWidth(p.params.moonRadius()) * 0.5));
     }
 
     private void boom(SoundEvent sound, Vec3 source, Vec3 ear, float volume, boolean film, float shake, double shakeRange) {
@@ -433,6 +468,7 @@ public final class MoonFx {
         MoonPlan p = this.plan;
         RandomSource r = this.random;
         Vec3 mark = p.target;
+        double radius = p.params.moonRadius();
 
         if (t == MoonPlan.ALARM) {
             for (int i = 0; i < this.count(36); i++) {
@@ -454,18 +490,72 @@ public final class MoonFx {
                 }
             }
         }
-        if (t == MoonPlan.CONTACT) {
-            this.burst(level, mark, p.params.craterRadius());
-        }
-        if (t > MoonPlan.CONTACT && t <= MoonPlan.CONTACT + 28) {
-            double radius = p.params.craterRadius();
-            double reach = radius * p.params.blastReach();
-            double front = radius + (reach - radius) * Math.pow((t - MoonPlan.CONTACT) / 28.0, 0.6);
-            for (int i = 0; i < this.count(44); i++) {
+        // the ground's dust blown out from under it just before it lands
+        if (t > MoonPlan.CONTACT - 26 && t < MoonPlan.CONTACT) {
+            float k = (t - (MoonPlan.CONTACT - 26)) / 26.0F;
+            for (int i = 0; i < this.count((int) (10 + 26 * k)); i++) {
                 double a = r.nextDouble() * Math.PI * 2.0;
-                Vec3 at = mark.add(Math.cos(a) * front, 0.6, Math.sin(a) * front);
-                particle(level, i % 3 == 0 ? ParticleTypes.CLOUD : ParticleTypes.ASH, at,
-                    Math.cos(a) * 0.55, 0.12 + r.nextDouble() * 0.3, Math.sin(a) * 0.55);
+                double d = radius * (0.2 + r.nextDouble() * (0.6 + 2.0 * k));
+                double out = 0.6 + 1.4 * k;
+                particle(level, i % 3 == 0 ? ParticleTypes.POOF : ParticleTypes.CLOUD, mark.add(Math.cos(a) * d, 0.4, Math.sin(a) * d),
+                    Math.cos(a) * out, 0.03 + r.nextDouble() * 0.12, Math.sin(a) * out);
+            }
+        }
+        if (t == MoonPlan.CONTACT) {
+            this.burst(level, mark, radius);
+        }
+        if (t > MoonPlan.CONTACT && t <= MoonPlan.CONTACT + 30) {
+            double inner = Math.max(p.rimInner, radius);
+            double reach = p.blastRadius();
+            double front = inner + (reach - inner) * (1.0 - Math.exp(-(t - MoonPlan.CONTACT) / 15.0));
+            for (int i = 0; i < this.count(60); i++) {
+                double a = r.nextDouble() * Math.PI * 2.0;
+                Vec3 at = mark.add(Math.cos(a) * front, 0.6 + r.nextDouble() * 3.0, Math.sin(a) * front);
+                particle(level, i % 3 == 0 ? ParticleTypes.CLOUD : i % 3 == 1 ? ParticleTypes.ASH : ParticleTypes.POOF, at,
+                    Math.cos(a) * 0.7, 0.12 + r.nextDouble() * 0.35, Math.sin(a) * 0.7);
+            }
+        }
+        // the rim heaving up: grit and clods sprayed off it, dust rolling off its plates
+        if (t > MoonPlan.CONTACT && t < MoonPlan.SETTLE + 15 && p.params.rimHeight() > 0) {
+            double rate = (MoonPlan.rise(t + 1.0) - MoonPlan.rise(t - 1.0)) * 0.5;
+            int n = this.count((int) (6 + 60 * Mth.clamp(rate * 20.0, 0.0, 1.0)));
+            double height = p.params.rimHeight() * MoonPlan.rise(t);
+            BlockParticleOption soil = new BlockParticleOption(ParticleTypes.BLOCK, this.groundState(level));
+            BlockParticleOption rock = new BlockParticleOption(ParticleTypes.BLOCK, Blocks.STONE.defaultBlockState());
+            for (int i = 0; i < n; i++) {
+                double a = r.nextDouble() * Math.PI * 2.0;
+                double d = p.rimInner + (p.rimOuter - p.rimInner) * Math.pow(r.nextDouble(), 1.8) * 0.7;
+                Vec3 at = mark.add(Math.cos(a) * d, height * (0.3 + 0.8 * r.nextDouble()) + 1.0, Math.sin(a) * d);
+                double out = 0.15 + r.nextDouble() * 0.5;
+                particle(level, i % 4 == 0 ? ParticleTypes.CLOUD : i % 2 == 0 ? soil : rock, at,
+                    Math.cos(a) * out, 0.25 + r.nextDouble() * 0.6, Math.sin(a) * out);
+            }
+        }
+        // the molten seam: flames, spitting lava and smoke all round the moon, dying down as it cools
+        if (t > MoonPlan.CONTACT + 2 && t < MoonPlan.DURATION - 20) {
+            float heat = MoonPlan.heat(t);
+            double at = p.footprint(t) + MoonPlan.seamWidth(radius) * 0.5;
+            for (int i = 0; i < this.count((int) (14 * heat) + 1); i++) {
+                double a = r.nextDouble() * Math.PI * 2.0;
+                Vec3 pos = mark.add(Math.cos(a) * at, 0.4, Math.sin(a) * at);
+                ParticleOptions kind = i % 5 == 0 ? ParticleTypes.LAVA : i % 5 == 1 ? ParticleTypes.CAMPFIRE_COSY_SMOKE
+                    : i % 5 == 2 ? ParticleTypes.LARGE_SMOKE : ParticleTypes.FLAME;
+                particle(level, kind, pos, this.gauss(0.03), 0.04 + r.nextDouble() * 0.1, this.gauss(0.03));
+            }
+            // and along the cracks, smoke and the odd pop of lava
+            if (t % 2 == 0 && p.crackCount() > 0) {
+                for (int i = 0; i < this.count((int) (6 * heat) + 1); i++) {
+                    int c = r.nextInt(p.crackCount());
+                    double front = p.crackFront(c, t);
+                    if (front <= 0.0) {
+                        continue;
+                    }
+                    Vec3 pos = p.crackPoint(c, r.nextDouble() * front);
+                    double y = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                        Mth.floor(pos.x), Mth.floor(pos.z));
+                    particle(level, i % 3 == 0 ? ParticleTypes.LAVA : ParticleTypes.LARGE_SMOKE, new Vec3(pos.x, y + 0.2, pos.z),
+                        this.gauss(0.02), 0.05 + r.nextDouble() * 0.08, this.gauss(0.02));
+                }
             }
         }
         if (t > MoonPlan.CONTACT && t < MoonPlan.DURATION - 20) {
@@ -473,32 +563,54 @@ public final class MoonFx {
         }
     }
 
+    /** What the ground at the mark is made of (for the clods thrown up). */
+    private BlockState groundState(ClientLevel level) {
+        BlockPos at = BlockPos.containing(this.plan.target.x, this.plan.target.y - 1.0, this.plan.target.z);
+        BlockState state = level.getBlockState(at);
+        return state.isAir() || !state.getFluidState().isEmpty() ? Blocks.DIRT.defaultBlockState() : state;
+    }
+
     private void burst(ClientLevel level, Vec3 at, double radius) {
         RandomSource r = this.random;
-        for (int i = 0; i < 3; i++) {
-            particle(level, ParticleTypes.EXPLOSION_EMITTER, at.add(this.gauss(radius * 0.3), 2.0, this.gauss(radius * 0.3)), 0.0, 0.0, 0.0);
+        double ring = this.plan.restFootprint;
+        for (int i = 0; i < 8; i++) {
+            double a = i * Math.PI / 4.0 + r.nextDouble() * 0.4;
+            particle(level, ParticleTypes.EXPLOSION_EMITTER, at.add(Math.cos(a) * ring * 0.9, 2.0 + r.nextDouble() * radius * 0.3,
+                Math.sin(a) * ring * 0.9), 0.0, 0.0, 0.0);
         }
         BlockParticleOption lava = new BlockParticleOption(ParticleTypes.BLOCK, HalleyContent.MOLTEN_MOON_CHEESE.get().defaultBlockState());
-        for (int i = 0; i < this.count(150); i++) {
+        BlockParticleOption soil = new BlockParticleOption(ParticleTypes.BLOCK, this.groundState(level));
+        for (int i = 0; i < this.count(320); i++) {
             double a = r.nextDouble() * Math.PI * 2.0;
-            double d = Math.sqrt(r.nextDouble()) * radius;
-            Vec3 ground = at.add(Math.cos(a) * d, 0.5, Math.sin(a) * d);
-            double out = 0.6 + r.nextDouble() * 1.6;
-            particle(level, lava, ground, Math.cos(a) * out, 0.8 + r.nextDouble() * 1.8, Math.sin(a) * out);
+            double d = ring * (0.7 + 0.4 * r.nextDouble());
+            Vec3 ground = at.add(Math.cos(a) * d, 0.8, Math.sin(a) * d);
+            double out = 0.6 + r.nextDouble() * 2.2;
+            particle(level, i % 3 == 0 ? lava : soil, ground, Math.cos(a) * out, 0.9 + r.nextDouble() * 2.2, Math.sin(a) * out);
         }
-        for (int i = 0; i < this.count(70); i++) {
-            particle(level, ParticleTypes.LARGE_SMOKE, at.add(this.gauss(radius * 0.5), 1.0 + r.nextDouble() * radius * 0.3, this.gauss(radius * 0.5)),
-                this.gauss(0.1), 0.2 + r.nextDouble() * 0.3, this.gauss(0.1));
+        for (int i = 0; i < this.count(140); i++) {
+            double a = r.nextDouble() * Math.PI * 2.0;
+            double out = 0.8 + r.nextDouble() * 1.8;
+            particle(level, ParticleTypes.FLAME, at.add(Math.cos(a) * ring, 1.0, Math.sin(a) * ring),
+                Math.cos(a) * out, 0.05 + r.nextDouble() * 0.2, Math.sin(a) * out);
         }
-        for (int i = 0; i < this.count(30); i++) {
-            particle(level, ParticleTypes.LAVA, at.add(this.gauss(radius * 0.3), 1.0, this.gauss(radius * 0.3)), this.gauss(0.4), 0.3, this.gauss(0.4));
+        for (int i = 0; i < this.count(110); i++) {
+            particle(level, ParticleTypes.LARGE_SMOKE, at.add(this.gauss(ring * 0.8), 1.0 + r.nextDouble() * radius * 0.5, this.gauss(ring * 0.8)),
+                this.gauss(0.15), 0.2 + r.nextDouble() * 0.4, this.gauss(0.15));
+        }
+        for (int i = 0; i < this.count(36); i++) {
+            double a = r.nextDouble() * Math.PI * 2.0;
+            particle(level, ParticleTypes.CAMPFIRE_SIGNAL_SMOKE, at.add(Math.cos(a) * ring * 1.05, 1.0, Math.sin(a) * ring * 1.05),
+                this.gauss(0.02), 0.12 + r.nextDouble() * 0.1, this.gauss(0.02));
+        }
+        for (int i = 0; i < this.count(60); i++) {
+            particle(level, ParticleTypes.LAVA, at.add(this.gauss(ring * 0.6), 1.0, this.gauss(ring * 0.6)), this.gauss(0.4), 0.3, this.gauss(0.4));
         }
     }
 
     private void aftermath(ClientLevel level, int t) {
         MoonPlan p = this.plan;
         RandomSource r = this.random;
-        double radius = p.params.craterRadius();
+        double radius = p.rimOuter;
         float fade = 1.0F - (float) (t - MoonPlan.CONTACT) / (MoonPlan.DURATION - MoonPlan.CONTACT);
         for (int i = 0; i < this.count((int) (16 * fade) + 1); i++) {
             double a = r.nextDouble() * Math.PI * 2.0;
@@ -632,7 +744,16 @@ public final class MoonFx {
         if (t > MoonPlan.CONTACT && t < MoonPlan.SETTLE + 60) {
             float near = film ? 1.0F : proximity(camera, p.target, 1800.0);
             float k = 1.0F - smooth((t - MoonPlan.CONTACT) / 140.0);
-            screen.shake(0.15F * k * near);
+            // the ground heaving up round it: a hard, jolting shake while the rim rises
+            float heave = (float) Mth.clamp((MoonPlan.rise(t + 1.0) - MoonPlan.rise(t - 1.0)) * 10.0, 0.0, 1.0);
+            screen.shake((0.15F * k + 0.35F * heave) * near);
+        }
+        // aftershocks
+        for (int at : new int[] {MoonPlan.SETTLE + 25, MoonPlan.SETTLE + 130}) {
+            if (t > at && t < at + 40) {
+                float near = film ? 1.0F : proximity(camera, p.target, 1400.0);
+                screen.shake((at == MoonPlan.SETTLE + 25 ? 0.4F : 0.22F) * (float) Math.exp(-(t - at) / 9.0) * near);
+            }
         }
     }
 

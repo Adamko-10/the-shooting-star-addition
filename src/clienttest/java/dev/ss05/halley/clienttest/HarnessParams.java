@@ -31,6 +31,19 @@ final class HarnessParams {
     /** How far in front of the player (along the ground) the mark is placed. */
     static final double DISTANCE = Double.parseDouble(System.getProperty(PREFIX + ".distance", "120"));
 
+    /**
+     * Views to take one more shot from each once the strike is over and every changed block has been drawn again
+     * (a slow client takes a long while to redraw a few hundred thousand changed blocks), e.g. {@code aerial,low}.
+     */
+    static final String[] FINAL_VIEWS = System.getProperty(PREFIX + ".final", "").isBlank() ? new String[0]
+        : System.getProperty(PREFIX + ".final").split(",");
+
+    /** "flat" (the default: quick to make and to draw) or "normal" (real land: hills, water, trees). */
+    static final String WORLD = System.getProperty(PREFIX + ".world", "flat").toLowerCase(Locale.ROOT);
+
+    /** How far round the mark (in blocks) the land must have arrived before the cast (0 = don't wait). */
+    static final double LAND = Double.parseDouble(System.getProperty(PREFIX + ".land", "112"));
+
     /** Whether the HUD stays on in the views filmed from a fixed spot (it is hidden there by default). */
     static final boolean HUD = Boolean.parseBoolean(System.getProperty(PREFIX + ".hud", "false"));
 
@@ -42,7 +55,12 @@ final class HarnessParams {
      * eyes ("first", "third", "up").
      */
     static double[] camera() {
-        if (!CAM.isBlank()) {
+        return camera(VIEW);
+    }
+
+    /** The camera of a named view (see {@link #camera()}). */
+    static double[] camera(String view) {
+        if (!CAM.isBlank() && view.equals(VIEW)) {
             String[] parts = CAM.split(",");
             double[] out = new double[6];
             for (int i = 0; i < 6; i++) {
@@ -50,7 +68,7 @@ final class HarnessParams {
             }
             return out;
         }
-        return switch (VIEW) {
+        return switch (view.trim().toLowerCase(Locale.ROOT)) {
             // off to the side and up a little, the sky the moon falls out of in frame too
             case "wide" -> new double[] {0, 40, 180, 0, 60, 0};
             // high up and off at an angle, looking down on the crater
@@ -59,6 +77,10 @@ final class HarnessParams {
             case "low" -> new double[] {-70, 8, 200, 0, 25, 0};
             // far off and low, the whole fall in frame
             case "far" -> new double[] {0, 50, 520, 0, 160, 0};
+            // close in on the rim from the side, low
+            case "rim" -> new double[] {-40, 30, 115, 0, 5, 0};
+            // straight down from high above
+            case "top" -> new double[] {0.5, 230, 0.6, 0, 0, 0};
             default -> null;
         };
     }
@@ -85,6 +107,6 @@ final class HarnessParams {
 
     static String describe() {
         return "skill=" + SKILL + " shots=" + Arrays.stream(SHOTS).mapToObj(String::valueOf).collect(Collectors.joining(","))
-            + " view=" + VIEW + (CAM.isBlank() ? "" : " cam=" + CAM) + " time=" + TIME + " distance=" + DISTANCE + " film=" + FILM;
+            + " view=" + VIEW + (CAM.isBlank() ? "" : " cam=" + CAM) + " world=" + WORLD + " time=" + TIME + " distance=" + DISTANCE + " film=" + FILM;
     }
 }

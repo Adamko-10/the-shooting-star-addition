@@ -234,8 +234,8 @@ public final class MoonHud {
         }
         if (ct >= MoonPlan.CONTACT + 100.0F) {
             int b = (int) (a * Mth.clamp((ct - MoonPlan.CONTACT - 100.0F) / 10.0F, 0.0F, 1.0F));
-            centered(g, font, String.format(Locale.ROOT, "CRATER Ø%d · DEPTH %d · MOON Ø%d",
-                p.params.craterRadius() * 2, p.params.craterDepth(), p.params.moonRadius() * 2), w / 2, h - m - 30, b << 24 | 0xFFE2C8, 1.25F);
+            centered(g, font, String.format(Locale.ROOT, "IMPACT ZONE Ø%d · MOON Ø%d · %d%% BURIED",
+                p.params.craterRadius() * 2, p.params.moonRadius() * 2, p.params.buriedPercent()), w / 2, h - m - 30, b << 24 | 0xFFE2C8, 1.25F);
         }
     }
 

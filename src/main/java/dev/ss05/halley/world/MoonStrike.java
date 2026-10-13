@@ -36,24 +36,28 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * What SS-06 does to the world, tick by tick (server side). The look and sound of it is {@code client/luna/}.
+ * What Luna does to the world, tick by tick (server side). The look and sound of it is {@code client/luna/}.
  *
  * <ol>
  *   <li>{@link MoonPlan#ALARM}: "EARTH SYSTEM SHUT DOWN" to everyone nearby.</li>
- *   <li>{@link MoonPlan#EVAC}: a creative caster standing in the crater-to-be is lifted clear.</li>
+ *   <li>{@link MoonPlan#EVAC}: a creative caster standing where it will land is lifted clear.</li>
  *   <li>{@link MoonPlan#CONTACT}: everything within {@link MoonPlan#eraseRadius()} is erased, everything out to
- *       {@link MoonPlan#blastRadius()} is thrown, hurt and briefly set alight; the crater is cut and the moon built,
- *       a few chunks per tick, nearest the mark first.</li>
+ *       {@link MoonPlan#blastRadius()} is thrown, hurt and briefly set alight. The ground over the moon's resting place
+ *       is cut away, the molten seam round it opened ({@link #holeAndSeam}), the rim heaves up round it while it drives
+ *       in ({@link MoonRim}) and cracks race out across the land ({@link MoonCracks}).</li>
+ *   <li>{@link MoonPlan#SETTLE}: the moon itself is built out of moon cheese, a few chunks per tick, nearest the mark
+ *       first ({@link MoonBuild}).</li>
  * </ol>
  */
 public final class MoonStrike {
     private static final TicketType<ChunkPos> TICKET = TicketType.create(HalleyAddon.MOD_ID + ":luna", Comparator.comparingLong(ChunkPos::toLong));
     private static final int EVAC_COLOR = 0x6FE8FF;
 
-    // The crater's surface, scorched and blackened by the moon's heat: fiercest nearest the moon, fading toward the rim.
-    private static final Palette CRATER_CORE = Palette.of(Blocks.MAGMA_BLOCK, 30, Blocks.BASALT, 40, Blocks.BLACKSTONE, 30);
-    private static final Palette CRATER_MID = Palette.of(Blocks.BASALT, 28, Blocks.BLACKSTONE, 24, Blocks.COARSE_DIRT, 26, Blocks.COBBLED_DEEPSLATE, 22);
-    private static final Palette CRATER_RIM = Palette.of(Blocks.COARSE_DIRT, 35, Blocks.GRAVEL, 20, Blocks.COBBLED_DEEPSLATE, 20, null, 25);
+    /** The molten seam where moon and land meet: magma, with lava pooled in it. */
+    private static final Palette SEAM = Palette.of(Blocks.MAGMA_BLOCK, 50, Blocks.LAVA, 35, Blocks.BLACKSTONE, 15);
+    /** Lumps of crust thrown out with the moon cheese. */
+    private static final Palette CRUST_LUMP = Palette.of(Blocks.BLACKSTONE, 35, Blocks.BASALT, 25, Blocks.COBBLED_DEEPSLATE, 25,
+        Blocks.MAGMA_BLOCK, 15);
 
     private final ServerLevel level;
     private final MoonPlan plan;
@@ -69,6 +73,8 @@ public final class MoonStrike {
     @Nullable
     private MoonCracks cracks;
     @Nullable
+    private MoonRim rim;
+    @Nullable
     private BlockPos spared;
     private boolean decorated;
 
@@ -78,7 +84,7 @@ public final class MoonStrike {
         this.params = plan.params;
         this.tuning = MoonConfig.tuning();
         this.holdChunks();
-        HalleyAddon.LOG.debug("SS-06 called by {}: mark {}, falling from {}", caster.getScoreboardName(), plan.target, plan.startCentre);
+        HalleyAddon.LOG.debug("Luna called by {}: mark {}, falling from {}", caster.getScoreboardName(), plan.target, plan.startCentre);
     }
 
     public MoonPlan plan() {
@@ -132,6 +138,9 @@ public final class MoonStrike {
         if (this.crater != null && !this.crater.done()) {
             this.crater.tick();
         }
+        if (this.rim != null && !this.rim.done()) {
+            this.rim.tick(t);
+        }
         if (this.cracks != null && !this.cracks.done()) {
             this.cracks.tick(t);
         }
@@ -154,6 +163,9 @@ public final class MoonStrike {
         if (this.crater != null) {
             this.crater.finish();
         }
+        if (this.rim != null) {
+            this.rim.finish();
+        }
         if (this.cracks != null) {
             this.cracks.finish();
         }
@@ -172,7 +184,7 @@ public final class MoonStrike {
 
     private boolean carvingDone() {
         return (this.crater == null || this.crater.done()) && (this.moonBuild == null || this.moonBuild.done())
-            && (this.cracks == null || this.cracks.done());
+            && (this.cracks == null || this.cracks.done()) && (this.rim == null || this.rim.done());
     }
 
     private double horizontal(double x, double z) {
@@ -230,18 +242,17 @@ public final class MoonStrike {
 
     private void detonate(@Nullable ServerPlayer caster) {
         if (this.params.carve()) {
-            int minY = this.level.getMinBuildHeight();
-            this.crater = StarBridge.excavate(this.level, this.plan.target, this.params.craterRadius() * 1.15 + 10.0,
-                (x, z) -> this.plan.craterFloor(x, z, minY), this::craterSurface, this.spared,
-                "SS-06 Luna crater", this.tuning.chunksPerTick());
-            // and the fissures racing out across the land from the rim (like Gungnir's)
+            this.crater = StarBridge.excavate(this.level, this.plan.target, this.plan.rimInner + 1.0, this::holeAndSeam,
+                this::seamSurface, this.spared, "Luna impact", this.tuning.chunksPerTick());
+            // the ground shoved up round the moon as it drives in, and the fissures racing out across the land
+            this.rim = new MoonRim(this.level, this.plan);
             this.cracks = new MoonCracks(this.level, this.plan);
         }
 
         Vec3 t = this.plan.target;
         double erase = this.plan.eraseRadius();
         double blast = this.plan.blastRadius();
-        double bottom = Math.min(t.y - this.params.craterDepth() - 16.0, this.plan.restCentre.y - this.params.moonRadius() - 16.0);
+        double bottom = Math.min(t.y - this.params.rimHeight() - 16.0, this.plan.restCentre.y - this.params.moonRadius() - 16.0);
         AABB zone = new AABB(t.x - blast, bottom, t.z - blast, t.x + blast, this.top(), t.z + blast);
         for (Entity entity : this.level.getEntities((Entity) null, zone, e -> true)) {
             double d = this.horizontal(entity.getX(), entity.getZ());
@@ -256,40 +267,58 @@ public final class MoonStrike {
         }
     }
 
-    private BlockState craterSurface(int x, int y, int z, BlockState was) {
-        if (!was.getFluidState().isEmpty()) {
-            return null;
+    /**
+     * What is cut away at the impact: over the moon's resting place, everything above the moon's top (it fills the rest
+     * itself); in the seam round it, a shallow trench for the molten rock. The rim and beyond are left to MoonRim and
+     * MoonCracks.
+     */
+    private int holeAndSeam(int x, int z) {
+        int moonTop = this.plan.moonTop(x, z);
+        if (moonTop != MoonPlan.UNTOUCHED) {
+            return moonTop;
         }
-        double k = this.plan.craterK(x + 0.5, z + 0.5) + (this.plan.hash(x, 0, z) - 0.5) * 0.14;
-        double roll = this.plan.hash(z * 7 + 3, 0, x * 11 - 5);
-        return (k < 0.3 ? CRATER_CORE : k < 0.68 ? CRATER_MID : CRATER_RIM).pick(roll);
+        if (!this.plan.inSeam(x + 0.5, z + 0.5) || !this.level.hasChunk(x >> 4, z >> 4)) {
+            return MoonPlan.UNTOUCHED;
+        }
+        int ground = MoonRim.groundAt(this.level, x, z);
+        return ground == Integer.MIN_VALUE ? MoonPlan.UNTOUCHED : ground - 2;
     }
 
-    /** Moon cheese thrown clear of the crater onto the land round it, deterministic from the plan's seed. */
+    /** The new top block of a cut column: molten rock in the seam; the moon's own columns keep theirs (it is built over them). */
+    @Nullable
+    private BlockState seamSurface(int x, int y, int z, BlockState was) {
+        if (!was.getFluidState().isEmpty() || !this.plan.inSeam(x + 0.5, z + 0.5)) {
+            return null;
+        }
+        return SEAM.pick(this.plan.hash(z * 7 + 3, y, x * 11 - 5));
+    }
+
+    /** Moon cheese and lumps of crust thrown clear onto the land round the rim, where the client sees them land. */
     private void scatterDebris() {
         if (!this.params.carve()) {
             return;
         }
         Map<BlockPos, BlockState> out = new HashMap<>();
-        Vec3 c = this.plan.target;
-        double radius = this.params.craterRadius();
         BlockState cheese = HalleyContent.MOON_CHEESE.get().defaultBlockState();
-        int count = 40 + (int) (this.plan.hash(11, 0, 29) * 40.0);
-        for (int i = 0; i < count; i++) {
-            double angle = this.plan.hash(i * 5 + 1, 0, 7) * Math.PI * 2.0;
-            double dist = radius * (1.03 + this.plan.hash(i * 3 + 2, 0, 13) * 1.3);
-            int x = Mth.floor(c.x + Math.cos(angle) * dist);
-            int z = Mth.floor(c.z + Math.sin(angle) * dist);
+        for (int i = 0; i < this.plan.debrisCount(); i++) {
+            Vec3 land = this.plan.debrisLanding(i);
+            int x = Mth.floor(land.x);
+            int z = Mth.floor(land.z);
             if (!this.level.hasChunk(x >> 4, z >> 4)) {
                 continue;
             }
-            BlockPos top = new BlockPos(x, this.level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1, z);
-            BlockState was = this.level.getBlockState(top);
-            if (was.isAir() || !was.getFluidState().isEmpty() || was.is(BlockTags.LEAVES)
-                    || !was.isCollisionShapeFullBlock(this.level, top) || was.hasBlockEntity()) {
+            BlockPos top = new BlockPos(x, this.level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z), z);
+            BlockState below = this.level.getBlockState(top.below());
+            if (!below.getFluidState().isEmpty() || below.is(BlockTags.LEAVES)
+                    || !below.isCollisionShapeFullBlock(this.level, top.below()) || !this.level.getBlockState(top).isAir()) {
                 continue;
             }
-            out.put(top, cheese);
+            BlockState lump = this.plan.hash(i, 5, 3) < 0.6 ? cheese : CRUST_LUMP.pick(this.plan.hash(i, 9, 1));
+            out.put(top, lump);
+            // the bigger lumps: a second block beside or on top
+            if (this.plan.hash(i, 13, 7) < 0.35) {
+                out.put(this.plan.hash(i, 17, 2) < 0.5 ? top.above() : top.east(), lump);
+            }
         }
         if (!out.isEmpty()) {
             StarBridge.paint(this.level, out);

@@ -1,8 +1,8 @@
 
-#SS-05 Halley: a comet called down onto your crosshair. It comes in low over the horizon in front of
+#Halley: a comet called down onto your crosshair. It comes in low over the horizon in front of
 #you, touches down beyond the mark, ploughs a trench toward you and detonates on the mark.
 [skill]
-	#Seconds before SS-05 can be fired again (the other Stellar Remote skills use 60).
+	#Seconds before Halley can be fired again (the other Stellar Remote skills use 60).
 	#Creative mode always uses 1 second, like the other skills.
 	#Range: 1 ~ 3600
 	cooldown_seconds = 60
@@ -47,8 +47,7 @@
 	#Lift a creative-mode caster clear if they stand inside the crater, like the other skills do.
 	evacuate_creative_caster = true
 
-#SS-06 Luna: at night, the Stellar Remote can shut the Earth system down and bring the moon down onto
-#your crosshair.
+#Luna: the Stellar Remote shuts the Earth system down and brings the moon down onto your crosshair.
 [moonfall]
 	#How far away (in blocks) your crosshair can place the mark.
 	#Range: 32 ~ 1024
@@ -56,9 +55,9 @@
 	#The test turns this on so it can check the refusal by day (the default is false).
 	require_night = true
 
-#The test keeps SS-06 small so it fits its arena next to SS-05's crater (the defaults are much bigger).
+#The test keeps Luna small so it fits its arena next to Halley's crater (the defaults are much bigger).
 [moonfall_size]
 	moon_radius = 24
 	crater_radius = 48
-	crater_depth = 18
+	rim_height = 10
 	blast_reach = 2.5
