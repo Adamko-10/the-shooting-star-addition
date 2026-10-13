@@ -300,6 +300,7 @@ public final class MoonStrike {
         }
         Map<BlockPos, BlockState> out = new HashMap<>();
         BlockState cheese = HalleyContent.MOON_CHEESE.get().defaultBlockState();
+        BlockState holey = HalleyContent.HOLEY_MOON_CHEESE.get().defaultBlockState();
         for (int i = 0; i < this.plan.debrisCount(); i++) {
             Vec3 land = this.plan.debrisLanding(i);
             int x = Mth.floor(land.x);
@@ -313,7 +314,8 @@ public final class MoonStrike {
                     || !below.isCollisionShapeFullBlock(this.level, top.below()) || !this.level.getBlockState(top).isAir()) {
                 continue;
             }
-            BlockState lump = this.plan.hash(i, 5, 3) < 0.6 ? cheese : CRUST_LUMP.pick(this.plan.hash(i, 9, 1));
+            BlockState lump = this.plan.hash(i, 5, 3) < 0.6 ? (this.plan.hash(i, 19, 4) < 0.2 ? holey : cheese)
+                : CRUST_LUMP.pick(this.plan.hash(i, 9, 1));
             out.put(top, lump);
             // the bigger lumps: a second block beside or on top
             if (this.plan.hash(i, 13, 7) < 0.35) {

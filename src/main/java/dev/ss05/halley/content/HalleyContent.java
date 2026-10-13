@@ -22,6 +22,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
@@ -74,6 +75,16 @@ public final class HalleyContent {
         // drawn self-lit (only how it looks, no light is cast), so a fallen moon still reads as a moon at night
         .emissiveRendering((state, level, pos) -> true)));
 
+    /**
+     * Moon cheese with a hole in it: the eyes of the cheese, scattered all through the fallen moon (one block in eight
+     * or so). Otherwise it is just moon cheese: mined, placed and eaten the same.
+     */
+    public static final RegistryObject<Block> HOLEY_MOON_CHEESE = BLOCKS.register("holey_moon_cheese", () -> new Block(BlockBehaviour.Properties.of()
+        .strength(1.2F, 6.0F)
+        .mapColor(MapColor.COLOR_YELLOW)
+        .sound(SoundType.TUFF)
+        .emissiveRendering((state, level, pos) -> true)));
+
     /** The single block at the very heart of the fallen moon: glowing, molten. Eating it gives the molten might. */
     public static final RegistryObject<Block> MOLTEN_MOON_CHEESE = BLOCKS.register("molten_moon_cheese", () -> new Block(BlockBehaviour.Properties.of()
         .strength(1.5F, 6.0F)
@@ -92,18 +103,22 @@ public final class HalleyContent {
     public static final RegistryObject<BlockItem> COMET_TRAIL_ITEM =
         ITEMS.register("comet_trail", () -> new BlockItem(COMET_TRAIL.get(), new Item.Properties()));
 
+    /** Cheese, so eating any of it first clears your effects like milk does ({@link CheeseItem}). */
     public static final RegistryObject<BlockItem> MOON_CHEESE_ITEM =
-        ITEMS.register("moon_cheese", () -> new BlockItem(MOON_CHEESE.get(), new Item.Properties().food(Foods.GOLDEN_CARROT)));
+        ITEMS.register("moon_cheese", () -> new CheeseItem(MOON_CHEESE.get(), new Item.Properties().food(Foods.GOLDEN_CARROT)));
+    public static final RegistryObject<BlockItem> HOLEY_MOON_CHEESE_ITEM =
+        ITEMS.register("holey_moon_cheese", () -> new CheeseItem(HOLEY_MOON_CHEESE.get(), new Item.Properties().food(Foods.GOLDEN_CARROT)));
 
     /**
-     * Always edible, like a golden apple. Only the plain hunger/saturation part lives in this {@code FoodProperties}
+     * Always edible, like a golden apple, and fills the hunger bar and its saturation to the top (nutrition 20
+     * at saturation modifier 0.5: 20 hunger, 20 saturation). Only the plain hunger/saturation part lives in this {@code FoodProperties}
      * (vanilla's {@code FoodProperties.Builder.effect(MobEffectInstance, float)} bakes its effect in at registration
      * time, before the config has loaded) - Molten Might and Strength are granted by {@link MoltenMoonCheeseItem}
      * instead, read live from {@link MoonConfig} at the moment it's actually eaten.
      */
     private static final FoodProperties MOLTEN_MOON_CHEESE_FOOD = new FoodProperties.Builder()
-        .nutrition(4)
-        .saturationModifier(1.2F)
+        .nutrition(20)
+        .saturationModifier(0.5F)
         .alwaysEdible()
         .build();
     public static final RegistryObject<MoltenMoonCheeseItem> MOLTEN_MOON_CHEESE_ITEM =
@@ -157,6 +172,11 @@ public final class HalleyContent {
     private HalleyContent() {
     }
 
+    /** Whether a block is one the fallen moon is made of: moon cheese, holey moon cheese or the molten heart. */
+    public static boolean isMoonCheese(BlockState state) {
+        return state.is(MOON_CHEESE.get()) || state.is(HOLEY_MOON_CHEESE.get()) || state.is(MOLTEN_MOON_CHEESE.get());
+    }
+
     private static RegistryObject<SoundEvent> sound(String name) {
         return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(HalleyAddon.id(name)));
     }
@@ -179,21 +199,24 @@ public final class HalleyContent {
     private static void addToCreativeTabs(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.FOOD_AND_DRINKS) {
             event.accept(MOON_CHEESE_ITEM);
+            event.accept(HOLEY_MOON_CHEESE_ITEM);
             event.accept(MOLTEN_MOON_CHEESE_ITEM);
         } else if (event.getTabKey() == CreativeModeTabs.NATURAL_BLOCKS) {
             event.accept(COMET_HEART_ITEM);
             event.accept(COMET_TRAIL_ITEM);
             event.accept(MOON_CHEESE_ITEM);
+            event.accept(HOLEY_MOON_CHEESE_ITEM);
             event.accept(MOLTEN_MOON_CHEESE_ITEM);
         }
     }
 
     /**
-     * Molten moon cheese's item: the plain hunger/saturation eating is vanilla's (via {@link #MOLTEN_MOON_CHEESE_FOOD}),
+     * Molten moon cheese's item: eating it first clears your effects like milk ({@link CheeseItem}); the plain
+     * hunger/saturation eating is vanilla's (via {@link #MOLTEN_MOON_CHEESE_FOOD}),
      * but Molten Might and Strength are granted here, right after, read live from {@link MoonConfig} at the moment
      * it's eaten - not baked in at registration time, so a server operator's config always takes effect.
      */
-    public static final class MoltenMoonCheeseItem extends BlockItem {
+    public static final class MoltenMoonCheeseItem extends CheeseItem {
         public MoltenMoonCheeseItem(Block block, Item.Properties properties) {
             super(block, properties);
         }
