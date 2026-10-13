@@ -69,15 +69,21 @@ The caster gets a cutscene (like SS-05's), skippable with the remote's cutscene 
 
 - **Moon cheese** (block + edible block item): right-click a block to place it, right-click in the air to eat it.
   Food like a golden carrot (6 hunger, 14.4 saturation).
+- **Holey moon cheese** (block + edible block item): moon cheese with the cheese's eyes in it (three textures, each
+  turned at random), about one block in eight of the moon (`MoonBuild.HOLEY`) and a fifth of the cheese debris.
+  Otherwise it is moon cheese. (Plain moon cheese's own texture has no holes, and is turned at random too.)
+- Eating any moon cheese first clears your effects like milk (`CheeseItem`: on NeoForge the ones milk cures, on
+  Forge 1.20.1 those a milk bucket cures, elsewhere all of them, as vanilla milk does); molten moon cheese's own
+  effects are given after that, so they stay.
 - **Molten moon cheese** (block + edible block item, light 15, emissive): eating it gives, for `molten_minutes`
   (10): **`molten_hearts` (500) hearts** (max health raised to hearts × 2 for the duration, healed to full) and
   **Strength `molten_strength` (255)**, i.e. amplifier 254. Shown as the "Molten Might" effect.
-  Always edible (like a golden apple).
+  Always edible (like a golden apple), and fills hunger and saturation to the top (20 / 20).
 - Both mine with a pickaxe or by hand and drop themselves.
 
 ## Content names (fixed; other code relies on them)
 
-Blocks `moon_cheese`, `molten_moon_cheese` (+ their items). Effect `molten_might`. Sounds `luna_alarm`,
+Blocks `moon_cheese`, `holey_moon_cheese`, `molten_moon_cheese` (+ their items). Effect `molten_might`. Sounds `luna_alarm`,
 `luna_crack`, `luna_fall`, `luna_entry`, `luna_impact`, `luna_settle`, `luna_debris`. Skill id `luna`, card
 `assets/shooting_star_demo/textures/gui/sprites/skill/stellar_remote/luna.png` (64×32 like `halley.png`). Moon
 surface textures for the sky moon: `assets/shooting_star_addition/textures/luna/surface.png` (albedo, equirectangular

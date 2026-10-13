@@ -15,8 +15,8 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Builds SS-06's fallen moon out of moon cheese (and the one molten block at its heart), a few chunks per tick,
- * nearest the mark first, so a huge moon never freezes the server tick. Server side only. Unlike
+ * Builds SS-06's fallen moon out of moon cheese (holey here and there, and the one molten block at its heart), a
+ * few chunks per tick, nearest the mark first, so a huge moon never freezes the server tick. Server side only. Unlike
  * {@link Excavation} (which only ever cuts blocks away above a floor), this one also places blocks, so it is its
  * own small class rather than another {@code StarBridge.excavate} shape; what to place comes straight from
  * {@link MoonPlan#inMoon}, so it is always the same sphere the client films.
@@ -30,6 +30,8 @@ public final class MoonBuild {
     private final int chunksPerTick;
     /** How thick the first pass (the surface) is, in blocks. */
     private static final double SHELL = 3.0;
+    /** How much of the moon is holey moon cheese: the cheese's eyes, scattered all through it. */
+    private static final double HOLEY = 0.12;
 
     private final List<ChunkPos> order;
     private int next;
@@ -102,12 +104,18 @@ public final class MoonBuild {
         }
     }
 
+    /** Whether the moon's block here is one of the cheese's holes (always the same for the same block). */
+    private boolean holeyAt(int x, int y, int z) {
+        return this.plan.hash(x + 7919, y - 104729, z + 1299709) < HOLEY;
+    }
+
     private void buildChunks(int end, boolean shell) {
         double inner = Math.max(0.0, this.plan.params.moonRadius() - SHELL);
         int minY = this.level.getMinY();
         int maxY = this.level.getMaxY();
         double r = this.plan.params.moonRadius();
         BlockState cheese = HalleyContent.MOON_CHEESE.defaultBlockState();
+        BlockState holey = HalleyContent.HOLEY_MOON_CHEESE.defaultBlockState();
         BlockState molten = HalleyContent.MOLTEN_MOON_CHEESE.defaultBlockState();
         boolean core = this.plan.params.core();
         Map<BlockPos, BlockState> out = new HashMap<>();
@@ -143,7 +151,7 @@ public final class MoonBuild {
                             continue;
                         }
                         BlockPos at = new BlockPos(x, y, z);
-                        out.put(at, core && at.equals(this.plan.core) ? molten : cheese);
+                        out.put(at, core && at.equals(this.plan.core) ? molten : this.holeyAt(x, y, z) ? holey : cheese);
                     }
                 }
             }
