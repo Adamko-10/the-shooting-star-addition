@@ -240,13 +240,12 @@ public final class HalleyServerTest {
         SkillSet owner = SkillSet.of(skill);
         this.record("skill_owned_by_stellar_remote", owner == ModSkills.STELLAR_REMOTE, "owner=" + owner);
 
-        // The Shooting Star's own skills come first and keep their numbers: Halley right after them, numbered after
-        // the highest of theirs (SS-06 with The Shooting Star 1.4.0, whose SS-05 is Tesseract).
+        // The Shooting Star's own skills come first: Halley right after them, under its own codename (SA-01, a
+        // series of the addon's own, so it never clashes with a built-in SS number).
         int builtIns = SkillSet.skillCount() - 2;
         int index = SkillSet.indexOf(skill);
         this.record("skill_index_after_builtins", index == builtIns, "index=" + index + " builtIns=" + builtIns);
-        String number = String.format("SS-%02d", highestBuiltInNumber(owner) + 1);
-        this.record("skill_numbered_after_builtins", skill.title().equals(number + " · Halley"), "title=" + skill.title());
+        this.record("skill_codename", skill.title().equals("SA-01 · Halley"), "title=" + skill.title());
         this.record("skill_id_is_halley", "halley".equals(skill.id()), "id=" + skill.id());
         this.record("skill_default_key_is_O", skill.defaultKey() == 79 && skill.defaultKey() == HalleyInfo.DEFAULT_KEY, "key=" + skill.defaultKey());
         this.record("skill_cooldown_matches_config", skill.cooldown() == HalleyConfig.tuning().cooldownTicks(),
@@ -264,18 +263,6 @@ public final class HalleyServerTest {
         }
     }
 
-    /** The highest SS number among The Shooting Star's own skills on the remote. */
-    private static int highestBuiltInNumber(SkillSet owner) {
-        int highest = 0;
-        for (Skill s : owner.skills) {
-            java.util.regex.Matcher m = java.util.regex.Pattern.compile("SS-(\\d+)").matcher(String.valueOf(s.title()));
-            if (s != (Skill) StarBridge.skill(false) && s != (Skill) StarBridge.skill(true) && m.find()) {
-                highest = Math.max(highest, Integer.parseInt(m.group(1)));
-            }
-        }
-        return highest;
-    }
-
     /** Same shape as {@link #checkSkillRegistration()}, for Luna (right after Halley, key N). */
     private void checkMoonSkillRegistration() {
         if (!StarBridge.installed()) {
@@ -289,8 +276,7 @@ public final class HalleyServerTest {
         int builtIns = SkillSet.skillCount() - 2;
         int index = SkillSet.indexOf(skill);
         this.record("moon_skill_index_after_halley", index == builtIns + 1, "index=" + index + " builtIns=" + builtIns);
-        String number = String.format("SS-%02d", highestBuiltInNumber(owner) + 2);
-        this.record("moon_skill_numbered_after_halley", skill.title().equals(number + " · Luna"), "title=" + skill.title());
+        this.record("moon_skill_codename", skill.title().equals("SA-02 · Luna"), "title=" + skill.title());
         this.record("moon_skill_id_is_luna", "luna".equals(skill.id()), "id=" + skill.id());
         this.record("moon_skill_default_key_is_N", skill.defaultKey() == 78 && skill.defaultKey() == MoonInfo.DEFAULT_KEY, "key=" + skill.defaultKey());
         this.record("moon_skill_cooldown_matches_config", skill.cooldown() == MoonConfig.tuning().cooldownTicks(),

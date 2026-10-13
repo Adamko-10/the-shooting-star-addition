@@ -19,7 +19,6 @@ import dev.ss05.halley.world.HalleyCasting;
 import dev.ss05.halley.world.HalleyInfo;
 import dev.ss05.halley.world.MoonCasting;
 import dev.ss05.halley.world.MoonInfo;
-import dev.ss05.halley.world.SkillNumbers;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -31,8 +30,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -92,16 +89,6 @@ public final class TssLink implements StarLink {
         if (builtIn == null || before == null || before.isEmpty()) {
             throw new IllegalStateException("the Stellar Remote has no skills to join");
         }
-
-        // The Shooting Star's own skills keep their SS numbers; Halley and Luna take the next two after the highest.
-        int highest = 0;
-        for (Skill skill : before) {
-            Matcher number = Pattern.compile("SS-(\\d+)").matcher(String.valueOf(skill.title()));
-            if (number.find()) {
-                highest = Math.max(highest, Integer.parseInt(number.group(1)));
-            }
-        }
-        SkillNumbers.after(highest);
 
         List<Skill> after = new ArrayList<>(before);
         after.add(SKILL);

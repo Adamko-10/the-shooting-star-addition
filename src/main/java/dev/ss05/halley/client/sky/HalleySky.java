@@ -146,6 +146,7 @@ public final class HalleySky {
         view.mulPoseMatrix(event.getPoseStack().last().pose());
         RenderSystem.applyModelViewMatrix();
         RenderSystem.setShader(() -> program);
+        // (halley_sky.json carries the same blend: on 1.20.1 the shader's own blend wins whenever it is used)
         RenderSystem.enableBlend();
         RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         RenderSystem.disableDepthTest();

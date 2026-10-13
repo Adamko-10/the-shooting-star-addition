@@ -9,9 +9,9 @@ public final class HalleyInfo {
     public static final String ID = "halley";
     /** The platform all the remote's skills belong to. */
     public static final String TIER = "The Shooting Star";
-    /** "SS-06 · Halley": the number follows The Shooting Star's own skills (see {@link SkillNumbers}). */
+    /** "SA-01 · Halley" (see {@link Codenames}). */
     public static String title() {
-        return SkillNumbers.halley() + " · Halley";
+        return Codenames.HALLEY + " · Halley";
     }
 
     /** Ice-cyan: the other three are red (SS-01), ember (SS-03) and violet (SS-04). */

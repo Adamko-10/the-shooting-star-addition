@@ -1,4 +1,5 @@
 {
+  "blend": { "func": "add", "srcrgb": "1", "dstrgb": "1" },
   "vertex": "shooting_star_addition:halley_glow",
   "fragment": "shooting_star_addition:halley_glow",
   "attributes": [

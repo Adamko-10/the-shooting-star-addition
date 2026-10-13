@@ -17,6 +17,11 @@ import net.minecraft.resources.ResourceLocation;
  * <p>While a shader pack is on ({@link ShaderPacks}) the same light is drawn from painted textures with Minecraft's own
  * glowing-eyes shaders instead (the {@code PACK_} types), since those are the ones a shader pack replaces with its own
  * and draws.
+ *
+ * <p>On 1.20.1 a core shader also brings its own blending: whenever it is used, Minecraft applies the {@code "blend"} of
+ * its JSON (no entry means "opaque": blending off), overriding the render type's. So {@code halley_glow.json} says
+ * "add" itself ({@link #ADDITIVE} is the same); without it the light was drawn as black boxes round every shape
+ * whenever the shader before it had a blend of its own (particles, for one), i.e. without a shader pack.
  */
 public final class HalleyRenderTypes extends RenderType {
     @Nullable

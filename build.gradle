@@ -27,8 +27,15 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 // A dev-only game-logic test (src/servertest, mod id ss05_servertest): run with ./gradlew runServerTest. It is not
 // part of the addon's jar.
+// And a dev-only screenshot harness (src/clienttest, mod id ss05_clienttest): ./gradlew runClientTest
+// -Dss05.clienttest.skill=halley|moon -Dss05.clienttest.shots=0,100,... -Dss05.clienttest.view=wide|aerial|low|far
+// casts a skill in a fresh flat world and saves screenshots to run/clienttest/screenshots. Not part of the jar either.
 sourceSets {
     servertest {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+    clienttest {
         compileClasspath += sourceSets.main.output
         runtimeClasspath += sourceSets.main.output
     }
@@ -37,6 +44,9 @@ configurations {
     servertestCompileOnly.extendsFrom compileOnly
     servertestImplementation.extendsFrom implementation
     servertestRuntimeOnly.extendsFrom runtimeOnly
+    clienttestCompileOnly.extendsFrom compileOnly
+    clienttestImplementation.extendsFrom implementation
+    clienttestRuntimeOnly.extendsFrom runtimeOnly
 }
 
 repositories {
@@ -58,6 +68,7 @@ legacyForge {
         version = project.forge_version
     }
     addModdingDependenciesTo sourceSets.servertest
+    addModdingDependenciesTo sourceSets.clienttest
 
     parchment {
         mappingsVersion = project.parchment_mappings_version
@@ -71,6 +82,9 @@ legacyForge {
         }
         ss05_servertest {
             sourceSet(sourceSets.servertest)
+        }
+        ss05_clienttest {
+            sourceSet(sourceSets.clienttest)
         }
     }
 
@@ -91,6 +105,21 @@ legacyForge {
             gameDirectory = project.file('run/servertest')
             systemProperty 'ss05.servertest', 'true'
             loadedMods = [mods."${mod_id}", mods.ss05_servertest]
+        }
+        // The screenshot harness: its own game directory, the addon and the harness mod loaded. The harness's
+        // parameters are forwarded straight from the Gradle invocation (-Dss05.clienttest.xxx=...).
+        clientTest {
+            client()
+            gameDirectory = project.file('run/clienttest')
+            systemProperty 'ss05.clienttest', 'true'
+            ['skill', 'shots', 'view', 'time', 'distance', 'film', 'hud', 'cam'].each { key ->
+                var propertyName = "ss05.clienttest.${key}"
+                var value = project.findProperty(propertyName) ?: System.getProperty(propertyName)
+                if (value != null) {
+                    systemProperty propertyName, value.toString()
+                }
+            }
+            loadedMods = [mods."${mod_id}", mods.ss05_clienttest]
         }
         configureEach {
             systemProperty 'forge.logging.markers', 'REGISTRIES'
