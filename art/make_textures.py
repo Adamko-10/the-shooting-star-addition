@@ -152,7 +152,7 @@ Image.fromarray(np.clip(card, 0, 255).astype(np.uint8), 'RGB').save(
     OUT + '/assets/shooting_star_demo/textures/gui/sprites/skill/stellar_remote/halley.png')
 
 # =====================================================================================================================
-# SS-06 Luna's pixel art: moon cheese's two block textures (the molten one animated), the skill card, the mob effect
+# SS-06 Luna's pixel art: moon cheese's block textures (plain, holey, molten and animated), the skill card, the mob effect
 # icon, and the sky moon's two equirectangular textures. A separate rng (seeded differently) so none of this touches
 # the draws above - re-running this file leaves every halley_*.png byte-identical.
 # =====================================================================================================================
@@ -183,18 +183,69 @@ def wrapped_dist(xx_, yy_, cx, cy, w, wrap_y=False, h=None):
 
 MOON_PALETTE = [(0.0, 0x6E5A32), (0.30, 0x8A7444), (0.50, 0xAE965C), (0.68, 0xCDB577), (0.82, 0xE4CE92), (0.93, 0xF2E3AE)]
 
-# ---- Moon cheese: pale lunar grey-gold, mottled, with dark craters/holes (a bit like actual cheese) -----------------
-cheese_base = tile_noise(N, 4, 303) * 0.6 + tile_noise(N, 8, 304) * 0.4
-cheese_img = palette(np.clip(0.45 + 0.4 * cheese_base, 0, 1), MOON_PALETTE)
-cheese_craters = [(rng2.integers(0, N), rng2.integers(0, N), rng2.uniform(1.1, 2.4)) for _ in range(7)]
-for (cx, cy, rad) in cheese_craters:
-    d = wrapped_dist(xx, yy, cx, cy, N, wrap_y=True, h=N)
-    hole, rim = d < rad, (d >= rad) & (d < rad + 1.0)
-    cheese_img[hole] = cheese_img[hole] * 0.4 + hexrgb(0x4A3C20) * 0.4
-    cheese_img[rim] = cheese_img[rim] * 0.55 + hexrgb(0xF6E8B4) * 0.55
+# ---- Moon cheese: a smooth, creamy paste, faintly mottled, with pale specks and pinprick pores. Its holes are a block --
+# of their own (holey moon cheese, below), scattered through the moon, so they don't repeat on every block.
+# (The old texture's draws are still taken from rng2, so the textures after this one come out the same as before.)
+_old_cheese_draws = [(rng2.integers(0, N), rng2.integers(0, N), rng2.uniform(1.1, 2.4)) for _ in range(7)]
+CHEESE_PALETTE = [0x4A3514, 0x654A1E, 0x82632A, 0x9F7D37, 0xB89443, 0xC9A752, 0xD6B862, 0xE1C673, 0xEAD487, 0xF2E1A3, 0xF8ECC0]
+CHEESE_RGB = np.array([hexrgb(c) for c in CHEESE_PALETTE])
+
+def cheese_index(v):
+    """0..1 -> an index into CHEESE_PALETTE (banded, like pixel art)."""
+    return np.clip(np.round(v * (len(CHEESE_PALETTE) - 1)), 0, len(CHEESE_PALETTE) - 1).astype(int)
+
+def cheese_paste(seed):
+    r = np.random.default_rng(seed)
+    v = (0.69 + (tile_noise(N, 4, seed + 2) - 0.5) * 0.10 + (tile_noise(N, 8, seed + 3) - 0.5) * 0.08
+         + (r.random((N, N)) - 0.5) * 0.08)
+    idx = cheese_index(v)
+    for _ in range(3):                      # pale specks, like the little crystals of an aged cheese
+        x, y = r.integers(0, N), r.integers(0, N)
+        idx[y, x] = min(len(CHEESE_PALETTE) - 1, idx[y, x] + 2)
+    for _ in range(2):                      # pinprick pores: a dark pixel, the light catching its lower edge
+        x, y = r.integers(1, N - 1), r.integers(1, N - 2)
+        idx[y, x] = max(0, idx[y, x] - 3)
+        idx[y + 1, x] = min(len(CHEESE_PALETTE) - 1, idx[y + 1, x] + 1)
+    return idx
+
+def cheese_eyes(idx, eyes):
+    """Cuts round eyes into the paste, lit from the upper left: each a bowl, shadowed on its upper-left wall and lit on
+    the far one, with a glint on the far wall of a big eye and a pale lip where the rim catches the light."""
+    idx = idx.copy()
+    light = np.array([-0.55, -0.65, 0.52]); light /= np.linalg.norm(light)
+    for (cx, cy, rad) in eyes:
+        dx = (xx + 0.5 - cx) / rad
+        dy = (yy + 0.5 - cy) / rad
+        d = np.sqrt(dx * dx + dy * dy)
+        inside = d < 1.0
+        nz = np.sqrt(np.clip(1.0 - d * d, 0.0, 1.0))
+        n = np.stack([-dx, -dy, nz * 0.9 + 0.1], axis=-1)
+        n /= np.linalg.norm(n, axis=-1, keepdims=True)
+        lit = np.clip(n @ light, 0.0, 1.0)
+        bowl = cheese_index(np.clip(0.20 + 0.50 * lit ** 1.3 - 0.08 * nz, 0.0, 1.0))
+        idx[inside] = np.minimum(idx[inside], bowl[inside])
+        if rad >= 3.0:
+            gx, gy = int(cx + rad * 0.45), int(cy + rad * 0.5)
+            if 0 <= gx < N and 0 <= gy < N and inside[gy, gx]:
+                idx[gy, gx] = min(len(CHEESE_PALETTE) - 1, idx[gy, gx] + 2)
+        ring = (d >= 1.0) & (d < 1.0 + 1.15 / rad)
+        side = (dx * light[0] + dy * light[1]) / np.maximum(d, 1e-6)
+        idx[ring & (side > 0.25)] = np.minimum(len(CHEESE_PALETTE) - 1, idx[ring & (side > 0.25)] + 2)
+        idx[ring & (side < -0.45)] = np.maximum(0, idx[ring & (side < -0.45)] - 1)
+    return idx
+
 os.makedirs(OUT + '/assets/shooting_star_addition/textures/block', exist_ok=True)
-Image.fromarray(np.clip(cheese_img, 0, 255).astype(np.uint8), 'RGB').save(
+Image.fromarray(CHEESE_RGB[cheese_paste(700)].astype(np.uint8), 'RGB').save(
     OUT + '/assets/shooting_star_addition/textures/block/moon_cheese.png')
+# ---- Holey moon cheese: the same paste with its eyes in it, three ways (the block picks one at random per block) ----
+HOLEY_EYES = [
+    [(8.4, 7.8, 4.7)],
+    [(5.6, 5.4, 3.4), (11.6, 11.2, 2.3)],
+    [(9.4, 9.0, 4.0), (3.8, 4.2, 1.6)],
+]
+for i, eyes in enumerate(HOLEY_EYES):
+    Image.fromarray(CHEESE_RGB[cheese_eyes(cheese_paste(710 + i * 7), eyes)].astype(np.uint8), 'RGB').save(
+        OUT + '/assets/shooting_star_addition/textures/block/holey_moon_cheese_%d.png' % i)
 
 # ---- Molten moon cheese: glowing orange-gold, veins of brighter lava pulsing and crawling along cracks --------------
 molten_base_noise = tile_noise(N, 4, 305)

@@ -256,7 +256,7 @@ public final class MoonFx {
             }
             loaded++;
             BlockState state = level.getBlockState(pos);
-            if (state.is(HalleyContent.MOON_CHEESE) || state.is(HalleyContent.MOLTEN_MOON_CHEESE)) {
+            if (HalleyContent.isMoonCheese(state)) {
                 built++;
             }
         }
