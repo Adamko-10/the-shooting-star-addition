@@ -12,7 +12,7 @@ skills, whatever it adds.
 ![Halley in game](docs/screenshots/overview.jpg)
 
 > **Compatibility:** this branch is the **Fabric, Minecraft 1.21.11** version, for **The Shooting Star [Demo] 1.3.3,
-> 1.3.4, 1.4.0, 1.4.1 and 1.4.2 [Fabric]** (one jar for all of them). The **NeoForge 1.21.1** version is on the
+> 1.3.4, 1.4.0, 1.4.1, 1.4.2 and 1.4.3 [Fabric]** (one jar for all of them). The **NeoForge 1.21.1** version is on the
 > `main` branch, **Forge and NeoForge 1.20.1** on `forge-1.20.1`, **Forge 1.21.1** on `forge-1.21.1`, and
 > **Fabric 26.3, 1.21.1 and 1.20.1** on `fabric-26.3`, `fabric-1.21.1` and `fabric-1.20.1`. See
 > [Will it work with future versions?](#will-it-work-with-future-versions-of-the-shooting-star) below.
@@ -39,7 +39,7 @@ land round it.
 - Pieces break off the comet and burst in the sky, the fireball sheds sparks and throws lens flares, ice is thrown
   out of the crater on long arcs, glowing cracks race across the land, a wall of snow rides the shock front, and the
   comet heart shines a beam into the sky.
-- Joins the Stellar Remote like the built-in skills: its own key (**O** by default), menu card and description, HUD
+- Joins the Stellar Remote like the built-in skills: its own key (**O** by default), menu card, sliders and description, HUD
   card, cooldown and recharge display.
 - Its own cutscene (skippable with the remote's cutscene key), with impact frames, flashes and camera shake in the
   remote's style, and the remote's cover, button and screen animate for it.
@@ -69,11 +69,12 @@ drives deep into it, the crust buckling up against it, and comes to rest there w
   across its floor, a band of lava where moon and floor meet, and a ragged rim of upturned crust at its edge.
 - Fissures tear out across the land all round the crater (like Gungnir's cracks), lumps of moon and crust rain down
   far beyond it, and the shock wave throws, burns and hurts further still.
-- Its own key (**N** by default), menu card, cooldown (120 s), cutscene (skippable), sounds and alarm.
+- Its own key (**N** by default), menu card, sliders, cooldown (120 s), cutscene (skippable), sounds and alarm.
 - Everything in the crater is erased; past it, the shock wave throws, burns and hurts whatever it meets.
 - **Moon cheese** (and **holey moon cheese**, the cheese's eyes, scattered all through the moon): right-click a block to place it, right-click the air to eat it. It's as good as a golden carrot, and being cheese it clears your effects like milk.
 - **Molten moon cheese**: eat it for **500 hearts** and **Strength 255** for 10 minutes (Molten Might), and a full hunger bar with full saturation (it clears your other effects first, like all moon cheese).
-- **Any size**: the moon, crater and shock wave are server settings, from a pebble to a monster (see below).
+- **Any size**: the moon, crater and shock wave are server settings, from a pebble to a monster (see below),
+  and every cast can be 0.1× to 10× that with the remote's power slider.
 - **Works with shader packs** and Sodium/Distant Horizons, the same way Halley does (its own moon sphere and light
   are drawn without fog, so it never washes out while it's still far off in the sky).
 - **It permanently changes the land.** Back up worlds you care about.
@@ -81,6 +82,20 @@ drives deep into it, the crust buckling up against it, and comes to rest there w
 | | | |
 |---|---|---|
 | ![EARTH SYSTEM SHUT DOWN](docs/screenshots/13-luna-alarm.jpg) | ![The moon burning in](docs/screenshots/14-luna-fall.jpg) | ![The moon in its crater](docs/screenshots/15-luna-crater.jpg) |
+
+## Sliders
+
+Halley and Luna have the same three sliders as The Shooting Star's own skills, under them in the remote's menu
+(**H**), and they work the same way:
+
+- **Power**: the whole strike from **0.1× to 10×** as big. For Halley that's the comet, its trench and the crater; for
+  Luna, the moon and its crater (the config's sizes are 1×). The cutscene scales with it.
+- **Damage**: each hit from **2 up to ∞**. At ∞ (the default), whatever it hits is erased.
+- **Speed**: the whole skill, cutscene and all, from **0.3× to 3×** as fast.
+
+Big strikes are heavy on the game: with The Shooting Star 1.4.2 or newer, the menu warns you above 3× for Halley and
+2× for Luna. The values are each player's own (the remote keeps them with its own skills' in
+`config/shooting_star_demo_skills.properties`), and the server checks them against these ranges.
 
 ## No cooldown (optional)
 
@@ -93,7 +108,7 @@ destructive skills back to back.
 ## Installing
 
 1. Minecraft **1.21.11** with **Fabric Loader 0.17.0** or newer, and **Fabric API**.
-2. **The Shooting Star [Demo] 1.3.3, 1.3.4, 1.4.0, 1.4.1 or 1.4.2 [Fabric]**, e.g. `the-shooting-star-demo-1.4.2-fabric.jar`,
+2. **The Shooting Star [Demo] 1.3.3, 1.3.4, 1.4.0, 1.4.1, 1.4.2 or 1.4.3 [Fabric]**, e.g. `the-shooting-star-demo-1.4.3-fabric.jar`,
    one file for every Minecraft version it supports, 1.21.11 included.
 3. This addon's jar ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
@@ -172,7 +187,7 @@ scrambled (`a`, `b`, `c`...) and change with every release. It has no official w
 this addon attaches to its internals by those names. It carries a separate attachment for each version of The
 Shooting Star it knows, and uses the one for the version you have:
 
-- This version works with **The Shooting Star 1.3.3, 1.3.4, 1.4.0, 1.4.1 and 1.4.2** (and 1.4.0A, which is 1.4.0).
+- This version works with **The Shooting Star 1.3.3, 1.3.4, 1.4.0, 1.4.1, 1.4.2 and 1.4.3** (and 1.4.0A, which is 1.4.0).
   With any other version the game says so when it starts, instead of crashing.
 - When The Shooting Star updates, wait for the next update of this addon. It adds the new version and keeps the old
   ones, so you can update the two mods in either order.
