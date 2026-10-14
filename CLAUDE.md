@@ -217,10 +217,18 @@ TSS 1.4.3 CurseForge file ids: NeoForge 9171007, Forge 9171001, Fabric 9170986 (
 
 ## 9. Status at handoff (1.4.0)
 
-- Done and CI-green on all 7 branches before the last change set; the user tested NeoForge in game ("everything
-  works"). The last change set (server limits, `chunks_per_tick`, tungsten tag, Luna music, shorter films, single
-  hiss, Halley on G for 26.3) went through one CI round; the user is testing it.
-- **Not published yet**: no 1.4.0 GitHub release or CurseForge file exists. Waiting for the user's "publish".
+- **1.4.0 is published** (2026-10-15): all 7 branches pushed and tagged, 7 GitHub releases (`v1.4.0` is Latest), 7
+  CurseForge files (Release, Client + Server, The Shooting Star [Demo] required, + Fabric API on Fabric) and the new
+  CurseForge description.
+- From the cloud session, GitHub refused API release creation and branch deletion (HTTP 403, "not permitted for this
+  session type"), so the releases were made in the user's Chrome (github.com release form, with the user's OK). GitHub
+  turns spaces and brackets in asset names into dots (`The.Shooting.Star.Addition.1.4.0.NeoForge.1.21.1.jar`); the
+  release titles carry the proper names.
+- Not cleaned up yet: the `wip/*` branches and the `ci-*` draft releases (the session couldn't delete them; the user
+  can, or a later session).
+- On CurseForge's upload form the changelog editor starts in WYSIWYG; switch it to Markdown and check it really
+  switched before setting the text, or the Markdown is saved as one plain paragraph. The form copies game versions and
+  relations from an earlier file, so check them every time.
 
 ## 10. Ideas not done yet
 
