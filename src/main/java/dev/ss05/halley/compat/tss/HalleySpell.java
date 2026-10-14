@@ -27,10 +27,18 @@ public final class HalleySpell extends ActiveSpell {
         this.strike.tick(t, this.caster);
     }
 
+    /**
+     * The film ends at the timeline's end. A big strike's work on the land may still be going on then: the spell runs on
+     * until it is done (at most {@link #MAX_EXTRA} ticks more), rather than doing the rest in one go.
+     */
     @Override
     protected boolean finished() {
-        return this.age > this.strike.plan().duration;
+        int extra = this.age - this.strike.plan().duration;
+        return extra > 0 && (this.strike.worldDone() || extra > MAX_EXTRA);
     }
+
+    /** How long the spell may run on past its timeline to finish its work on the land: five minutes of it. */
+    private static final int MAX_EXTRA = 6000;
 
     /** The strike's sizes ride along in the effect packet's int array, so clients film the same crater. */
     @Override
