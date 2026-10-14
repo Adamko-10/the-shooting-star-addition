@@ -50,10 +50,10 @@ public final class MoonConfig {
             "placed or cut: a radius-200 moon is ~33 million blocks and will take the server a long while (it is",
             "built a few chunks per tick, so the game keeps running). Very big moons also stick out of the build height.");
         moonRadius = b.defineInRange("moon_radius", 48, MIN_MOON_RADIUS, MAX_MOON_RADIUS, "Radius of the moon, in blocks (the default is 96 blocks across).");
-        craterRadius = b.defineInRange("crater_radius", 90, MIN_CRATER_RADIUS, MAX_CRATER_RADIUS, "Radius of the impact zone, in blocks: the moon and the ring of ground it shoves up round",
-            "itself. Everything inside it is erased.");
-        rimHeight = b.defineInRange("rim_height", 22, 0, MAX_RIM_HEIGHT, "How high the ground shoved up round the moon rises at its tallest, in blocks (0: none).");
-        buriedPercent = b.defineInRange("buried_percent", 55, 0, 90, "How much of the moon's height ends up driven into the ground, in percent.");
+        craterRadius = b.defineInRange("impact_radius", 110, MIN_CRATER_RADIUS, MAX_CRATER_RADIUS, "Radius of the impact zone, in blocks: the crater blasted out round the moon, out to the crest of its",
+            "rim. Everything inside it is erased.");
+        rimHeight = b.defineInRange("rim_height", 9, 0, MAX_RIM_HEIGHT, "How high the crater's rim stands over the old ground at its crest, in blocks (0: none; the slabs of crust buckled up against the moon reach most of that over the crater's floor).");
+        buriedPercent = b.defineInRange("buried_percent", 70, 0, 90, "How much of the moon's height ends up driven down into the crater, in percent.");
         blastReach = b.defineInRange("blast_reach", 3.0, 1.0, 6.0, "How far the shock wave throws and hurts things, as a multiple of the impact zone's radius.");
         chunksPerTick = b.defineInRange("chunks_per_tick", 8, 1, 64, "How many chunks of ground and moon are cut or built each tick. Higher finishes big moons",
             "sooner but makes those ticks longer.");
@@ -73,7 +73,7 @@ public final class MoonConfig {
     public record Tuning(int cooldownTicks, int reach, boolean nightOnly, int moonRadius, int craterRadius,
                          int rimHeight, int buriedPercent, double blastReach, int chunksPerTick, boolean carveTerrain,
                          boolean moltenCore, int moltenHearts, int moltenStrength, int moltenMinutes) {
-        public static final Tuning DEFAULTS = new Tuning(120 * 20, 420, false, 48, 90, 22, 55, 3.0, 8, true, true, 500, 255, 10);
+        public static final Tuning DEFAULTS = new Tuning(120 * 20, 420, false, 48, 110, 9, 70, 3.0, 8, true, true, 500, 255, 10);
     }
 
     public static Tuning tuning() {
