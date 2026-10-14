@@ -165,7 +165,8 @@ public final class StarBridge {
     }
 
     public static Excavation excavate(ServerLevel level, Vec3 centre, double radius, Excavation.Floor floor,
-                                      Excavation.Surface surface, BlockPos spared, String name, int chunksPerTick) {
-        return link().excavate(level, centre, radius, floor, surface, spared, name, chunksPerTick);
+                                      Excavation.Surface surface, BlockPos spared, String name, int chunksPerTick,
+                                      Excavation.Loader loader) {
+        return link().excavate(level, centre, radius, floor, surface, spared, name, chunksPerTick, loader);
     }
 }
