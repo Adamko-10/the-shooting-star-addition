@@ -45,8 +45,8 @@
   "gui.shooting_star_addition.no_cooldown.on": "ON",
   "gui.shooting_star_addition.no_cooldown.off": "OFF",
   "gui.shooting_star_addition.no_cooldown.server": "SERVER",
-  "gui.shooting_star_addition.no_cooldown.hint.on": "Every skill can be cast again straight away.",
-  "gui.shooting_star_addition.no_cooldown.hint.off": "Needs to be enabled in the config (no_cooldown).",
-  "gui.shooting_star_addition.no_cooldown.hint.server": "Set in the server's config (no_cooldown).",
+  "gui.shooting_star_addition.no_cooldown.hint.on": "Every skill can be cast again at once.",
+  "gui.shooting_star_addition.no_cooldown.hint.off": "Needs to be enabled in the config.",
+  "gui.shooting_star_addition.no_cooldown.hint.server": "Set in the server's config.",
   "gui.shooting_star_addition.no_cooldown.careful": "Be careful with this!"
 }
