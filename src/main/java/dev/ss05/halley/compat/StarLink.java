@@ -73,7 +73,8 @@ public interface StarLink {
     /**
      * Cuts everything above a floor away, a chunk at a time, nearest {@code centre} first: the same fast carver the
      * built-in skills use. {@code floor} returns {@link dev.ss05.halley.HalleyPlan#UNTOUCHED} outside the shape.
+     * {@code loader} keeps the chunks it is waiting for loaded, a few at a time (null: only chunks already loaded).
      */
     Excavation excavate(ServerLevel level, Vec3 centre, double radius, Excavation.Floor floor,
-                        Excavation.Surface surface, BlockPos spared, String name, int chunksPerTick);
+                        Excavation.Surface surface, BlockPos spared, String name, int chunksPerTick, Excavation.Loader loader);
 }
