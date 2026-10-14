@@ -94,7 +94,7 @@ public final class MoonStoryboard {
             return new Pose(pos, mark.add(0.0, moonR * 0.2, 0.0), (float) l(k, 72.0, 64.0), 0.0F);
         })));
 
-        // 6. The moon itself, at rest, half-buried in its crater - close in, then pulling back.
+        // 6. The moon itself, at rest deep in its crater, most of it buried - close in, then pulling back.
         takes.add(Take.sweep(MoonPlan.SETTLE + 30, MoonPlan.SETTLE + 100, 10, safe(plan, (x, p, k) -> {
             Vec3 pos = mark.add(side.scale(radius * l(0.55F, 0.4, 0.75))).add(plan.travel.scale(-radius * l(k, 0.3, 0.65)))
                 .add(0.0, moonR * l(k, 0.5, 1.1), 0.0);

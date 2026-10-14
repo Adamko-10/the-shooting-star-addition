@@ -4,9 +4,13 @@
   "package": "dev.ss05.halley.compat.tss.mixin",
   "plugin": "dev.ss05.halley.compat.TssMixins",
   "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "CastingMixin"
+  ],
   "client": [
     "FxManagerMixin",
-    "RemoteRendererMixin"
+    "RemoteRendererMixin",
+    "WhiteSpaceMixin"
   ],
   "injectors": {
     "defaultRequire": 0

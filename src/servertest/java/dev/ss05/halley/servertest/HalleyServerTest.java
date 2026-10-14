@@ -388,6 +388,30 @@ public final class HalleyServerTest {
         } catch (Throwable ex) {
             this.record("cooldown_refuses_second_cast", false, "threw " + ex);
         }
+
+        try {
+            // The no-cooldown option: with it on, the next time the remote sends the caster their cooldowns (it does
+            // after every cast) they are all cleared first (compat/tss/mixin/CastingMixin), so Halley is ready again.
+            setNoCooldown(true);
+            Casting.syncCooldowns(this.caster);
+            int remaining = Casting.remaining(this.caster, (Skill) StarBridge.skill(false));
+            this.record("no_cooldown_clears_cooldowns", remaining == 0, "remaining=" + remaining + " with no_cooldown on");
+        } catch (Throwable ex) {
+            this.record("no_cooldown_clears_cooldowns", false, "threw " + ex);
+        } finally {
+            try {
+                setNoCooldown(false);
+            } catch (Throwable ignored) {
+                // (only the test's own switch)
+            }
+        }
+    }
+
+    /** Switches the no-cooldown option on or off for the test (the config file itself keeps it off). */
+    private static void setNoCooldown(boolean on) throws ReflectiveOperationException {
+        Field field = HalleyConfig.class.getDeclaredField("NO_COOLDOWN");
+        field.setAccessible(true);
+        ((net.minecraftforge.common.ForgeConfigSpec.BooleanValue) field.get(null)).set(on);
     }
 
     /**
