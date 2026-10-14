@@ -10,7 +10,7 @@ import net.minecraft.network.chat.Component;
 /**
  * The note this addon adds to the Stellar Remote's menu (H, The Shooting Star's "White Space"): the no-cooldown option
  * ({@code no_cooldown} in the common config), whether it is on, how to switch it on, and a word of warning. A small
- * plate in the menu's bottom left corner, in the menu's own colours, drawn over it while it is open.
+ * plate in the menu's top left corner, in the menu's own colours, drawn over it while it is open.
  *
  * <p>In single player the world runs on this game, so its config is the one in force and the note says whether the
  * option is on. On a server it's the server's config that counts, which this game can't see, so the note says that.
@@ -23,6 +23,8 @@ public final class NoCooldownNote {
     private static final int GOLD = 0xF4B73F;
     /** The warning. */
     private static final int WARN = 0xC0392B;
+    /** Smaller than the menu's own text: it's a footnote to it. */
+    private static final float SCALE = 0.75F;
 
     private NoCooldownNote() {
     }
@@ -39,16 +41,18 @@ public final class NoCooldownNote {
         Component careful = Component.translatable("gui.shooting_star_addition.no_cooldown.careful");
         int w = Math.max(font.width(title) + 12 + font.width(value), Math.max(font.width(hint), font.width(careful))) + 18;
         int h = 40;
-        int x = 8;
-        int y = g.guiHeight() - h - 8;
-        // over the menu
+        // a small plate in the top left corner, out of the way of the menu itself
         g.nextStratum();
-        g.fill(x + 1, y + 2, x + w + 1, y + h + 2, 0x30000000);
-        g.fill(x, y, x + w, y + h, 0xF0000000 | PLATE);
-        g.fill(x, y, x + 3, y + h, 0xFF000000 | (Boolean.TRUE.equals(on) ? GOLD : GREY));
-        g.text(font, title, x + 10, y + 6, 0xFF000000 | INK, false);
-        g.text(font, value, x + w - 8 - font.width(value), y + 6, 0xFF000000 | (Boolean.TRUE.equals(on) ? GOLD : GREY), false);
-        g.text(font, hint, x + 10, y + 18, 0xFF000000 | GREY, false);
-        g.text(font, careful, x + 10, y + 29, 0xFF000000 | WARN, false);
+        g.pose().pushMatrix();
+        g.pose().translate(6.0F, 6.0F);
+        g.pose().scale(SCALE, SCALE);
+        g.fill(1, 2, w + 1, h + 2, 0x30000000);
+        g.fill(0, 0, w, h, 0xF0000000 | PLATE);
+        g.fill(0, 0, 3, h, 0xFF000000 | (Boolean.TRUE.equals(on) ? GOLD : GREY));
+        g.text(font, title, 10, 6, 0xFF000000 | INK, false);
+        g.text(font, value, w - 8 - font.width(value), 6, 0xFF000000 | (Boolean.TRUE.equals(on) ? GOLD : GREY), false);
+        g.text(font, hint, 10, 18, 0xFF000000 | GREY, false);
+        g.text(font, careful, 10, 29, 0xFF000000 | WARN, false);
+        g.pose().popMatrix();
     }
 }
