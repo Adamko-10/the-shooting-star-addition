@@ -37,6 +37,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
@@ -290,11 +291,24 @@ public final class TssLink implements StarLink {
 
     @Override
     public Excavation excavate(ServerLevel level, Vec3 centre, double radius, Excavation.Floor floor,
-                               Excavation.Surface surface, BlockPos spared, String name, int chunksPerTick) {
-        Carving carving = Carving.flatten(level, centre, radius, floor::floor, surface::at, spared)
+                               Excavation.Surface surface, BlockPos spared, String name, int chunksPerTick,
+                               Excavation.Loader loader) {
+        Carving base = Carving.flatten(level, centre, radius, floor::floor, surface::at, spared)
             .perTick(chunksPerTick)
-            .lazy()
             .named(name);
+        // with a loader it streams the chunks it is waiting for in (as the built-in skills' carvings do), else it cuts
+        // the ones that are loaded and waits for the rest to be
+        Carving carving = loader == null ? base.lazy() : base.streaming(new Carving.Tickets() {
+            @Override
+            public void hold(ChunkPos pos) {
+                loader.hold(pos);
+            }
+
+            @Override
+            public void release(ChunkPos pos) {
+                loader.release(pos);
+            }
+        });
         return new Excavation() {
             @Override
             public void tick(double front) {
