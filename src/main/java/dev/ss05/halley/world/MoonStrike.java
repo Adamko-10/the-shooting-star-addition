@@ -9,17 +9,20 @@ import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.content.HalleyContent;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ThreadedLevelLightEngine;
 import net.minecraft.server.level.TicketType;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
@@ -31,6 +34,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -54,6 +58,13 @@ import net.minecraft.world.phys.Vec3;
 public final class MoonStrike {
     private static final TicketType<ChunkPos> TICKET = TicketType.create(HalleyAddon.MOD_ID + ":luna", Comparator.comparingLong(ChunkPos::toLong));
     private static final int EVAC_COLOR = 0x6FE8FF;
+
+    /**
+     * Ticks after everything is cut and built at which the crater's chunks are sent to players again. The fast carver
+     * sends each chunk the moment it is cut, before the light engine has caught up, so a fresh crater's floor can look
+     * unlit in patches (as Halley's scar does).
+     */
+    private static final int[] RESEND_AFTER = {40, 140};
 
     /** The molten seam where moon and land meet: magma, with lava pooled in it. */
     private static final Palette SEAM = Palette.of(Blocks.MAGMA_BLOCK, 50, Blocks.LAVA, 35, Blocks.BLACKSTONE, 15);
@@ -88,6 +99,8 @@ public final class MoonStrike {
     @Nullable
     private BlockPos spared;
     private boolean decorated;
+    /** When everything was cut and built (the tick), or -1. */
+    private int carvedAt = -1;
 
     public MoonStrike(ServerLevel level, MoonPlan plan, ServerPlayer caster) {
         this.level = level;
@@ -165,7 +178,15 @@ public final class MoonStrike {
         }
         if (!this.decorated && this.carvingDone()) {
             this.decorated = true;
+            this.carvedAt = t;
             this.scatterDebris();
+        }
+        if (this.carvedAt >= 0) {
+            for (int after : RESEND_AFTER) {
+                if (t == this.carvedAt + after) {
+                    this.resendCrater();
+                }
+            }
         }
         if (this.ticketsHeld && t > MoonPlan.CONTACT + 40 && this.carvingDone()) {
             this.releaseChunks();
@@ -192,6 +213,9 @@ public final class MoonStrike {
         if (!this.decorated && this.carvingDone()) {
             this.decorated = true;
             this.scatterDebris();
+        }
+        if (this.params.carve()) {
+            this.resendCrater();
         }
         this.releaseChunks();
     }
@@ -326,6 +350,35 @@ public final class MoonStrike {
         double k = this.plan.floorK(d) + (this.plan.hash(x, 151, z) - 0.5) * 0.16;
         double pick = this.plan.hash(z * 5 - 1, y, x * 3 + 7);
         return k < 0.3 ? FLOOR_HOT.pick(pick) : k < 0.72 ? FLOOR_MID.pick(pick) : FLOOR_OUTER.pick(pick);
+    }
+
+    /** Sends the crater's chunks, with their now settled light, to everyone who has them loaded. */
+    private void resendCrater() {
+        ThreadedLevelLightEngine light = this.level.getChunkSource().getLightEngine();
+        double reach = this.plan.rimOuter + 8.0;
+        Vec3 t = this.plan.target;
+        int x0 = Mth.floor(t.x - reach) >> 4;
+        int x1 = Mth.floor(t.x + reach) >> 4;
+        int z0 = Mth.floor(t.z - reach) >> 4;
+        int z1 = Mth.floor(t.z + reach) >> 4;
+        for (int cx = x0; cx <= x1; cx++) {
+            for (int cz = z0; cz <= z1; cz++) {
+                double dx = Math.max(0.0, Math.abs(cx * 16 + 8 - t.x) - 8.0);
+                double dz = Math.max(0.0, Math.abs(cz * 16 + 8 - t.z) - 8.0);
+                if (dx * dx + dz * dz > reach * reach) {
+                    continue;
+                }
+                ChunkPos pos = new ChunkPos(cx, cz);
+                List<ServerPlayer> players = this.level.getChunkSource().chunkMap.getPlayers(pos, false);
+                LevelChunk chunk = players.isEmpty() ? null : this.level.getChunkSource().getChunkNow(cx, cz);
+                if (chunk != null) {
+                    ClientboundLevelChunkWithLightPacket packet = new ClientboundLevelChunkWithLightPacket(chunk, light, null, null);
+                    for (ServerPlayer player : players) {
+                        player.connection.send(packet);
+                    }
+                }
+            }
+        }
     }
 
     /** Moon cheese and lumps of crust thrown clear onto the land round the rim, where the client sees them land. */
