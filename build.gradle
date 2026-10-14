@@ -114,7 +114,7 @@ legacyForge {
             systemProperty 'ss05.clienttest', 'true'
             // no early loading window: it insists on OpenGL 4.6, which a software renderer doesn't have
             systemProperty 'fml.earlyWindowControl', 'false'
-            ['skill', 'shots', 'view', 'time', 'distance', 'film', 'hud', 'cam', 'land', 'final', 'world'].each { key ->
+            ['skill', 'shots', 'view', 'time', 'distance', 'film', 'hud', 'cam', 'land', 'final', 'world', 'power', 'damage', 'speed'].each { key ->
                 var propertyName = "ss05.clienttest.${key}"
                 var value = project.findProperty(propertyName) ?: System.getProperty(propertyName)
                 if (value != null) {
