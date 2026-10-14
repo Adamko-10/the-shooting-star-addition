@@ -63,12 +63,13 @@ def tssMappingFor = { File jar -> new File(tssMappingsDir, "${jar.name - '.jar'}
 def tssProjectDir = projectDir
 def tssModId = project.findProperty('shooting_star_mod_id') ?: 'shooting_star_demo'
 
-// The nested jar of a Fabric bundle whose name contains filter, taken out of it now.
+// The nested jar of a Fabric bundle whose name ends with filter + ".jar", taken out of it now.
 ext.tssNestedNow = { File bundle, String filter ->
-    if (bundle.name.contains(filter)) return bundle
+    if (bundle.name.endsWith(filter + '.jar')) return bundle
     def zip = new java.util.zip.ZipFile(bundle)
     try {
-        def entry = zip.entries().find { it.name.startsWith('META-INF/jars/') && it.name.contains(filter) }
+        // (the whole name: '+mc1.21.1' must not pick the '+mc1.21.11' build)
+        def entry = zip.entries().find { it.name.startsWith('META-INF/jars/') && it.name.endsWith(filter + '.jar') }
         if (entry == null) throw new GradleException("${bundle.name} holds no ${filter} build")
         def out = layout.buildDirectory.dir('shooting-star').get().file(entry.name.substring(entry.name.lastIndexOf('/') + 1)).asFile
         if (!out.exists() || out.lastModified() < bundle.lastModified()) {
