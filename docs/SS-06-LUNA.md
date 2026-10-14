@@ -51,7 +51,7 @@ The caster gets a cutscene (like Halley's), skippable with the remote's cutscene
   to `contactCentre` (its surface touching the mark), then drives down to `restCentre` (centre
   `moon_radius*(1-2*buried)` above the old ground; `buried_percent` default 70), easing out hard (`MoonPlan.settle`).
 - The crater, round the mark (`r` = the moon's radius):
-  - its floor is dug `craterDepth` = `min(0.26 r, 0.6 r buried)` under the old ground next to the moon, rising to
+  - its floor is dug `craterDepth` = `min(0.34 r, 0.6 r buried)` under the old ground next to the moon, rising to
     the old ground at the rim's crest (`floorDepth`, `floorY`: a true bowl near the moon, the land's own lie further
     out); burnt black and glowing near the moon, scorched rock and rubble further out (`MoonStrike`'s floor palettes);
   - the moon meets the floor at `restFootprint`; a molten seam (magma and lava, `seamWidth`, a trench 2 deeper)
