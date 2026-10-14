@@ -75,6 +75,15 @@ public final class HalleyFx {
         /** The Stellar Remote's own clicks: the cover ({@code press} false) and the button. Null if missing. */
         @Nullable
         SoundEvent remoteSound(boolean press);
+
+        /**
+         * The strike's timeline now, in ticks since the button with the partial tick in: it runs at the remote's speed
+         * slider, so it is {@code age + partial} only at speed 1.
+         */
+        float clock(float partial);
+
+        /** How fast the strike's timeline runs: the remote's speed slider, 0.3 to 3. */
+        float speed();
     }
 
     /** The screen effects SS-05 uses: The Shooting Star's post-processing, reached through compat/tss/client. */
@@ -109,6 +118,8 @@ public final class HalleyFx {
     public final CometVisuals visuals;
     public final CometExtras extras;
     private final Host host;
+    /** The sounds' pitch: they play faster (and higher) with the remote's speed slider, as far as the game lets them. */
+    private final float pitch;
     private final RandomSource random;
     private final List<SoundInstance> filmSounds = new ArrayList<>();
     private final List<SoundInstance> worldSounds = new ArrayList<>();
@@ -129,6 +140,7 @@ public final class HalleyFx {
         this.casterId = casterId;
         this.mine = minecraft.player != null && minecraft.player.getId() == casterId;
         this.host = host;
+        this.pitch = Math.max(0.5F, Math.min(2.0F, host.speed()));
         this.random = RandomSource.create(seed ^ 0x5EED_05L);
         int minY = minecraft.level == null ? -64 : minecraft.level.getMinBuildHeight();
         this.visuals = new CometVisuals(this.plan, minY);
@@ -191,8 +203,9 @@ public final class HalleyFx {
         return this.age;
     }
 
+    /** The timeline now: ticks since the button, the partial tick in, at the remote's speed (see {@link Host#clock}). */
     public float time(float partial) {
-        return this.age + partial;
+        return this.host.clock(partial);
     }
 
     @Nullable
@@ -379,6 +392,7 @@ public final class HalleyFx {
     }
 
     private void play(SoundEvent event, Vec3 at, float volume, float pitch, boolean film) {
+        pitch *= this.pitch;
         SoundInstance instance;
         if (film) {
             // the film's soundtrack: heard as if from the camera, wherever the shot is
@@ -420,6 +434,7 @@ public final class HalleyFx {
             this.volume = film ? Math.min(1.0F, volume) : volume * 16.0F;
             this.relative = film;
             this.attenuation = film ? SoundInstance.Attenuation.NONE : SoundInstance.Attenuation.LINEAR;
+            this.pitch = HalleyFx.this.pitch;
             this.place();
         }
 
@@ -651,7 +666,7 @@ public final class HalleyFx {
     // ---- Rendering. -----------------------------------------------------------------------------------------------
 
     public void render(GlowBatch world, GlowBatch light, float partial, double landRange, CometVisuals.Land land) {
-        double t = this.age + partial;
+        double t = this.time(partial);
         this.visuals.draw(world, light, t, this.marks, landRange, land, this.host.filmWeight());
         if (HalleyClientConfig.extraEffects()) {
             float glitter = this.veil(t) * this.skyReach(world.camera());
@@ -668,7 +683,7 @@ public final class HalleyFx {
      */
     public SkyLook sky(float partial, Vec3 camera) {
         HalleyPlan p = this.plan;
-        double t = this.age + partial;
+        double t = this.time(partial);
         double impact = p.impact;
         float heat = CometVisuals.smooth((t - (HalleyPlan.ENTRY - 20.0)) / 50.0);
         // the night lingers a moment after the impact, so the blast lights up a dark sky before the haze rolls in
@@ -733,7 +748,7 @@ public final class HalleyFx {
     /** Post-processing for this frame: impact frames, flashes, shake, bloom. */
     public void screen(Screen screen, float partial) {
         HalleyPlan p = this.plan;
-        float t = this.age + partial;
+        float t = this.time(partial);
         boolean film = this.host.filmWeight() > 0.001F;
         Vec3 camera = camera();
 
@@ -805,7 +820,7 @@ public final class HalleyFx {
 
     /** Right arm: raised to the sky as the mark lands, then held out in front until the end. */
     public float[] armPose(float partial) {
-        float t = this.age + partial;
+        float t = this.time(partial);
         float end = this.plan.duration;
         float[][] keys = {
             {0.0F, -0.35F}, {4.0F, -1.4F}, {9.0F, -1.4F}, {16.0F, -2.35F}, {58.0F, -2.35F}, {78.0F, -1.25F},
@@ -826,7 +841,7 @@ public final class HalleyFx {
      * impact at 352). This maps SS-05's timeline onto it, so the remote counts down to SS-05's detonation.
      */
     public float remoteClock(float partial) {
-        float t = this.age + partial;
+        float t = this.time(partial);
         float impact = this.plan.impact;
         float clock = t < HalleyPlan.MARK ? t
             : t < impact ? HalleyPlan.MARK + (t - HalleyPlan.MARK) * (352.0F - HalleyPlan.MARK) / (impact - HalleyPlan.MARK)

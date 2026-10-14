@@ -1,5 +1,6 @@
 package dev.ss05.halley.world;
 
+import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.MoonConfig;
@@ -83,6 +84,8 @@ public final class MoonStrike {
 
     private final ServerLevel level;
     private final MoonPlan plan;
+    /** The remote's sliders for this cast: its damage slider decides what each hit does. */
+    private final CastTuning cast;
     private final MoonParams params;
     private final MoonConfig.Tuning tuning;
     private ChunkPos ticketAt;
@@ -102,9 +105,11 @@ public final class MoonStrike {
     /** When everything was cut and built (the tick), or -1. */
     private int carvedAt = -1;
 
-    public MoonStrike(ServerLevel level, MoonPlan plan, ServerPlayer caster) {
+    /** {@code cast} is the remote's sliders for this cast (the sizes in the plan are already scaled by its power). */
+    public MoonStrike(ServerLevel level, MoonPlan plan, ServerPlayer caster, CastTuning cast) {
         this.level = level;
         this.plan = plan;
+        this.cast = cast;
         this.params = plan.params;
         this.tuning = MoonConfig.tuning();
         this.holdChunks();
@@ -417,14 +422,17 @@ public final class MoonStrike {
 
     // ---- Hitting things. -------------------------------------------------------------------------------------------
 
-    /** Inside the erase radius: living things are erased (creative and spectator players excepted), loose things removed. */
+    /**
+     * Inside the erase radius: living things are erased (creative and spectator players excepted), loose things removed.
+     * With the remote's damage slider below ∞, living things take that much instead (The Shooting Star's own hit).
+     */
     private void hit(Entity entity, @Nullable ServerPlayer caster) {
         if (entity instanceof LivingEntity living) {
             if (living instanceof Player player && (player.isCreative() || player.isSpectator())) {
                 return;
             }
             if (living.isAlive()) {
-                StarBridge.erase(this.level, living, living == caster ? null : caster);
+                StarBridge.hit(this.level, living, living == caster ? null : caster, this.cast.damage());
             }
         } else if (!(entity instanceof Player) && entity.getPassengers().isEmpty()
                 && (caster == null || entity != caster.getVehicle()) && !entity.isRemoved()) {
@@ -442,7 +450,7 @@ public final class MoonStrike {
         entity.setDeltaMovement(entity.getDeltaMovement().add(away.scale(push)).add(0.0, lift, 0.0));
         entity.hurtMarked = true;
         if (entity instanceof LivingEntity living && (living == caster || caster == null || StarBridge.affects(living, caster))) {
-            float damage = (float) (10.0 + 60.0 * strength * strength);
+            float damage = this.cast.cap((float) (10.0 + 60.0 * strength * strength));
             living.hurt(this.impact(living == caster ? null : caster), damage);
             // 1.20.1's Entity.setSecondsOnFire takes an int (1.21's igniteForSeconds takes a float); round up so a
             // nonzero strength always catches at least one second of fire.

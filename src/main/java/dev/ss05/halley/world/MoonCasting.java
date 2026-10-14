@@ -1,5 +1,6 @@
 package dev.ss05.halley.world;
 
+import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.MoonConfig;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.MoonPlan;
@@ -14,8 +15,11 @@ public final class MoonCasting {
     private MoonCasting() {
     }
 
-    /** Returns false (and tells the player why) if the moon can't be called right now. */
-    public static boolean cast(ServerPlayer player) {
+    /**
+     * Returns false (and tells the player why) if the moon can't be called right now. {@code cast} is the remote's
+     * sliders: the moon's and the crater's sizes are the config's times its power, and it runs at its speed.
+     */
+    public static boolean cast(ServerPlayer player, CastTuning cast) {
         if (StarBridge.moonAlreadyFalling(player)) {
             StarBridge.deny(player, MoonInfo.title() + ": the moon is already falling");
             return false;
@@ -36,7 +40,7 @@ public final class MoonCasting {
         float timeOfDay = level.getTimeOfDay(1.0F);
         Vec3 sky = MoonPlan.skyDirection(level.isNight() ? timeOfDay : timeOfDay + 0.5F);
         long seed = player.getRandom().nextLong();
-        StarBridge.startMoon(player, target, seed, MoonParams.of(tuning, Mth.floor(target.y), sky));
+        StarBridge.startMoon(player, target, seed, MoonParams.of(tuning, Mth.floor(target.y), sky, cast.power()), cast);
         return true;
     }
 }
