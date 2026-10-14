@@ -55,6 +55,8 @@ import net.minecraft.world.phys.Vec3;
  * </ol>
  */
 public final class HalleyStrike {
+    /** The most chunks round the mark held loaded at once, in chunks (The Shooting Star's own big strikes hold 12). */
+    private static final int MAX_TICKET_RADIUS = 12;
     private static final TicketType<ChunkPos> TICKET = TicketType.create(HalleyAddon.MOD_ID + ":halley", Comparator.comparingLong(ChunkPos::toLong));
     private static final int TRENCH_CHUNKS_PER_TICK = 12;
     /** The trench is cut in pieces this long, each started as the nucleus reaches it (a single circle round it all
@@ -89,6 +91,23 @@ public final class HalleyStrike {
     private final Set<Integer> wakeThrown = new HashSet<>();
     private final Set<Integer> blastThrown = new HashSet<>();
     private boolean ticketsHeld = true;
+    /** The single chunks the carver is streaming in (see {@link Excavation.Loader}), let go once cut or at the end. */
+    private final Set<ChunkPos> streamed = new HashSet<>();
+    private final Excavation.Loader loader = new Excavation.Loader() {
+        @Override
+        public void hold(ChunkPos pos) {
+            if (HalleyStrike.this.streamed.add(pos)) {
+                HalleyStrike.this.holdChunk(pos);
+            }
+        }
+
+        @Override
+        public void release(ChunkPos pos) {
+            if (HalleyStrike.this.streamed.remove(pos)) {
+                HalleyStrike.this.releaseChunk(pos);
+            }
+        }
+    };
     private final List<Excavation> trench = new ArrayList<>();
     private int trenchSegments;
     @Nullable
@@ -122,10 +141,13 @@ public final class HalleyStrike {
 
     private void holdChunks() {
         Vec3 t = this.plan.target;
-        int craterRadius = (int) Math.ceil((this.params.craterRadius() * (this.params.rays() ? 2.4 : 1.3) + 16.0) / 16.0);
+        // at most MAX_TICKET_RADIUS chunks round the mark and a narrow band down the trench at once: a bigger strike
+        // (the power slider) streams the rest in as the carver reaches it, like The Shooting Star's own big strikes
+        int craterRadius = Math.min(MAX_TICKET_RADIUS,
+            (int) Math.ceil((this.params.craterRadius() * (this.params.rays() ? 2.4 : 1.3) + 16.0) / 16.0));
         this.ticket(t.x, t.z, craterRadius);
         int steps = Math.max(1, (int) Math.ceil(this.params.trenchLength() / 48.0));
-        int lineRadius = Math.max(2, (int) Math.ceil((this.params.trenchWidth() * 0.5 + 24.0) / 16.0));
+        int lineRadius = Math.min(4, Math.max(2, (int) Math.ceil((this.params.trenchWidth() * 0.5 + 24.0) / 16.0)));
         for (int i = 0; i <= steps; i++) {
             Vec3 p = this.plan.groundPoint(this.params.trenchLength() * (double) i / steps);
             this.ticket(p.x, p.z, lineRadius);
@@ -148,6 +170,19 @@ public final class HalleyStrike {
                 this.level.getChunkSource().removeRegionTicket(TICKET, at, ticket[2], at);
             }
         }
+        for (ChunkPos pos : this.streamed) {
+            this.releaseChunk(pos);
+        }
+        this.streamed.clear();
+    }
+
+    /** One chunk the carver is waiting for, kept loaded (the way The Shooting Star's own carvings hold theirs). */
+    private void holdChunk(ChunkPos pos) {
+        this.level.getChunkSource().addRegionTicket(TICKET, pos, 0, pos);
+    }
+
+    private void releaseChunk(ChunkPos pos) {
+        this.level.getChunkSource().removeRegionTicket(TICKET, pos, 0, pos);
     }
 
     // ---- The timeline. --------------------------------------------------------------------------------------------
@@ -330,7 +365,7 @@ public final class HalleyStrike {
                 double radius = (far - near) * 0.5 + this.plan.trenchHalfWidth(near) * 1.12 + 3.0;
                 this.trench.add(StarBridge.excavate(this.level, this.plan.groundPoint(middle), radius,
                     (x, z) -> this.plan.trenchFloor(x, z, minY), this::trenchSurface, this.spared,
-                    "SS-05 Halley trench " + (this.trenchSegments + 1) + "/" + pieces, TRENCH_CHUNKS_PER_TICK));
+                    "SS-05 Halley trench " + (this.trenchSegments + 1) + "/" + pieces, TRENCH_CHUNKS_PER_TICK, this.loader));
                 this.trenchSegments++;
             }
         }
@@ -362,7 +397,7 @@ public final class HalleyStrike {
             int minY = this.level.getMinBuildHeight();
             this.crater = StarBridge.excavate(this.level, this.plan.target, this.params.craterRadius() * 1.22 + 10.0,
                 (x, z) -> this.plan.craterFloor(x, z, minY), this::craterSurface, this.spared,
-                "SS-05 Halley crater", CRATER_CHUNKS_PER_TICK);
+                "SS-05 Halley crater", CRATER_CHUNKS_PER_TICK, this.loader);
             // the middle first, so the heart has its floor before it is set down
             this.crater.tick();
             this.crater.tick();

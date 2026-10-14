@@ -10,8 +10,10 @@ import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.content.HalleyContent;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nullable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -57,6 +59,8 @@ import net.minecraft.world.phys.Vec3;
  * </ol>
  */
 public final class MoonStrike {
+    /** The most chunks round the mark held loaded at once, in chunks (The Shooting Star's own big strikes hold 12). */
+    private static final int MAX_TICKET_RADIUS = 12;
     private static final TicketType<ChunkPos> TICKET = TicketType.create(HalleyAddon.MOD_ID + ":luna", Comparator.comparingLong(ChunkPos::toLong));
     private static final int EVAC_COLOR = 0x6FE8FF;
 
@@ -91,6 +95,23 @@ public final class MoonStrike {
     private ChunkPos ticketAt;
     private int ticketRadius;
     private boolean ticketsHeld;
+    /** The single chunks the carver is streaming in (see {@link Excavation.Loader}), let go once cut or at the end. */
+    private final Set<ChunkPos> streamed = new HashSet<>();
+    private final Excavation.Loader loader = new Excavation.Loader() {
+        @Override
+        public void hold(ChunkPos pos) {
+            if (MoonStrike.this.streamed.add(pos)) {
+                MoonStrike.this.holdChunk(pos);
+            }
+        }
+
+        @Override
+        public void release(ChunkPos pos) {
+            if (MoonStrike.this.streamed.remove(pos)) {
+                MoonStrike.this.releaseChunk(pos);
+            }
+        }
+    };
     @Nullable
     private Excavation crater;
     @Nullable
@@ -125,7 +146,9 @@ public final class MoonStrike {
     private void holdChunks() {
         Vec3 t = this.plan.target;
         double radius = Math.max(this.plan.rimOuter + 10.0, this.params.moonRadius() + 10.0) + 16.0;
-        this.ticketRadius = (int) Math.ceil(radius / 16.0);
+        // at most MAX_TICKET_RADIUS chunks round the mark at once: a bigger moonfall (the power slider) streams the
+        // rest of its crater in as the carver reaches it, like The Shooting Star's own big strikes
+        this.ticketRadius = Math.min(MAX_TICKET_RADIUS, (int) Math.ceil(radius / 16.0));
         this.ticketAt = new ChunkPos(Mth.floor(t.x) >> 4, Mth.floor(t.z) >> 4);
         this.level.getChunkSource().addRegionTicket(TICKET, this.ticketAt, this.ticketRadius, this.ticketAt);
         this.ticketsHeld = true;
@@ -136,6 +159,19 @@ public final class MoonStrike {
             this.ticketsHeld = false;
             this.level.getChunkSource().removeRegionTicket(TICKET, this.ticketAt, this.ticketRadius, this.ticketAt);
         }
+        for (ChunkPos pos : this.streamed) {
+            this.releaseChunk(pos);
+        }
+        this.streamed.clear();
+    }
+
+    /** One chunk the carver is waiting for, kept loaded (the way The Shooting Star's own carvings hold theirs). */
+    private void holdChunk(ChunkPos pos) {
+        this.level.getChunkSource().addRegionTicket(TICKET, pos, 0, pos);
+    }
+
+    private void releaseChunk(ChunkPos pos) {
+        this.level.getChunkSource().removeRegionTicket(TICKET, pos, 0, pos);
     }
 
     // ---- The timeline. ---------------------------------------------------------------------------------------------
@@ -295,7 +331,7 @@ public final class MoonStrike {
     private void detonate(@Nullable ServerPlayer caster) {
         if (this.params.carve()) {
             this.crater = StarBridge.excavate(this.level, this.plan.target, this.plan.rimCrest + 2.0, this::crater,
-                this::craterSurface, this.spared, "Luna impact", this.tuning.chunksPerTick());
+                this::craterSurface, this.spared, "Luna impact", this.tuning.chunksPerTick(), this.loader);
             // the crust buckling up against the moon and the rim heaving up as it drives in, and the fissures racing
             // out across the land
             this.rim = new MoonRim(this.level, this.plan);
