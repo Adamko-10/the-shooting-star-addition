@@ -142,27 +142,21 @@ public final class HalleyStoryboard {
         }));
 
         // 11. The plume climbing into a glowing cloud of ice.
-        takes.add(Take.sweep(impact + 24, impact + 82, 6, (x, p, k) -> {
+        takes.add(Take.sweep(impact + 24, impact + 70, 6, (x, p, k) -> {
             Vec3 pos = between(x, p, mark, l(k, 0.25, 0.32)).add(side.scale(-s * 25.0 * z)).add(0.0, 8.0 * z, 0.0);
             return new Pose(pos, mark.add(0.0, radius * l(k, 0.3, 0.9), 0.0), (float) l(k, 66.0, 70.0), 0.0F);
         }));
 
         // 12. The comet heart, from the crater floor below it, standing against the sky.
-        takes.add(Take.cut(impact + 82, impact + 124, (x, p, k) -> {
+        takes.add(Take.cut(impact + 70, impact + 106, (x, p, k) -> {
             Vec3 toward = towardCaster(x, p, mark, home);
             Vec3 across = new Vec3(-toward.z, 0.0, toward.x);
             Vec3 pos = heart.add(toward.scale(radius * l(k, 0.36, 0.3))).add(across.scale(s * radius * 0.1)).add(0.0, -6.0 * z, 0.0);
             return new Pose(pos, heart.add(0.0, l(k, 6.0, 10.0) * z, 0.0), (float) l(k, 62.0, 56.0), 0.0F);
         }));
 
-        // 13. Over the crater from the caster's side: the scar, the heart, the frost thrown out round it.
-        takes.add(Take.sweep(impact + 124, impact + 150, 8, (x, p, k) -> {
-            Vec3 pos = between(x, p, mark, l(k, 0.4, 0.46)).add(side.scale(s * radius * 0.35)).add(0.0, radius * 0.75, 0.0);
-            return new Pose(pos, mark, (float) l(k, 66.0, 62.0), 0.0F);
-        }));
-
-        // 14. Back to the caster, looking out over what they called down.
-        takes.add(Take.sweep(impact + 150, impact + 176, 10, (x, p, k) -> {
+        // 13. Back to the caster, looking out over what they called down.
+        takes.add(Take.sweep(impact + 106, impact + 128, 10, (x, p, k) -> {
             Vec3 feet = x.feet(p);
             Vec3 away = new Vec3(feet.x - mark.x, 0.0, feet.z - mark.z);
             Vec3 h = away.lengthSqr() < 1.0 ? home : away.normalize();
