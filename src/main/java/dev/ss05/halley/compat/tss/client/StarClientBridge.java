@@ -57,21 +57,32 @@ public final class StarClientBridge {
         }
     }
 
+    /**
+     * The Shooting Star 1.4.3+ sets this in a spell's effect flags when its caster plays their films for everyone near
+     * the spell (the remote's menu, "Play for everyone"); earlier versions never set it.
+     */
+    private static final int FLAG_FILM_FOR_EVERYONE = 8;
+
+    /** Whether this client plays the strike's film: the caster's own, or anyone's when they play it for everyone. */
+    private static boolean films(boolean mine, SpellFxPayload payload) {
+        return CutsceneDirector.automatic() && (mine || (payload.flags() & FLAG_FILM_FOR_EVERYONE) != 0);
+    }
+
     private static void start(SpellFxPayload payload) {
         HalleyFxAdapter fx = new HalleyFxAdapter(payload);
         FxManager.add(fx);
-        if (fx.halley().mine && CutsceneDirector.automatic()) {
+        if (films(fx.halley().mine, payload)) {
             CutsceneDirector.play(HalleyCutscene.of(fx));
         } else if (!fx.halley().mine) {
             CastTitles.show(TssLink.SKILL, false, fx.focus());
         }
     }
 
-    /** SS-06's effects (and its film, for the caster). */
+    /** SS-06's effects (and its film, for the caster, or everyone near it when the caster plays it for everyone). */
     private static void startMoon(SpellFxPayload payload) {
         MoonFxAdapter fx = new MoonFxAdapter(payload);
         FxManager.add(fx);
-        if (fx.moon().mine && CutsceneDirector.automatic()) {
+        if (films(fx.moon().mine, payload)) {
             CutsceneDirector.play(MoonCutscene.of(fx));
         } else if (!fx.moon().mine) {
             CastTitles.show(TssLink.MOON, false, fx.focus());
