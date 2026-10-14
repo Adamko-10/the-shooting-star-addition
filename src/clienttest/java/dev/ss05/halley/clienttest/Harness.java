@@ -4,6 +4,7 @@ import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.serialization.JsonOps;
 import cyou.rimuru.shootingstardemo.client.cinematic.CutsceneDirector;
+import cyou.rimuru.shootingstardemo.client.magic.WhiteSpace;
 import cyou.rimuru.shootingstardemo.magic.Casting;
 import cyou.rimuru.shootingstardemo.magic.Skill;
 import cyou.rimuru.shootingstardemo.magic.Tuning;
@@ -213,6 +214,21 @@ final class Harness {
                 return;
             }
             finalTicks++;
+            if (HarnessParams.FINAL_VIEWS[finalView].trim().equals("menu")) {
+                // the remote's menu (H), through the caster's own eyes: opened once, filmed once it has opened fully
+                if (finalTicks == 1) {
+                    mc.setCameraEntity(mc.player);
+                    WhiteSpace.open(mc);
+                }
+                if (finalTicks > 20 && System.currentTimeMillis() - finalSince > 4000L) {
+                    shotPending = true;
+                    pendingShot = "final_menu";
+                    finalView++;
+                    finalSince = System.currentTimeMillis();
+                    finalTicks = 0;
+                }
+                return;
+            }
             if (finalTicks > 20 && mc.levelRenderer.hasRenderedAllSections() || System.currentTimeMillis() - finalSince > 300_000L) {
                 shotPending = true;
                 pendingShot = "final_" + HarnessParams.FINAL_VIEWS[finalView].trim();
@@ -419,6 +435,14 @@ final class Harness {
             }
             Tuning tuning = Tuning.initial(skill);
             Casting.request(player, index, tuning.power(), tuning.damage(), tuning.speed());
+            // Filmed from a camera of its own: the caster is lifted high and clear, flying, so the ground Luna heaves up
+            // never closes over their head (the overlay for a view blocked by a block is drawn from the player's eyes,
+            // not the camera's)
+            if (HarnessParams.MOON && HarnessParams.camera() != null) {
+                player.getAbilities().flying = true;
+                player.onUpdateAbilities();
+                player.teleportTo(player.getX(), player.getY() + 160.0, player.getZ());
+            }
 
             // So the very first shot (offset 0) already has the right camera too.
             maintainCamera(level, player);

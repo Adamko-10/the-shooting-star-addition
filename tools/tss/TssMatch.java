@@ -235,7 +235,7 @@ public class TssMatch {
             }
             if (map.isEmpty() && NESTED != null) {
                 for (ZipEntry e : Collections.list(z.entries())) {
-                    if (!e.getName().startsWith("META-INF/jars/") || !e.getName().contains(NESTED)) continue;
+                    if (!e.getName().startsWith("META-INF/jars/") || !e.getName().endsWith(NESTED + ".jar")) continue;
                     try (ZipInputStream in = new ZipInputStream(z.getInputStream(e))) {
                         for (ZipEntry ne; (ne = in.getNextEntry()) != null; ) {
                             if (ne.getName().endsWith(".class") && ne.getName().startsWith(PREFIX)) read(in.readAllBytes(), map);

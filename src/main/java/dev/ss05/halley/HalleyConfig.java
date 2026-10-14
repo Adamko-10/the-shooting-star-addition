@@ -27,6 +27,7 @@ public final class HalleyConfig {
     private static final ConfigFile.BoolValue LEAVE_COMET_HEART;
     private static final ConfigFile.BoolValue FROST_RAYS;
     private static final ConfigFile.BoolValue EVACUATE_CREATIVE;
+    private static final ConfigFile.BoolValue NO_COOLDOWN;
 
     static {
         ConfigFile b = SPEC;
@@ -60,6 +61,12 @@ public final class HalleyConfig {
             "Lift a creative-mode caster clear if they stand inside the crater, like the other skills do.");
 
         MoonConfig.define(b);
+
+        b.section("stellar_remote", "The Stellar Remote itself.");
+        NO_COOLDOWN = b.define("no_cooldown", false,
+            "Switches off the cooldown of every skill on the Stellar Remote - The Shooting Star's own as well",
+            "as Halley and Luna - for every player: each can be cast again straight away. Be careful with this:",
+            "it lets the most destructive skills be cast back to back. The remote's menu (H) shows whether it is on.");
     }
 
     private HalleyConfig() {
@@ -89,5 +96,13 @@ public final class HalleyConfig {
             LEAVE_COMET_HEART.get(),
             FROST_RAYS.get(),
             EVACUATE_CREATIVE.get());
+    }
+
+    /**
+     * Whether the Stellar Remote's cooldowns are off ({@code no_cooldown}), for every skill on it; false until the config
+     * has loaded.
+     */
+    public static boolean noCooldown() {
+        return SPEC.isLoaded() && NO_COOLDOWN.get();
     }
 }
