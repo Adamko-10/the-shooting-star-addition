@@ -702,13 +702,13 @@ public final class HalleyServerTest {
         MoonPlan plan = this.moonReplicaPlan;
 
         try {
-            // The rim: the ground shoved up round the moon. Sampled all round, just outside the molten seam, where it
-            // stands tallest; the plates vary (and there are cracks between them), so most samples, not all, must be up.
+            // The rim: the ground heaved up round the crater. Sampled all round on its crest, where it stands tallest;
+            // the plates vary (and there are cracks between them), so most samples, not all, must be up.
             int raised = 0;
             StringBuilder heights = new StringBuilder();
             for (int i = 0; i < 12; i++) {
                 double angle = i * Math.PI / 6.0;
-                double d = plan.rimInner + (plan.rimOuter - plan.rimInner) * 0.06;
+                double d = plan.rimCrest;
                 BlockPos top = this.sampleTopBlockAt(plan.target.x + Math.cos(angle) * d, plan.target.z + Math.sin(angle) * d);
                 int over = top.getY() - (this.groundY - 1);
                 heights.append(over).append(' ');
@@ -722,13 +722,33 @@ public final class HalleyServerTest {
         }
 
         try {
-            // The molten seam between the moon and the rim: a trench of magma and lava (or the moon itself, where it
-            // bulges out over it).
+            // The crater: dug down well under the old ground across its floor, between the moon and the rim (a vein of
+            // molten rock cut into it only goes deeper).
+            int dug = 0;
+            StringBuilder depths = new StringBuilder();
+            for (int i = 0; i < 8; i++) {
+                double angle = i * Math.PI / 4.0 + 0.4;
+                double d = (plan.floorInner + plan.rimInner) * 0.5;
+                BlockPos top = this.sampleTopBlockAt(plan.target.x + Math.cos(angle) * d, plan.target.z + Math.sin(angle) * d);
+                int over = top.getY() - (this.groundY - 1);
+                depths.append(over).append(' ');
+                if (over <= -3) {
+                    dug++;
+                }
+            }
+            this.record("moon_crater_dug", dug >= 6, dug + "/8 sampled columns dug out (heights over the old ground: " + depths + ")");
+        } catch (Throwable ex) {
+            this.record("moon_crater_dug", false, "threw " + ex);
+        }
+
+        try {
+            // The molten seam where the moon meets the crater's floor: a trench of magma and lava (or the moon itself,
+            // where it bulges out over it).
             int molten = 0;
             StringBuilder found = new StringBuilder();
             for (int i = 0; i < 8; i++) {
                 double angle = i * Math.PI / 4.0 + 0.2;
-                double d = (plan.restFootprint + plan.rimInner) * 0.5;
+                double d = (plan.restFootprint + plan.floorInner) * 0.5;
                 BlockPos top = this.sampleTopBlockAt(plan.target.x + Math.cos(angle) * d, plan.target.z + Math.sin(angle) * d);
                 BlockState state = this.level.getBlockState(top);
                 found.append(state.getBlock()).append(' ');

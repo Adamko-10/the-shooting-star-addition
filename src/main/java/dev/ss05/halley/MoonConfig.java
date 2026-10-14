@@ -10,9 +10,10 @@ import net.minecraftforge.common.ForgeConfigSpec;
  * <p>Like Halley, the server's values decide everything: the moonfall reads them when it is called and sends the sizes
  * to every client with it.
  *
- * <p>1.4.0 drives the moon deep into the ground and shoves the ground up round it: {@code buried_percent} and
- * {@code rim_height} replace 1.3's {@code sink_percent} and {@code crater_depth} (new names, so an old config file gets
- * the new defaults instead of keeping the old, shallower moon).
+ * <p>1.4.0 drives the moon deep into a wide crater with a rim heaved up round it: {@code impact_radius},
+ * {@code buried_percent} and {@code rim_height} replace 1.3's {@code crater_radius}, {@code sink_percent} and
+ * {@code crater_depth} (new names, so an old config file gets the new defaults instead of keeping the old, shallower
+ * moon).
  */
 public final class MoonConfig {
     public static final int MIN_MOON_RADIUS = 2;
@@ -57,13 +58,14 @@ public final class MoonConfig {
                 "built a few chunks per tick, so the game keeps running). Very big moons also stick out of the build height.").push("moonfall_size");
         moonRadius = b.comment("Radius of the moon, in blocks (the default is 96 blocks across).")
             .defineInRange("moon_radius", 48, MIN_MOON_RADIUS, MAX_MOON_RADIUS);
-        craterRadius = b.comment("Radius of the impact zone, in blocks: the moon and the ring of ground it shoves up round",
-                "itself. Everything inside it is erased.")
-            .defineInRange("crater_radius", 90, MIN_CRATER_RADIUS, MAX_CRATER_RADIUS);
-        rimHeight = b.comment("How high the ground shoved up round the moon rises at its tallest, in blocks (0: none).")
-            .defineInRange("rim_height", 22, 0, MAX_RIM_HEIGHT);
-        buriedPercent = b.comment("How much of the moon's height ends up driven into the ground, in percent.")
-            .defineInRange("buried_percent", 55, 0, 90);
+        craterRadius = b.comment("Radius of the impact zone, in blocks: the crater blasted out round the moon, out to the crest of its",
+                "rim. Everything inside it is erased.")
+            .defineInRange("impact_radius", 110, MIN_CRATER_RADIUS, MAX_CRATER_RADIUS);
+        rimHeight = b.comment("How high the crater's rim stands over the old ground at its crest, in blocks (0: none; the",
+                "slabs of crust buckled up against the moon reach most of that over the crater's floor).")
+            .defineInRange("rim_height", 9, 0, MAX_RIM_HEIGHT);
+        buriedPercent = b.comment("How much of the moon's height ends up driven down into the crater, in percent.")
+            .defineInRange("buried_percent", 70, 0, 90);
         blastReach = b.comment("How far the shock wave throws and hurts things, as a multiple of the impact zone's radius.")
             .defineInRange("blast_reach", 3.0, 1.0, 6.0);
         chunksPerTick = b.comment("How many chunks of ground and moon are cut or built each tick. Higher finishes big moons",
@@ -96,7 +98,7 @@ public final class MoonConfig {
     public record Tuning(int cooldownTicks, int reach, boolean nightOnly, int moonRadius, int craterRadius,
                          int rimHeight, int buriedPercent, double blastReach, int chunksPerTick, boolean carveTerrain,
                          boolean moltenCore, int moltenHearts, int moltenStrength, int moltenMinutes) {
-        public static final Tuning DEFAULTS = new Tuning(120 * 20, 420, false, 48, 90, 22, 55, 3.0, 8, true, true, 500, 255, 10);
+        public static final Tuning DEFAULTS = new Tuning(120 * 20, 420, false, 48, 110, 9, 70, 3.0, 8, true, true, 500, 255, 10);
     }
 
     public static Tuning tuning() {

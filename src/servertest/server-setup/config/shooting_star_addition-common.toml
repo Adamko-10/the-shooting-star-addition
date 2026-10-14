@@ -58,6 +58,6 @@
 #The test keeps Luna small so it fits its arena next to Halley's crater (the defaults are much bigger).
 [moonfall_size]
 	moon_radius = 24
-	crater_radius = 48
+	impact_radius = 48
 	rim_height = 10
 	blast_reach = 2.5

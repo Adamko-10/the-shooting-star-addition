@@ -1,5 +1,7 @@
 package dev.ss05.halley.clienttest;
 
+import com.google.gson.JsonParser;
+import com.mojang.serialization.JsonOps;
 import cyou.rimuru.shootingstardemo.mc1201.client.cinematic.CutsceneDirector;
 import cyou.rimuru.shootingstardemo.mc1201.magic.Casting;
 import cyou.rimuru.shootingstardemo.mc1201.magic.Skill;
@@ -23,6 +25,7 @@ import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.client.tutorial.TutorialSteps;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
@@ -33,9 +36,11 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.WorldDataConfiguration;
+import net.minecraft.world.level.levelgen.FlatLevelSource;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.WorldDimensions;
 import net.minecraft.world.level.levelgen.WorldOptions;
+import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorSettings;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
 import net.minecraftforge.event.TickEvent;
 
@@ -170,10 +175,30 @@ final class Harness {
             true, new GameRules(), WorldDataConfiguration.DEFAULT);
         WorldOptions worldOptions = WorldOptions.defaultWithRandomSeed();
         Function<RegistryAccess, WorldDimensions> dimensions = access ->
-            access.registryOrThrow(Registries.WORLD_PRESET)
-                .getOrThrow("normal".equals(HarnessParams.WORLD) ? WorldPresets.NORMAL : WorldPresets.FLAT).createWorldDimensions();
+            world(access, access.registryOrThrow(Registries.WORLD_PRESET)
+                .getOrThrow("normal".equals(HarnessParams.WORLD) ? WorldPresets.NORMAL : WorldPresets.FLAT).createWorldDimensions());
         log("creating world '" + LEVEL_ID + "'");
         mc.createWorldOpenFlows().createFreshLevel(LEVEL_ID, levelSettings, worldOptions, dimensions);
+    }
+
+    /** The deep flat world: bedrock, a hundred blocks of stone, dirt and grass, plains (no trees, lakes or villages). */
+    private static final String DEEP_FLAT = "{\"layers\":[{\"block\":\"minecraft:bedrock\",\"height\":1},"
+        + "{\"block\":\"minecraft:stone\",\"height\":100},{\"block\":\"minecraft:dirt\",\"height\":3},"
+        + "{\"block\":\"minecraft:grass_block\",\"height\":1}],\"biome\":\"minecraft:plains\"}";
+
+    /**
+     * The test world's land (see {@link HarnessParams#WORLD}): the preset's own, or for {@code deep} the flat preset's
+     * with deep ground under it (the classic flat world is only four blocks deep: no room for a crater, or for most of a
+     * buried moon).
+     */
+    private static WorldDimensions world(RegistryAccess access, WorldDimensions preset) {
+        if (!"deep".equals(HarnessParams.WORLD)) {
+            return preset;
+        }
+        FlatLevelGeneratorSettings deep = FlatLevelGeneratorSettings.CODEC
+            .parse(RegistryOps.create(JsonOps.INSTANCE, access), JsonParser.parseString(DEEP_FLAT))
+            .result().orElseThrow(() -> new IllegalStateException("the deep flat world's settings don't parse"));
+        return preset.replaceOverworldGenerator(access, new FlatLevelSource(deep));
     }
 
     private static void deleteRecursive(Path path) throws IOException {

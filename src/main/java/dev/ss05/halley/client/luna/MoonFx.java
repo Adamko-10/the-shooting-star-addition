@@ -537,7 +537,12 @@ public final class MoonFx {
             double at = p.footprint(t) + MoonPlan.seamWidth(radius) * 0.5;
             for (int i = 0; i < this.count((int) (14 * heat) + 1); i++) {
                 double a = r.nextDouble() * Math.PI * 2.0;
-                Vec3 pos = mark.add(Math.cos(a) * at, 0.4, Math.sin(a) * at);
+                // on the ground it meets: the old ground at first, the crater's floor once it is dug
+                double sx = mark.x + Math.cos(a) * at;
+                double sz = mark.z + Math.sin(a) * at;
+                double sy = Math.min(mark.y, level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                    Mth.floor(sx), Mth.floor(sz)));
+                Vec3 pos = new Vec3(sx, sy + 0.4, sz);
                 ParticleOptions kind = i % 5 == 0 ? ParticleTypes.LAVA : i % 5 == 1 ? ParticleTypes.CAMPFIRE_COSY_SMOKE
                     : i % 5 == 2 ? ParticleTypes.LARGE_SMOKE : ParticleTypes.FLAME;
                 particle(level, kind, pos, this.gauss(0.03), 0.04 + r.nextDouble() * 0.1, this.gauss(0.03));
@@ -612,6 +617,20 @@ public final class MoonFx {
         RandomSource r = this.random;
         double radius = p.rimOuter;
         float fade = 1.0F - (float) (t - MoonPlan.CONTACT) / (MoonPlan.DURATION - MoonPlan.CONTACT);
+        // smoke rising off the burning crater floor in columns, for as long as it glows
+        if (t > MoonPlan.CONTACT + 10 && t % 2 == 0) {
+            float heat = MoonPlan.heat(t);
+            for (int i = 0; i < this.count((int) (5 * heat * fade) + 1); i++) {
+                double a = r.nextDouble() * Math.PI * 2.0;
+                double d = p.floorInner + (p.rimInner - p.floorInner) * Math.sqrt(r.nextDouble());
+                double sx = p.target.x + Math.cos(a) * d;
+                double sz = p.target.z + Math.sin(a) * d;
+                double sy = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                    Mth.floor(sx), Mth.floor(sz));
+                particle(level, i % 3 == 0 ? ParticleTypes.LARGE_SMOKE : ParticleTypes.CAMPFIRE_SIGNAL_SMOKE,
+                    new Vec3(sx, sy + 0.3, sz), this.gauss(0.01), 0.07 + r.nextDouble() * 0.06, this.gauss(0.01));
+            }
+        }
         for (int i = 0; i < this.count((int) (16 * fade) + 1); i++) {
             double a = r.nextDouble() * Math.PI * 2.0;
             double d = Math.sqrt(r.nextDouble()) * radius * 1.5;
