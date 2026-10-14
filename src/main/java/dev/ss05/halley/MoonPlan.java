@@ -14,8 +14,9 @@ import net.minecraft.world.phys.Vec3;
  * seams of molten cheese opening across it. Then it tears loose and comes down along a straight line from there onto
  * the mark, slowly at first and then faster and faster, growing until it fills the sky. It hits the atmosphere and
  * burns, touches the ground with its lowest point exactly on the mark, and drives on down into the earth: the ground
- * heaves up round it into a jagged ring of upturned crust leaning against it, a band of molten rock glows where moon
- * and land meet, and cracks race out across the land. It comes to rest half buried. Then the dust settles.
+ * round it is blasted out into a wide crater, the crust buckles up against it in upturned slabs and heaves up into a
+ * ragged rim at the crater's edge, a band of molten rock glows where moon and crater floor meet, and cracks race out
+ * across the land. It comes to rest deep in the crater, most of it buried. Then the dust settles.
  */
 public final class MoonPlan {
     // ---- Timeline, in ticks since the button was pressed. --------------------------------------------------------
@@ -54,6 +55,14 @@ public final class MoonPlan {
     // ---- The ground round it. --------------------------------------------------------------------------------------
     /** How many steps each column of the rim heaves up in (each a jolt: plates of crust shoved up in fits). */
     public static final int RIM_STEPS = 5;
+    /** How deep the crater's floor is dug next to the moon, as a share of the moon's radius (it rises to the old ground
+     * at the rim's crest). Shallower for a moon that sits high (see the constructor). */
+    public static final double CRATER_DEPTH = 0.26;
+    /** How far the slabs of crust buckled up against the moon reach out over the crater's floor, as a share of the
+     * moon's radius. */
+    public static final double PLATE_REACH = 0.32;
+    /** How high those slabs stand over the floor, as a share of {@code rim_height}. */
+    public static final double PLATE_HEIGHT = 0.8;
 
     public static final int UNTOUCHED = HalleyPlan.UNTOUCHED;
 
@@ -74,11 +83,18 @@ public final class MoonPlan {
     public final BlockPos core;
     /** Unit vector, horizontal, pointing along the ground in the direction the moon was travelling. */
     public final Vec3 travel;
-    /** Where the moon at rest cuts the ground: the radius of that circle round the mark (the molten seam runs along it). */
+    /** How deep the crater's floor is next to the moon, in blocks under the old ground at the mark. */
+    public final double craterDepth;
+    /** Where the moon at rest meets the crater's floor: the radius of that circle round the mark (the molten seam runs
+     * along it). */
     public final double restFootprint;
-    /** Where the shoved-up rim begins (the outer edge of the molten seam). */
+    /** Where the crater's floor begins: the outer edge of the molten seam. */
+    public final double floorInner;
+    /** The crest of the crater's rim, round the mark ({@code impact_radius}): the edge of the impact zone. */
+    public final double rimCrest;
+    /** Where the rim's inner wall starts rising out of the crater's floor. */
     public final double rimInner;
-    /** Where the rim has died down to the old ground again: the edge of the impact zone ({@code crater_radius}). */
+    /** Where the rim's outer slope (the ground thrown out of the crater) has died down to the old ground. */
     public final double rimOuter;
     private final double[] phase = new double[6];
     private final Crack[] cracks;
@@ -99,10 +115,15 @@ public final class MoonPlan {
         Vec3 flat = new Vec3(-this.sky.x, 0.0, -this.sky.z);
         this.travel = flat.lengthSqr() < 1.0E-6 ? new Vec3(1.0, 0.0, 0.0) : flat.normalize();
 
-        double below = params.groundY() - this.restCentre.y;
-        this.restFootprint = Math.sqrt(Math.max(0.0, r * r - below * below));
-        this.rimInner = this.restFootprint + seamWidth(r);
-        this.rimOuter = Math.max(this.rimInner, params.craterRadius());
+        // the crater's floor next to the moon (shallower for a moon sitting high, so it never floats over the floor),
+        // and where the moon meets it
+        this.craterDepth = Math.min(CRATER_DEPTH * r, r * params.buried() * 0.6);
+        double floorOverCentre = params.groundY() - this.craterDepth - this.restCentre.y;
+        this.restFootprint = Math.sqrt(Math.max(0.0, r * r - floorOverCentre * floorOverCentre));
+        this.floorInner = this.restFootprint + seamWidth(r);
+        this.rimCrest = Math.max(this.floorInner + 6.0, params.craterRadius());
+        this.rimInner = this.rimCrest - Math.max(3.0, (this.rimCrest - this.floorInner) * 0.28);
+        this.rimOuter = this.rimCrest + Math.max(6.0, this.rimCrest * 0.4);
 
         long h = seed;
         for (int i = 0; i < this.phase.length; i++) {
@@ -187,14 +208,15 @@ public final class MoonPlan {
 
     /**
      * The radius of the circle where the moon cuts the ground at time {@code t} (0 before it touches): the line of
-     * molten rock where moon and land meet, widening as it drives in.
+     * molten rock where moon and land meet, widening as it drives in (and the crater is blasted out round it) until it
+     * meets the crater's floor at {@link #restFootprint}.
      */
     public double footprint(double t) {
         if (t < CONTACT) {
             return 0.0;
         }
         double r = this.params.moonRadius();
-        double above = this.centre(t).y - this.params.groundY();
+        double above = this.centre(t).y - (this.params.groundY() - this.craterDepth * settle(t));
         return Math.sqrt(Math.max(0.0, r * r - above * above));
     }
 
@@ -267,71 +289,146 @@ public final class MoonPlan {
         return Mth.floor(this.restCentre.y + Math.sqrt(r * r - d2));
     }
 
-    /** Whether this column is in the molten seam, the band between the moon at rest and the rim. */
+    /** Whether this column is in the molten seam, the band between the moon at rest and the crater's floor. */
     public boolean inSeam(double x, double z) {
         double d = this.fromMark(x, z);
-        return d >= this.restFootprint - 0.5 && d < this.rimInner;
+        return d >= this.restFootprint - 0.5 && d < this.floorInner;
+    }
+
+    /** 0..1: how far out across the crater's floor this distance from the mark is (0 at the seam, 1 at the crest). */
+    public double floorK(double d) {
+        return Mth.clamp((d - this.floorInner) / Math.max(1.0, this.rimCrest - this.floorInner), 0.0, 1.0);
+    }
+
+    /**
+     * How far under the old ground at the mark the crater's floor lies at this distance from the mark: its full depth
+     * next to the moon, rising slowly and then steeply to nothing at the rim's crest (0 from there on).
+     */
+    public double floorDepth(double d) {
+        if (d >= this.rimCrest) {
+            return 0.0;
+        }
+        double k = this.floorK(d);
+        return this.craterDepth * (1.0 - k * k);
+    }
+
+    /**
+     * The y of the crater's floor in a column whose own ground is at {@code ground}: a true bowl near the moon, and
+     * further out the land's own lie dug down, so hills and hollows still show in the crater's outer slopes.
+     */
+    public int floorY(double d, int ground) {
+        double bowl = this.params.groundY() - 1.0 - this.floorDepth(d);
+        double local = ground - this.floorDepth(d);
+        double w = smoothstep(0.45, 1.0, this.floorK(d));
+        return (int) Math.round(Mth.lerp(w, bowl, local));
+    }
+
+    /**
+     * 0..1: how burnt the ground here is - molten-hot against the moon (the slabs leaning on it), scorched across the
+     * floor, singed on the rim's inner wall, untouched outside.
+     */
+    public double scorch(double x, double z) {
+        double d = this.fromMark(x, z);
+        if (d < this.floorInner + this.plateReach()) {
+            return 1.0 - 0.5 * Mth.clamp((d - this.floorInner) / this.plateReach(), 0.0, 1.0);
+        }
+        if (d < this.rimCrest) {
+            return 0.5 - 0.35 * this.floorK(d);
+        }
+        return 0.0;
     }
 
     /** Everything within this distance of the mark is erased at {@link #CONTACT}. */
     public double eraseRadius() {
-        return Math.max(this.rimOuter, this.params.moonRadius()) + 2.0;
+        return Math.max(this.rimCrest, this.params.moonRadius()) + 2.0;
     }
 
     /** How far the shock wave throws and hurts things. */
     public double blastRadius() {
-        return Math.max(this.rimOuter, this.params.moonRadius()) * this.params.blastReach();
+        return Math.max(this.rimCrest, this.params.moonRadius()) * this.params.blastReach();
     }
 
-    // ---- The rim: the ground shoved up round the moon. --------------------------------------------------------------
+    // ---- The rim: the ground shoved up round the crater, and the crust buckled up against the moon. ---------------
 
-    /** 0 at the rim's inner edge (against the seam), 1 at its outer edge; outside 0..1 it isn't rim. */
+    /** 0 at the rim's inner wall's foot, 1 where its outer slope has died away; outside 0..1 it isn't rim. */
     public double rimK(double x, double z) {
         return (this.fromMark(x, z) - this.rimInner) / Math.max(1.0, this.rimOuter - this.rimInner);
     }
 
-    /** How many plates of crust the rim is broken into, all round. */
-    public int rimPlates() {
-        return Math.max(12, (int) Math.round(Math.PI * 2.0 * this.rimInner / 7.0));
+    /** How far the slabs of crust buckled up against the moon reach out over the floor, in blocks. */
+    public double plateReach() {
+        return Math.max(3.0, this.params.moonRadius() * PLATE_REACH);
     }
 
-    /** Which plate a point is on (0 .. {@link #rimPlates()} - 1), and how far across it (0..1) - with ragged edges. */
-    private double plateCoordinate(double x, double z) {
+    /** How many slabs the crust against the moon is broken into, all round. */
+    public int rimPlates() {
+        return Math.max(12, (int) Math.round(Math.PI * 2.0 * this.floorInner / 7.0));
+    }
+
+    /** How many plates the crater's rim is broken into, all round. */
+    public int crestPlates() {
+        return Math.max(16, (int) Math.round(Math.PI * 2.0 * this.rimCrest / 10.0));
+    }
+
+    /** Which of {@code plates} plates a point is on, and how far across it (the fraction) - with ragged edges. */
+    private double plateCoordinate(double x, double z, int plates, double phase) {
         double angle = Math.atan2(z - this.target.z, x - this.target.x);
         double a = (angle / (Math.PI * 2.0) + 1.0) % 1.0;
-        double ragged = 0.18 * Math.sin(this.fromMark(x, z) * 0.21 + this.phase[2]) / this.rimPlates();
-        return (a + ragged) * this.rimPlates();
+        double ragged = 0.18 * Math.sin(this.fromMark(x, z) * 0.21 + phase) / plates;
+        return (a + ragged) * plates;
     }
 
     /**
-     * How high the rim finally stands over the old ground at this column, in whole blocks (0 off the rim): a jagged
-     * ring of upturned plates leaning against the moon, highest at its inner lip and dying away outward, with cracks
-     * between the plates and a ragged spill of crust past them.
+     * How high the ground is finally heaved up over the crater's floor (or the old ground) at this column, in whole
+     * blocks (0 where it isn't): slabs of crust buckled up against the moon, highest at their lip and falling back over
+     * the floor; the crater's rim, its inner wall rising out of the floor to a ragged crest of upturned plates and its
+     * outer slope falling away over the land; and a thin, broken spill of thrown ground past it.
      */
     public int rimHeight(int x, int z) {
         double height = this.params.rimHeight();
         if (height <= 0.0) {
             return 0;
         }
-        double k = this.rimK(x + 0.5, z + 0.5);
-        if (k < 0.0 || k >= 1.0) {
-            return 0;
+        double px = x + 0.5;
+        double pz = z + 0.5;
+        double d = this.fromMark(px, pz);
+        double h = 0.0;
+        // the slabs against the moon
+        double reach = this.plateReach();
+        if (d >= this.floorInner - 0.5 && d < this.floorInner + reach) {
+            double plate = this.plateCoordinate(px, pz, this.rimPlates(), this.phase[2]);
+            int index = Math.floorMod((int) Math.floor(plate), this.rimPlates());
+            double across = plate - Math.floor(plate);
+            double tall = 0.55 + 0.7 * this.hash(index, 101, -index);
+            double u = (d - this.floorInner) / (reach * (0.65 + 0.45 * this.hash(index, 103, index)));
+            double profile = u >= 1.0 ? 0.0 : smoothstep(0.0, 0.08, u) * Math.pow(1.0 - u, 1.4);
+            double gap = smoothstep(0.02, 0.16, Math.min(across, 1.0 - across));
+            h = Math.max(h, height * PLATE_HEIGHT * tall * profile * (0.3 + 0.7 * gap));
         }
-        double plate = this.plateCoordinate(x + 0.5, z + 0.5);
-        int index = Math.floorMod((int) Math.floor(plate), this.rimPlates());
-        double across = plate - Math.floor(plate);
-        double tall = 0.6 + 0.75 * this.hash(index, 101, -index);
-        double reach = 0.7 + 0.45 * this.hash(index, 103, index);
-        double u = k / reach;
-        // the plate's own profile: a steep lip against the moon, then a long, falling back
-        double profile = u >= 1.0 ? 0.0 : smoothstep(0.0, 0.06, u) * Math.pow(1.0 - u, 1.55);
-        // the cracks between plates: the edges of each plate sag into a gap
-        double edge = Math.min(across, 1.0 - across);
-        double gap = smoothstep(0.02, 0.16, edge);
-        double h = height * tall * profile * (0.3 + 0.7 * gap);
-        // past the plates: a thin, broken spill of thrown crust
-        if (h < 1.0 && k < 0.92 && this.hash(x, 107, z) < 0.55 * (1.0 - k)) {
-            h = 1.0;
+        // the crater's rim
+        if (d >= this.rimInner && d < this.rimOuter) {
+            double plate = this.plateCoordinate(px, pz, this.crestPlates(), this.phase[4]);
+            int index = Math.floorMod((int) Math.floor(plate), this.crestPlates());
+            double across = plate - Math.floor(plate);
+            double tall = 0.7 + 0.55 * this.hash(index, 131, -index);
+            double profile;
+            if (d < this.rimCrest) {
+                double w = (d - this.rimInner) / Math.max(1.0, this.rimCrest - this.rimInner);
+                profile = smoothstep(0.0, 1.0, w);
+            } else {
+                double v = (d - this.rimCrest) / Math.max(1.0, this.rimOuter - this.rimCrest);
+                profile = Math.pow(1.0 - v, 1.7);
+            }
+            double gap = smoothstep(0.0, 0.12, Math.min(across, 1.0 - across));
+            h = Math.max(h, height * tall * profile * (0.55 + 0.45 * gap));
+            // past the crest: a thin, broken spill of the ground thrown out of the crater
+            double v = (d - this.rimCrest) / Math.max(1.0, this.rimOuter - this.rimCrest);
+            if (h < 1.0 && v > 0.0 && this.hash(x, 107, z) < 0.5 * (1.0 - v)) {
+                h = 1.0;
+            }
+        }
+        if (h <= 0.0) {
+            return 0;
         }
         h += (this.hash(x, 109, z) - 0.5) * 1.4;
         return Math.max(0, (int) Math.floor(h));
@@ -359,9 +456,14 @@ public final class MoonPlan {
     // ---- The cracks: fissures racing out across the land from the rim at the impact, branching as they go. ---------
 
     /** How many main cracks run out from the rim. */
-    public static final int MAIN_CRACKS = 14;
+    public static final int MAIN_CRACKS = 16;
+    /** How many veins of molten rock run out across the crater's floor from the seam. */
+    public static final int FLOOR_VEINS = 12;
     /** How long a main crack takes to race out to its full length, in ticks. */
     public static final int CRACK_TICKS = 26;
+
+    /** {@code Crack.parent} of a vein across the crater's floor (a main crack's is -1, a branch's its main crack's index). */
+    private static final int VEIN = -2;
 
     /** One crack: where it starts, which way, how long and how wide, and when it starts running. */
     private record Crack(double x, double z, double angle, double length, double width, double delay, int parent,
@@ -369,9 +471,9 @@ public final class MoonPlan {
     }
 
     private Crack[] layCracks() {
-        double start = this.rimOuter * 0.88;
+        double start = this.rimCrest * 0.94;
         double reach = Math.max(8.0, this.blastRadius() - start);
-        double width = Math.max(1.0, this.params.moonRadius() * 0.06);
+        double width = Math.max(1.0, this.params.moonRadius() * 0.075);
         java.util.List<Crack> out = new java.util.ArrayList<>();
         for (int i = 0; i < MAIN_CRACKS; i++) {
             double even = (i + 0.5) / MAIN_CRACKS * Math.PI * 2.0;
@@ -396,6 +498,15 @@ public final class MoonPlan {
                 out.add(new Crack(from.x, from.z, parent.angle + turn, length,
                     parent.width * (1.0 - at * 0.6) * 0.6, delay, i, this.hash(i, 47 + b, b) * Math.PI * 2.0));
             }
+        }
+        // the veins across the crater's floor, from the seam out toward the rim (cut once the crater is dug)
+        double floorReach = Math.max(4.0, this.rimInner - this.floorInner);
+        for (int i = 0; i < FLOOR_VEINS; i++) {
+            double angle = (i + this.hash(i, 71, 9)) / FLOOR_VEINS * Math.PI * 2.0;
+            double from = this.floorInner + 0.5;
+            out.add(new Crack(this.target.x + Math.cos(angle) * from, this.target.z + Math.sin(angle) * from, angle,
+                floorReach * (0.45 + 0.5 * this.hash(i, 73, i)), width * (0.6 + 0.4 * this.hash(i, 79, -i)),
+                1.0 + this.hash(i, 83, i) * 4.0, VEIN, this.hash(i, 89, i) * Math.PI * 2.0));
         }
         return out.toArray(new Crack[0]);
     }
@@ -431,9 +542,14 @@ public final class MoonPlan {
         return c.width * (1.0 - along) * (1.0 - along * 0.25);
     }
 
-    /** Whether crack {@code i} is a branch (rather than one of the main cracks out of the rim). */
+    /** Whether crack {@code i} is a branch (rather than one of the main cracks out of the rim, or a vein). */
     public boolean crackIsBranch(int i) {
         return this.cracks[i].parent >= 0;
+    }
+
+    /** Whether crack {@code i} is one of the veins across the crater's floor. */
+    public boolean crackIsVein(int i) {
+        return this.cracks[i].parent == VEIN;
     }
 
     /** 0..1: how far crack {@code i} has run out at time {@code t}. */
@@ -461,13 +577,13 @@ public final class MoonPlan {
 
     /** How many lumps of moon and crust are thrown clear. */
     public int debrisCount() {
-        return 40 + (int) (this.hash(11, 0, 29) * 40.0);
+        return 90 + (int) (this.hash(11, 0, 29) * 70.0);
     }
 
     /** Where thrown lump {@code i} lands (y = the mark's; the ground is found by whoever uses it). */
     public Vec3 debrisLanding(int i) {
         double angle = this.hash(i * 5 + 1, 0, 7) * Math.PI * 2.0;
-        double dist = this.rimOuter * (1.02 + this.hash(i * 3 + 2, 0, 13) * 1.3);
+        double dist = this.rimCrest * (1.05 + this.hash(i * 3 + 2, 0, 13) * 1.6);
         return new Vec3(this.target.x + Math.cos(angle) * dist, this.target.y, this.target.z + Math.sin(angle) * dist);
     }
 

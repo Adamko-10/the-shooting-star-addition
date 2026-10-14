@@ -38,8 +38,9 @@ final class HarnessParams {
     static final String[] FINAL_VIEWS = System.getProperty(PREFIX + ".final", "").isBlank() ? new String[0]
         : System.getProperty(PREFIX + ".final").split(",");
 
-    /** "flat" (the default: quick to make and to draw) or "normal" (real land: hills, water, trees). */
-    static final String WORLD = System.getProperty(PREFIX + ".world", "flat").toLowerCase(Locale.ROOT);
+    /** "deep" (the default: flat, quick to make and to draw, with a hundred blocks of stone under it), "flat" (the
+     * classic flat world, only four blocks deep) or "normal" (real land: hills, water, trees). */
+    static final String WORLD = System.getProperty(PREFIX + ".world", "deep").toLowerCase(Locale.ROOT);
 
     /** How far round the mark (in blocks) the land must have arrived before the cast (0 = don't wait). */
     static final double LAND = Double.parseDouble(System.getProperty(PREFIX + ".land", "112"));
@@ -81,6 +82,8 @@ final class HarnessParams {
             case "rim" -> new double[] {-40, 30, 115, 0, 5, 0};
             // straight down from high above
             case "top" -> new double[] {0.5, 230, 0.6, 0, 0, 0};
+            // close up on the moon's side, to see the cheese itself
+            case "cheese" -> new double[] {-25, 40, 62, 0, 25, 0};
             default -> null;
         };
     }
