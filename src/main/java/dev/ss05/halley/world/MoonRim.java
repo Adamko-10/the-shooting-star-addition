@@ -15,12 +15,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 /**
- * The ground Luna shoves up round itself as it drives into the earth: every column of the rim ({@link MoonPlan#rimHeight})
- * is lifted, in a few jolts ({@link MoonPlan#rimStep}), while the moon sinks, so the land heaves up into a jagged ring
- * of upturned crust leaning against it. A lifted column is the old column pushed up: its own surface block (grass,
- * sand, stone...) stays on top and the layers under it show in its sides, scorched black and molten nearest the moon.
- * Whatever stood on the ground there (plants, trees, buildings) is gone. Server side only; only loaded chunks are
- * touched (the strike keeps the impact zone loaded).
+ * The ground Luna heaves up as it drives into the earth: the slabs of crust buckled up against the moon over the
+ * crater's floor, and the crater's rim with the ground thrown out past it. Every such column ({@link MoonPlan#rimHeight})
+ * is lifted, in a few jolts ({@link MoonPlan#rimStep}), while the moon sinks. A lifted column is the old column (or
+ * the crater's floor) pushed up: its own surface block stays on top and the layers under it show in its sides,
+ * scorched black and molten against the moon, singed on the crater's inner wall. Whatever stood on the ground there
+ * (plants, trees, buildings) is gone. Server side only, once the crater is dug; only loaded chunks are touched (the
+ * strike keeps the impact zone loaded).
  */
 final class MoonRim {
     /** Nearest the moon, the crust is burnt and partly molten. */
@@ -166,10 +167,9 @@ final class MoonRim {
 
     /** What lands at height {@code y} of a lifted column, from the old layer {@code k} blocks under its surface. */
     private BlockState material(Column c, int k, int y) {
-        double rimK = this.plan.rimK(c.x + 0.5, c.z + 0.5);
-        double burnt = 0.12 + (this.plan.hash(c.x, 131, c.z) - 0.5) * 0.1;
-        // the inner lip, against the molten seam: burnt and glowing; its very top more so
-        if (rimK < burnt || rimK < burnt * 1.6 && k == 0) {
+        // the slabs against the moon are burnt black and glowing (their tops the most), the crater's inner wall singed
+        double scorch = this.plan.scorch(c.x + 0.5, c.z + 0.5);
+        if (this.plan.hash(c.x, y * 3 + 131, c.z) < scorch * (k == 0 ? 1.0 : 0.75)) {
             return SCORCHED.pick(this.plan.hash(c.x, y, c.z));
         }
         BlockState layer = k >= 0 && k < c.strata.length ? c.strata[k] : null;
