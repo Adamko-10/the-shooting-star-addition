@@ -24,7 +24,7 @@ public final class NoCooldownNote {
     /** The warning. */
     private static final int WARN = 0xC0392B;
     /** Smaller than the menu's own text: it's a footnote to it. */
-    private static final float SCALE = 0.75F;
+    private static final float SCALE = 0.6F;
 
     private NoCooldownNote() {
     }
