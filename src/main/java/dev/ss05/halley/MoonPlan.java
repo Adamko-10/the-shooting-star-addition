@@ -57,7 +57,7 @@ public final class MoonPlan {
     public static final int RIM_STEPS = 5;
     /** How deep the crater's floor is dug next to the moon, as a share of the moon's radius (it rises to the old ground
      * at the rim's crest). Shallower for a moon that sits high (see the constructor). */
-    public static final double CRATER_DEPTH = 0.26;
+    public static final double CRATER_DEPTH = 0.34;
     /** How far the slabs of crust buckled up against the moon reach out over the crater's floor, as a share of the
      * moon's radius. */
     public static final double PLATE_REACH = 0.32;
