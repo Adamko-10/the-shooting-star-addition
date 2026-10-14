@@ -64,6 +64,11 @@ final class HalleyFxAdapter extends SpellFx {
         return this.fx;
     }
 
+    /** The remote's speed slider for this cast: the film's clock runs at it too. */
+    float filmSpeed() {
+        return this.speed;
+    }
+
     @Override
     protected void onTick(Minecraft minecraft, ClientLevel level, int t) {
         this.fx.tick(minecraft, level, t);
