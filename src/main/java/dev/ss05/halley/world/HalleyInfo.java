@@ -17,10 +17,10 @@ public final class HalleyInfo {
     /** Ice-cyan: the other three are red (SS-01), ember (SS-03) and violet (SS-04). */
     public static final int COLOR = 0x6FE8FF;
     /**
-     * GLFW key code 79 = O, next to the other skills' U, I and K. (A plain number so the dedicated server never
+     * GLFW key code 71 = G (Minecraft 26.3 puts its own Friends key on O, and The Shooting Star has H, J, U, I, K and Y). (A plain number so the dedicated server never
      * needs the client's GLFW classes.) Players can rebind it in Controls or from the remote's menu.
      */
-    public static final int DEFAULT_KEY = 79;
+    public static final int DEFAULT_KEY = 71;
 
     private HalleyInfo() {
     }

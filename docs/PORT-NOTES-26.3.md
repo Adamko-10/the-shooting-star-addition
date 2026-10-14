@@ -20,7 +20,7 @@ this before the next Minecraft or Shooting Star update.
   `HalleyFx`, everything else goes to the original handler.
 - HUD code takes `GuiGraphicsExtractor` instead of `GuiGraphics` (`FxManager.renderFilmHud`, `SpellFx.hud`, `Overlay`).
 - Key bindings: `Skill.defaultKey()` is still a capital letter; The Shooting Star turns it into a scancode itself
-  (`4 + letter - 'A'`). SS-05 stays on **O**; the remote's menu is **H**, cutscenes **J**.
+  (`4 + letter - 'A'`). SS-05 (Halley) moved to **G** in 1.4.0, as Minecraft 26.3 binds Friends to O; the remote's menu is **H**, cutscenes **J**.
 - **The Shooting Star refuses to run on Vulkan or on a software renderer** (`GpuCheck` → a screen with only an
   "Exit game" button). Players must use *Graphics API → Prefer OpenGL*. SS-05's own drawing works on both backends,
   but that only matters without The Shooting Star.

@@ -41,7 +41,7 @@ land round it.
 - Pieces break off the comet and burst in the sky, the fireball sheds sparks and throws lens flares, ice is thrown
   out of the crater on long arcs, glowing cracks race across the land, a wall of snow rides the shock front, and the
   comet heart shines a beam into the sky.
-- Joins the Stellar Remote like the built-in skills: its own key (**O** by default), menu card, sliders and description, HUD
+- Joins the Stellar Remote like the built-in skills: its own key (**G** by default), menu card, sliders and description, HUD
   card, cooldown and recharge display.
 - Its own cutscene (skippable with the remote's cutscene key), with impact frames, flashes and camera shake in the
   remote's style, and the remote's cover, button and screen animate for it.
@@ -118,7 +118,7 @@ destructive skills back to back.
 Minecraft must be drawing with OpenGL (*Video Settings → Graphics API → Prefer OpenGL*), or The Shooting Star
 won't start.
 
-In game: hold the Stellar Remote, press **O** for Halley or **N** for Luna (or pick them in the remote's menu, **H**),
+In game: hold the Stellar Remote, press **G** for Halley or **N** for Luna (or pick them in the remote's menu, **H**),
 aim at the ground and right-click. The keys can be changed in Controls or from the remote's menu like the others.
 
 ## Settings — `config/shooting_star_addition-common.toml`
@@ -271,7 +271,7 @@ de-obfuscation map of The Shooting Star.
    - the land not dimming under the dark sky (vanilla target, very unlikely to change) → `compat/mixin/ClientLevelMixin`;
    - with a shader pack on, the sky not going to night (vanilla target, very unlikely to change) →
      `compat/mixin/ClientLevelTimeMixin`.
-7. **A new built-in skill takes the O or N key** → change `DEFAULT_KEY` in `world/HalleyInfo.java` or
+7. **A new built-in skill takes the G or N key** → change `DEFAULT_KEY` in `world/HalleyInfo.java` or
    `world/MoonInfo.java`. The codenames need nothing: SA-01 and SA-02 are a series of their own
    (`world/Codenames.java`), so they never clash with the remote's SS numbers.
 8. To drop an old version, take its jar out of `libs/`.
