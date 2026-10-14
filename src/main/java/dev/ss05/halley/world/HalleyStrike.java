@@ -215,8 +215,10 @@ public final class HalleyStrike {
         if (this.crater != null && !this.crater.done()) {
             this.crater.tick();
         }
-        // the trench pieces still being cut after the detonation (a big strike's take longer) carry on a bit each tick
-        if (t > this.plan.impact) {
+        // the trench pieces still being cut after the detonation (a big strike's take longer) carry on a bit each tick,
+        // once the crater is cut (as they did when they were all finished at the end): where the two overlap, round
+        // the mark, the order must stay the same
+        if (t > this.plan.impact && (this.crater == null || this.crater.done())) {
             for (Excavation cut : this.trench) {
                 if (!cut.done()) {
                     cut.tick();
