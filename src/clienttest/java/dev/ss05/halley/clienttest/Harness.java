@@ -3,6 +3,7 @@ package dev.ss05.halley.clienttest;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import cyou.rimuru.shootingstardemo.mc1211.client.cinematic.CutsceneDirector;
+import cyou.rimuru.shootingstardemo.mc1211.client.magic.WhiteSpace;
 import cyou.rimuru.shootingstardemo.mc1211.magic.Casting;
 import cyou.rimuru.shootingstardemo.mc1211.magic.Skill;
 import cyou.rimuru.shootingstardemo.mc1211.magic.Tuning;
@@ -287,6 +288,14 @@ final class Harness {
             }
             Tuning tuning = Tuning.initial(skill);
             Casting.request(player, index, tuning.power(), tuning.damage(), tuning.speed());
+            // Filmed from a camera of its own: the caster is lifted high and clear, flying, so the ground Luna heaves up
+            // never closes over their head (the overlay for a view blocked by a block is drawn from the player's eyes,
+            // not the camera's)
+            if (HarnessParams.MOON && HarnessParams.camera() != null) {
+                player.getAbilities().flying = true;
+                player.onUpdateAbilities();
+                player.teleportTo(player.getX(), player.getY() + 160.0, player.getZ());
+            }
 
             // So the very first shot (offset 0) already has the right camera too.
             maintainCamera(level, player);
@@ -464,7 +473,8 @@ final class Harness {
         if (done || !placed || mc.screen != null || mc.level == null || mc.player == null) {
             return;
         }
-        double[] cam = finalView >= 0 ? HarnessParams.camera(HarnessParams.FINAL_VIEWS[finalView]) : HarnessParams.camera();
+        double[] cam = finalView >= 0 && finalView < HarnessParams.FINAL_VIEWS.length
+            ? HarnessParams.camera(HarnessParams.FINAL_VIEWS[finalView]) : HarnessParams.camera();
         if (cam == null) {
             return;
         }
@@ -526,6 +536,20 @@ final class Harness {
                 return;
             }
             finalFrames++;
+            if (HarnessParams.FINAL_VIEWS[finalView].trim().equals("menu")) {
+                // the remote's menu (H), through the caster's own eyes: opened once, filmed once it has opened fully
+                if (finalFrames == 1) {
+                    mc.setCameraEntity(mc.player);
+                    WhiteSpace.open(mc);
+                }
+                if (finalFrames > 30 && System.currentTimeMillis() - finalSince > 4000L) {
+                    takeScreenshot(mc, "final_menu");
+                    finalView++;
+                    finalSince = System.currentTimeMillis();
+                    finalFrames = 0;
+                }
+                return;
+            }
             boolean drawn = finalFrames > 30 && mc.levelRenderer.hasRenderedAllSections();
             if (drawn || System.currentTimeMillis() - finalSince > 300_000L) {
                 takeScreenshot(mc, "final_" + HarnessParams.FINAL_VIEWS[finalView].trim());
