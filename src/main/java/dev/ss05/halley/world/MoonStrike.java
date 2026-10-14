@@ -225,6 +225,15 @@ public final class MoonStrike {
         this.releaseChunks();
     }
 
+    /**
+     * Whether everything it does to the land (crater, rim, cracks, the moon itself) is done. A big moonfall (the remote's
+     * power slider) can take longer than its film: the spell then runs on until this is true, rather than building the
+     * rest in one go at the end.
+     */
+    public boolean worldDone() {
+        return !this.params.carve() || this.moonBuild != null && this.carvingDone();
+    }
+
     private boolean carvingDone() {
         return (this.crater == null || this.crater.done()) && (this.moonBuild == null || this.moonBuild.done())
             && (this.cracks == null || this.cracks.done()) && (this.rim == null || this.rim.done());
