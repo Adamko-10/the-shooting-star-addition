@@ -73,6 +73,15 @@ public final class MoonFx {
 
         @Nullable
         SoundEvent remoteSound(boolean press);
+
+        /**
+         * The strike's timeline now, in ticks since the button with the partial tick in: it runs at the remote's speed
+         * slider, so it is {@code age + partial} only at speed 1.
+         */
+        float clock(float partial);
+
+        /** How fast the strike's timeline runs: the remote's speed slider, 0.3 to 3. */
+        float speed();
     }
 
     /** The screen effects Luna uses: The Shooting Star's post-processing, reached through compat/tss/client. */
@@ -102,6 +111,8 @@ public final class MoonFx {
     public final int casterId;
     public final boolean mine;
     private final Host host;
+    /** The sounds' pitch: they play faster (and higher) with the remote's speed slider, as far as the game lets them. */
+    private final float pitch;
     private final RandomSource random;
     private final List<SoundInstance> filmSounds = new ArrayList<>();
     private final List<Later> later = new ArrayList<>();
@@ -123,6 +134,7 @@ public final class MoonFx {
         this.casterId = casterId;
         this.mine = minecraft.player != null && minecraft.player.getId() == casterId;
         this.host = host;
+        this.pitch = Math.max(0.5F, Math.min(2.0F, host.speed()));
         this.random = RandomSource.create(seed ^ 0x6C75_6E61_06L);
         ParticleStatus status = minecraft.options.particles().get();
         this.particles = status == ParticleStatus.ALL ? 1.0F : status == ParticleStatus.DECREASED ? 0.45F : 0.12F;
@@ -185,8 +197,9 @@ public final class MoonFx {
         return this.handoverAt;
     }
 
+    /** The timeline now: ticks since the button, the partial tick in, at the remote's speed (see {@link Host#clock}). */
     public float time(float partial) {
-        return this.age + partial;
+        return this.host.clock(partial);
     }
 
     public boolean inFilm() {
@@ -271,7 +284,7 @@ public final class MoonFx {
      * nothing is ever carved, near the very end of the strike).
      */
     public float sphereVisibility(float partial) {
-        return this.sphereVisibilityAt(this.age + partial);
+        return this.sphereVisibilityAt(this.time(partial));
     }
 
     /** As {@link #sphereVisibility}, for an absolute time (age + partial) rather than a partial tick. */
@@ -398,6 +411,7 @@ public final class MoonFx {
     }
 
     private void play(SoundEvent event, Vec3 at, float volume, float pitch, boolean film) {
+        pitch *= this.pitch;
         SoundInstance instance;
         if (film) {
             instance = new SimpleSoundInstance(event.getLocation(), SoundSource.PLAYERS, Math.min(1.0F, volume), pitch,
@@ -436,6 +450,7 @@ public final class MoonFx {
             this.volume = film ? Math.min(1.0F, volume) : volume * 16.0F;
             this.relative = film;
             this.attenuation = film ? SoundInstance.Attenuation.NONE : SoundInstance.Attenuation.LINEAR;
+            this.pitch = MoonFx.this.pitch;
             this.place();
         }
 
@@ -670,7 +685,7 @@ public final class MoonFx {
                 SkyLook.PALETTE_LUNA);
         }
         MoonPlan p = this.plan;
-        double t = this.age + partial;
+        double t = this.time(partial);
         float w = this.skyReach(camera);
         // the sky falls to night exactly like SS-05's, whether it's day or night when the moon is called: full dark
         // by the end of the alarm, holding through the fall and the impact, clearing again in the aftermath
@@ -710,7 +725,7 @@ public final class MoonFx {
     /** Post-processing for this frame: the alarm's vignette pulse, the approach, the impact. */
     public void screen(Screen screen, float partial) {
         MoonPlan p = this.plan;
-        float t = this.age + partial;
+        float t = this.time(partial);
         boolean film = this.host.filmWeight() > 0.001F;
         Vec3 camera = camera();
 
@@ -790,7 +805,7 @@ public final class MoonFx {
 
     /** Right arm: raised to the sky at the alarm, held up through the fall and the impact, then lowered. */
     public float[] armPose(float partial) {
-        float t = this.age + partial;
+        float t = this.time(partial);
         float end = MoonPlan.DURATION;
         float[][] keys = {
             {0.0F, -0.35F}, {MoonPlan.ALARM, -1.3F}, {MoonPlan.ALARM + 12.0F, -2.3F}, {MoonPlan.FALL, -2.25F},
@@ -808,7 +823,7 @@ public final class MoonFx {
 
     /** Maps SS-06's timeline onto the Stellar Remote's 352-tick clock, counting down to the impact at 352. */
     public float remoteClock(float partial) {
-        float t = this.age + partial;
+        float t = this.time(partial);
         float contact = MoonPlan.CONTACT;
         float clock = t < MoonPlan.ALARM ? t
             : t < contact ? MoonPlan.ALARM + (t - MoonPlan.ALARM) * (352.0F - MoonPlan.ALARM) / (contact - MoonPlan.ALARM)

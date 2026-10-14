@@ -9,20 +9,37 @@ import net.minecraft.world.phys.Vec3;
  * sky when it was called (it falls from there).
  */
 public record MoonParams(int moonRadius, int craterRadius, int rimHeight, int buriedPercent, double blastReach,
-                         int groundY, Vec3 sky, int flags) {
+                         int groundY, Vec3 sky, int flags, float scale) {
     public static final int FLAG_CARVE = 1;
     public static final int FLAG_CORE = 2;
 
     /** Marks the int array as Luna's (Halley's uses 0x055A1E), followed by its layout version. */
     private static final int MAGIC = 0x0600A1;
-    /** 2: the rim height and the buried share (1 had a crater depth and a sink share in those places). */
-    private static final int VERSION = 2;
-    private static final int LENGTH = 12;
+    /**
+     * 2: the rim height and the buried share (1 had a crater depth and a sink share in those places). 3: the scale (the
+     * remote's power slider) at the end.
+     */
+    private static final int VERSION = 3;
+    private static final int LENGTH = 13;
 
+    /** The config's sizes, as they are (power 1). */
     public static MoonParams of(MoonConfig.Tuning tuning, int groundY, Vec3 sky) {
+        return of(tuning, groundY, sky, 1.0F);
+    }
+
+    /**
+     * The config's sizes times {@code scale}, the remote's power slider (0.1 to 10): the moon, the crater (so the blast,
+     * a multiple of it) and the rim. The buried share stays, so the moon sits the same way in a crater as much bigger.
+     */
+    public static MoonParams of(MoonConfig.Tuning tuning, int groundY, Vec3 sky, float scale) {
         int flags = (tuning.carveTerrain() ? FLAG_CARVE : 0) | (tuning.moltenCore() ? FLAG_CORE : 0);
-        return new MoonParams(tuning.moonRadius(), tuning.craterRadius(), tuning.rimHeight(), tuning.buriedPercent(),
-            tuning.blastReach(), groundY, sky.normalize(), flags);
+        float s = clampScale(scale);
+        return new MoonParams(Math.max(1, Math.round(tuning.moonRadius() * s)), Math.max(2, Math.round(tuning.craterRadius() * s)),
+            Math.round(tuning.rimHeight() * s), tuning.buriedPercent(), tuning.blastReach(), groundY, sky.normalize(), flags, s);
+    }
+
+    private static float clampScale(float scale) {
+        return Float.isNaN(scale) ? 1.0F : Math.max(CastTuning.MIN_POWER, Math.min(CastTuning.MAX_POWER, scale));
     }
 
     public boolean carve() {
@@ -42,7 +59,8 @@ public record MoonParams(int moonRadius, int craterRadius, int rimHeight, int bu
     public int[] encode() {
         return new int[]{MAGIC, VERSION, this.moonRadius, this.craterRadius, this.rimHeight, this.buriedPercent,
             (int) Math.round(this.blastReach * 100.0), this.groundY, (int) Math.round(this.sky.x * 10000.0),
-            (int) Math.round(this.sky.y * 10000.0), (int) Math.round(this.sky.z * 10000.0), this.flags};
+            (int) Math.round(this.sky.y * 10000.0), (int) Math.round(this.sky.z * 10000.0), this.flags,
+            Math.round(this.scale * 1000.0F)};
     }
 
     /** Whether an effect packet's int array is one of these (and not Halley's). */
@@ -59,10 +77,11 @@ public record MoonParams(int moonRadius, int craterRadius, int rimHeight, int bu
         if (sky.lengthSqr() < 0.25) {
             sky = fallbackSky;
         }
-        return new MoonParams(clamp(data[2], MoonConfig.MIN_MOON_RADIUS, MoonConfig.MAX_MOON_RADIUS),
-            clamp(data[3], MoonConfig.MIN_CRATER_RADIUS, MoonConfig.MAX_CRATER_RADIUS),
-            clamp(data[4], 0, MoonConfig.MAX_RIM_HEIGHT), clamp(data[5], 0, 90),
-            Math.max(1.0, data[6] / 100.0), data[7], sky.normalize(), data[11]);
+        // the config's own ranges, from a tenth of their smallest to ten times their largest (the power slider)
+        return new MoonParams(clamp(data[2], 1, MoonConfig.MAX_MOON_RADIUS * 10),
+            clamp(data[3], 2, MoonConfig.MAX_CRATER_RADIUS * 10),
+            clamp(data[4], 0, MoonConfig.MAX_RIM_HEIGHT * 10), clamp(data[5], 0, 90),
+            Math.max(1.0, data[6] / 100.0), data[7], sky.normalize(), data[11], clampScale(data[12] / 1000.0F));
     }
 
     private static int clamp(int value, int min, int max) {

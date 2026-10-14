@@ -261,6 +261,42 @@ public final class HalleyServerTest {
         } catch (Throwable ex) {
             this.record("skill_art_name", false, "threw " + ex);
         }
+
+        // The remote's sliders under Halley: The Shooting Star's own power range (so its menu shows power, damage and
+        // speed sliders for it), 0.1x to 10x, starting at 1x; a cast clamps to it.
+        try {
+            var power = skill.power();
+            boolean ok = power != null && power.min() == 0.1F && power.max() == 10.0F && power.initial() == 1.0F && power.factor();
+            this.record("skill_power_slider", ok, "power=" + power);
+            Tuning clamped = new Tuning(50.0F, 3.0F, 9.0F).clampFor(skill);
+            this.record("skill_tuning_clamps", clamped.power() == 10.0F && clamped.speed() == 3.0F && clamped.damage() == 3.0F,
+                "clamped=" + clamped);
+        } catch (Throwable ex) {
+            this.record("skill_power_slider", false, "threw " + ex);
+        }
+
+        // ...and what a cast makes of them: the sizes times the power, the comet as much bigger, the same timeline.
+        try {
+            HalleyConfig.Tuning tuning = HalleyConfig.tuning();
+            HalleyParams base = HalleyParams.of(tuning, 64);
+            HalleyParams twice = HalleyParams.of(tuning, 64, 2.0F);
+            HalleyParams tenth = HalleyParams.of(tuning, 64, 0.1F);
+            boolean ok = twice.craterRadius() == base.craterRadius() * 2 && twice.trenchLength() == base.trenchLength() * 2
+                && twice.scale() == 2.0F && tenth.craterRadius() == Math.max(3, Math.round(base.craterRadius() * 0.1F))
+                && HalleyParams.decode(twice.encode(), 0).equals(twice);
+            Vec3 o = new Vec3(0.0, 64.0, 0.0);
+            Vec3 t = new Vec3(100.0, 64.0, 0.0);
+            int baseImpact = new HalleyPlan(o, t, 0.0F, 7L, base).impact;
+            int twiceImpact = new HalleyPlan(o, t, 0.0F, 7L, twice).impact;
+            this.record("power_scales_halley", ok && Math.abs(baseImpact - twiceImpact) <= 1,
+                "base=" + base + " twice=" + twice + " impact " + baseImpact + "/" + twiceImpact);
+            dev.ss05.halley.CastTuning odd = new dev.ss05.halley.CastTuning(Float.NaN, -1.0F, 9.0F);
+            this.record("cast_tuning_defaults", odd.power() == 1.0F && odd.erases() && odd.speed() == 3.0F
+                && new dev.ss05.halley.CastTuning(1.0F, 20.0F, 1.0F).cap(40.0F) == 20.0F
+                && dev.ss05.halley.CastTuning.DEFAULT.cap(40.0F) == 40.0F, "odd=" + odd);
+        } catch (Throwable ex) {
+            this.record("power_scales_halley", false, "threw " + ex);
+        }
     }
 
     /** Same shape as {@link #checkSkillRegistration()}, for Luna (right after Halley, key N). */
@@ -290,6 +326,25 @@ public final class HalleyServerTest {
             this.record("moon_skill_art_name", ok, "art=" + art);
         } catch (Throwable ex) {
             this.record("moon_skill_art_name", false, "threw " + ex);
+        }
+
+        // Luna's sliders, and what a cast makes of them: the moon, the crater and the rim times the power.
+        try {
+            var power = skill.power();
+            MoonConfig.Tuning tuning = MoonConfig.tuning();
+            Vec3 sky = new Vec3(0.3, 0.8, 0.2);
+            MoonParams base = MoonParams.of(tuning, 64, sky);
+            MoonParams half = MoonParams.of(tuning, 64, sky, 0.5F);
+            MoonParams most = MoonParams.of(tuning, 64, sky, 10.0F);
+            boolean ok = power != null && power.max() == 10.0F && power.initial() == 1.0F
+                && half.moonRadius() == Math.round(base.moonRadius() * 0.5F) && half.craterRadius() == Math.round(base.craterRadius() * 0.5F)
+                && most.moonRadius() == base.moonRadius() * 10 && most.craterRadius() == base.craterRadius() * 10
+                && MoonParams.decode(most.encode(), 0, sky).moonRadius() == most.moonRadius()
+                && MoonParams.decode(half.encode(), 0, sky).scale() == 0.5F;
+            this.record("power_scales_luna", ok, "power=" + power + " base=" + base.moonRadius() + "/" + base.craterRadius()
+                + " half=" + half.moonRadius() + "/" + half.craterRadius() + " most=" + most.moonRadius() + "/" + most.craterRadius());
+        } catch (Throwable ex) {
+            this.record("power_scales_luna", false, "threw " + ex);
         }
     }
 
@@ -321,7 +376,7 @@ public final class HalleyServerTest {
         this.skillIndexAtCast = StarBridge.skillIndex();
         this.record("skill_index_available", this.skillIndexAtCast >= 0, "index=" + this.skillIndexAtCast);
         try {
-            // The same call The Shooting Star's own cast-packet handler makes (CastSkillPayload -> Casting.request).
+            // What The Shooting Star's own cast-packet handler does (CastSkillPayload -> Casting.request -> cast).
             this.request(this.skillIndexAtCast);
             this.record("cast_request_no_exception", true, "");
         } catch (Throwable ex) {
@@ -985,9 +1040,12 @@ public final class HalleyServerTest {
         this.server.halt(false);
     }
 
-    /** The cast packet's path (The Shooting Star 1.3.2+ sends the remote's gauge with it): the untuned defaults. */
+    /**
+     * The cast packet's path (the remote sends its sliders with it; The Shooting Star clamps them to the skill's range
+     * and casts): the untuned defaults. Casting.cast is the same in every version (1.4.3 added a flag to request).
+     */
     private void request(int skillIndex) {
-        Tuning tuning = Tuning.initial(SkillSet.byIndex(skillIndex));
-        Casting.request(this.caster, skillIndex, tuning.power(), tuning.damage(), tuning.speed());
+        Skill skill = SkillSet.byIndex(skillIndex);
+        Casting.cast(this.caster, skill, Tuning.initial(skill).clampFor(skill));
     }
 }
