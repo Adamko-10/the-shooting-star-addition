@@ -47,6 +47,8 @@ final class MoonCutscene {
         return new Cutscene(subject, TssLink.MOON.tier(), TssLink.MOON.title(), TssLink.MOON.color(), 0, shots)
             .hardCut()
             .fullFrame()
-            .priority(2);
+            .priority(2)
+            // its clock runs at the remote's speed slider, like the spell's (or the shots would drift off the action)
+            .speed(adapter.filmSpeed());
     }
 }
