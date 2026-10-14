@@ -1,5 +1,6 @@
 package dev.ss05.halley.world;
 
+import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.HalleyPlan;
@@ -16,8 +17,11 @@ public final class HalleyCasting {
     private HalleyCasting() {
     }
 
-    /** Returns false (and tells the player why) if the comet can't be called right now. */
-    public static boolean cast(ServerPlayer player) {
+    /**
+     * Returns false (and tells the player why) if the comet can't be called right now. {@code cast} is the remote's
+     * sliders: the strike's sizes are the config's times its power, and it runs at its speed.
+     */
+    public static boolean cast(ServerPlayer player, CastTuning cast) {
         if (StarBridge.alreadyFlying(player)) {
             StarBridge.deny(player, HalleyInfo.title() + " is already on its way");
             return false;
@@ -27,11 +31,11 @@ public final class HalleyCasting {
 
         // Where it will touch down only depends on the mark and the trench length, so find the ground there now
         // (this loads that one chunk if needed, like the built-in skills do for the mark itself).
-        HalleyPlan probe = new HalleyPlan(player.position(), target, player.getYRot(), 0L, HalleyParams.of(tuning, Mth.floor(target.y)));
+        HalleyPlan probe = new HalleyPlan(player.position(), target, player.getYRot(), 0L, HalleyParams.of(tuning, Mth.floor(target.y), cast.power()));
         int ground = surface(player.level(), probe.touchdown.x, probe.touchdown.z, Mth.floor(target.y));
 
         long seed = player.getRandom().nextLong();
-        StarBridge.startHalley(player, target, seed, HalleyParams.of(tuning, ground));
+        StarBridge.startHalley(player, target, seed, HalleyParams.of(tuning, ground, cast.power()), cast);
         return true;
     }
 

@@ -3,12 +3,14 @@ package dev.ss05.halley.compat.tss;
 import cyou.rimuru.shootingstardemo.magic.Casting;
 import cyou.rimuru.shootingstardemo.magic.Skill;
 import cyou.rimuru.shootingstardemo.magic.SkillSet;
+import cyou.rimuru.shootingstardemo.magic.Tuning;
 import cyou.rimuru.shootingstardemo.registry.ModSkills;
 import cyou.rimuru.shootingstardemo.spell.GreaterTeleportation;
 import cyou.rimuru.shootingstardemo.spell.SpellEngine;
 import cyou.rimuru.shootingstardemo.spell.SpellUtil;
 import cyou.rimuru.shootingstardemo.star.Carving;
 import cyou.rimuru.shootingstardemo.star.Erasure;
+import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.MoonParams;
@@ -93,10 +95,11 @@ public final class TssLink implements StarLink {
         List<Skill> after = new ArrayList<>(before);
         after.add(SKILL);
         after.add(MOON);
-        // The Shooting Star 1.3.2+ hands every cast a Tuning (the remote's power/speed gauge). Halley has no power()
-        // to tune, so it casts the same way whatever the gauge says; the built-in skills get theirs unchanged.
-        SkillSet.Caster<Skill> caster = (player, skill, tuning) -> skill == SKILL ? HalleyCasting.cast(player)
-            : skill == MOON ? MoonCasting.cast(player) : builtIn.cast(player, skill, tuning);
+        // The Shooting Star hands every cast a Tuning: the three sliders under the skill in the remote's menu (power,
+        // damage, speed), clamped to the skill's range. Halley and Luna have their own power() range, so they get theirs
+        // too, as the addon's own CastTuning; the built-in skills get theirs unchanged.
+        SkillSet.Caster<Skill> caster = (player, skill, tuning) -> skill == SKILL ? HalleyCasting.cast(player, tune(tuning))
+            : skill == MOON ? MoonCasting.cast(player, tune(tuning)) : builtIn.cast(player, skill, tuning);
 
         for (Skill added : List.<Skill>of(SKILL, MOON)) {
             index.put(added, all.size());
@@ -119,6 +122,16 @@ public final class TssLink implements StarLink {
 
         HalleyAddon.LOG.info("{} (Halley) joined the Stellar Remote as skill #{} (key slot {}).", HalleyInfo.title(), after.indexOf(SKILL) + 1, SkillSet.indexOf(SKILL));
         HalleyAddon.LOG.info("{} (Luna) joined the Stellar Remote as skill #{} (key slot {}).", MoonInfo.title(), after.indexOf(MOON) + 1, SkillSet.indexOf(MOON));
+    }
+
+    /** The remote's sliders for one cast, as the addon's own type (the defaults if there are none). */
+    static CastTuning tune(Tuning tuning) {
+        return tuning == null ? CastTuning.DEFAULT : new CastTuning(tuning.power(), tuning.damage(), tuning.speed());
+    }
+
+    /** And back: what The Shooting Star's spell engine takes, so it runs the spell (and its film) at that speed. */
+    static Tuning tuning(CastTuning tune) {
+        return new Tuning(tune.power(), tune.damage(), tune.speed());
     }
 
     /** SkillSet's one field (static or not) of type {@code raw<args>}. */
@@ -172,13 +185,13 @@ public final class TssLink implements StarLink {
     // ---- Thin wrappers over The Shooting Star's helpers. One line each, so an update only touches these. ----------
 
     @Override
-    public void startHalley(ServerPlayer caster, Vec3 target, long seed, HalleyParams params) {
-        SpellEngine.start(new HalleySpell(caster, target, seed, params));
+    public void startHalley(ServerPlayer caster, Vec3 target, long seed, HalleyParams params, CastTuning tuning) {
+        SpellEngine.start(new HalleySpell(caster, target, seed, params, tuning));
     }
 
     @Override
-    public void startMoon(ServerPlayer caster, Vec3 target, long seed, MoonParams params) {
-        SpellEngine.start(new MoonSpell(caster, target, seed, params));
+    public void startMoon(ServerPlayer caster, Vec3 target, long seed, MoonParams params, CastTuning tuning) {
+        SpellEngine.start(new MoonSpell(caster, target, seed, params, tuning));
     }
 
     @Override
@@ -217,33 +230,49 @@ public final class TssLink implements StarLink {
         }
     }
 
-    /**
-     * Erasure.strike(ServerLevel, victim, ServerPlayer). Its victim is a LivingEntity up to 1.3.x and any Entity from
-     * 1.4.0, so it is found by that shape (the one public static void method of Erasure taking a ServerLevel, an entity
-     * and a ServerPlayer), and the same code calls it in every version.
-     */
-    private static final MethodHandle STRIKE = strike();
+    @Override
+    public void hit(ServerLevel level, LivingEntity victim, ServerPlayer attacker, float damage) {
+        try {
+            HIT.invokeExact(level, victim, attacker, damage);
+        } catch (RuntimeException | Error failed) {
+            throw failed;
+        } catch (Throwable failed) {
+            throw new IllegalStateException(failed);
+        }
+    }
 
-    private static MethodHandle strike() {
+    /**
+     * Erasure.strike(ServerLevel, victim, ServerPlayer) and Erasure.hit(ServerLevel, victim, ServerPlayer, float).
+     * Their victim is a LivingEntity up to 1.3.x and any Entity from 1.4.0, so each is found by that shape (the one
+     * public static void method of Erasure taking a ServerLevel, an entity and a ServerPlayer, and a float for hit),
+     * and the same code calls them in every version.
+     */
+    private static final MethodHandle STRIKE = erasure(false);
+    private static final MethodHandle HIT = erasure(true);
+
+    private static MethodHandle erasure(boolean hit) {
+        String name = hit ? "hit(ServerLevel, entity, ServerPlayer, float)" : "strike(ServerLevel, entity, ServerPlayer)";
         Method found = null;
         for (Method method : Erasure.class.getDeclaredMethods()) {
             Class<?>[] p = method.getParameterTypes();
             if (!Modifier.isStatic(method.getModifiers()) || !Modifier.isPublic(method.getModifiers()) || method.getReturnType() != void.class
-                || p.length != 3 || p[0] != ServerLevel.class || p[2] != ServerPlayer.class
-                || !p[1].isAssignableFrom(LivingEntity.class) || !Entity.class.isAssignableFrom(p[1])) {
+                || p.length != (hit ? 4 : 3) || p[0] != ServerLevel.class || p[2] != ServerPlayer.class
+                || !p[1].isAssignableFrom(LivingEntity.class) || !Entity.class.isAssignableFrom(p[1])
+                || hit && p[3] != float.class) {
                 continue;
             }
             if (found != null) {
-                throw new IllegalStateException("Erasure has more than one strike(ServerLevel, entity, ServerPlayer)");
+                throw new IllegalStateException("Erasure has more than one " + name);
             }
             found = method;
         }
         if (found == null) {
-            throw new IllegalStateException("Erasure has no strike(ServerLevel, entity, ServerPlayer)");
+            throw new IllegalStateException("Erasure has no " + name);
         }
         try {
-            return MethodHandles.publicLookup().unreflect(found)
-                .asType(MethodType.methodType(void.class, ServerLevel.class, LivingEntity.class, ServerPlayer.class));
+            MethodType type = hit ? MethodType.methodType(void.class, ServerLevel.class, LivingEntity.class, ServerPlayer.class, float.class)
+                : MethodType.methodType(void.class, ServerLevel.class, LivingEntity.class, ServerPlayer.class);
+            return MethodHandles.publicLookup().unreflect(found).asType(type);
         } catch (IllegalAccessException failed) {
             throw new IllegalStateException(failed);
         }
