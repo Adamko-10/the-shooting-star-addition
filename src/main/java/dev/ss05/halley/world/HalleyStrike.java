@@ -58,11 +58,9 @@ public final class HalleyStrike {
     /** The most chunks round the mark held loaded at once, in chunks (The Shooting Star's own big strikes hold 12). */
     private static final int MAX_TICKET_RADIUS = 12;
     private static final TicketType<ChunkPos> TICKET = TicketType.create(HalleyAddon.MOD_ID + ":halley", Comparator.comparingLong(ChunkPos::toLong));
-    private static final int TRENCH_CHUNKS_PER_TICK = 12;
     /** The trench is cut in pieces this long, each started as the nucleus reaches it (a single circle round it all
      *  would visit hundreds of chunks that the trench never touches). */
     private static final double SEGMENT = 32.0;
-    private static final int CRATER_CHUNKS_PER_TICK = 24;
     private static final int BLAST_TICKS = 28;
     /**
      * Ticks after the crater is finished at which the scar's chunks are sent to players again. The fast carver sends
@@ -367,7 +365,7 @@ public final class HalleyStrike {
                 double radius = (far - near) * 0.5 + this.plan.trenchHalfWidth(near) * 1.12 + 3.0;
                 this.trench.add(StarBridge.excavate(this.level, this.plan.groundPoint(middle), radius,
                     (x, z) -> this.plan.trenchFloor(x, z, minY), this::trenchSurface, this.spared,
-                    "SS-05 Halley trench " + (this.trenchSegments + 1) + "/" + pieces, TRENCH_CHUNKS_PER_TICK, this.loader));
+                    "SS-05 Halley trench " + (this.trenchSegments + 1) + "/" + pieces, HalleyConfig.chunksPerTick(), this.loader));
                 this.trenchSegments++;
             }
         }
@@ -399,7 +397,7 @@ public final class HalleyStrike {
             int minY = this.level.getMinBuildHeight();
             this.crater = StarBridge.excavate(this.level, this.plan.target, this.params.craterRadius() * 1.22 + 10.0,
                 (x, z) -> this.plan.craterFloor(x, z, minY), this::craterSurface, this.spared,
-                "SS-05 Halley crater", CRATER_CHUNKS_PER_TICK, this.loader);
+                "SS-05 Halley crater", 2 * HalleyConfig.chunksPerTick(), this.loader);
             // the middle first, so the heart has its floor before it is set down
             this.crater.tick();
             this.crater.tick();

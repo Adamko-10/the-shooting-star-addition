@@ -89,26 +89,17 @@ public final class MoonStoryboard {
         })));
 
         // 5. The dust climbing, the crater smoking, from higher up.
-        takes.add(Take.sweep(MoonPlan.CONTACT + 40, MoonPlan.SETTLE + 30, 8, safe(plan, (x, p, k) -> {
+        takes.add(Take.sweep(MoonPlan.CONTACT + 40, MoonPlan.SETTLE + 25, 8, safe(plan, (x, p, k) -> {
             Vec3 pos = mark.add(side.scale(-radius * 0.9)).add(0.0, radius * l(k, 1.0, 1.6), 0.0);
             return new Pose(pos, mark.add(0.0, moonR * 0.2, 0.0), (float) l(k, 72.0, 64.0), 0.0F);
         })));
 
-        // 6. The moon itself, at rest deep in its crater, most of it buried - close in, then pulling back.
-        takes.add(Take.sweep(MoonPlan.SETTLE + 30, MoonPlan.SETTLE + 100, 10, safe(plan, (x, p, k) -> {
-            Vec3 pos = mark.add(side.scale(radius * l(0.55F, 0.4, 0.75))).add(plan.travel.scale(-radius * l(k, 0.3, 0.65)))
-                .add(0.0, moonR * l(k, 0.5, 1.1), 0.0);
-            return new Pose(pos, plan.restCentre, (float) l(k, 58.0, 68.0), 0.0F);
-        })));
-
-        // 7. Back to the caster, looking out over what they called down.
-        takes.add(Take.sweep(MoonPlan.SETTLE + 100, MoonPlan.DURATION, 10, safe(plan, (x, p, k) -> {
-            Vec3 feet = x.feet(p);
-            Vec3 away = new Vec3(feet.x - mark.x, 0.0, feet.z - mark.z);
-            Vec3 h = away.lengthSqr() < 1.0 ? plan.travel.scale(-1.0) : away.normalize();
-            Vec3 across = new Vec3(-h.z, 0.0, h.x);
-            Vec3 pos = feet.add(h.scale(l(k, 4.0, 9.0))).add(across.scale(l(k, 2.0, 4.0))).add(0.0, l(k, 10.0, 22.0), 0.0);
-            return new Pose(pos, plan.restCentre, (float) l(k, 62.0, 70.0), 0.0F);
+        // 6. The moon itself, at rest deep in its crater, most of it buried - close in, then pulling back and up over it
+        //    as the film ends (the remote hands the view back to the caster from there).
+        takes.add(Take.sweep(MoonPlan.SETTLE + 25, MoonPlan.SETTLE + 95, 10, safe(plan, (x, p, k) -> {
+            Vec3 pos = mark.add(side.scale(radius * l(0.55F, 0.4, 0.75))).add(plan.travel.scale(-radius * l(k, 0.3, 0.8)))
+                .add(0.0, moonR * l(k, 0.5, 1.4), 0.0);
+            return new Pose(pos, plan.restCentre, (float) l(k, 58.0, 70.0), 0.0F);
         })));
         return takes;
     }
