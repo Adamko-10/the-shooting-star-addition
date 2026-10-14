@@ -92,7 +92,8 @@ Halley and Luna have the same three sliders as The Shooting Star's own skills, u
 
 Big strikes are heavy on the game: with The Shooting Star 1.4.2 or newer, the menu warns you above 3× for Halley and
 2× for Luna. The values are each player's own (the remote keeps them with its own skills' in
-`config/shooting_star_demo_skills.properties`), and the server checks them against these ranges.
+`config/shooting_star_demo_skills.properties`), and the server checks them against these ranges. Server owners can
+cap them for every skill on the remote with `max_power`, `max_damage` and `max_speed` (see Settings).
 
 ## No cooldown (optional)
 
@@ -125,6 +126,7 @@ aim at the ground and right-click. The keys can be changed in Controls or from t
 | impact   | `crater_radius`            | 56      | Radius of the crater; everything inside dies. |
 | impact   | `crater_depth`             | 24      | Depth of the crater. |
 | impact   | `blast_reach`              | 2.6     | Shock wave reach, in crater radii (throws, hurts, freezes). |
+| impact   | `chunks_per_tick`          | 12      | Chunks of the trench cut per tick (the crater does twice as many); lower is gentler on a busy server. |
 | world    | `carve_terrain`            | true    | `false` = the strike only hurts creatures, the land is untouched. |
 | world    | `leave_comet_heart`        | true    | The glowing heart crystal and the frozen trail down the trench. |
 | world    | `frost_rays`               | true    | Rays of snow painted out from the crater. |
@@ -154,6 +156,9 @@ The Stellar Remote itself, in the same file:
 | Section          | Setting            | Default | What it does |
 |------------------|--------------------|---------|--------------|
 | stellar_remote   | `no_cooldown`      | false   | `true` = no cooldowns at all, for every skill on the remote (The Shooting Star's own too) and every player. Be careful with this. |
+| stellar_remote   | `max_power`        | 0       | The most Power anyone can cast any remote skill with, as a multiple of that skill's default power (0 = no limit). |
+| stellar_remote   | `max_damage`       | 0       | The most Damage per hit; casts set to ∞ are held to it too (0 = no limit). |
+| stellar_remote   | `max_speed`        | 3.0     | The fastest Speed allowed (0.3-3; 3 = no limit). |
 
 Updating from 1.3: `impact_radius`, `rim_height` and `buried_percent` replace Luna's old `crater_radius`,
 `crater_depth` and `sink_percent`, so the new, deeper moonfall takes its new defaults even with an old config file.
