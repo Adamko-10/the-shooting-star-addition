@@ -206,5 +206,13 @@
         "name": "shooting_star_addition:luna_debris"
       }
     ]
+  },
+  "luna_music": {
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_music",
+        "stream": true
+      }
+    ]
   }
 }
