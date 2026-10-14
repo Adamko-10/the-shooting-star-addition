@@ -42,9 +42,11 @@ import net.minecraft.world.phys.Vec3;
  *   <li>{@link MoonPlan#ALARM}: "EARTH SYSTEM SHUT DOWN" to everyone nearby.</li>
  *   <li>{@link MoonPlan#EVAC}: a creative caster standing where it will land is lifted clear.</li>
  *   <li>{@link MoonPlan#CONTACT}: everything within {@link MoonPlan#eraseRadius()} is erased, everything out to
- *       {@link MoonPlan#blastRadius()} is thrown, hurt and briefly set alight. The ground over the moon's resting place
- *       is cut away, the molten seam round it opened ({@link #holeAndSeam}), the rim heaves up round it while it drives
- *       in ({@link MoonRim}) and cracks race out across the land ({@link MoonCracks}).</li>
+ *       {@link MoonPlan#blastRadius()} is thrown, hurt and briefly set alight. The crater is blasted out round the
+ *       moon's resting place, with the molten seam where the moon meets its floor ({@link #crater}); once it is dug,
+ *       the crust buckles up against the moon and the crater's rim heaves up while the moon drives in
+ *       ({@link MoonRim}), and cracks race out across the land and veins of molten rock across the floor
+ *       ({@link MoonCracks}).</li>
  *   <li>{@link MoonPlan#SETTLE}: the moon itself is built out of moon cheese, a few chunks per tick, nearest the mark
  *       first ({@link MoonBuild}).</li>
  * </ol>
@@ -55,6 +57,15 @@ public final class MoonStrike {
 
     /** The molten seam where moon and land meet: magma, with lava pooled in it. */
     private static final Palette SEAM = Palette.of(Blocks.MAGMA_BLOCK, 50, Blocks.LAVA, 35, Blocks.BLACKSTONE, 15);
+    /** The crater's floor near the moon: burnt black, still glowing here and there. */
+    private static final Palette FLOOR_HOT = Palette.of(Blocks.BLACKSTONE, 30, Blocks.BASALT, 22, Blocks.MAGMA_BLOCK, 16,
+        Blocks.SMOOTH_BASALT, 10, Blocks.COBBLED_DEEPSLATE, 14, Blocks.TUFF, 8);
+    /** Further out: scorched rock and rubble. */
+    private static final Palette FLOOR_MID = Palette.of(Blocks.BLACKSTONE, 20, Blocks.TUFF, 16, Blocks.COBBLED_DEEPSLATE, 14,
+        Blocks.BASALT, 12, Blocks.COARSE_DIRT, 14, Blocks.GRAVEL, 14, Blocks.MAGMA_BLOCK, 5, Blocks.ANDESITE, 5);
+    /** Up the slopes toward the rim: blasted earth and gravel. */
+    private static final Palette FLOOR_OUTER = Palette.of(Blocks.COARSE_DIRT, 30, Blocks.GRAVEL, 20, Blocks.TUFF, 12,
+        Blocks.DIRT, 18, Blocks.COBBLESTONE, 10, Blocks.BLACKSTONE, 10);
     /** Lumps of crust thrown out with the moon cheese. */
     private static final Palette CRUST_LUMP = Palette.of(Blocks.BLACKSTONE, 35, Blocks.BASALT, 25, Blocks.COBBLED_DEEPSLATE, 25,
         Blocks.MAGMA_BLOCK, 15);
@@ -95,7 +106,7 @@ public final class MoonStrike {
 
     private void holdChunks() {
         Vec3 t = this.plan.target;
-        double radius = Math.max(this.params.craterRadius() * 1.15 + 10.0, this.params.moonRadius() + 10.0) + 16.0;
+        double radius = Math.max(this.plan.rimOuter + 10.0, this.params.moonRadius() + 10.0) + 16.0;
         this.ticketRadius = (int) Math.ceil(radius / 16.0);
         this.ticketAt = new ChunkPos(Mth.floor(t.x) >> 4, Mth.floor(t.z) >> 4);
         this.level.getChunkSource().addRegionTicket(TICKET, this.ticketAt, this.ticketRadius, this.ticketAt);
@@ -138,10 +149,13 @@ public final class MoonStrike {
         if (this.crater != null && !this.crater.done()) {
             this.crater.tick();
         }
-        if (this.rim != null && !this.rim.done()) {
+        // the rim, the slabs and the cracks rise and are cut into the crater's floor: they wait for it to be dug (it
+        // takes a second or two), or the excavator would cut them away again
+        boolean dug = this.crater == null || this.crater.done();
+        if (this.rim != null && !this.rim.done() && dug) {
             this.rim.tick(t);
         }
-        if (this.cracks != null && !this.cracks.done()) {
+        if (this.cracks != null && !this.cracks.done() && dug) {
             this.cracks.tick(t);
         }
         // Wait for the crater to be fully cut before painting any of the moon: the excavator removes everything
@@ -242,9 +256,10 @@ public final class MoonStrike {
 
     private void detonate(@Nullable ServerPlayer caster) {
         if (this.params.carve()) {
-            this.crater = StarBridge.excavate(this.level, this.plan.target, this.plan.rimInner + 1.0, this::holeAndSeam,
-                this::seamSurface, this.spared, "Luna impact", this.tuning.chunksPerTick());
-            // the ground shoved up round the moon as it drives in, and the fissures racing out across the land
+            this.crater = StarBridge.excavate(this.level, this.plan.target, this.plan.rimCrest + 2.0, this::crater,
+                this::craterSurface, this.spared, "Luna impact", this.tuning.chunksPerTick());
+            // the crust buckling up against the moon and the rim heaving up as it drives in, and the fissures racing
+            // out across the land
             this.rim = new MoonRim(this.level, this.plan);
             this.cracks = new MoonCracks(this.level, this.plan);
         }
@@ -269,28 +284,48 @@ public final class MoonStrike {
 
     /**
      * What is cut away at the impact: over the moon's resting place, everything above the moon's top (it fills the rest
-     * itself); in the seam round it, a shallow trench for the molten rock. The rim and beyond are left to MoonRim and
-     * MoonCracks.
+     * itself); round it, the crater down to its floor ({@link MoonPlan#floorY}), with a trench for the molten rock in
+     * the seam where the moon meets it. Never into the world's bottom layer. The rim is left to MoonRim, the land
+     * beyond to MoonCracks.
      */
-    private int holeAndSeam(int x, int z) {
-        int moonTop = this.plan.moonTop(x, z);
-        if (moonTop != MoonPlan.UNTOUCHED) {
-            return moonTop;
-        }
-        if (!this.plan.inSeam(x + 0.5, z + 0.5) || !this.level.hasChunk(x >> 4, z >> 4)) {
+    private int crater(int x, int z) {
+        double d = this.plan.fromMark(x + 0.5, z + 0.5);
+        if (d >= this.plan.rimCrest || !this.level.hasChunk(x >> 4, z >> 4)) {
             return MoonPlan.UNTOUCHED;
         }
+        int bottom = this.level.getMinBuildHeight() + 1;
+        int moonTop = this.plan.moonTop(x, z);
+        if (moonTop != MoonPlan.UNTOUCHED && d < this.plan.restFootprint) {
+            return Math.max(bottom, moonTop);
+        }
         int ground = MoonRim.groundAt(this.level, x, z);
-        return ground == Integer.MIN_VALUE ? MoonPlan.UNTOUCHED : ground - 2;
+        if (ground == Integer.MIN_VALUE) {
+            return MoonPlan.UNTOUCHED;
+        }
+        int floor = this.plan.floorY(d, ground);
+        if (this.plan.inSeam(x + 0.5, z + 0.5)) {
+            floor -= 2;
+        }
+        return Math.max(bottom, floor);
     }
 
-    /** The new top block of a cut column: molten rock in the seam; the moon's own columns keep theirs (it is built over them). */
+    /** The new top block of a cut column: molten rock in the seam, burnt rock and rubble across the floor (the moon's own
+     * columns keep theirs: it is built over them). */
     @Nullable
-    private BlockState seamSurface(int x, int y, int z, BlockState was) {
-        if (!was.getFluidState().isEmpty() || !this.plan.inSeam(x + 0.5, z + 0.5)) {
+    private BlockState craterSurface(int x, int y, int z, BlockState was) {
+        if (!was.getFluidState().isEmpty()) {
             return null;
         }
-        return SEAM.pick(this.plan.hash(z * 7 + 3, y, x * 11 - 5));
+        if (this.plan.inSeam(x + 0.5, z + 0.5)) {
+            return SEAM.pick(this.plan.hash(z * 7 + 3, y, x * 11 - 5));
+        }
+        double d = this.plan.fromMark(x + 0.5, z + 0.5);
+        if (d < this.plan.floorInner || d >= this.plan.rimCrest) {
+            return null;
+        }
+        double k = this.plan.floorK(d) + (this.plan.hash(x, 151, z) - 0.5) * 0.16;
+        double pick = this.plan.hash(z * 5 - 1, y, x * 3 + 7);
+        return k < 0.3 ? FLOOR_HOT.pick(pick) : k < 0.72 ? FLOOR_MID.pick(pick) : FLOOR_OUTER.pick(pick);
     }
 
     /** Moon cheese and lumps of crust thrown clear onto the land round the rim, where the client sees them land. */
