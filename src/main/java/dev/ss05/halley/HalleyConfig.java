@@ -27,6 +27,10 @@ public final class HalleyConfig {
     private static final ModConfigSpec.BooleanValue FROST_RAYS;
     private static final ModConfigSpec.BooleanValue EVACUATE_CREATIVE;
     private static final ModConfigSpec.BooleanValue NO_COOLDOWN;
+    private static final ModConfigSpec.IntValue CHUNKS_PER_TICK;
+    private static final ModConfigSpec.DoubleValue MAX_POWER;
+    private static final ModConfigSpec.DoubleValue MAX_DAMAGE;
+    private static final ModConfigSpec.DoubleValue MAX_SPEED;
 
     static {
         ModConfigSpec.Builder b = new ModConfigSpec.Builder();
@@ -54,6 +58,9 @@ public final class HalleyConfig {
             .defineInRange("crater_depth", 24, 4, 96);
         BLAST_REACH = b.comment("How far the shock wave throws, hurts and frosts things, as a multiple of the crater radius.")
             .defineInRange("blast_reach", 2.6, 1.0, 5.0);
+        CHUNKS_PER_TICK = b.comment("How many chunks of the trench are cut each tick (the crater cuts twice as many). Higher finishes",
+                "big strikes sooner but makes each tick heavier; lower is gentler on a busy server.")
+            .defineInRange("chunks_per_tick", 12, 1, 64);
         b.pop();
 
         b.comment("What the strike leaves behind.").push("world");
@@ -78,6 +85,15 @@ public final class HalleyConfig {
                 "as Halley and Luna - for every player: each can be cast again straight away. Be careful with this:",
                 "it lets the most destructive skills be cast back to back. The remote's menu (H) shows whether it is on.")
             .define("no_cooldown", false);
+        MAX_POWER = b.comment("The most Power any player can cast a skill with, as a multiple of that skill's default power",
+                "(for Halley and Luna, 1 is their configured size above and 10 is the slider's end). Every skill on the remote,",
+                "The Shooting Star's own as well. 0 (the default) means no limit.")
+            .defineInRange("max_power", 0.0, 0.0, 10.0);
+        MAX_DAMAGE = b.comment("The most Damage any skill on the remote can do with each hit. A cast with the slider at",
+                "infinity (which erases whatever it hits) is held to this too. 0 (the default) means no limit.")
+            .defineInRange("max_damage", 0.0, 0.0, 100000.0);
+        MAX_SPEED = b.comment("The fastest Speed any skill on the remote can be cast at (the slider goes from 0.3 to 3).")
+            .defineInRange("max_speed", 3.0, 0.3, 3.0);
         b.pop();
         SPEC = b.build();
     }
@@ -127,6 +143,39 @@ public final class HalleyConfig {
             return NO_COOLDOWN.get();
         } catch (IllegalStateException notLoadedYet) {
             return false;
+        }
+    }
+
+    /**
+     * How many chunks of Halley's trench are cut each tick ({@code chunks_per_tick}); the crater cuts twice as many.
+     */
+    public static int chunksPerTick() {
+        if (!SPEC.isLoaded()) {
+            return 12;
+        }
+        try {
+            return CHUNKS_PER_TICK.get();
+        } catch (IllegalStateException notLoadedYet) {
+            return 12;
+        }
+    }
+
+    /**
+     * The server's limits on the remote's sliders ({@code max_power}, {@code max_damage}, {@code max_speed}); 0 for power
+     * or damage means no limit.
+     */
+    public record Limits(float power, float damage, float speed) {
+        public static final Limits NONE = new Limits(0.0F, 0.0F, 3.0F);
+    }
+
+    public static Limits limits() {
+        if (!SPEC.isLoaded()) {
+            return Limits.NONE;
+        }
+        try {
+            return new Limits(MAX_POWER.get().floatValue(), MAX_DAMAGE.get().floatValue(), MAX_SPEED.get().floatValue());
+        } catch (IllegalStateException notLoadedYet) {
+            return Limits.NONE;
         }
     }
 }
