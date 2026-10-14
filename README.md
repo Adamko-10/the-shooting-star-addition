@@ -1,18 +1,20 @@
 # The Shooting Star Addition
 
 An **unofficial**, fan-made addon for [The Shooting Star [Demo]](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-demo)
-by rimuru_dev. It adds two new skills to the Stellar Remote: **Halley**, a comet called down onto your
-crosshair, and **Luna**, which at night brings the moon itself down, leaving a moon of edible moon cheese with a
-molten heart. On the remote they come after The Shooting Star's own skills and are numbered after them:
-with The Shooting Star 1.4.x, which has its own SS-05 · Tesseract, they are **SS-06 · Halley** and **SS-07 · Luna**
-(with 1.3.x, SS-05 and SS-06).
+by rimuru_dev. It adds two new skills to the Stellar Remote: **SA-01 · Halley**, a comet called down onto your
+crosshair, and **SA-02 · Luna**, which brings the moon itself down, leaving a moon of edible moon cheese with a
+molten heart in a huge crater. On the remote they come after The Shooting Star's own skills. Their codenames are
+their own series, SA (Shooting star Addition), so they never clash with the SS numbers of The Shooting Star's own
+skills, whatever it adds.
 
 **Download:** [The Shooting Star Addition on CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition)
 
 ![Halley in game](docs/screenshots/overview.jpg)
 
-> **Compatibility:** this branch is the **Fabric, Minecraft 1.21.11** version, for **The Shooting Star [Demo] 1.3.3, 1.3.4, 1.4.0 and 1.4.1 [Fabric]** (one jar for all of them). The **NeoForge 1.21.1** version is on the `main` branch,
-> **Forge and NeoForge 1.20.1** on `forge-1.20.1`, **Forge 1.21.1** on `forge-1.21.1` and **Fabric 26.3** on `fabric-26.3`. See
+> **Compatibility:** this branch is the **Fabric, Minecraft 1.21.11** version, for **The Shooting Star [Demo] 1.3.3,
+> 1.3.4, 1.4.0, 1.4.1 and 1.4.2 [Fabric]** (one jar for all of them). The **NeoForge 1.21.1** version is on the
+> `main` branch, **Forge and NeoForge 1.20.1** on `forge-1.20.1`, **Forge 1.21.1** on `forge-1.21.1`, and
+> **Fabric 26.3, 1.21.1 and 1.20.1** on `fabric-26.3`, `fabric-1.21.1` and `fabric-1.20.1`. See
 > [Will it work with future versions?](#will-it-work-with-future-versions-of-the-shooting-star) below.
 
 ## Halley
@@ -58,11 +60,15 @@ land round it.
 Flip the cover and press the button: **EARTH SYSTEM SHUT DOWN**, and the sky falls to night (like Halley's). The moon, right where it hangs in your
 sky, shudders and cracks open along glowing molten seams, leaves its place and falls onto your crosshair, slowly at
 first and then faster and faster, growing until it fills the sky. It burns through the atmosphere in a shroud of fire,
-hits the ground in a white flash and a shock ring, ploughs into the crater it digs and comes to rest there, half
-buried: a whole moon of **moon cheese**, with one block of **molten moon cheese** at its very centre.
+hits the ground in a white flash and a shock ring, blasts a crater more than twice its own width out of the land and
+drives deep into it, the crust buckling up against it, and comes to rest there with most of it buried: a whole moon of
+**moon cheese**, with one block of **molten moon cheese** at its very centre.
 
 - Works by day or night (the sky turns to night for it; only what you see changes, never the world's time). Not where there is no moon, like the Nether.
-- Fissures tear out across the land all round the crater (like Gungnir's cracks), and the shock wave throws, burns and hurts far beyond it.
+- The crater: a wide bowl dug deep round the moon, burnt black and still glowing near it, with veins of molten rock
+  across its floor, a band of lava where moon and floor meet, and a ragged rim of upturned crust at its edge.
+- Fissures tear out across the land all round the crater (like Gungnir's cracks), lumps of moon and crust rain down
+  far beyond it, and the shock wave throws, burns and hurts further still.
 - Its own key (**N** by default), menu card, cooldown (120 s), cutscene (skippable), sounds and alarm.
 - Everything in the crater is erased; past it, the shock wave throws, burns and hurts whatever it meets.
 - **Moon cheese** (and **holey moon cheese**, the cheese's eyes, scattered all through the moon): right-click a block to place it, right-click the air to eat it. It's as good as a golden carrot, and being cheese it clears your effects like milk.
@@ -76,10 +82,18 @@ buried: a whole moon of **moon cheese**, with one block of **molten moon cheese*
 |---|---|---|
 | ![EARTH SYSTEM SHUT DOWN](docs/screenshots/13-luna-alarm.jpg) | ![The moon burning in](docs/screenshots/14-luna-fall.jpg) | ![The moon in its crater](docs/screenshots/15-luna-crater.jpg) |
 
+## No cooldown (optional)
+
+Off by default. Set `no_cooldown = true` in the `[stellar_remote]` section of
+`config/shooting_star_addition-common.toml` and every skill on the Stellar Remote — The Shooting Star's own as well as
+Halley and Luna — can be cast again straight away, for every player in that world or on that server. The remote's menu
+(**H**) shows a note in its corner saying whether it's on. Be careful with this: it lets anyone chain the most
+destructive skills back to back.
+
 ## Installing
 
 1. Minecraft **1.21.11** with **Fabric Loader 0.17.0** or newer, and **Fabric API**.
-2. **The Shooting Star [Demo] 1.3.3, 1.3.4, 1.4.0 or 1.4.1 [Fabric]**, e.g. `the-shooting-star-demo-1.4.1-fabric.jar`,
+2. **The Shooting Star [Demo] 1.3.3, 1.3.4, 1.4.0, 1.4.1 or 1.4.2 [Fabric]**, e.g. `the-shooting-star-demo-1.4.2-fabric.jar`,
    one file for every Minecraft version it supports, 1.21.11 included.
 3. This addon's jar ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
@@ -117,16 +131,25 @@ Luna and moon cheese, in the same file:
 | moonfall         | `reach`            | 420     | 32-1024   | How far away the crosshair can place the mark. |
 | moonfall         | `require_night`    | false   |           | `true` = it refuses by day. |
 | moonfall_size    | `moon_radius`      | 48      | 2-200     | Radius of the moon (96 blocks across). |
-| moonfall_size    | `crater_radius`    | 90      | 4-320     | Radius of the crater; everything inside dies. |
-| moonfall_size    | `crater_depth`     | 30      | 1-256     | Depth of the crater. |
-| moonfall_size    | `sink_percent`     | 35      | 0-90      | How much of the moon ends up buried. |
-| moonfall_size    | `blast_reach`      | 3.0     | 1.0-6.0   | Shock wave reach, in crater radii. |
+| moonfall_size    | `impact_radius`    | 110     | 4-320     | Radius of the crater, out to the crest of its rim; everything inside dies. |
+| moonfall_size    | `rim_height`       | 9       | 0-96      | How high the crater's rim stands over the land (the slabs leaning on the moon reach most of that over the crater's floor). |
+| moonfall_size    | `buried_percent`   | 70      | 0-90      | How much of the moon's height ends up driven down into the crater. |
+| moonfall_size    | `blast_reach`      | 3.0     | 1.0-6.0   | Shock wave reach, in impact radii. |
 | moonfall_size    | `chunks_per_tick`  | 8       | 1-64      | How fast the crater and moon are cut and built (huge moons take a while). |
 | moonfall_world   | `carve_terrain`    | true    |           | `false` = purely visual, only creatures are hit. |
 | moonfall_world   | `molten_core`      | true    |           | The block of molten moon cheese at the moon's centre. |
 | moon_cheese      | `molten_hearts`    | 500     | 1-512     | Hearts while Molten Might lasts. |
 | moon_cheese      | `molten_strength`  | 255     | 1-255     | Strength level it gives. |
 | moon_cheese      | `molten_minutes`   | 10      | 1-120     | How long it lasts. |
+
+The Stellar Remote itself, in the same file:
+
+| Section          | Setting            | Default | What it does |
+|------------------|--------------------|---------|--------------|
+| stellar_remote   | `no_cooldown`      | false   | `true` = no cooldowns at all, for every skill on the remote (The Shooting Star's own too) and every player. Be careful with this. |
+
+Updating from 1.3: `impact_radius`, `rim_height` and `buried_percent` replace Luna's old `crater_radius`,
+`crater_depth` and `sink_percent`, so the new, deeper moonfall takes its new defaults even with an old config file.
 
 ## Looks — `config/shooting_star_addition-client.toml`
 
@@ -149,24 +172,24 @@ scrambled (`a`, `b`, `c`...) and change with every release. It has no official w
 this addon attaches to its internals by those names. It carries a separate attachment for each version of The
 Shooting Star it knows, and uses the one for the version you have:
 
-- This version works with **The Shooting Star 1.3.3, 1.3.4, 1.4.0 and 1.4.1** (and 1.4.0A, which is 1.4.0). With any
-  other version the game says so when it starts, instead of crashing.
+- This version works with **The Shooting Star 1.3.3, 1.3.4, 1.4.0, 1.4.1 and 1.4.2** (and 1.4.0A, which is 1.4.0).
+  With any other version the game says so when it starts, instead of crashing.
 - When The Shooting Star updates, wait for the next update of this addon. It adds the new version and keeps the old
   ones, so you can update the two mods in either order.
-- On the remote, The Shooting Star's own skills keep their numbers and Halley and Luna take the next ones: if it adds
-  an SS-06 of its own, they become SS-07 and SS-08 by themselves.
+- On the remote, Halley and Luna come after The Shooting Star's own skills, whatever it adds, and keep their own
+  codenames (SA-01 and SA-02), so a new built-in skill never renumbers them.
 - If something it attaches to has really changed, the addon doesn't crash your game: it switches its skills off, logs
   why, and tells server operators in chat.
 - **If The Shooting Star changes its mod id** (for example when it stops being a demo), this addon won't load until
   it is updated.
 
-- **Other mod loaders and Minecraft versions** beyond NeoForge 1.21.1, Forge 1.21.1, Forge and NeoForge 1.20.1, Fabric 26.3 and Fabric 1.21.11 are not supported. They would
-  each need their own port.
+- **Other mod loaders and Minecraft versions** beyond NeoForge 1.21.1, Forge 1.21.1, Forge and NeoForge 1.20.1,
+  Fabric 26.3, Fabric 1.21.11, Fabric 1.21.1 and Fabric 1.20.1 are not supported. They would each need their own port.
 
 
 ## Plans
 
-This is version 1.2. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
+This is version 1.4. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
 Shooting Star and keep improving it: more skills for the Stellar Remote, balancing and polish from your feedback,
 and versions for other loaders and Minecraft versions if there's demand. Bug reports, ideas and feedback are very
 welcome in the issues.
@@ -218,20 +241,22 @@ de-obfuscation map of The Shooting Star.
    change has to work with both (the build checks all of them); the rest of the addon only sees `compat/StarLink`.
 5. Test each version: `./gradlew prodClientTest -PtssTest=<version> -Dss05.clienttest.skill=halley` (and `moon`).
    The log should say `Attaching to The Shooting Star <version> through dev.ss05.halley.compat.v...` and
-   `SS-06 · Halley (Halley) joined the Stellar Remote as skill #N`. If it says "couldn't attach", the remote's skill
+   `SA-01 · Halley (Halley) joined the Stellar Remote as skill #N`. If it says "couldn't attach", the remote's skill
    list (`SkillSet`) changed shape: `TssLink.install()` finds the fields it needs by their types.
 6. **Smaller things that may stop without breaking anything** — optional mixins that switch themselves off if their
    target moved:
    - the remote's cover/button/screen not animating for Halley and Luna → `compat/tss/mixin/RemoteRendererMixin`
      (`strikeTime`);
    - no overlay of theirs on the cutscene → `compat/tss/mixin/FxManagerMixin` (`renderFilmHud`);
+   - the no-cooldown note missing from the remote's menu → `compat/tss/mixin/WhiteSpaceMixin` (`render`); the
+     `no_cooldown` option not clearing cooldowns → `compat/tss/mixin/CastingMixin` (`syncCooldowns`);
    - the caster's arm not raising (vanilla target, very unlikely to change) → `compat/mixin/PlayerModelMixin`;
    - the land not dimming under the dark sky (vanilla target, very unlikely to change) → `compat/mixin/ClientLevelMixin`;
    - with a shader pack on, the sky not going to night (vanilla target, very unlikely to change) →
      `compat/mixin/ClientLevelTimeMixin`.
 7. **A new built-in skill takes the O or N key** → change `DEFAULT_KEY` in `world/HalleyInfo.java` or
-   `world/MoonInfo.java`. Its SS number needs nothing: Halley and Luna are numbered after the remote's own skills
-   (`world/SkillNumbers.java`).
+   `world/MoonInfo.java`. The codenames need nothing: SA-01 and SA-02 are a series of their own
+   (`world/Codenames.java`), so they never clash with the remote's SS numbers.
 8. To drop an old version, take its jar out of `libs/`.
 
 ### Changing the skill
