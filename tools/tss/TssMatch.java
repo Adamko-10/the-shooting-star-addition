@@ -126,16 +126,44 @@ public class TssMatch {
             out.append("c\t").append(n).append('\t').append(o).append('\n');
             ClassNode a = oldC.get(o), b = newC.get(n);
             Map<FieldNode, FieldNode> fm = matchFields(a, b, back, cls);
+            // A member that is new in this version keeps its obfuscated name - unless a matched one now takes that name
+            // (a readable name can be an old obfuscated one): then it gets a suffix, or the remapper refuses the clash.
+            Set<String> fieldNames = new HashSet<>();
             for (FieldNode f : b.fields) {
                 FieldNode of = fm.get(f);
-                if (of != null && !of.name.equals(f.name)) {
-                    out.append("\tf\t").append(f.desc).append('\t').append(f.name).append('\t').append(of.name).append('\n');
+                if (of != null) fieldNames.add(of.name + ";" + f.desc);
+            }
+            for (FieldNode f : b.fields) {
+                FieldNode of = fm.get(f);
+                String target = of != null ? of.name : f.name;
+                if (of == null && fieldNames.contains(f.name + ";" + f.desc)) {
+                    int i = 1;
+                    while (fieldNames.contains(f.name + "_" + i + ";" + f.desc)) i++;
+                    target = f.name + "_" + i;
+                    fieldNames.add(target + ";" + f.desc);
+                    report.add("  renamed new field " + n + "." + f.name + " " + f.desc + " -> " + target + " (its name is taken)");
+                }
+                if (!target.equals(f.name)) {
+                    out.append("\tf\t").append(f.desc).append('\t').append(f.name).append('\t').append(target).append('\n');
                     fields++;
                 }
             }
             Map<MethodNode, MethodNode> mm = allMethods.get(n);
+            Set<String> methodSlots = new HashSet<>();
             for (MethodNode m : b.methods) {
                 String named = methodNames.get(n + "." + m.name + m.desc);
+                if (named != null) methodSlots.add(named + m.desc);
+            }
+            for (MethodNode m : b.methods) {
+                String named = methodNames.get(n + "." + m.name + m.desc);
+                if (named == null && !m.name.startsWith("<") && (m.access & (Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC)) != 0
+                    && methodSlots.contains(m.name + m.desc)) {
+                    int i = 1;
+                    while (methodSlots.contains(m.name + "_" + i + m.desc)) i++;
+                    named = m.name + "_" + i;
+                    methodSlots.add(named + m.desc);
+                    report.add("  renamed new method " + n + "." + m.name + m.desc + " -> " + named + " (its name is taken)");
+                }
                 if (named != null && !named.equals(m.name)) {
                     out.append("\tm\t").append(m.desc).append('\t').append(m.name).append('\t').append(named).append('\n');
                     methods++;
