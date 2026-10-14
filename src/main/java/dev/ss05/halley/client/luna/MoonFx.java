@@ -1,5 +1,6 @@
 package dev.ss05.halley.client.luna;
 
+import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.client.HalleyClientConfig;
@@ -51,6 +52,8 @@ public final class MoonFx {
     private static final double SOUND_SPEED = 17.0;
     /** ...but never more than this late. */
     private static final int MAX_SOUND_DELAY = 30;
+    /** How far from the mark (in blocks) a player outside the film still hears Luna's music. */
+    private static final double MUSIC_RANGE = 1500.0;
     /** Further than this from the strike, nobody sees its particles anyway. */
     private static final double PARTICLE_RANGE = 900.0;
     /** How often, in ticks, the block moon is polled for after SETTLE. */
@@ -114,6 +117,7 @@ public final class MoonFx {
     private final float pitch;
     private final RandomSource random;
     private final List<SoundInstance> filmSounds = new ArrayList<>();
+    private SoundInstance music;
     private final List<Later> later = new ArrayList<>();
     private final float particles;
     private boolean filmed;
@@ -311,6 +315,10 @@ public final class MoonFx {
         }
         this.removed = true;
         this.stopFilmSounds();
+        if (this.music != null) {
+            Minecraft.getInstance().getSoundManager().stop(this.music);
+            this.music = null;
+        }
         this.later.clear();
         ACTIVE.remove(this);
     }
@@ -343,6 +351,7 @@ public final class MoonFx {
             this.play(HalleyContent.MOON_TEAR, sky(camera, at), 1.6F, 1.0F, film);
             this.follow(HalleyContent.MOON_FALL, 1.8F, film,
                 age -> age > MoonPlan.CONTACT ? null : sky(camera(), p.centre(Math.min(age, MoonPlan.CONTACT))));
+            this.music(film, camera);
         }
         if (t == MoonPlan.ENTRY) {
             Vec3 at = p.centre(t);
@@ -376,8 +385,8 @@ public final class MoonFx {
                 t == MoonPlan.SETTLE + 25 ? 1.8F : 1.2F, 0.9F + this.random.nextFloat() * 0.15F, film);
             this.host.shake(p.target, t == MoonPlan.SETTLE + 25 ? 0.3F : 0.18F, 600.0);
         }
-        if (t >= MoonPlan.CONTACT + 30 && t < MoonPlan.DURATION - 60 && (t - MoonPlan.CONTACT - 30) % 75 == 0) {
-            // the molten seam hissing and spitting, from wherever round it is nearest
+        if (t == MoonPlan.CONTACT + 30) {
+            // the molten seam hissing and spitting, from wherever round it is nearest (once)
             this.play(HalleyContent.MOON_SIZZLE, this.nearestOnSeam(camera), 1.2F * MoonPlan.heat(t) + 0.3F,
                 0.9F + this.random.nextFloat() * 0.2F, false);
         }
@@ -385,6 +394,22 @@ public final class MoonFx {
             this.play(HalleyContent.MOON_DEBRIS, near(camera, p.target, p.params.craterRadius() * 1.3), 1.0F,
                 0.9F + this.random.nextFloat() * 0.2F, film);
         }
+    }
+
+    /**
+     * Luna's music, from the moment the moon tears loose: cut so that its drop lands on the impact (at the remote's speed
+     * slider too, as its pitch follows the film's). Heard by the caster and whoever is near enough to see it come down,
+     * under the game's Music volume; the game's own background music makes way for it.
+     */
+    private void music(boolean film, Vec3 camera) {
+        if (this.music != null || !film && camera.distanceTo(this.plan.target) > MUSIC_RANGE) {
+            return;
+        }
+        Minecraft minecraft = Minecraft.getInstance();
+        minecraft.getMusicManager().stopPlaying();
+        this.music = new SimpleSoundInstance(HalleyAddon.id("luna_music"), SoundSource.MUSIC, 1.0F, this.pitch,
+            SoundInstance.createUnseededRandom(), false, 0, SoundInstance.Attenuation.NONE, 0.0, 0.0, 0.0, true);
+        minecraft.getSoundManager().play(this.music);
     }
 
     /** The point of the molten seam nearest the camera (on the ground). */
