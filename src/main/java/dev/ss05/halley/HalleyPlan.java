@@ -89,20 +89,26 @@ public final class HalleyPlan {
         double descent = Math.toRadians(DESCENT_DEGREES);
         this.incoming = new Vec3(across.x * Math.cos(descent), Math.sin(descent), across.z * Math.cos(descent)).normalize();
 
-        this.impact = TOUCHDOWN + ploughTicks(params.trenchLength());
+        this.impact = TOUCHDOWN + ploughTicks(params.trenchLength(), params.scale());
         this.duration = this.impact + AFTERMATH;
         for (int i = 0; i < this.phase.length; i++) {
             this.phase[i] = Math.floorMod(seed >> (i * 9), 6283L) / 1000.0;
         }
     }
 
-    public static int ploughTicks(int trenchLength) {
-        return Math.max(1, (int) Math.ceil(trenchLength / PLOUGH_SPEED));
+    /** How long the nucleus ploughs, at {@link #PLOUGH_SPEED} times the strike's scale (so a bigger one takes as long). */
+    public static int ploughTicks(int trenchLength, double scale) {
+        return Math.max(1, (int) Math.ceil(trenchLength / (PLOUGH_SPEED * scale)));
     }
 
-    /** Duration of a strike with the given trench length (used for the skill's displayed duration). */
+    /** Duration of a strike with the given trench length at power 1 (used for the skill's displayed duration). */
     public static int durationFor(int trenchLength) {
-        return TOUCHDOWN + ploughTicks(trenchLength) + AFTERMATH;
+        return TOUCHDOWN + ploughTicks(trenchLength, 1.0) + AFTERMATH;
+    }
+
+    /** How fast this strike's nucleus ploughs, in blocks per tick ({@link #PLOUGH_SPEED} at power 1). */
+    public double ploughSpeed() {
+        return PLOUGH_SPEED * this.params.scale();
     }
 
     // ---- Where the comet is. -------------------------------------------------------------------------------------
@@ -119,7 +125,7 @@ public final class HalleyPlan {
 
     /** How far the nucleus has ploughed from the touchdown point toward the mark (0..trenchLength). */
     public double ploughed(double t) {
-        return Mth.clamp((t - TOUCHDOWN) * PLOUGH_SPEED, 0.0, this.params.trenchLength());
+        return Mth.clamp((t - TOUCHDOWN) * this.ploughSpeed(), 0.0, this.params.trenchLength());
     }
 
     /** Distance from the mark toward the touchdown point of the ploughing nucleus at time t. */
@@ -146,7 +152,7 @@ public final class HalleyPlan {
     /** Speed in blocks per tick at time t. */
     public double speed(double t) {
         if (t > TOUCHDOWN) {
-            return t <= this.impact ? PLOUGH_SPEED : 0.0;
+            return t <= this.impact ? this.ploughSpeed() : 0.0;
         }
         double k = approach(t);
         return START_DISTANCE * APPROACH_EASE * Math.pow(k, APPROACH_EASE - 1.0) / (TOUCHDOWN - SIGHT);

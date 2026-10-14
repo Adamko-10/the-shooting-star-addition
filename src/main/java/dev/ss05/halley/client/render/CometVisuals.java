@@ -71,10 +71,15 @@ public final class CometVisuals {
     @Nullable
     private final Vec3 heartTip;
     private final double heartSize;
+    /** The comet's size, as a factor of its size at power 1 (the remote's power slider); its tails grow more slowly. */
+    private final double size;
+    private final double tailSize;
 
     public CometVisuals(HalleyPlan plan, int minY) {
         this.plan = plan;
         this.minY = minY;
+        this.size = plan.params.scale();
+        this.tailSize = Math.sqrt(this.size);
         Vec3 up = new Vec3(0.0, 1.0, 0.0);
         Vec3 out = plan.side.scale(plan.sideSign);
         // Real comet tails point away from the Sun, not back along the path; pointing them up and out to the side
@@ -256,7 +261,7 @@ public final class CometVisuals {
 
     /** 1 until the nucleus reaches {@code along} on its way to the mark, then quickly 0. */
     private float passed(double t, double along) {
-        double when = HalleyPlan.TOUCHDOWN + (this.plan.params.trenchLength() - along) / HalleyPlan.PLOUGH_SPEED;
+        double when = HalleyPlan.TOUCHDOWN + (this.plan.params.trenchLength() - along) / this.plan.ploughSpeed();
         return 1.0F - smooth((t - when) / 3.0);
     }
 
@@ -267,15 +272,15 @@ public final class CometVisuals {
         double d = head.distanceTo(world.camera());
         float on = smooth((t - HalleyPlan.SIGHT) / 30.0);
         float near = (float) Mth.clamp(1.0 - d / 5000.0, 0.0, 1.0);
-        double coma = Math.max(COMA, d * COMA_MIN_ANGLE * boost);
-        double nucleus = Math.max(NUCLEUS, d * NUCLEUS_MIN_ANGLE * boost);
-        double glint = Math.max(COMA * 1.2, d * GLINT_MIN_ANGLE * boost);
+        double coma = Math.max(COMA * this.size, d * COMA_MIN_ANGLE * boost * this.tailSize);
+        double nucleus = Math.max(NUCLEUS * this.size, d * NUCLEUS_MIN_ANGLE * boost * this.tailSize);
+        double glint = Math.max(COMA * 1.2 * this.size, d * GLINT_MIN_ANGLE * boost * this.tailSize);
 
         // the tails, which thin out once the comet is inside the atmosphere
         float tails = on * (1.0F - smooth((t - (HalleyPlan.ENTRY - 10)) / 35.0));
         if (tails > 0.003F) {
-            double ion = Math.max(ION_LENGTH, d * ION_MIN_SHARE);
-            double dust = Math.max(DUST_LENGTH, d * DUST_MIN_SHARE);
+            double ion = Math.max(ION_LENGTH * this.tailSize, d * ION_MIN_SHARE);
+            double dust = Math.max(DUST_LENGTH * this.tailSize, d * DUST_MIN_SHARE);
             Vec3 bend = this.dustBend.scale(dust / DUST_LENGTH);
             world.ribbon(head, head.add(this.ionDir.scale(ion)), Vec3.ZERO, coma * 0.6, coma * 0.6 + ion * 0.1, 24,
                 Shapes.STREAK, Shapes.ION, ION, 0.9F * tails);
@@ -346,16 +351,17 @@ public final class CometVisuals {
         double width = this.plan.trenchHalfWidth(this.plan.params.trenchLength());
         double k = since / 30.0;
         // the blast where it struck: a flash, a ring racing out over the land, a spout of ice thrown up
-        light.billboard(p.add(0.0, 8.0, 0.0), 70.0 * (1.0 + k), Shapes.GLOW, 0, PALE, 1.4F * (float) Math.exp(-since / 4.0), 0.0);
-        light.rect(p.add(0.0, 8.0, 0.0), 900.0, 12.0, Shapes.FLARE, 0, PALE, 1.0F * (float) Math.exp(-since / 5.0));
+        double z = this.size;
+        light.billboard(p.add(0.0, 8.0 * z, 0.0), 70.0 * z * (1.0 + k), Shapes.GLOW, 0, PALE, 1.4F * (float) Math.exp(-since / 4.0), 0.0);
+        light.rect(p.add(0.0, 8.0 * z, 0.0), 900.0 * z, 12.0 * z, Shapes.FLARE, 0, PALE, 1.0F * (float) Math.exp(-since / 5.0));
         if (land.has(p.x, p.z)) {
-            double ring = 6.0 + width * 5.0 * Math.sqrt(k);
+            double ring = 6.0 * z + width * 5.0 * Math.sqrt(k);
             for (int i = 0; i < 3; i++) {
                 world.flat(p.add(0.0, 0.6 + i * 3.0, 0.0), this.plan.dir, ring / 0.9, ring / 0.9, Shapes.SHOCK, i, PALE,
                     (float) Math.pow(1.0 - k, 1.5) * (i == 0 ? 0.9F : i == 1 ? 0.45F : 0.2F));
             }
         }
-        world.column(p.add(0.0, -2.0, 0.0), 30.0 + 90.0 * Math.sqrt(k), width * 0.6, Shapes.STREAK, Shapes.DUST, FROST,
+        world.column(p.add(0.0, -2.0 * z, 0.0), (30.0 + 90.0 * Math.sqrt(k)) * z, width * 0.6, Shapes.STREAK, Shapes.DUST, FROST,
             0.8F * (float) Math.pow(1.0 - k, 1.2));
     }
 
@@ -367,19 +373,20 @@ public final class CometVisuals {
         float flicker = 0.9F + 0.1F * (float) Math.sin(t * 2.7);
 
         // the nucleus, ploughing: seen over the trench's walls, but not through the caster standing in front of it
-        double pull = 45.0;
-        world.billboardPulled(head, pull, 24.0, Shapes.GLOW, 0, ICE, 0.55F * flicker, 0.0);
-        world.billboardPulled(head, pull, 10.0, Shapes.GLOW, 0, PALE, 0.9F * flicker, 0.0);
-        world.billboardPulled(head, pull, 34.0, Shapes.GLINT, 0, PALE, 0.6F, this.spin + t * 0.05);
-        world.billboardPulled(head.add(heading.scale(4.0)), pull, 13.0, Shapes.BOW, 0, PALE, 0.4F, angle);
+        double z = this.size;
+        double pull = 45.0 * z;
+        world.billboardPulled(head, pull, 24.0 * z, Shapes.GLOW, 0, ICE, 0.55F * flicker, 0.0);
+        world.billboardPulled(head, pull, 10.0 * z, Shapes.GLOW, 0, PALE, 0.9F * flicker, 0.0);
+        world.billboardPulled(head, pull, 34.0 * z, Shapes.GLINT, 0, PALE, 0.6F, this.spin + t * 0.05);
+        world.billboardPulled(head.add(heading.scale(4.0 * z)), pull, 13.0 * z, Shapes.BOW, 0, PALE, 0.4F, angle);
 
         // its wake back down the trench
-        double behind = Math.min(this.plan.ploughed(t) + 10.0, 110.0);
-        double tailAlong = Math.min(along + behind, this.plan.params.trenchLength() + 10.0);
+        double behind = Math.min(this.plan.ploughed(t) + 10.0 * z, 110.0 * z);
+        double tailAlong = Math.min(along + behind, this.plan.params.trenchLength() + 10.0 * z);
         Vec3 tailGround = this.plan.groundPoint(tailAlong);
-        Vec3 tail = new Vec3(tailGround.x, head.y + 4.0, tailGround.z);
-        world.ribbon(head, tail, new Vec3(0.0, 6.0, 0.0), 16.0, 34.0, 16, Shapes.STREAK, Shapes.PLASMA, PALE, 0.85F);
-        world.ribbon(head, tail, Vec3.ZERO, 7.0, 12.0, 16, Shapes.STREAK, Shapes.ION, ICE, 0.9F);
+        Vec3 tail = new Vec3(tailGround.x, head.y + 4.0 * z, tailGround.z);
+        world.ribbon(head, tail, new Vec3(0.0, 6.0 * z, 0.0), 16.0 * z, 34.0 * z, 16, Shapes.STREAK, Shapes.PLASMA, PALE, 0.85F);
+        world.ribbon(head, tail, Vec3.ZERO, 7.0 * z, 12.0 * z, 16, Shapes.STREAK, Shapes.ION, ICE, 0.9F);
 
         // the ground lit round it
         if (land.has(head.x, head.z)) {
@@ -400,7 +407,7 @@ public final class CometVisuals {
         double head = this.plan.frontAlong(Math.min(t, this.plan.impact));
         for (double a = length; a > head; a -= TRENCH_STEP) {
             double middle = a - TRENCH_STEP * 0.5;
-            double age = t - (HalleyPlan.TOUCHDOWN + (length - middle) / HalleyPlan.PLOUGH_SPEED);
+            double age = t - (HalleyPlan.TOUCHDOWN + (length - middle) / this.plan.ploughSpeed());
             Vec3 p = this.plan.groundPoint(middle);
             if (age < 0.0 || !land.has(p.x, p.z)) {
                 continue;

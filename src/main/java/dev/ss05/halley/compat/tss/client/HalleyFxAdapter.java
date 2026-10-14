@@ -38,6 +38,16 @@ final class HalleyFxAdapter extends SpellFx {
             }
 
             @Override
+            public float clock(float partial) {
+                return HalleyFxAdapter.this.time(partial);
+            }
+
+            @Override
+            public float speed() {
+                return HalleyFxAdapter.this.speed;
+            }
+
+            @Override
             public void shake(Vec3 source, float amount, double range) {
                 FxManager.shake(source, amount, range);
             }

@@ -38,6 +38,16 @@ final class MoonFxAdapter extends SpellFx {
             }
 
             @Override
+            public float clock(float partial) {
+                return MoonFxAdapter.this.time(partial);
+            }
+
+            @Override
+            public float speed() {
+                return MoonFxAdapter.this.speed;
+            }
+
+            @Override
             public void shake(Vec3 source, float amount, double range) {
                 FxManager.shake(source, amount, range);
             }
