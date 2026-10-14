@@ -1,5 +1,6 @@
 package dev.ss05.halley.world;
 
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
 
 /** A shape being cut out of the world a few chunks per tick (backed by The Shooting Star's carver). */
@@ -15,6 +16,16 @@ public interface Excavation {
 
     /** Cut everything that is left, now (used when the spell is cut short). */
     void finish();
+
+    /**
+     * Keeps the chunks an excavation is waiting for loaded, a few at a time, and lets each go once it is cut (The
+     * Shooting Star's "streaming" carver: a big strike never loads its whole area at once).
+     */
+    interface Loader {
+        void hold(ChunkPos pos);
+
+        void release(ChunkPos pos);
+    }
 
     @FunctionalInterface
     interface Floor {
