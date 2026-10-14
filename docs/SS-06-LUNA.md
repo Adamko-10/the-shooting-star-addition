@@ -42,6 +42,11 @@ The caster gets a cutscene (like Halley's), skippable with the remote's cutscene
   (Nether/End) it refuses ("there is no moon here").
 - One moonfall per caster at a time; cooldown 120 s (config).
 - The mark is placed the way the remote's other skills aim (`StarBridge.aimGround`).
+- **The remote's sliders** (power, damage, speed; `CastTuning`, the same three The Shooting Star's own skills have):
+  power (0.1-10) scales `moon_radius`, `impact_radius` and `rim_height` for that cast (`MoonParams.of(..., scale)`,
+  sent to clients with the rest); damage below ∞ hits creatures in the impact zone for that much instead of erasing
+  them (`StarBridge.hit`) and caps the blast's hurt; speed (0.3-3) runs the whole timeline, server and film, at that
+  rate (The Shooting Star's spell engine; the film's clock is `Host.clock`, its sounds are pitched with it).
 
 ## Geometry (all in `MoonPlan`, shared by server and client)
 
