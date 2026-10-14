@@ -180,6 +180,14 @@ public final class HalleyStrike {
         if (this.crater != null && !this.crater.done()) {
             this.crater.tick();
         }
+        // the trench pieces still being cut after the detonation (a big strike's take longer) carry on a bit each tick
+        if (t > this.plan.impact) {
+            for (Excavation cut : this.trench) {
+                if (!cut.done()) {
+                    cut.tick();
+                }
+            }
+        }
         if (this.crater != null && this.crater.done() && !this.raysPainted) {
             this.raysPainted = true;
             this.craterDoneAt = t;
@@ -211,6 +219,14 @@ public final class HalleyStrike {
             this.placeHeart();
         }
         this.releaseChunks();
+    }
+
+    /**
+     * Whether all the land it cuts has been cut. A big strike (the remote's power slider) can take longer than its film:
+     * the spell then runs on until this is true, rather than cutting the rest in one go at the end.
+     */
+    public boolean worldDone() {
+        return this.allCut();
     }
 
     private boolean allCut() {
