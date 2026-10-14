@@ -267,7 +267,9 @@ public final class MoonStrike {
      * rest in one go at the end.
      */
     public boolean worldDone() {
-        return !this.params.carve() || this.moonBuild != null && this.carvingDone();
+        // the cracks and the rim's far reaches are only cut into loaded chunks (and finished, as far as they can be,
+        // at the end), so only the crater and the moon are waited for
+        return !this.params.carve() || (this.crater == null || this.crater.done()) && this.moonBuild != null && this.moonBuild.done();
     }
 
     private boolean carvingDone() {
