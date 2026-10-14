@@ -1,5 +1,6 @@
 package dev.ss05.halley.world;
 
+import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.HalleyParams;
@@ -79,6 +80,8 @@ public final class HalleyStrike {
 
     private final ServerLevel level;
     private final HalleyPlan plan;
+    /** The remote's sliders for this cast: its damage slider decides what each hit does. */
+    private final CastTuning cast;
     private final HalleyParams params;
     private final UUID casterId;
     private final HalleyConfig.Tuning tuning;
@@ -98,9 +101,11 @@ public final class HalleyStrike {
     private double ploughedBefore;
     private double blastBefore;
 
-    public HalleyStrike(ServerLevel level, HalleyPlan plan, ServerPlayer caster) {
+    /** {@code cast} is the remote's sliders for this cast (the sizes in the plan are already scaled by its power). */
+    public HalleyStrike(ServerLevel level, HalleyPlan plan, ServerPlayer caster, CastTuning cast) {
         this.level = level;
         this.plan = plan;
+        this.cast = cast;
         this.params = plan.params;
         this.casterId = caster.getUUID();
         this.tuning = HalleyConfig.tuning();
@@ -509,14 +514,17 @@ public final class HalleyStrike {
         return this.level.getMaxBuildHeight() + 64.0;
     }
 
-    /** Inside the zone: living things are erased (creative and spectator players excepted), loose things removed. */
+    /**
+     * Inside the zone: living things are erased (creative and spectator players excepted), loose things removed. With
+     * the remote's damage slider below ∞, living things take that much instead (The Shooting Star's own hit).
+     */
     private void hit(Entity entity, @Nullable ServerPlayer caster, boolean loose) {
         if (entity instanceof LivingEntity living) {
             if (living instanceof Player player && (player.isCreative() || player.isSpectator())) {
                 return;
             }
             if (living.isAlive()) {
-                StarBridge.erase(this.level, living, living == caster ? null : caster);
+                StarBridge.hit(this.level, living, living == caster ? null : caster, this.cast.damage());
             }
         } else if (loose && !(entity instanceof Player) && entity.getPassengers().isEmpty()
                 && (caster == null || entity != caster.getVehicle()) && !entity.isRemoved()) {
@@ -533,7 +541,7 @@ public final class HalleyStrike {
         entity.setDeltaMovement(entity.getDeltaMovement().add(away.scale(push)).add(0.0, lift, 0.0));
         entity.hurtMarked = true;
         if (entity instanceof LivingEntity living && (living == caster || caster == null || StarBridge.affects(living, caster))) {
-            living.hurt(this.wake(living == caster ? null : caster), damage);
+            living.hurt(this.wake(living == caster ? null : caster), this.cast.cap(damage));
             living.setTicksFrozen(Math.max(living.getTicksFrozen(), living.getTicksRequiredToFreeze() + 100));
         }
     }
