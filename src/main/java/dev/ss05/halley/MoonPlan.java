@@ -275,8 +275,9 @@ public final class MoonPlan {
     }
 
     /**
-     * The y of the moon at rest's top surface over this column (the ground above it is cut away down to there), or
-     * {@link #UNTOUCHED} if the column is outside the moon's footprint.
+     * The y of the highest block of the moon at rest in this column - the highest one whose centre is inside it, as
+     * {@link #inMoon} has it (the ground above it is cut away down to there, so no old ground is left lying on the
+     * moon's surface) - or {@link #UNTOUCHED} if the column is outside the moon's footprint.
      */
     public int moonTop(int x, int z) {
         double r = this.params.moonRadius();
@@ -286,7 +287,7 @@ public final class MoonPlan {
         if (d2 > r * r) {
             return UNTOUCHED;
         }
-        return Mth.floor(this.restCentre.y + Math.sqrt(r * r - d2));
+        return Mth.floor(this.restCentre.y + Math.sqrt(r * r - d2) - 0.5);
     }
 
     /** Whether this column is in the molten seam, the band between the moon at rest and the crater's floor. */
