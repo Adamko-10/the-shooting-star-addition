@@ -18,7 +18,7 @@ abstract class RemoteRendererMixin {
     @Inject(method = "strikeTime()F", at = @At("RETURN"), cancellable = true, require = 0, remap = false)
     private static void ss05halley$clock(CallbackInfoReturnable<Float> cir) {
         float builtIn = cir.getReturnValueF();
-        float clock = StarClientBridge.remoteClock(builtIn, Minecraft.getInstance().getPartialTick());
+        float clock = StarClientBridge.remoteClock(builtIn, Minecraft.getInstance().getFrameTime());
         if (clock != builtIn) {
             cir.setReturnValue(clock);
         }

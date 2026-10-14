@@ -22,7 +22,7 @@ abstract class PlayerModelMixin {
     @Inject(method = "setupAnim(Lnet/minecraft/world/entity/LivingEntity;FFFFF)V", at = @At("TAIL"), require = 0)
     private void ss05halley$raiseRemote(LivingEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks,
                                         float netHeadYaw, float headPitch, CallbackInfo ci) {
-        float partial = Minecraft.getInstance().getPartialTick();
+        float partial = Minecraft.getInstance().getFrameTime();
         float[] pose = HalleyFx.armPoseFor(entity.getId(), partial);
         if (pose == null) {
             pose = MoonFx.armPoseFor(entity.getId(), partial);
