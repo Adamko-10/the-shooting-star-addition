@@ -270,6 +270,15 @@ final class Harness {
         });
     }
 
+    /** -Dss05.clienttest.<name>=<value> ("inf" for no limit), else {@code fallback}. */
+    private static float slider(String name, float fallback) {
+        String value = System.getProperty("ss05.clienttest." + name);
+        if (value == null || value.isBlank()) {
+            return fallback;
+        }
+        return value.trim().equalsIgnoreCase("inf") ? Float.POSITIVE_INFINITY : Float.parseFloat(value.trim());
+    }
+
     private static void castAndMaybeRepositionCamera(Minecraft mc) {
         IntegratedServer server = mc.getSingleplayerServer();
         log("casting " + HarnessParams.SKILL);
@@ -286,8 +295,12 @@ final class Harness {
             if (Boolean.getBoolean("ss05.clienttest.eat")) {
                 eatCheck(level, player);
             }
-            Tuning tuning = Tuning.initial(skill);
-            Casting.request(player, index, tuning.power(), tuning.damage(), tuning.speed());
+            // the remote's sliders for this cast: their defaults, or -Dss05.clienttest.power / .damage / .speed
+            Tuning initial = Tuning.initial(skill);
+            Tuning tuning = new Tuning(slider("power", initial.power()), slider("damage", initial.damage()),
+                slider("speed", initial.speed())).clampFor(skill);
+            log("tuning: power " + tuning.power() + ", damage " + tuning.damage() + ", speed " + tuning.speed());
+            Casting.cast(player, skill, tuning);
             // Filmed from a camera of its own: the caster is lifted high and clear, flying, so the ground Luna heaves up
             // never closes over their head (the overlay for a view blocked by a block is drawn from the player's eyes,
             // not the camera's)
@@ -536,14 +549,21 @@ final class Harness {
                 return;
             }
             finalFrames++;
-            if (HarnessParams.FINAL_VIEWS[finalView].trim().equals("menu")) {
-                // the remote's menu (H), through the caster's own eyes: opened once, filmed once it has opened fully
+            String view = HarnessParams.FINAL_VIEWS[finalView].trim();
+            if (view.equals("menu") || view.equals("skills")) {
+                // the remote's menu (H), through the caster's own eyes: opened once, filmed once it has opened fully;
+                // "skills" scrolls its list to the end first, where Halley and Luna are (with their sliders)
                 if (finalFrames == 1) {
                     mc.setCameraEntity(mc.player);
-                    WhiteSpace.open(mc);
+                    if (!WhiteSpace.capturesInput()) {
+                        WhiteSpace.open(mc);
+                    }
                 }
-                if (finalFrames > 30 && System.currentTimeMillis() - finalSince > 4000L) {
-                    takeScreenshot(mc, "final_menu");
+                if (view.equals("skills") && finalFrames > 10 && finalFrames % 4 == 0 && WhiteSpace.listScroll() < WhiteSpace.maxScroll()) {
+                    WhiteSpace.scroll(-1.0);
+                }
+                if (finalFrames > 30 && System.currentTimeMillis() - finalSince > (view.equals("skills") ? 7000L : 4000L)) {
+                    takeScreenshot(mc, "final_" + view);
                     finalView++;
                     finalSince = System.currentTimeMillis();
                     finalFrames = 0;

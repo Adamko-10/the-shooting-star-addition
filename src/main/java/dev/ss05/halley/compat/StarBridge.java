@@ -1,5 +1,6 @@
 package dev.ss05.halley.compat;
 
+import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.MoonParams;
@@ -115,12 +116,12 @@ public final class StarBridge {
 
     // ---- Handed over to the attached compat/tss/ (see StarLink for what each does) ---------------------------------
 
-    public static void startHalley(ServerPlayer caster, Vec3 target, long seed, HalleyParams params) {
-        link().startHalley(caster, target, seed, params);
+    public static void startHalley(ServerPlayer caster, Vec3 target, long seed, HalleyParams params, CastTuning tuning) {
+        link().startHalley(caster, target, seed, params, tuning);
     }
 
-    public static void startMoon(ServerPlayer caster, Vec3 target, long seed, MoonParams params) {
-        link().startMoon(caster, target, seed, params);
+    public static void startMoon(ServerPlayer caster, Vec3 target, long seed, MoonParams params, CastTuning tuning) {
+        link().startMoon(caster, target, seed, params, tuning);
     }
 
     public static boolean alreadyFlying(ServerPlayer player) {
@@ -149,6 +150,10 @@ public final class StarBridge {
 
     public static void erase(ServerLevel level, LivingEntity victim, ServerPlayer attacker) {
         link().erase(level, victim, attacker);
+    }
+
+    public static void hit(ServerLevel level, LivingEntity victim, ServerPlayer attacker, float damage) {
+        link().hit(level, victim, attacker, damage);
     }
 
     public static boolean liftClear(ServerPlayer caster, Vec3 target, double zone, double refuge, int ticks) {

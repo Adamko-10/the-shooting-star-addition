@@ -1,5 +1,6 @@
 package dev.ss05.halley.compat;
 
+import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.world.Excavation;
@@ -32,10 +33,13 @@ public interface StarLink {
     /** Halley's or Luna's {@code Skill} object (for the test harness). */
     Object skill(boolean moon);
 
-    /** Starts a spell and broadcasts its effect packet to nearby players, like the built-in skills. */
-    void startHalley(ServerPlayer caster, Vec3 target, long seed, HalleyParams params);
+    /**
+     * Starts a spell and broadcasts its effect packet to nearby players, like the built-in skills. Its timeline (the
+     * server's and every client's film) runs at {@code tuning.speed()}, the remote's speed slider.
+     */
+    void startHalley(ServerPlayer caster, Vec3 target, long seed, HalleyParams params, CastTuning tuning);
 
-    void startMoon(ServerPlayer caster, Vec3 target, long seed, MoonParams params);
+    void startMoon(ServerPlayer caster, Vec3 target, long seed, MoonParams params, CastTuning tuning);
 
     boolean alreadyFlying(boolean moon, ServerPlayer player);
 
@@ -53,6 +57,12 @@ public interface StarLink {
 
     /** Kills outright, the way the other skills' strike zones do (bosses included). */
     void erase(ServerLevel level, LivingEntity victim, ServerPlayer attacker);
+
+    /**
+     * One hit of {@code damage}, the way the other skills hit when their damage slider is set: The Shooting Star's own
+     * damage type; at {@link Float#POSITIVE_INFINITY} it erases, as {@link #erase} does.
+     */
+    void hit(ServerLevel level, LivingEntity victim, ServerPlayer attacker, float damage);
 
     /** Teleports a caster standing within {@code zone} of the target out to {@code refuge}, held in the air. */
     boolean liftClear(ServerPlayer caster, Vec3 target, double zone, double refuge, int ticks);
