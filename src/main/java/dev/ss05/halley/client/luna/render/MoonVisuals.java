@@ -263,7 +263,7 @@ public final class MoonVisuals {
      * shock ring racing out over the land - kept in step with the server's blast. */
     private static void detonation(GlowBatch world, GlowBatch light, MoonPlan p, double t, CometVisuals.Land land) {
         double a = t - MoonPlan.CONTACT;
-        double zone = p.rimOuter;
+        double zone = p.rimCrest;
         double r = p.params.moonRadius();
         Vec3 c = p.target;
 
@@ -340,8 +340,9 @@ public final class MoonVisuals {
             double angle = (i + 0.5) / count * Math.PI * 2.0 + (p.hash(i, 51, 0) - 0.5) * 0.35;
             double length = r * (0.5 + 1.9 * CometVisuals.smooth(a / 7.0)) * (0.65 + 0.7 * p.hash(i, 53, 1));
             Vec3 dir = new Vec3(Math.cos(angle), 0.0, Math.sin(angle));
-            Vec3 tail = p.target.add(dir.scale(from)).add(0.0, 2.0, 0.0);
-            Vec3 head = p.target.add(dir.scale(from + length)).add(0.0, 1.0 + r * 0.06, 0.0);
+            double floor = -p.craterDepth * MoonPlan.settle(t);
+            Vec3 tail = p.target.add(dir.scale(from)).add(0.0, floor + 2.0, 0.0);
+            Vec3 head = p.target.add(dir.scale(from + length)).add(0.0, floor * 0.5 + 1.0 + r * 0.06, 0.0);
             world.ribbon(tail, head, new Vec3(0.0, r * 0.08, 0.0), r * 0.16, r * 0.42, 10, Shapes.STREAK, Shapes.PLASMA,
                 FIRE, 0.95F * fade);
             world.ribbon(tail, tail.add(head.subtract(tail).scale(0.6)), Vec3.ZERO, r * 0.07, r * 0.16, 8, Shapes.STREAK,
@@ -367,10 +368,15 @@ public final class MoonVisuals {
         double seam = MoonPlan.seamWidth(p.params.moonRadius());
         double radius = rf + seam * 0.5;
         int count = Math.max(32, (int) (radius * Math.PI * 2.0 / 3.0));
-        double y = p.target.y + 0.25;
+        // the ground it meets: the old ground at first, the crater's floor once the server has dug it
+        double floor = p.target.y - p.craterDepth * MoonPlan.settle(t);
+        double level = 0.0;
         for (int i = 0; i < count; i++) {
             double angle = (i + 0.5) / count * Math.PI * 2.0;
             Vec3 radial = new Vec3(Math.cos(angle), 0.0, Math.sin(angle));
+            double ground = land.surface(p.target.x + radial.x * radius, p.target.z + radial.z * radius);
+            double y = (Double.isNaN(ground) ? floor : Math.min(ground, p.target.y)) + 0.25;
+            level += y / count;
             Vec3 at = new Vec3(p.target.x + radial.x * radius, y, p.target.z + radial.z * radius);
             float flicker = 0.8F + 0.2F * (float) Math.sin(t * 0.6 + i * 1.7 + p.phase(i));
             // tangent dashes along the ring, overlapping well so they read as one unbroken band of molten rock
@@ -381,9 +387,11 @@ public final class MoonVisuals {
                     0.5F * heat * flicker, 0.0);
             }
         }
-        // a continuous glow under the band, and a softer one spilling out over the rim's inner lip
-        world.flat(p.target.add(0.0, 0.3, 0.0), p.travel, radius / 0.86, radius / 0.86, Shapes.RING, 3, core, 0.7F * heat);
-        world.flat(p.target.add(0.0, 0.5, 0.0), p.travel, (radius + seam * 2.0) / 0.86, (radius + seam * 2.0) / 0.86,
+        // a continuous glow under the band (at the band's own height on average: in the seam's trench once the crater is
+        // dug), and a softer one spilling out over the slabs leaning on the moon
+        Vec3 under = new Vec3(p.target.x, level + 0.05, p.target.z);
+        world.flat(under, p.travel, radius / 0.86, radius / 0.86, Shapes.RING, 3, core, 0.7F * heat);
+        world.flat(under.add(0.0, 0.2, 0.0), p.travel, (radius + seam * 2.0) / 0.86, (radius + seam * 2.0) / 0.86,
             Shapes.RING, 3, haze, 0.5F * heat);
     }
 

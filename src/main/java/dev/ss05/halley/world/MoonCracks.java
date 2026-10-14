@@ -12,9 +12,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 /**
- * The fissures Luna tears into the land round the rim (like Gungnir's cracks): cut along {@link MoonPlan}'s crack
- * lines, the same ones the client draws glowing, racing outward and branching as they go. Deepest and widest where they
- * leave the rim; a floor of magma with lava pooled in the deep stretches, scorched walls and a buckled, burnt lip.
+ * The fissures Luna tears into the land round the crater (like Gungnir's cracks), and the veins of molten rock across
+ * its floor: cut along {@link MoonPlan}'s crack lines, the same ones the client draws glowing, racing outward and
+ * branching as they go. Deepest and widest where they leave the rim; a floor of magma with lava pooled in the deep
+ * stretches, scorched walls and a buckled, burnt lip.
  * Only loaded chunks are touched (the cracks can reach past the area the strike keeps loaded, and must never make the
  * server generate terrain).
  */
@@ -67,7 +68,9 @@ final class MoonCracks {
         if (front <= this.cut[i]) {
             return;
         }
-        int maxDepth = Math.max(3, Mth.ceil(this.plan.params.moonRadius() * (this.plan.crackIsBranch(i) ? 0.11 : 0.18)));
+        // (the veins across the crater's floor are shallow, like the branches)
+        boolean slight = this.plan.crackIsBranch(i) || this.plan.crackIsVein(i);
+        int maxDepth = Math.max(3, Mth.ceil(this.plan.params.moonRadius() * (slight ? 0.11 : 0.18)));
         double step = 0.6 / Math.max(1.0, this.plan.crackLength(i));
         for (double along = this.cut[i]; along <= front; along += step) {
             this.cutAt(i, along, maxDepth, out);

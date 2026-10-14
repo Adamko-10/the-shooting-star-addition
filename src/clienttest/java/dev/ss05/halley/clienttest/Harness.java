@@ -1,6 +1,8 @@
 package dev.ss05.halley.clienttest;
 
+import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
+import com.mojang.serialization.JsonOps;
 import cyou.rimuru.shootingstardemo.client.cinematic.CutsceneDirector;
 import cyou.rimuru.shootingstardemo.magic.Casting;
 import cyou.rimuru.shootingstardemo.magic.Skill;
@@ -18,9 +20,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
@@ -29,7 +28,11 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.client.tutorial.TutorialSteps;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
@@ -45,13 +48,15 @@ import net.minecraft.world.entity.Relative;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Abilities;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.WorldDataConfiguration;
+import net.minecraft.world.level.gamerules.GameRules;
+import net.minecraft.world.level.levelgen.FlatLevelSource;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.WorldDimensions;
 import net.minecraft.world.level.levelgen.WorldOptions;
+import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorSettings;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
 import net.minecraft.world.level.saveddata.WeatherData;
 import net.minecraft.world.level.storage.TagValueInput;
@@ -321,11 +326,32 @@ final class Harness {
             new LevelSettings.DifficultySettings(Difficulty.PEACEFUL, false, false), true, WorldDataConfiguration.DEFAULT);
         WorldOptions worldOptions = WorldOptions.defaultWithRandomSeed();
         Function<HolderLookup.Provider, WorldDimensions> dimensions = access ->
-            access.lookupOrThrow(Registries.WORLD_PRESET).getOrThrow("normal".equals(HarnessParams.WORLD) ? WorldPresets.NORMAL : WorldPresets.FLAT).value().createWorldDimensions();
+            world(access, access.lookupOrThrow(Registries.WORLD_PRESET)
+                .getOrThrow("normal".equals(HarnessParams.WORLD) ? WorldPresets.NORMAL : WorldPresets.FLAT).value().createWorldDimensions());
         Screen parent = new TitleScreen();
 
         log("creating world '" + LEVEL_ID + "'");
         mc.createWorldOpenFlows().createFreshLevel(LEVEL_ID, levelSettings, worldOptions, dimensions, parent);
+    }
+
+    /** The deep flat world: bedrock, a hundred blocks of stone, dirt and grass, plains (no trees, lakes or villages). */
+    private static final String DEEP_FLAT = "{\"layers\":[{\"block\":\"minecraft:bedrock\",\"height\":1},"
+        + "{\"block\":\"minecraft:stone\",\"height\":100},{\"block\":\"minecraft:dirt\",\"height\":3},"
+        + "{\"block\":\"minecraft:grass_block\",\"height\":1}],\"biome\":\"minecraft:plains\"}";
+
+    /**
+     * The test world's land (see {@link HarnessParams#WORLD}): the preset's own, or for {@code deep} the flat preset's
+     * with deep ground under it (the classic flat world is only four blocks deep: no room for a crater, or for most of a
+     * buried moon).
+     */
+    private static WorldDimensions world(HolderLookup.Provider access, WorldDimensions preset) {
+        if (!"deep".equals(HarnessParams.WORLD)) {
+            return preset;
+        }
+        FlatLevelGeneratorSettings deep = FlatLevelGeneratorSettings.CODEC
+            .parse(RegistryOps.create(JsonOps.INSTANCE, access), JsonParser.parseString(DEEP_FLAT))
+            .result().orElseThrow(() -> new IllegalStateException("the deep flat world's settings don't parse"));
+        return preset.replaceOverworldGenerator(access, new FlatLevelSource(deep));
     }
 
     private static void deleteRecursive(Path path) throws IOException {
