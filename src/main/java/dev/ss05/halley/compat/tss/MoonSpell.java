@@ -1,6 +1,7 @@
 package dev.ss05.halley.compat.tss;
 
 import cyou.rimuru.shootingstardemo.spell.ActiveSpell;
+import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.world.MoonStrike;
@@ -14,10 +15,11 @@ import net.minecraft.world.phys.Vec3;
 public final class MoonSpell extends ActiveSpell {
     private final MoonStrike strike;
 
-    public MoonSpell(ServerPlayer caster, Vec3 target, long seed, MoonParams params) {
-        super(TssLink.MOON, caster, caster.position(), target, seed, false);
+    /** {@code tuning} is the remote's sliders: the spell engine runs this spell (and every client its film) at its speed. */
+    public MoonSpell(ServerPlayer caster, Vec3 target, long seed, MoonParams params, CastTuning tuning) {
+        super(TssLink.MOON, caster, caster.position(), target, seed, false, TssLink.tuning(tuning));
         MoonPlan plan = new MoonPlan(this.origin, this.target, seed, params);
-        this.strike = new MoonStrike(this.level, plan, caster);
+        this.strike = new MoonStrike(this.level, plan, caster, tuning);
     }
 
     @Override

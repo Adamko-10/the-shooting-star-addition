@@ -1,6 +1,7 @@
 package dev.ss05.halley.compat.tss;
 
 import cyou.rimuru.shootingstardemo.spell.ActiveSpell;
+import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.HalleyPlan;
 import dev.ss05.halley.world.HalleyStrike;
@@ -14,10 +15,11 @@ import net.minecraft.world.phys.Vec3;
 public final class HalleySpell extends ActiveSpell {
     private final HalleyStrike strike;
 
-    public HalleySpell(ServerPlayer caster, Vec3 target, long seed, HalleyParams params) {
-        super(TssLink.SKILL, caster, caster.position(), target, seed, false);
+    /** {@code tuning} is the remote's sliders: the spell engine runs this spell (and every client its film) at its speed. */
+    public HalleySpell(ServerPlayer caster, Vec3 target, long seed, HalleyParams params, CastTuning tuning) {
+        super(TssLink.SKILL, caster, caster.position(), target, seed, false, TssLink.tuning(tuning));
         HalleyPlan plan = new HalleyPlan(this.origin, this.target, caster.getYRot(), seed, params);
-        this.strike = new HalleyStrike(this.level, plan, caster);
+        this.strike = new HalleyStrike(this.level, plan, caster, tuning);
     }
 
     @Override
