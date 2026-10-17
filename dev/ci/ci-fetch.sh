@@ -9,10 +9,10 @@ rel=$(gh api "repos/$repo/releases?per_page=100" --jq "[.[] | select(.draft and 
 if [ -n "$want" ]; then
   rel=$(gh api "repos/$repo/releases?per_page=100" --jq "[.[] | select(.draft and .tag_name == \"$prefix$want\")] | .[0]")
 fi
-tag=$(echo "$rel" | python -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])')
+tag=$(echo "$rel" | python -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])' | tr -d '\r')
 dir=${CI_RESULTS:-$HOME/.tssa-ci/results}/${tag#ci-}
 mkdir -p "$dir"
-echo "$rel" | python -c 'import json,sys; [print(a["id"], a["name"]) for a in json.load(sys.stdin)["assets"]]' | while read -r id name; do
+echo "$rel" | python -c 'import json,sys; [print(a["id"], a["name"]) for a in json.load(sys.stdin)["assets"]]' | tr -d '\r' | while read -r id name; do
   curl -sSL -H "Authorization: Bearer $(gh auth token 2>/dev/null || true)" -H 'Accept: application/octet-stream' \
     -o "$dir/$name" "https://api.github.com/repos/$repo/releases/assets/$id" || gh api -H 'Accept: application/octet-stream' "repos/$repo/releases/assets/$id" > "$dir/$name"
 done
