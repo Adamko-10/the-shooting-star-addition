@@ -5,8 +5,12 @@ import cyou.rimuru.shootingstardemo.mc1201.client.fx.CastTitles;
 import cyou.rimuru.shootingstardemo.mc1201.client.fx.FxManager;
 import cyou.rimuru.shootingstardemo.mc1201.client.fx.Overlay;
 import cyou.rimuru.shootingstardemo.mc1201.client.fx.SpellFx;
+import cyou.rimuru.shootingstardemo.mc1201.client.magic.SkillKeys;
+import cyou.rimuru.shootingstardemo.mc1201.client.magic.WhiteSpace;
+import cyou.rimuru.shootingstardemo.mc1201.magic.Skill;
 import cyou.rimuru.shootingstardemo.mc1201.net.Network;
 import cyou.rimuru.shootingstardemo.mc1201.net.SpellFxPayload;
+import cyou.rimuru.shootingstardemo.mc1201.registry.ModSkills;
 import cyou.rimuru.shootingstardemo.mc1201.star.StarSkill;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.HalleyFx;
@@ -15,7 +19,10 @@ import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.MoonHud;
 import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.compat.tss.TssLink;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.function.Consumer;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 
@@ -144,5 +151,45 @@ public final class StarClientBridge {
             }
         }
         return useMoon ? MoonFx.remoteClockFor(id, partial) : HalleyFx.remoteClockFor(id, partial);
+    }
+
+    /** WhiteSpace's static Skill field: the skill whose key is being rebound in the menu, or null. Found by its type. */
+    private static Field binding;
+    private static boolean bindingLooked;
+
+    /**
+     * Whether the remote's menu has a use for this key right now (from compat/mixin, before the addon's plate takes M
+     * or C): a skill's key is being rebound, or it is the menu's, the films' or a skill's own key. When unsure, yes.
+     */
+    public static boolean menuUses(int key, int scancode) {
+        try {
+            if (!bindingLooked) {
+                bindingLooked = true;
+                for (Field field : WhiteSpace.class.getDeclaredFields()) {
+                    if (Modifier.isStatic(field.getModifiers()) && field.getType() == Skill.class) {
+                        field.setAccessible(true);
+                        binding = binding == null ? field : null;
+                    }
+                }
+            }
+            if (binding == null || binding.get(null) != null) {
+                return true;
+            }
+            if (matches(SkillKeys.menu, key, scancode) || matches(SkillKeys.cutscenes, key, scancode)) {
+                return true;
+            }
+            for (Skill skill : ModSkills.STELLAR_REMOTE.skills) {
+                if (matches(SkillKeys.of(skill), key, scancode)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Throwable unsure) {
+            return true;
+        }
+    }
+
+    private static boolean matches(KeyMapping mapping, int key, int scancode) {
+        return mapping != null && mapping.matches(key, scancode);
     }
 }
