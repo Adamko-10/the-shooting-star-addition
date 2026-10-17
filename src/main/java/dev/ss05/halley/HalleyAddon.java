@@ -6,8 +6,10 @@ import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.content.HalleyContent;
 import dev.ss05.halley.net.AddonNetwork;
+import dev.ss05.halley.world.MoonStrike;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -47,6 +49,8 @@ public final class HalleyAddon implements ModInitializer {
             HalleyConfig.SPEC.load();
             StarBridge.install();
         });
+        ServerTickEvents.END_SERVER_TICK.register(server -> MoonStrike.tickLingering());
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> MoonStrike.clearLingering());
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             warnIfDetached(handler.player);
             AddonNetwork.sendSettings(handler.player);
