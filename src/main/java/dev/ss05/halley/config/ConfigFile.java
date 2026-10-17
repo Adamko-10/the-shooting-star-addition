@@ -102,7 +102,8 @@ public final class ConfigFile {
         }
     }
 
-    private void save() {
+    /** Writes the file back with its current values (e.g. after {@link Value#set}). */
+    public void save() {
         Path path = this.path();
         try {
             Files.createDirectories(path.getParent());
@@ -197,6 +198,11 @@ public final class ConfigFile {
 
         public T get() {
             return this.value;
+        }
+
+        /** Changes the value in memory; call {@link ConfigFile#save()} to write it back. */
+        public void set(T value) {
+            this.value = value;
         }
 
         void reset() {

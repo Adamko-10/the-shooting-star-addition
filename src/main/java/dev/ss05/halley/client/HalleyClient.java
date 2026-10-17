@@ -8,9 +8,12 @@ import dev.ss05.halley.client.render.GlowAtlas;
 import dev.ss05.halley.client.render.ShaderPacks;
 import dev.ss05.halley.client.sky.HalleySky;
 import dev.ss05.halley.compat.StarBridge;
+import dev.ss05.halley.net.ServerSettings;
+import dev.ss05.halley.net.SettingsPayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -23,6 +26,9 @@ public final class HalleyClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         HalleyClientConfig.SPEC.load();
+        // the server's no-cooldown settings, registered here (not AddonNetwork) so nothing client-only loads on a server
+        ClientPlayNetworking.registerGlobalReceiver(SettingsPayload.TYPE, (payload, context) ->
+            context.client().execute(() -> ServerSettings.received(payload.noCooldown(), payload.survival())));
         // the moon sphere first, solid and depth-tested, so the glow drawn after it tests against its depth
         LevelRenderEvents.END_MAIN.register(MoonSphere::renderSolid);
         LevelRenderEvents.END_MAIN.register(CometRenderer::render);
@@ -43,7 +49,10 @@ public final class HalleyClient implements ClientModInitializer {
             MoonRenderer.release();
             MoonSphere.release();
             HalleySky.release();
+            ServerSettings.forget();
         });
+        // once the server has said what it allows, tell it this player's own no-cooldown switch
+        ServerSettings.onReceived = AdditionPanel::sendChoice;
     }
 
     /**

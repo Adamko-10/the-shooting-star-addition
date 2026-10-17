@@ -28,6 +28,7 @@ public final class HalleyConfig {
     private static final ConfigFile.BoolValue FROST_RAYS;
     private static final ConfigFile.BoolValue EVACUATE_CREATIVE;
     private static final ConfigFile.BoolValue NO_COOLDOWN;
+    private static final ConfigFile.BoolValue NO_COOLDOWN_SURVIVAL;
     private static final ConfigFile.IntValue CHUNKS_PER_TICK;
     private static final ConfigFile.DoubleValue MAX_POWER;
     private static final ConfigFile.DoubleValue MAX_DAMAGE;
@@ -71,9 +72,13 @@ public final class HalleyConfig {
 
         b.section("stellar_remote", "The Stellar Remote itself.");
         NO_COOLDOWN = b.define("no_cooldown", false,
-            "Switches off the cooldown of every skill on the Stellar Remote - The Shooting Star's own as well",
-            "as Halley and Luna - for every player: each can be cast again straight away. Be careful with this:",
-            "it lets the most destructive skills be cast back to back. The remote's menu (H) shows whether it is on.");
+            "Lets players switch off the cooldown of every skill on the Stellar Remote - The Shooting Star's own",
+            "as well as Halley and Luna: each can be cast again straight away (Halley and Luna even while one is still",
+            "coming down). Each player turns it on or off for themselves in the remote's menu (H, the C key; on by",
+            "default). Be careful with this: it lets the most destructive skills be cast back to back.");
+        NO_COOLDOWN_SURVIVAL = b.define("no_cooldown_survival", false,
+            "Whether survival (and adventure) mode players may use no_cooldown too. If false, only",
+            "creative and spectator players can.");
         MAX_POWER = b.defineInRange("max_power", 0.0, 0.0, 10.0,
             "The most Power any player can cast a skill with, as a multiple of that skill's default power",
             "(for Halley and Luna, 1 is their configured size above and 10 is the slider's end). Every skill on the remote,",
@@ -115,11 +120,16 @@ public final class HalleyConfig {
     }
 
     /**
-     * Whether the Stellar Remote's cooldowns are off ({@code no_cooldown}), for every skill on it; false until the config
-     * has loaded.
+     * Whether players may switch the Stellar Remote's cooldowns off ({@code no_cooldown}); false until the config has
+     * loaded. Who may, and whether they have, is {@link NoCooldown}'s.
      */
     public static boolean noCooldown() {
         return SPEC.isLoaded() && NO_COOLDOWN.get();
+    }
+
+    /** Whether survival players may use {@code no_cooldown} too ({@code no_cooldown_survival}). */
+    public static boolean noCooldownSurvival() {
+        return SPEC.isLoaded() && NO_COOLDOWN_SURVIVAL.get();
     }
 
     /**
