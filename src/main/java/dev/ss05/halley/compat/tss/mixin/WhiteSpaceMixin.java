@@ -4,6 +4,7 @@ import cyou.rimuru.shootingstardemo.client.magic.WhiteSpace;
 import dev.ss05.halley.client.AdditionPanel;
 import dev.ss05.halley.compat.tss.client.StarClientBridge;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.KeyEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,10 +26,12 @@ abstract class WhiteSpaceMixin {
         }
     }
 
-    @Inject(method = "key(III)V", at = @At("HEAD"), cancellable = true, require = 0, remap = false)
-    private static void ss05halley$panelKey(int key, int scancode, int action, CallbackInfo ci) {
-        // a press (not a release or a repeat), not while a skill's key is being rebound, and not one of the remote's own
-        if (action == 1 && WhiteSpace.capturesInput() && !StarClientBridge.menuUses(key, scancode) && AdditionPanel.key(key)) {
+    // Minecraft 1.21.11's key(KeyEvent)V replaces the old key(III)V (press, release and repeat are separate methods
+    // now; this one is presses only, like the old action == 1 check was).
+    @Inject(method = "key(Lnet/minecraft/client/input/KeyEvent;)V", at = @At("HEAD"), cancellable = true, require = 0, remap = false)
+    private static void ss05halley$panelKey(KeyEvent event, CallbackInfo ci) {
+        // not while a skill's key is being rebound, and not one of the remote's own
+        if (WhiteSpace.capturesInput() && !StarClientBridge.menuUses(event.key(), event.scancode()) && AdditionPanel.key(event.key())) {
             ci.cancel();
         }
     }
