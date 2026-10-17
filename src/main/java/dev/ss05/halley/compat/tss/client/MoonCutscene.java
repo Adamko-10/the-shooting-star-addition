@@ -4,6 +4,7 @@ import cyou.rimuru.shootingstardemo.mc1201.client.cinematic.CameraPose;
 import cyou.rimuru.shootingstardemo.mc1201.client.cinematic.Cutscene;
 import cyou.rimuru.shootingstardemo.mc1201.client.cinematic.Shot;
 import cyou.rimuru.shootingstardemo.mc1201.client.cinematic.Subject;
+import dev.ss05.halley.client.film.FilmLand;
 import dev.ss05.halley.client.film.MoonStoryboard;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.compat.tss.TssLink;
@@ -33,6 +34,11 @@ final class MoonCutscene {
             @Override
             public float time(float partial) {
                 return fx.time(partial);
+            }
+
+            @Override
+            public Vec3 keep(Vec3 pos, Vec3 home) {
+                return FilmLand.keep(pos, home);
             }
         };
 

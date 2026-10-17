@@ -118,9 +118,11 @@ public final class MoonFx {
     private final float pitch;
     private final RandomSource random;
     private final List<SoundInstance> filmSounds = new ArrayList<>();
-    private SoundInstance music;
+    private Music music;
     private final List<Later> later = new ArrayList<>();
     private final float particles;
+    /** How fast this tick's particles move, as a share of their usual speed (slower in the film's slow motion). */
+    private double particleRate = 1.0;
     private boolean filmed;
     private boolean removed;
     private int age;
@@ -201,9 +203,71 @@ public final class MoonFx {
         return this.handoverAt;
     }
 
-    /** The timeline now: ticks since the button, the partial tick in, at the remote's speed (see {@link Host#clock}). */
+    /**
+     * The timeline as it is shown: ticks since the button, the partial tick in, at the remote's speed (see
+     * {@link Host#clock}) - and, in the film, slowed down over the impact ({@link #slowLag}; as much as the film is
+     * showing, so leaving it never jumps).
+     */
     public float time(float partial) {
+        float t = this.host.clock(partial);
+        float film = this.host.filmWeight();
+        return film <= 0.0F || t <= MoonPlan.CONTACT ? t : (float) (t - slowLag(t - MoonPlan.CONTACT) * film);
+    }
+
+    /** The strike's own clock, never slowed (what the server, the sounds and the music follow). */
+    public float realTime(float partial) {
         return this.host.clock(partial);
+    }
+
+    // ---- The impact in slow motion (the film only). ------------------------------------------------------------------
+
+    /** The slowest the film runs over the impact, as a share of real time. */
+    private static final double SLOWEST = 0.2;
+    /** Ticks after CONTACT: easing into the slow motion, holding it, easing out of it, and caught up again. */
+    private static final double SLOW_IN = 4.0;
+    private static final double SLOW_HOLD = 34.0;
+    private static final double SLOW_OUT = 46.0;
+    private static final double SLOW_END = 130.0;
+
+    /**
+     * How many ticks the film's shown time lags the strike's own, {@code u} ticks after CONTACT: the impact plays at a
+     * fifth of its speed for about two seconds, then the film runs a little fast (at most about 1.5x) until it has caught
+     * up, by {@link #SLOW_END}. Exactly 0 before the impact (the music's drop lands on it) and after.
+     */
+    public static double slowLag(double u) {
+        double k = 1.0 - SLOWEST;
+        if (u <= 0.0 || u >= SLOW_END) {
+            return 0.0;
+        }
+        double hold = k * (SLOW_HOLD - SLOW_IN / 2.0);
+        double out = hold + k * (SLOW_OUT - SLOW_HOLD) / 2.0;
+        if (u <= SLOW_IN) {
+            return k * SLOW_IN * eased(u / SLOW_IN);
+        }
+        if (u <= SLOW_HOLD) {
+            return k * (u - SLOW_IN / 2.0);
+        }
+        if (u <= SLOW_OUT) {
+            double span = SLOW_OUT - SLOW_HOLD;
+            return hold + k * ((u - SLOW_HOLD) - span * eased((u - SLOW_HOLD) / span));
+        }
+        double x = (u - SLOW_OUT) / (SLOW_END - SLOW_OUT);
+        return out * (1.0 - x * x * (3.0 - 2.0 * x));
+    }
+
+    /** The integral of smoothstep from 0 to {@code x} (0..1). */
+    private static double eased(double x) {
+        return x * x * x - x * x * x * x / 2.0;
+    }
+
+    /** How fast the film runs at strike time {@code t}, as a share of real time (1 outside the slow motion). */
+    public float filmRate(double t) {
+        float film = this.host.filmWeight();
+        if (film <= 0.0F || t <= MoonPlan.CONTACT) {
+            return 1.0F;
+        }
+        double u = t - MoonPlan.CONTACT;
+        return (float) (1.0 - (slowLag(u + 0.5) - slowLag(u - 0.5)) * film);
     }
 
     public boolean inFilm() {
@@ -398,19 +462,72 @@ public final class MoonFx {
     }
 
     /**
-     * Luna's music, from the moment the moon tears loose: cut so that its drop lands on the impact (at the remote's speed
-     * slider too, as its pitch follows the film's). Heard by the caster and whoever is near enough to see it come down,
-     * under the game's Music volume; the game's own background music makes way for it.
+     * Luna's music, from the moment the moon tears loose: cut so that its drop lands on the impact, sixteen seconds on
+     * (at the remote's speed slider too, as its pitch follows the film's). Heard by the caster and whoever is near enough
+     * to see it come down, unless they have switched it off in the remote's menu (M); it plays at the game's master
+     * volume, so it is there even with the Music slider down, and the game's own background music makes way for it.
      */
     private void music(boolean film, Vec3 camera) {
-        if (this.music != null || !film && camera.distanceTo(this.plan.target) > MUSIC_RANGE) {
+        if (this.music != null || !HalleyClientConfig.lunaMusic() || !film && camera.distanceTo(this.plan.target) > MUSIC_RANGE) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
         minecraft.getMusicManager().stopPlaying();
-        this.music = new SimpleSoundInstance(HalleyAddon.id("luna_music"), SoundSource.MUSIC, 1.0F, this.pitch,
-            SoundInstance.createUnseededRandom(), false, 0, SoundInstance.Attenuation.NONE, 0.0, 0.0, 0.0, true);
+        this.music = new Music();
         minecraft.getSoundManager().play(this.music);
+    }
+
+    /**
+     * Luna's music as it plays, kept in step with the strike: the game's clock and the sound card's drift apart
+     * (a slow frame, a stutter while land loads), so every tick it compares how much of the track has played with how
+     * far the moon has fallen and nudges its speed by up to 5% until they agree again - the drop always lands on the
+     * impact.
+     */
+    private final class Music extends AbstractTickableSoundInstance {
+        /** The track's own pitch: the remote's speed slider, as far as the game lets a sound go. */
+        private final float base;
+        private long last;
+        /** Seconds of the track played so far. */
+        private double played;
+        private boolean started;
+
+        Music() {
+            super(SoundEvent.createVariableRangeEvent(HalleyAddon.id("luna_music")), SoundSource.MASTER, SoundInstance.createUnseededRandom());
+            this.base = MoonFx.this.pitch;
+            this.volume = 0.85F;
+            this.pitch = this.base;
+            this.relative = true;
+            this.attenuation = SoundInstance.Attenuation.NONE;
+            this.looping = false;
+        }
+
+        @Override
+        public void tick() {
+            if (MoonFx.this.removed || !HalleyClientConfig.lunaMusic()) {
+                this.stop();
+                return;
+            }
+            long now = System.nanoTime();
+            if (!this.started) {
+                // the track starts once its stream is open (a tick or so after it is asked for)
+                if (Minecraft.getInstance().getSoundManager().isActive(this)) {
+                    this.started = true;
+                    this.last = now;
+                    this.played = Math.max(0.0, (MoonFx.this.realTime(0.0F) - MoonPlan.FALL) / 20.0 - 0.05);
+                }
+                return;
+            }
+            double dt = (now - this.last) / 1.0E9;
+            this.last = now;
+            // a long gap: the game was paused, and the music with it
+            this.played += (dt > 1.0 ? 0.05 : dt) * this.pitch;
+            double want = (MoonFx.this.realTime(0.0F) - MoonPlan.FALL) / 20.0;
+            // at the speed slider's ends the game can't play it fast or slow enough anyway: leave it be
+            if (Math.abs(this.base - MoonFx.this.host.speed()) < 0.01F) {
+                double drift = this.played - want;
+                this.pitch = this.base * (float) (1.0 - Mth.clamp(drift * 0.6, -0.05, 0.05));
+            }
+        }
     }
 
     /** The point of the molten seam nearest the camera (on the ground). */
@@ -439,6 +556,8 @@ public final class MoonFx {
         pitch *= this.pitch;
         SoundInstance instance;
         if (film) {
+            // deep and drawn out while the film runs in slow motion
+            pitch *= Mth.lerp(1.0F - this.filmRate(this.realTime(0.0F)), 1.0F, 0.55F);
             instance = new SimpleSoundInstance(event.getLocation(), SoundSource.PLAYERS, Math.min(1.0F, volume), pitch,
                 SoundInstance.createUnseededRandom(), false, 0, SoundInstance.Attenuation.NONE, 0.0, 0.0, 0.0, true);
             this.filmSounds.add(instance);
@@ -505,6 +624,7 @@ public final class MoonFx {
     // ---- Particles. -----------------------------------------------------------------------------------------------
 
     private void particles(ClientLevel level, int t) {
+        this.particleRate = this.filmRate(t);
         MoonPlan p = this.plan;
         RandomSource r = this.random;
         Vec3 mark = p.target;
@@ -693,8 +813,10 @@ public final class MoonFx {
         return this.random.nextGaussian() * scale;
     }
 
-    private static void particle(ClientLevel level, ParticleOptions options, Vec3 at, double vx, double vy, double vz) {
-        level.addParticle(options, true, at.x, at.y, at.z, vx, vy, vz);
+    private void particle(ClientLevel level, ParticleOptions options, Vec3 at, double vx, double vy, double vz) {
+        // in the film's slow motion they drift out slowly too
+        double rate = this.particleRate;
+        level.addParticle(options, true, at.x, at.y, at.z, vx * rate, vy * rate, vz * rate);
     }
 
     private static DustParticleOptions dust(int rgb, float scale) {
@@ -710,7 +832,7 @@ public final class MoonFx {
                 SkyLook.PALETTE_LUNA);
         }
         MoonPlan p = this.plan;
-        double t = this.time(partial);
+        double t = this.realTime(partial);
         float w = this.skyReach(camera);
         // the sky falls to night exactly like SS-05's, whether it's day or night when the moon is called: full dark
         // by the end of the alarm, holding through the fall and the impact, clearing again in the aftermath
@@ -750,7 +872,9 @@ public final class MoonFx {
     /** Post-processing for this frame: the alarm's vignette pulse, the approach, the impact. */
     public void screen(Screen screen, float partial) {
         MoonPlan p = this.plan;
-        float t = this.time(partial);
+        // on the strike's own clock, even in the film's slow motion: the flash and the shake pass at their own pace and
+        // leave the slowed-down impact to be seen
+        float t = this.realTime(partial);
         boolean film = this.host.filmWeight() > 0.001F;
         Vec3 camera = camera();
 
@@ -830,7 +954,7 @@ public final class MoonFx {
 
     /** Right arm: raised to the sky at the alarm, held up through the fall and the impact, then lowered. */
     public float[] armPose(float partial) {
-        float t = this.time(partial);
+        float t = this.realTime(partial);
         float end = MoonPlan.DURATION;
         float[][] keys = {
             {0.0F, -0.35F}, {MoonPlan.ALARM, -1.3F}, {MoonPlan.ALARM + 12.0F, -2.3F}, {MoonPlan.FALL, -2.25F},
@@ -848,7 +972,7 @@ public final class MoonFx {
 
     /** Maps SS-06's timeline onto the Stellar Remote's 352-tick clock, counting down to the impact at 352. */
     public float remoteClock(float partial) {
-        float t = this.time(partial);
+        float t = this.realTime(partial);
         float contact = MoonPlan.CONTACT;
         float clock = t < MoonPlan.ALARM ? t
             : t < contact ? MoonPlan.ALARM + (t - MoonPlan.ALARM) * (352.0F - MoonPlan.ALARM) / (contact - MoonPlan.ALARM)
