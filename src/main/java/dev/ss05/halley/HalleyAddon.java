@@ -5,6 +5,7 @@ import dev.ss05.halley.client.HalleyClient;
 import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.content.HalleyContent;
+import dev.ss05.halley.net.AddonNetwork;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -14,9 +15,11 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.slf4j.Logger;
 
 /**
@@ -40,6 +43,13 @@ public final class HalleyAddon {
     public HalleyAddon(IEventBus modBus, ModContainer container, Dist dist) {
         container.registerConfig(ModConfig.Type.COMMON, HalleyConfig.SPEC);
         HalleyContent.register(modBus);
+        AddonNetwork.register(modBus);
+        // the no-cooldown settings, to every player whenever the config file changes
+        modBus.addListener(ModConfigEvent.Reloading.class, event -> {
+            if (event.getConfig().getSpec() == HalleyConfig.SPEC && ServerLifecycleHooks.getCurrentServer() != null) {
+                ServerLifecycleHooks.getCurrentServer().execute(() -> AddonNetwork.sendSettingsToAll(ServerLifecycleHooks.getCurrentServer()));
+            }
+        });
 
         // Mods are constructed in parallel. Hooking into The Shooting Star waits until every mod has been
         // constructed (the deferred queue runs on the main thread), but still runs before key bindings are
@@ -57,6 +67,17 @@ public final class HalleyAddon {
         }
 
         NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerLoggedInEvent.class, HalleyAddon::warnIfDetached);
+        NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerLoggedInEvent.class, event -> {
+            if (event.getEntity() instanceof ServerPlayer player) {
+                AddonNetwork.sendSettings(player);
+                NoCooldown.greet(player);
+            }
+        });
+        NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerLoggedOutEvent.class, event -> {
+            if (event.getEntity() instanceof ServerPlayer player) {
+                NoCooldown.forget(player);
+            }
+        });
     }
 
     public static ResourceLocation id(String path) {

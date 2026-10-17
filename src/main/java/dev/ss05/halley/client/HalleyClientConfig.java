@@ -25,6 +25,8 @@ public final class HalleyClientConfig {
     private static final ModConfigSpec.BooleanValue WORLD_FLASHES;
     private static final ModConfigSpec.BooleanValue COMET_MARKER;
     private static final ModConfigSpec.EnumValue<PackMode> SHADER_PACKS;
+    private static final ModConfigSpec.BooleanValue LUNA_MUSIC;
+    private static final ModConfigSpec.BooleanValue NO_COOLDOWN;
 
     static {
         ModConfigSpec.Builder b = new ModConfigSpec.Builder();
@@ -47,6 +49,14 @@ public final class HalleyClientConfig {
                 "AUTO: do that whenever a shader pack is on. ALWAYS: do it all the time. NEVER: don't (with a",
                 "shader pack on, the comet and the sky then won't show).")
             .defineEnum("shader_packs", PackMode.AUTO);
+        b.pop();
+
+        b.comment("Your switches in the Stellar Remote's menu (H). They are saved here when you flip them there.").push("stellar_remote");
+        LUNA_MUSIC = b.comment("Play Luna's music while the moon comes down (M in the remote's menu).")
+            .define("luna_music", true);
+        NO_COOLDOWN = b.comment("Cast without cooldowns where the server allows it (its no_cooldown setting; C in the remote's",
+                "menu). Has no effect on a server that doesn't allow it.")
+            .define("no_cooldown", true);
         b.pop();
         SPEC = b.build();
     }
@@ -72,6 +82,36 @@ public final class HalleyClientConfig {
 
     public static boolean cometMarker() {
         return get(COMET_MARKER);
+    }
+
+    public static boolean lunaMusic() {
+        return get(LUNA_MUSIC);
+    }
+
+    public static void setLunaMusic(boolean on) {
+        set(LUNA_MUSIC, on);
+    }
+
+    /** Your own no-cooldown switch (it only counts where the server allows no-cooldown). */
+    public static boolean noCooldown() {
+        return get(NO_COOLDOWN);
+    }
+
+    public static void setNoCooldown(boolean on) {
+        set(NO_COOLDOWN, on);
+    }
+
+    /** Sets and saves a switch (kept for this session if the config isn't loaded). */
+    private static void set(ModConfigSpec.BooleanValue value, boolean on) {
+        if (!SPEC.isLoaded()) {
+            return;
+        }
+        try {
+            value.set(on);
+            value.save();
+        } catch (IllegalStateException notLoadedYet) {
+            // ignore: it stays at its default
+        }
     }
 
     public static PackMode shaderPacks() {
