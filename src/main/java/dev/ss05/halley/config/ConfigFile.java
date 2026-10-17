@@ -102,7 +102,8 @@ public final class ConfigFile {
         }
     }
 
-    private void save() {
+    /** Writes the file back out (after a value was changed in code, e.g. a switch flipped in the remote's menu). */
+    public synchronized void save() {
         Path path = this.path();
         try {
             Files.createDirectories(path.getParent());
@@ -223,6 +224,11 @@ public final class ConfigFile {
     public static final class BoolValue extends Value<Boolean> {
         BoolValue(String key, boolean fallback, String[] comment) {
             super(key, fallback, comment);
+        }
+
+        /** Sets the value in memory (call the owning {@link ConfigFile#save()} to write it back out). */
+        public void set(boolean value) {
+            this.value = value;
         }
 
         @Override

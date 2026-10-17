@@ -12,6 +12,8 @@ import dev.ss05.halley.client.render.ShaderPacks;
 import dev.ss05.halley.client.render.WorldFrame;
 import dev.ss05.halley.client.sky.HalleySky;
 import dev.ss05.halley.compat.StarBridge;
+import dev.ss05.halley.net.AddonNetwork;
+import dev.ss05.halley.net.ServerSettings;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -32,6 +34,7 @@ public final class HalleyClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         HalleyClientConfig.SPEC.load();
+        AddonNetwork.registerClient();
         CoreShaderRegistrationCallback.EVENT.register(context -> {
             try {
                 context.register(HalleyAddon.id("halley_glow"), DefaultVertexFormat.POSITION_TEX_COLOR, HalleyRenderTypes::setShader);
@@ -63,7 +66,10 @@ public final class HalleyClient implements ClientModInitializer {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
+            ServerSettings.forget();
         });
+        // once the server has said what it allows, tell it this player's own no-cooldown switch
+        ServerSettings.onReceived = AdditionPanel::sendChoice;
     }
 
     private static WorldFrame frame(WorldRenderContext context) {

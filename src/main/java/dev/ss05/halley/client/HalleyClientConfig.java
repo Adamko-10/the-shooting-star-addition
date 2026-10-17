@@ -27,6 +27,8 @@ public final class HalleyClientConfig {
     private static final ConfigFile.BoolValue WORLD_FLASHES;
     private static final ConfigFile.BoolValue COMET_MARKER;
     private static final ConfigFile.EnumValue<PackMode> SHADER_PACKS;
+    private static final ConfigFile.BoolValue LUNA_MUSIC;
+    private static final ConfigFile.BoolValue NO_COOLDOWN;
 
     static {
         ConfigFile b = SPEC;
@@ -45,6 +47,12 @@ public final class HalleyClientConfig {
             "Halley paints its comet and sky onto textures first and draws those the way the pack expects.",
             "AUTO: do that whenever a shader pack is on. ALWAYS: do it all the time. NEVER: don't (with a",
             "shader pack on, the comet and the sky then won't show).");
+
+        b.section("stellar_remote", "Your switches in the Stellar Remote's menu (H). They are saved here when you flip them there.");
+        LUNA_MUSIC = b.define("luna_music", true, "Play Luna's music while the moon comes down (M in the remote's menu).");
+        NO_COOLDOWN = b.define("no_cooldown", true,
+            "Cast without cooldowns where the server allows it (its no_cooldown setting; C in the remote's",
+            "menu). Has no effect on a server that doesn't allow it.");
     }
 
     private HalleyClientConfig() {
@@ -68,6 +76,29 @@ public final class HalleyClientConfig {
 
     public static boolean cometMarker() {
         return COMET_MARKER.get();
+    }
+
+    public static boolean lunaMusic() {
+        return LUNA_MUSIC.get();
+    }
+
+    public static void setLunaMusic(boolean on) {
+        set(LUNA_MUSIC, on);
+    }
+
+    /** Your own no-cooldown switch (it only counts where the server allows no-cooldown). */
+    public static boolean noCooldown() {
+        return NO_COOLDOWN.get();
+    }
+
+    public static void setNoCooldown(boolean on) {
+        set(NO_COOLDOWN, on);
+    }
+
+    /** Sets and saves a switch (kept for this session if the config isn't loaded yet). */
+    private static void set(ConfigFile.BoolValue value, boolean on) {
+        value.set(on);
+        SPEC.save();
     }
 
     public static PackMode shaderPacks() {
