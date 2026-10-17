@@ -16,22 +16,33 @@ Times are ticks since the button (`MoonPlan`).
 3. **BREAK (45-85):** the moon, *exactly where the vanilla moon hangs in the sky* (same direction, same apparent
    size), shudders. Glowing molten seams crack open across it (`luna_crack`). The vanilla moon is hidden from here on
    (it is replaced by ours).
-4. **FALL (85-340):** it leaves its place and comes down a straight line onto the mark, slow at first and then
-   faster and faster (`MoonPlan.fall`, ease 2.6), slowly turning, growing until it fills the sky. A long rising roar
-   (`luna_fall`). The ground starts to rumble (camera shake grows). Fragments break off and stream behind it.
-5. **ENTRY (260-340):** it hits the atmosphere: a burning orange-white shroud and a bow shock on its leading face,
+4. **FALL (85-405):** it leaves its place and comes down a straight line onto the mark, slow at first and then
+   faster and faster (`MoonPlan.fall`, ease 2.6), slowly turning, growing until it fills the sky (steadily: drawn at
+   no more than its true size, `MoonSphere.placement`), its leading face heating up. A long rising roar
+   (`luna_fall`) and Luna's music (`luna_music`, its drop on CONTACT, 16 s on). The ground starts to rumble (camera
+   shake grows). Fragments break off and stream behind it.
+5. **ENTRY (305-405):** it hits the atmosphere: a burning orange-white shroud and a bow shock on its leading face,
    flames streaming back up its path, the whole sky lit orange (`luna_entry`).
-6. **CONTACT (340):** its lowest point touches the mark. White flash, impact frames, huge camera shake, a shock
+6. **CONTACT (405):** its lowest point touches the mark. White flash, impact frames, huge camera shake, a shock
    ring racing out along the ground, jets of fire squirting out from under it, a dome of dust, rock and cheese chunks
    thrown out on long arcs, `luna_impact`. The server erases everything in the impact zone, blasts what is beyond it
    and digs the crater.
-7. **SETTLE (340-410):** it drives on down into the crater and comes to rest, most of it buried (`luna_settle`),
+7. **SETTLE (405-475):** it drives on down into the crater and comes to rest, most of it buried (`luna_settle`),
    while the crust buckles up against it and the crater's rim heaves up and cracks race out across the land. The
    server builds the moon out of **moon cheese**, with **one block of molten moon cheese** at its very centre.
-8. **AFTERMATH (410-680):** dust hangs and drifts, debris rains down (`luna_debris`), smoke rises off the burning
+8. **AFTERMATH (475-745):** dust hangs and drifts, debris rains down (`luna_debris`), smoke rises off the burning
    crater floor, the molten seam round the moon cools from white to dull red, the sky slowly returns to night.
 
-The caster gets a cutscene (like Halley's), skippable with the remote's cutscene key. Everyone else watches it live.
+The caster gets a cutscene (like Halley's), skippable with the remote's cutscene key; it ends at SETTLE + 95. Over
+the impact it runs in slow motion (`MoonFx.slowLag`: a fifth of the speed for about two seconds, caught up by
+CONTACT + 130; the strike itself, the music and the screen effects keep real time). Everyone else watches it live.
+
+**Music** (`luna_music.ogg`, a `sounds.json` entry, no registered SoundEvent): the user's track, cut 11.75 s in and
+stretched to 0.797 of its speed (`atempo`, same pitch) so its drop lands on CONTACT, 16.0 s after FALL. `MoonFx.Music`
+starts it at FALL at master volume (heard with the Music slider down; each player's `luna_music` switch, **M** in the
+remote's menu), pitched with the speed slider, and nudges its speed by up to 5% every tick to stay in step with the
+strike's clock. If the timeline changes, re-cut it: `ffmpeg -ss 11.75 -i <source> -af "atempo=<12.75 / new fall
+seconds>,afade=..." -c:a libvorbis -q:a 5 luna_music.ogg` (or stretch the current file by old fall / new fall).
 
 ## Rules
 
@@ -40,7 +51,7 @@ The caster gets a cutscene (like Halley's), skippable with the remote's cutscene
   look; under shader packs the sky clock is wound on). By day the moon starts where the sun is
   (`skyDirection(timeOfDay + 0.5)`). In dimensions with fixed time
   (Nether/End) it refuses ("there is no moon here").
-- One moonfall per caster at a time; cooldown 120 s (config).
+- One moonfall per caster at a time (unless no-cooldown applies to them, `NoCooldown`); cooldown 120 s (config).
 - The mark is placed the way the remote's other skills aim (`StarBridge.aimGround`).
 - **The remote's sliders** (power, damage, speed; `CastTuning`, the same three The Shooting Star's own skills have):
   power (0.1-10) scales `moon_radius`, `impact_radius` and `rim_height` for that cast (`MoonParams.of(..., scale)`,
@@ -71,8 +82,9 @@ The caster gets a cutscene (like Halley's), skippable with the remote's cutscene
   `blastRadius()` (impact radius × `blast_reach`, 3).
 - Cracks: `MAIN_CRACKS` (16) fissures out of the rim, with branches, out to about the blast radius, and
   `FLOOR_VEINS` (12) shallow veins of molten rock across the crater's floor, along `crackPoint`/`crackHalfWidth`,
-  racing out over `CRACK_TICKS` (26) from CONTACT. The server cuts them (`world/MoonCracks`: magma floor, scorched
-  walls, loaded chunks only); the client draws them glowing along the same lines.
+  racing out over `CRACK_TICKS` (26) from CONTACT. The server cuts them (`world/MoonLand`: magma floor, scorched
+  walls; the veins with the crater's floor itself, `world/MoonVeins`); the client draws them glowing along the same
+  lines.
 - Debris: `debrisCount()` (90-160) lumps of moon cheese and crust thrown out, landing 1.05-2.65 impact radii out.
 - Moon at rest: every block whose centre is within `moon_radius` of `restCentre` becomes moon cheese (about one in
   eight holey), and the block `core` (holding `restCentre`) becomes molten moon cheese (if `molten_core`). Blocks
@@ -83,11 +95,18 @@ The caster gets a cutscene (like Halley's), skippable with the remote's cutscene
 - ALARM: action-bar alert to players in range; EVAC: lift a creative caster out of the crater (like Halley).
 - CONTACT: erase living things within `eraseRadius()` (`StarBridge.erase`), hurt/throw/set on fire things out to
   `blastRadius()`; dig the crater (`crater`/`craterSurface`), a few chunks per tick (`chunks_per_tick`), nearest the
-  mark first, via The Shooting Star's fast carver/painter (`StarBridge.excavate` / `StarBridge.paint`). Once it is
-  dug, the rim and the slabs heave up (`world/MoonRim`) and the cracks run out (`world/MoonCracks`).
-- SETTLE: build the moon (`world/MoonBuild`), once the crater is dug. When everything is cut and built, the debris
-  is left where the client saw it land (`scatterDebris`).
-- If the spell is cut short, finish the build at once (like Halley's `end()`).
+  mark first, via The Shooting Star's fast carver/painter (`StarBridge.excavate` / `StarBridge.paint`), in two parts:
+  round the moon, out past the slabs (`coreRadius`), loaded as it is cut (`Excavation.Loader`, radius-0 tickets); the
+  rest of the floor, out to the rim's inner wall, only where land is loaded (a lazy carving, handed to The Shooting
+  Star's lingering carvings at the end, so it finishes as land loads). Once the part round the moon is dug, the rim
+  (its inner wall cut down to the floor first), the slabs, the cracks and the debris are done chunk by chunk
+  (`world/MoonLand`): animated where loaded, the other chunks in one go as they load, after the strike
+  (`MoonLand.tickLingering`, every server tick). No land is ever loaded or generated for anything outside the moon's
+  own crater.
+- SETTLE: build the moon (`world/MoonBuild`), once the crater round it is dug: each column as two height ranges (its
+  shell first), waiting for chunks through the loader rather than loading them on the spot.
+- If the spell is cut short, finish the crater round the moon and the moon at once (like Halley's `end()`); the rest
+  lingers.
 - `carve_terrain = false`: no blocks change, creatures still get hit.
 
 ## Moon cheese
@@ -125,7 +144,8 @@ surface textures for the sky moon: `assets/shooting_star_addition/textures/luna/
 | Casting (night check, aim) | `world/MoonCasting` |
 | What it does to the world | `world/MoonStrike` |
 | Remote entry, spell | `compat/tss/MoonSkill`, `compat/tss/MoonSpell`; registered with Halley in `compat/tss/TssLink` |
-| Client effects | `client/luna/` (`MoonFx`, rendering, HUD), `client/film/MoonStoryboard`, `compat/tss/client/MoonFxAdapter`, `MoonCutscene` |
+| The rim, slabs, cracks, debris; the floor's veins | `world/MoonLand`, `world/MoonVeins` |
+| Client effects | `client/luna/` (`MoonFx`, rendering, HUD), `client/film/MoonStoryboard` (+ `FilmLand`), `compat/tss/client/MoonFxAdapter`, `MoonCutscene` |
 | Blocks, items, effect, sounds | `content/` |
 
 ## Fabric 1.21.1
