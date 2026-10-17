@@ -451,26 +451,32 @@ public final class HalleyServerTest {
         }
 
         try {
-            // The no-cooldown option: with it on, the next time the remote sends the caster their cooldowns (it does
-            // after every cast) they are all cleared first (compat/tss/mixin/CastingMixin), so Halley is ready again.
-            setNoCooldown(true);
+            // The no-cooldown option (compat/tss/mixin/CastingMixin, NoCooldown): the caster here is in survival, so
+            // no_cooldown alone keeps their cooldown (it is for creative players unless no_cooldown_survival says
+            // otherwise); with both on, the next time the remote sends them their cooldowns they are cleared first.
+            setFlag("NO_COOLDOWN", true);
+            Casting.syncCooldowns(this.caster);
+            int kept = Casting.remaining(this.caster, (Skill) StarBridge.skill(false));
+            this.record("no_cooldown_creative_only_by_default", kept > 0, "remaining=" + kept + " with no_cooldown on, survival off");
+            setFlag("NO_COOLDOWN_SURVIVAL", true);
             Casting.syncCooldowns(this.caster);
             int remaining = Casting.remaining(this.caster, (Skill) StarBridge.skill(false));
-            this.record("no_cooldown_clears_cooldowns", remaining == 0, "remaining=" + remaining + " with no_cooldown on");
+            this.record("no_cooldown_clears_cooldowns", remaining == 0, "remaining=" + remaining + " with no_cooldown and no_cooldown_survival on");
         } catch (Throwable ex) {
             this.record("no_cooldown_clears_cooldowns", false, "threw " + ex);
         } finally {
             try {
-                setNoCooldown(false);
+                setFlag("NO_COOLDOWN", false);
+                setFlag("NO_COOLDOWN_SURVIVAL", false);
             } catch (Throwable ignored) {
-                // (only the test's own switch)
+                // (only the test's own switches)
             }
         }
     }
 
-    /** Switches the no-cooldown option on or off for the test (the config file itself keeps it off). */
-    private static void setNoCooldown(boolean on) throws ReflectiveOperationException {
-        Field field = HalleyConfig.class.getDeclaredField("NO_COOLDOWN");
+    /** Switches one of HalleyConfig's boolean options on or off for the test (the config file itself keeps them off). */
+    private static void setFlag(String name, boolean on) throws ReflectiveOperationException {
+        Field field = HalleyConfig.class.getDeclaredField(name);
         field.setAccessible(true);
         ((net.minecraftforge.common.ForgeConfigSpec.BooleanValue) field.get(null)).set(on);
     }
