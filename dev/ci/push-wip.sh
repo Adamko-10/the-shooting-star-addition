@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# push-wip.sh <branch>: pushes the local branch <branch> plus one commit with the CI files on top to wip/<branch>.
+# push-wip.sh <branch> [local ref]: pushes the local branch <branch> (or [local ref]) plus one commit with the CI files on top to wip/<branch>.
 # The local branch itself is left untouched.
 set -euo pipefail
 b="$1"
@@ -7,7 +7,7 @@ b="$1"
 ci="$(cd "$(dirname "$0")" && pwd)"
 cd "$ci"
 cd "$(git rev-parse --show-toplevel)"
-base=$(git rev-parse "refs/heads/$b")
+base=$(git rev-parse "refs/heads/${2:-$b}")
 idx=$(mktemp)
 export GIT_INDEX_FILE="$idx"
 git read-tree "$base"
