@@ -1,7 +1,9 @@
-# CLAUDE.md: The Shooting Star Addition
+# CLAUDE.md
 
-Handoff notes for whoever (human or Claude) works on this next. Written 2026-10-14 at the end of the 1.4.0 work,
-updated 2026-10-16 for 1.5.0 (§12).
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+**The Shooting Star Addition** - handoff notes for whoever (human or Claude) works on this next. Written 2026-10-14 at
+the end of the 1.4.0 work, updated 2026-10-17 for 1.5.0 (§12; status in §9).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
@@ -46,19 +48,23 @@ codenames; players see SA-01/SA-02). GitHub `Adamko-10/the-shooting-star-additio
 
 ## 2. Branches
 
-All branches live in **one** git repository. The original session used one worktree per branch
-(`/home/claude/tssa/<branch>`, with `forge-1.20.1` in the main checkout). **Never use `git stash` with worktrees**: the
-stash stack is shared by all of them and pops land on the wrong branch.
+All branches live in **one** git repository, one worktree per branch. On the user's PC they are under
+`C:\Users\HamzaTom\Desktop\Dont Touch\software files\shooting star adon with adam\`: `tssa-main` (main),
+`tssa-forge1211`, `the-shooting-star-addition-main` (forge-1.20.1; the main checkout, `.git` lives there), `tssa-fabric`
+(fabric-26.3), `tssa-fabric12111`, `tssa-fabric1211-next` (local branch `fabric-1.21.1-next` tracking
+`origin/fabric-1.21.1`: push it with `git push origin fabric-1.21.1-next:fabric-1.21.1`), `tssa-fabric1201`. Leave
+`tssa-fabric1211` alone: it holds the user's old uncommitted 1.3.0-era edits on the local `fabric-1.21.1` branch.
+**Never use `git stash` with worktrees**: the stash stack is shared by all of them and pops land on the wrong branch.
 
 | Branch | Loader / MC | TSS package prefix | Release tag | Jar label |
 |---|---|---|---|---|
-| `main` | NeoForge 1.21.1 | `cyou.rimuru.shootingstardemo.mc1211.` | `v1.4.0` | `[NeoForge 1.21.1]` |
-| `forge-1.21.1` | Forge 1.21.1 | `…mc1211.` | `v1.4.0+forge-1.21.1` | `[Forge 1.21.1]` |
-| `forge-1.20.1` | Forge 1.20.1 (also NeoForge 1.20.1) | `…mc1201.` | `v1.4.0+1.20.1` | `[Forge 1.20.1]` |
-| `fabric-26.3` | Fabric 26.3 | `cyou.rimuru.shootingstardemo.` (none) | `v1.4.0+fabric-26.3` | `[Fabric 26.3]` |
-| `fabric-1.21.11` | Fabric 1.21.11 | none | `v1.4.0+fabric-1.21.11` | `[Fabric 1.21.11]` |
-| `fabric-1.21.1` | Fabric 1.21.1 | none | `v1.4.0+fabric-1.21.1` | `[Fabric 1.21.1]` |
-| `fabric-1.20.1` | Fabric 1.20.1 | none | `v1.4.0+fabric-1.20.1` | `[Fabric 1.20.1]` |
+| `main` | NeoForge 1.21.1 | `cyou.rimuru.shootingstardemo.mc1211.` | `v<ver>` | `[NeoForge 1.21.1]` |
+| `forge-1.21.1` | Forge 1.21.1 | `…mc1211.` | `v<ver>+forge-1.21.1` | `[Forge 1.21.1]` |
+| `forge-1.20.1` | Forge 1.20.1 (also NeoForge 1.20.1) | `…mc1201.` | `v<ver>+1.20.1` | `[Forge 1.20.1]` |
+| `fabric-26.3` | Fabric 26.3 | `cyou.rimuru.shootingstardemo.` (none) | `v<ver>+fabric-26.3` | `[Fabric 26.3]` |
+| `fabric-1.21.11` | Fabric 1.21.11 | none | `v<ver>+fabric-1.21.11` | `[Fabric 1.21.11]` |
+| `fabric-1.21.1` | Fabric 1.21.1 | none | `v<ver>+fabric-1.21.1` | `[Fabric 1.21.1]` |
+| `fabric-1.20.1` | Fabric 1.20.1 | none | `v<ver>+fabric-1.20.1` | `[Fabric 1.20.1]` |
 
 Differences between branches you will hit when porting:
 
@@ -70,18 +76,27 @@ Differences between branches you will hit when porting:
   Fabric holds the objects directly (`HalleyContent.MOON_SIZZLE`).
 - **26.3 and 1.21.11** world code: chunk tickets are `addTicketWithRadius(TICKET, pos, r)` / `removeTicketWithRadius`,
   `TicketType TICKET = HalleyContent.CHUNKS` (registered), `player.level()`, jspecify `@Nullable`, `Identifier` instead
-  of `ResourceLocation` in places. Their client-test harness uses a `finalTicks`/`pendingShot` variant.
+  of `ResourceLocation` in places. Their client-test harness uses a `finalTicks`/`pendingShot` variant. Moon/comet
+  rendering there is our own pipeline (`client/render/HalleyPipelines`, `DynamicMesh`), not vanilla RenderTypes, so
+  render changes are ported by hand. TSS's menu takes `WhiteSpace.key(KeyEvent)` there (not `key(III)V`). No
+  `DimensionSpecialEffects`: the cloud height is `camera.attributeProbe().getValue(EnvironmentAttributes.CLOUD_HEIGHT,
+  partial)`. 26.3 also: `ChunkPos` is a record (`x()`, `pack()`), `net.minecraft.util.Util`,
+  `player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)`.
 - **26.3 keys**: Minecraft 26.3 uses SDL scancodes; TSS translates GLFW codes. Vanilla 26.3 binds *Friends* to **O**,
   so Halley's default key there is **G** (71); everywhere else it is **O** (79). Luna is **N** (78) everywhere. TSS's own
   keys: menu **H**, cutscenes **J**, skills **U, I, K, Y**.
 - **1.20.1 tags**: Forge 1.20.1 uses `data/forge/tags/blocks|items/...`; Fabric 1.20.1 `data/c/tags/blocks|items/`
   with the old flat names (`c:tungsten_blocks`); the 1.21 branches `data/c/tags/block|item/storage_blocks/tungsten.json`.
-- `forge-1.20.1` carries the server test (`src/servertest`, 69 checks); every branch carries the client-test harness
+- `forge-1.20.1` carries the server test (`src/servertest`, 70 checks); every branch carries the client-test harness
   (`src/clienttest`).
+- **Networking** (`net/`, since 1.5.0) is per loader: NeoForge `RegisterPayloadHandlersEvent`, Forge 1.21.1
+  `ChannelBuilder`/`SimpleChannel`, Forge 1.20.1 `NetworkRegistry.newSimpleChannel`, Fabric `PayloadTypeRegistry` +
+  `Server/ClientPlayNetworking` (Fabric 1.20.1: the old byte-buf API). The Fabric branches' `config/ConfigFile` gained
+  `set`/public `save()` for the client switches.
 
 ## 3. Porting a change to every branch
 
-1. Make and commit the change on `main` (compile locally if you can: `dev/tools/build-main.sh`).
+1. Make and commit the change on `main` and build it (`./gradlew --no-daemon build -x test`, §4).
 2. On each other branch: `git cherry-pick <sha>`. Conflicts are almost always one of:
    - `HalleyConfig.java` → Forge: take main's side with `ModConfigSpec` → `ForgeConfigSpec`; Fabric: keep the branch's
      side and re-apply the change in `ConfigFile` style;
@@ -91,38 +106,56 @@ Differences between branches you will hit when porting:
    - 26.3/1.21.11 ticket and world API lines (keep the branch's side).
    `dev/tools/resolve.py <file> ours|theirs [from=to ...]` resolves all conflict hunks of a file to one side with text
    substitutions.
-3. Compile what you can locally (`dev/tools/compile-263.sh`, `dev/tools/compile-fabric-1.21.1.sh`), then one CI round
-   on all seven branches (§4).
+3. Build each branch in its worktree (§4), then one CI round on all seven branches. A merge that "applied cleanly" can
+   still carry main's API into a branch (NeoForge `.get()`, `getMinBuildHeight()`, `mc1211.` prefixes, `ChunkPos`
+   fields): only the build tells. Sonnet subagents, one per branch, did this well with a written brief; give them the
+   SHAs, the branch's API differences and the hard rules (no stash, no push, never commit libs/).
 
 ## 4. Building and CI
 
-**Local build** (any branch): JDK 21 (and the Gradle wrapper). Put TSS jars in `libs/`, one per supported version (see
-`libs/README.txt`), then `./gradlew build`. The build makes per-version mappings (`./gradlew tssMappings`), compiles
+**Local build** (any branch): `./gradlew --no-daemon build -x test` with `JAVA_HOME` = JDK 21
+(`C:\Program Files\Java\jdk-21.0.11`; NeoForge/Forge) or JDK 25 (`C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot`;
+the Fabric branches, as in CI). Put TSS jars in `libs/`, one per supported version, named
+`the-shooting-star-demo-<ver>-<loader>.jar` and downloaded like CI does
+(`https://www.cursemaven.com/curse/maven/the-shooting-star-demo-1719195/<id>/the-shooting-star-demo-1719195-<id>.jar`,
+ids in `dev/ci/branches/<branch>.sh`). Make the mappings oldest first, each from the previous one:
+`./gradlew tssMappings -PtssJar=1.4.0`, then 1.4.1, 1.4.2, 1.4.3 (a mapping made without the previous version's is
+garbage). The build's `tssPack` step checks every TSS member and mixin target against every version: a "missing"
+there is a real bug. Fabric 1.20.1's Loom sometimes fails once with "Cannot mutate content repository descriptor":
+run again. The `dev/tools/*.sh` scripts are the old container's (`/home/claude/...`), not usable here.
+
+**Local client test** (real GPU, opens a game window): `./gradlew --no-daemon runClientTest -Dss05.clienttest.skill=moon
+-Dss05.clienttest.film=true -Dss05.clienttest.hud=true -Dss05.clienttest.time=6000 -Dss05.clienttest.shots=70,250,395`;
+screenshots land in `run/clienttest/screenshots/` (`run/clienttest/options.txt` sets game options, e.g.
+`renderClouds:"false"`). About 5 minutes; worth it for rendering bugs CI screenshots can't explain.
+
+How the build works: it makes per-version mappings (`./gradlew tssMappings`), compiles
 against a readable copy of the newest jar and packs one mapped copy of `compat/tss/` per version into the release jar
 (README "For developers" explains it in full). The dependency range in the mod metadata comes from the jars in `libs/`.
 
 **CI** (GitHub Actions, only on `wip/*` branches). The CI files are *not* on the real branches; they live in `dev/ci/`:
 
-- `dev/ci/push-wip.sh <branch>` builds a commit = the branch + `dev/ci/common/` + `dev/ci/branches/<branch>.sh` (as
+- `dev/ci/push-wip.sh <branch> [local ref]` (run from any worktree; it uses its own `dev/ci/`) builds a commit = the branch + `dev/ci/common/` + `dev/ci/branches/<branch>.sh` (as
   `.github/ci/branch.sh`) and force-pushes it to `wip/<branch>`. The branch itself is untouched.
 - The workflow downloads TSS jars from CurseForge by file id (`TSS_FILES` in `dev/ci/branches/<branch>.sh`), maps every
   version in `TSS_OBF` (1.4.0 1.4.1 1.4.2 1.4.3), builds, runs the client tests and (forge-1.20.1) the server test, and
   publishes everything as a **draft release** `ci-<branch>-<run>`: `summary.txt` (`ok:`/`FAIL:` lines), `commit.txt`,
   the jar, `shots-*.zip` screenshots, and an encrypted `secret` part (logs, mappings, `skill-api.txt` = javap of TSS's
   `Skill` per version) that only the holder of the private key can read.
-- `dev/ci/ci-fetch.sh <branch> [run]` downloads and decrypts the newest draft into `ci-results/<branch>-<n>/`.
-  **The private key stayed in the old container** (`/home/claude/ci-key/ci.key`). To get readable logs again, make a
-  new pair (`openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:4096 -out ci.key; openssl pkey -in ci.key -pubout
-  -out ci-key.pub.pem`), replace `dev/ci/common/.github/ci/ci-key.pub.pem`, and keep `ci.key` out of git.
+- `dev/ci/ci-fetch.sh <branch> [run]` downloads and decrypts the newest draft into `~/.tssa-ci/results/<branch>-<n>/`
+  (logs in `secret/`, e.g. `servertest-forge.log`, `client-moon.log`). The private key is `~/.tssa-ci/ci.key` on the
+  user's PC (made 2026-10-16, never in git; its public half is `dev/ci/common/.github/ci/ci-key.pub.pem`).
 - Status: `gh api "repos/Adamko-10/the-shooting-star-addition/actions/runs?per_page=8" --jq '.workflow_runs[] |
   "\(.head_branch) \(.status) \(.conclusion) \(.run_number)"'`. A full round of 7 takes roughly 15-25 minutes.
-- Client tests (`client-test.sh`, run three times per branch): `halley`, `moon`, and `tuned` (Luna with
+- Client tests (`client-test.sh`, run three times per branch): `halley`, `moon` (the real film with its HUD:
+  `film=true hud=true`; its last shot is the H menu with the addon's plate), and `tuned` (Luna with
   `power=0.4 speed=3 damage=20`, aerial view, then the remote menu scrolled to the sliders). Options are
   `-Dss05.clienttest.<name>` (`skill`, `shots`, `view`, `final`, `time`, `power`, `speed`, `damage`); `build.gradle`
   forwards them. On 26.3 the script installs EGL (`libegl1 libegl-mesa0`) when missing.
 - Delete the `wip/*` branches and `ci-*` draft releases after publishing.
 
-Absolute paths in `dev/` scripts (`/home/claude/...`) are from the original container; adjust them.
+`dev/ci/*` works from Git Bash on Windows; the `dev/publish/*` and `dev/tools/*.sh` scripts still have the old
+container's absolute paths (`/home/claude/...`): adjust before use.
 
 ## 5. How the addon attaches to TSS
 
@@ -144,7 +177,8 @@ Absolute paths in `dev/` scripts (`/home/claude/...`) are from the original cont
   `Carving.streaming(Carving.Tickets)`, `MAX_TICKET_RADIUS = 32`; `SpellFxPayload` flag bit 8 = "play for everyone"
   (1.4.3). TSS stores slider values client-side in `config/shooting_star_demo_skills.properties`. Careful:
   `SkillTuning.speed`/`power` come out swapped in the mapping chain, so don't use them.
-- `compat/tss/mixin/`: `CastingMixin` (no-cooldown, and the server slider limits, §6), `WhiteSpaceMixin` (menu note),
+- `compat/tss/mixin/`: `CastingMixin` (no-cooldown, and the server slider limits, §6), `WhiteSpaceMixin` (the addon's
+  plate in the menu and its M/C keys),
   `RemoteRendererMixin`, `FxManagerMixin`. All optional (`require = 0`).
 - `dev/tools/RefCheck.java` lists references our classes make that a given readable TSS jar lacks;
   `dev/tools/Deobf.java` applies Tiny mappings to a jar with ASM (a stand-in for the Gradle task).
@@ -201,7 +235,7 @@ TSS 1.4.3 CurseForge file ids: NeoForge 9171007, Forge 9171001, Fabric 9170986 (
 1. One CI round on all branches from the final commits; every `summary.txt` all `ok:`.
 2. `dev/publish/stage_jars.sh <branches...>` takes each branch's CI jar (checks it's from the branch head and passes
    `verify_jar.sh`) and copies it under its release name. Give the user the jars to test first.
-3. Changelogs: `dev/publish/changelog_140.py` writes one Markdown file per branch (first line names the MC/loader
+3. Changelogs: `dev/publish/changelog_150.py [out dir]` (1.5.0; `_140` for 1.4.0) writes one Markdown file per branch (first line names the MC/loader
    and says server + every client; then the sections). Update its text for every new feature.
 4. GitHub: push the branches, then `dev/publish/github_140.sh <branch> <jar>` (creates the tag and release, uploads
    the jar).
@@ -214,19 +248,19 @@ TSS 1.4.3 CurseForge file ids: NeoForge 9171007, Forge 9171001, Fabric 9170986 (
    other mod links) exactly as it is**; update the rest to match the features.
 7. Delete `wip/*` branches and `ci-*` drafts.
 
-## 9. Status at handoff (1.4.0)
+## 9. Status (2026-10-17)
 
-- **1.4.0 is published** (2026-10-15): all 7 branches pushed and tagged, 7 GitHub releases (`v1.4.0` is Latest), 7
-  CurseForge files (Release, Client + Server, The Shooting Star [Demo] required, + Fabric API on Fabric) and the new
-  CurseForge description.
-- From the cloud session, GitHub refused API release creation and branch deletion (HTTP 403, "not permitted for this
-  session type"), so the releases were made in the user's Chrome (github.com release form, with the user's OK). GitHub
-  turns spaces and brackets in asset names into dots (`The.Shooting.Star.Addition.1.4.0.NeoForge.1.21.1.jar`); the
-  release titles carry the proper names.
-- Not cleaned up yet: the `wip/*` branches and the `ci-*` draft releases (the session couldn't delete them; the user
-  can, or a later session).
-- On CurseForge's upload form the changelog editor starts in WYSIWYG; switch it to Markdown and check it really
-  switched before setting the text, or the Markdown is saved as one plain paragraph. The form copies game versions and
+- **1.5.0 is pushed, not released**: all seven branches are on GitHub (CI green on every one: builds, client tests,
+  server test 70/70). No 1.5.0 tags, GitHub releases or CurseForge files yet: the user asked only for the branches.
+  Next, when the user says so: §8 steps 3-7 (changelog ready in `dev/publish/changelog_150.py`).
+- Test jars under their release names: `The Shooting Star Addition releases\1.5.0 (to test)\` (from the last CI round).
+- The user added `me mantainer need contrib.txt` on main (kept; main's 1.5.0 commits are rebased on it).
+- Leftovers: the `wip/*` branches and `ci-*` draft releases (1.4.0's and 1.5.0's); one stash entry
+  ("additionpanel-soundevent-fix-temp") a porting agent made against the rules, superseded and harmless.
+- 1.4.0 (2026-10-15): seven GitHub releases and CurseForge files. From the cloud session GitHub refused API release
+  creation (HTTP 403), so those releases were made in the user's Chrome; GitHub turns spaces and brackets in asset
+  names into dots, the release titles carry the proper names. On CurseForge's upload form the changelog editor starts
+  in WYSIWYG: switch it to Markdown and check it switched before setting the text; the form copies game versions and
   relations from an earlier file, so check them every time.
 
 ## 10. Ideas not done yet
@@ -272,8 +306,15 @@ Visual/sound polish the user asked for but that was cut for budget:
 - Halley's trench must be cut after the crater is finished, or the server test's `crater_carved` check fails.
 - A 1.21 record codec silently ignores unknown JSON keys: re-check data files against vanilla after porting.
 - CurseForge's upload page loses state when the tab is suspended.
+- `TssMatch` used to pair same-shaped methods by obfuscated name, which silently swapped `Subject.forward/target` and
+  shifted `CutsceneDirector.automatic` in 1.4.3 (§12). It now compares the fields they use, but after a TSS update
+  still check what `compat/tss` calls: deobfuscate with `dev/tools/Deobf.java` and compare bodies with readable 1.3.4.
+- Minecraft's clouds write depth over their whole layer: anything drawn above it shows only where a cloud is (§12).
+- Git Bash on Windows: long inline heredocs/Python with quotes sometimes fail to parse (write scripts to files);
+  Windows Python prints CRLF (strip `\r` when piping); native openssl doesn't take Git Bash paths after `file:`.
+- Background agents can be cut off by usage limits mid cherry-pick: check each worktree's `git status` and resume.
 
-## 12. 1.5.0 (2026-10-16, not published yet)
+## 12. 1.5.0 (2026-10-16/17, pushed, not released)
 
 What the user asked for (roughly): the moon shrinks just before it lands; sync the music better and make it "a slower
 thing"; the moon cutscene is broken / sometimes doesn't play (they thought Forge), better shots, a cooler UI, a slow-mo
