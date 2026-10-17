@@ -135,6 +135,40 @@ public final class TssLink implements StarLink {
         return new Tuning(tune.power(), tune.damage(), tune.speed());
     }
 
+    /**
+     * Clears one player's cooldowns on the remote (the no-cooldown option): The Shooting Star keeps, per player, the
+     * game time each skill is ready again, in one static {@code Map<UUID, long[]>} of Casting's (found by its type: its
+     * names change every release); without an entry there, every skill is ready.
+     */
+    public static void clearCooldowns(ServerPlayer player) {
+        try {
+            if (readyAt == null) {
+                Field found = null;
+                for (Field field : Casting.class.getDeclaredFields()) {
+                    if (Modifier.isStatic(field.getModifiers()) && field.getType() == Map.class
+                        && field.getGenericType() instanceof ParameterizedType type
+                        && Arrays.equals(type.getActualTypeArguments(), new java.lang.reflect.Type[]{java.util.UUID.class, long[].class})) {
+                        found = found == null ? field : null;
+                    }
+                }
+                if (found == null) {
+                    throw new NoSuchFieldException("Casting has no single Map<UUID, long[]> field");
+                }
+                found.setAccessible(true);
+                readyAt = found;
+            }
+            ((Map<?, ?>) readyAt.get(null)).remove(player.getUUID());
+        } catch (ReflectiveOperationException | RuntimeException failed) {
+            if (!warnedCooldowns) {
+                warnedCooldowns = true;
+                HalleyAddon.LOG.warn("No cooldown: couldn't reach The Shooting Star's cooldowns ({}), so they stay on", failed.toString());
+            }
+        }
+    }
+
+    private static Field readyAt;
+    private static boolean warnedCooldowns;
+
     /** SkillSet's one field (static or not) of type {@code raw<args>}. */
     private static Field field(boolean isStatic, Class<?> raw, Class<?>... args) throws NoSuchFieldException {
         Field found = null;
