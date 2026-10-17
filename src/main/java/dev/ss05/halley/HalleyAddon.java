@@ -6,6 +6,7 @@ import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.content.HalleyContent;
 import dev.ss05.halley.net.AddonNetwork;
+import dev.ss05.halley.world.MoonStrike;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -19,6 +20,8 @@ import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.slf4j.Logger;
 
@@ -73,6 +76,8 @@ public final class HalleyAddon {
                 NoCooldown.greet(player);
             }
         });
+        NeoForge.EVENT_BUS.addListener(ServerTickEvent.Post.class, event -> MoonStrike.tickLingering());
+        NeoForge.EVENT_BUS.addListener(ServerStoppedEvent.class, event -> MoonStrike.clearLingering());
         NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerLoggedOutEvent.class, event -> {
             if (event.getEntity() instanceof ServerPlayer player) {
                 NoCooldown.forget(player);
