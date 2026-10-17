@@ -9,7 +9,7 @@ ci_tests() {
   server_test forge
   if [ -d src/clienttest ]; then
     client_test halley runClientTest -Dss05.clienttest.skill=halley -Dss05.clienttest.shots=0,100,250,300,330,345,400,500 -Dss05.clienttest.view=wide
-    client_test moon runClientTest -Dss05.clienttest.skill=moon -Dss05.clienttest.shots=150,300,334,342,352,365,390 -Dss05.clienttest.view=aerial -Dss05.clienttest.final=aerial,rim,cheese,menu -Dss05.clienttest.time=6000
-    client_test tuned runClientTest -Dss05.clienttest.skill=moon -Dss05.clienttest.shots=150,334,352,390 -Dss05.clienttest.view=aerial -Dss05.clienttest.final=rim,skills -Dss05.clienttest.time=6000 -Dss05.clienttest.power=0.4 -Dss05.clienttest.speed=3 -Dss05.clienttest.damage=20
+    client_test moon runClientTest -Dss05.clienttest.skill=moon -Dss05.clienttest.shots=20,70,140,250,340,395,412,440,500,560 -Dss05.clienttest.view=aerial -Dss05.clienttest.film=true -Dss05.clienttest.hud=true -Dss05.clienttest.final=aerial,rim,cheese,menu -Dss05.clienttest.time=6000
+    client_test tuned runClientTest -Dss05.clienttest.skill=moon -Dss05.clienttest.shots=150,399,417,455 -Dss05.clienttest.view=aerial -Dss05.clienttest.final=rim,skills -Dss05.clienttest.time=6000 -Dss05.clienttest.power=0.4 -Dss05.clienttest.speed=3 -Dss05.clienttest.damage=20
   fi
 }
