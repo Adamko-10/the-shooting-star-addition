@@ -8,7 +8,6 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.client.luna.MoonFx;
-import dev.ss05.halley.client.render.ShaderPacks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
@@ -41,17 +40,16 @@ public final class MoonSphere {
     private static final ResourceLocation SURFACE = HalleyAddon.id("textures/luna/surface.png");
     private static final ResourceLocation SEAMS = HalleyAddon.id("textures/luna/seams.png");
     private static final ResourceLocation GLOW = HalleyAddon.id("textures/luna/glow.png");
-    private static final RenderType BASE = RenderType.entityCutoutNoCull(SURFACE);
     private static final RenderType EMISSIVE = RenderType.entityTranslucentEmissive(SEAMS);
     /** The heat over its leading face and the seams' own glow: added light (vanilla's glowing-eyes type). */
     private static final RenderType HEAT = RenderType.eyes(GLOW);
     private static final RenderType SEAM_GLOW = RenderType.eyes(SEAMS);
     /**
-     * With a shader pack on, ordinary entity geometry gets the pack's own (night-time, so dark) lighting and the moon
-     * all but vanishes (seen with Complementary Reimagined). Packs draw a beacon's beam solid and full-bright, so the
-     * moon's surface goes that way instead (solid, unlike glowing-eyes geometry, which packs add on top as light).
+     * Its surface: solid and full-bright, a beacon's beam's way, lit only by its own shading (below). Entity geometry
+     * gets the world's lighting - dull brown at night, and with a shader pack on the pack's own night lighting all but
+     * hides it (seen with Complementary Reimagined); packs draw a beacon's beam solid and bright too.
      */
-    private static final RenderType PACK_BASE = RenderType.beaconBeam(SURFACE, false);
+    private static final RenderType BASE = RenderType.beaconBeam(SURFACE, false);
     /** Reused and grown across frames (1.20.1's BufferBuilder owns and grows its own backing memory). */
     private static final BufferBuilder BASE_BUILDER = new BufferBuilder(1 << 18);
     private static final BufferBuilder SEAM_BUILDER = new BufferBuilder(1 << 18);
@@ -69,6 +67,10 @@ public final class MoonSphere {
     private static final double START_RATIO = 0.1;
     /** The most the falling moon is ever drawn at while still pulled in, as radius over distance. */
     private static final double MAX_DISPLAY_RATIO = 0.75;
+    /** The furthest the moon is drawn while it is pulled in (it is the same size on screen wherever it is drawn). */
+    private static final double PULLED_IN = 256.0;
+    /** The nearest it is drawn while pulled in, however low the clouds (see {@link #underClouds}). */
+    private static final double PULLED_IN_MIN = 24.0;
     /** How many times the molten-seam texture tiles across the sphere, so its cracks spread over the whole surface
      * instead of appearing once (equirectangular, so a wider tile than tall keeps roughly square cells). */
     private static final int SEAM_TILE_U = 4;
@@ -117,7 +119,8 @@ public final class MoonSphere {
             distance = trueDistance;
             radius = trueRadius;
         } else {
-            distance = Math.min(trueDistance, maxDistance);
+            distance = Math.min(trueDistance, Math.min(maxDistance, PULLED_IN));
+            distance = underClouds(camera, trueCentre, distance, displayRatio);
             radius = displayRatio * distance;
         }
         radius = Math.max(0.0, radius - MoonFx.radiusShrinkAt(t)) * fx.sphereVisibilityAt(t);
@@ -140,6 +143,27 @@ public final class MoonSphere {
             approach, relief);
     }
 
+    /**
+     * The clouds are one big plane whose depth is written all over, the gaps between them too, so whatever is drawn
+     * above their layer only shows where a cloud is drawn (the vanilla moon is part of the sky, drawn without depth, so
+     * it never meets this). While it is pulled in the moon may be drawn at any distance, so from under the clouds it
+     * is drawn just below them.
+     */
+    private static double underClouds(Vec3 camera, Vec3 trueCentre, double distance, double ratio) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level == null) {
+            return distance;
+        }
+        double clouds = minecraft.level.effects().getCloudHeight();
+        Vec3 dir = trueCentre.subtract(camera).normalize();
+        if (Double.isNaN(clouds) || camera.y >= clouds || dir.y + ratio <= 1.0E-3) {
+            return distance;
+        }
+        // its top (centre + radius) four blocks under the layer
+        double fits = (clouds - 4.0 - camera.y) / (dir.y + ratio);
+        return Math.max(PULLED_IN_MIN, Math.min(distance, fits));
+    }
+
     public static void renderSolid(RenderLevelStageEvent event) {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_ENTITIES || MoonFx.active().isEmpty()) {
             return;
@@ -151,13 +175,12 @@ public final class MoonSphere {
         Vec3 camera = event.getCamera().getPosition();
         double maxDistance = minecraft.gameRenderer.getDepthFar() * 0.9;
         float partial = event.getPartialTick();
-        boolean pack = ShaderPacks.active();
 
         BufferBuilder base = BASE_BUILDER;
         BufferBuilder seam = SEAM_BUILDER;
         BufferBuilder heat = HEAT_BUILDER;
         BufferBuilder seamGlow = SEAM_GLOW_BUILDER;
-        base.begin(VertexFormat.Mode.QUADS, pack ? DefaultVertexFormat.BLOCK : DefaultVertexFormat.NEW_ENTITY);
+        base.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.BLOCK);
         seam.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.NEW_ENTITY);
         heat.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.NEW_ENTITY);
         seamGlow.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.NEW_ENTITY);
@@ -167,7 +190,7 @@ public final class MoonSphere {
             }
             Placement placement = placement(fx, camera, maxDistance, partial);
             if (placement.radius() > 0.05) {
-                build(new Sinks(base, seam, heat, seamGlow, pack), camera, placement);
+                build(new Sinks(base, seam, heat, seamGlow), camera, placement);
             }
         }
         // the moon is drawn pulled toward the camera (or, far off, well beyond the fog's own end) - fog would wash
@@ -183,7 +206,7 @@ public final class MoonSphere {
         view.mulPoseMatrix(event.getPoseStack().last().pose());
         RenderSystem.applyModelViewMatrix();
         try {
-            (pack ? PACK_BASE : BASE).end(base, RenderSystem.getVertexSorting());
+            BASE.end(base, RenderSystem.getVertexSorting());
             EMISSIVE.end(seam, RenderSystem.getVertexSorting());
             SEAM_GLOW.end(seamGlow, RenderSystem.getVertexSorting());
             HEAT.end(heat, RenderSystem.getVertexSorting());
@@ -194,7 +217,7 @@ public final class MoonSphere {
         }
     }
 
-    private record Sinks(BufferBuilder base, BufferBuilder seam, BufferBuilder heat, BufferBuilder seamGlow, boolean pack) {
+    private record Sinks(BufferBuilder base, BufferBuilder seam, BufferBuilder heat, BufferBuilder seamGlow) {
     }
 
     private static void build(Sinks out, Vec3 camera, Placement placement) {
@@ -330,15 +353,14 @@ public final class MoonSphere {
         float red = Math.min(1.0F, light + hot * 0.3F);
         float green = Math.min(1.0F, Mth.lerp(hot, light, 0.62F + 0.3F * heat));
         float blue = Math.max(0.06F, Mth.lerp(hot, light * 0.97F, 0.22F + 0.35F * Math.max(0.0F, heat - 0.6F)));
-        if (first || out.pack()) {
-            out.base().vertex(v.x(), v.y(), v.z())
-                .color(red, green, blue, 1.0F)
-                .uv(v.u(), v.v())
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal((float) n.x, (float) n.y, (float) n.z)
-                .endVertex();
-        }
+        // (the surface is drawn one-sided: it takes both windings)
+        out.base().vertex(v.x(), v.y(), v.z())
+            .color(red, green, blue, 1.0F)
+            .uv(v.u(), v.v())
+            .overlayCoords(OverlayTexture.NO_OVERLAY)
+            .uv2(LightTexture.FULL_BRIGHT)
+            .normal((float) n.x, (float) n.y, (float) n.z)
+            .endVertex();
 
         // the crack mask tiles several times over the sphere, so the molten network spreads over the whole visible
         // surface instead of showing once (see SEAM_TILE_U/V); it burns brighter the nearer the moon comes
@@ -354,7 +376,7 @@ public final class MoonSphere {
                 .normal((float) n.x, (float) n.y, (float) n.z)
                 .endVertex();
         }
-        float seamGlow = crack * (0.15F + 0.55F * approach + 0.3F * burn);
+        float seamGlow = crack * (0.45F + 0.4F * approach + 0.3F * burn);
         out.seamGlow().vertex(v.x(), v.y(), v.z())
             .color(seamGlow, seamGlow * 0.75F, seamGlow * 0.45F, 1.0F)
             .uv(su, sv)
