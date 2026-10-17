@@ -33,7 +33,9 @@ public final class AdditionPanel {
     private static final int RULE = 0xE4E6EB;
     private static final int GOLD = 0xF4B73F;
     private static final int WARN = 0xC0392B;
-    private static final float SCALE = 0.75F;
+    /** Its size: smaller on a small screen, where the menu itself takes up more of it (0.75 on a screen 645 or more wide, in GUI pixels). */
+    private static final float MIN_SCALE = 0.5F;
+    private static final float MAX_SCALE = 0.75F;
     private static final int WIDTH = 236;
     /** GLFW key codes. */
     public static final int KEY_MUSIC = 77;
@@ -119,7 +121,8 @@ public final class AdditionPanel {
         g.pose().pushPose();
         // over the menu, in its top left corner
         g.pose().translate(8.0F, 8.0F, 400.0F);
-        g.pose().scale(SCALE, SCALE, 1.0F);
+        float scale = Mth.clamp(g.guiWidth() / 860.0F, MIN_SCALE, MAX_SCALE);
+        g.pose().scale(scale, scale, 1.0F);
         // a soft shadow, the plate, its gold edge and title rule
         plate(g, 2, 3, w + 2, h + 3, 0x26000000);
         plate(g, 0, 0, w, h, 0xF4000000 | PLATE);
