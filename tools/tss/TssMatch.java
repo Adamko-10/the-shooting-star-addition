@@ -115,6 +115,23 @@ public class TssMatch {
                 report.add("  dropped duplicate name " + named + desc + " on " + loser);
             }
         }
+        // an old obfuscated name (no real name to carry over) that would land on an unmatched method's own name: keep it
+        // obfuscated instead (the unmatched method can't always be renamed out of the way)
+        for (ClassNode c : newC.values()) {
+            for (MethodNode m : c.methods) {
+                String key = c.name + "." + m.name + m.desc;
+                String named = methodNames.get(key);
+                if (named == null || !isShort(named) || named.equals(m.name)) continue;
+                for (MethodNode other : c.methods) {
+                    if (other != m && other.name.equals(named) && other.desc.equals(m.desc)
+                        && methodNames.get(c.name + "." + other.name + other.desc) == null) {
+                        methodNames.remove(key);
+                        report.add("  kept obfuscated name " + key + " (its old name " + named + " is an unmatched method's)");
+                        break;
+                    }
+                }
+            }
+        }
         StringBuilder out = new StringBuilder("tiny\t2\t0\tobf\tnamed\n");
         int fields = 0, methods = 0;
         for (String n : new TreeSet<>(newC.keySet())) {
@@ -541,6 +558,9 @@ public class TssMatch {
 
     static Map<MethodNode, MethodNode> matchMethods(ClassNode o, ClassNode n, Map<String, String> back, Map<String, String> cls) {
         Map<MethodNode, MethodNode> res = new HashMap<>();
+        // the class's own fields, new -> old, so look-alike methods can be told apart by which of them they use
+        Map<String, String> ownFields = new HashMap<>();
+        for (var f : matchFields(o, n, back, cls).entrySet()) ownFields.put(f.getKey().name + ";" + f.getKey().desc, f.getValue().name);
         Map<String, List<MethodNode>> go = new LinkedHashMap<>(), gn = new LinkedHashMap<>();
         for (MethodNode m : o.methods) if (!m.name.startsWith("lambda$")) go.computeIfAbsent(mkey(m, false, cls, back), k -> new ArrayList<>()).add(m);
         for (MethodNode m : n.methods) if (!m.name.startsWith("lambda$")) gn.computeIfAbsent(mkey(m, true, cls, back), k -> new ArrayList<>()).add(m);
@@ -549,9 +569,12 @@ public class TssMatch {
             if (a == null) continue;
             List<MethodNode> b = new ArrayList<>(e.getValue());
             List<MethodNode> left = new ArrayList<>(a);
-            // kept names first
+            // kept names first. An obfuscated name equal to one left over from the old build may be a coincidence
+            // (names are handed out in order, so a member added in between shifts the rest): those only count when
+            // the two also use the same fields of their class.
             for (MethodNode mb : List.copyOf(b)) for (MethodNode ma : List.copyOf(left)) {
-                if (ma.name.equals(mb.name)) {
+                if (ma.name.equals(mb.name) && (!isShort(ma.name)
+                    || jaccard(ownFieldRefs(ma, o.name, null), ownFieldRefs(mb, n.name, ownFields)) == 1.0)) {
                     res.put(mb, ma);
                     b.remove(mb);
                     left.remove(ma);
@@ -562,10 +585,17 @@ public class TssMatch {
                 res.put(b.get(0), left.get(0));
                 continue;
             }
-            // several with the same shape: best body similarity, greedy
+            // several with the same shape: best body similarity, greedy. Getters and flags with identical bodies differ
+            // only in which of the class's fields they read, so where they read any that counts as much as the rest.
             record P(MethodNode a, MethodNode b, double s) {}
             List<P> ps = new ArrayList<>();
-            for (MethodNode mb : b) for (MethodNode ma : left) ps.add(new P(ma, mb, (2 * bodySim(ma, mb) + callerSim(o.name, ma, n.name, mb)) / 3.0));
+            for (MethodNode mb : b) for (MethodNode ma : left) {
+                double s = (2 * bodySim(ma, mb) + callerSim(o.name, ma, n.name, mb)) / 3.0;
+                List<String> fa = ownFieldRefs(ma, o.name, null), fb = ownFieldRefs(mb, n.name, ownFields);
+                if (!fa.isEmpty() || !fb.isEmpty()) s = (s + jaccard(fa, fb)) / 2.0;
+                if (ma.name.equals(mb.name)) s += 0.01;
+                ps.add(new P(ma, mb, s));
+            }
             ps.sort(Comparator.comparingDouble(P::s).reversed());
             for (P p : ps) {
                 if (res.containsKey(p.b) || res.containsValue(p.a) || p.s < 0.35) continue;
@@ -605,6 +635,21 @@ public class TssMatch {
 
     static String mkey(MethodNode m, boolean obf, Map<String, String> cls, Map<String, String> back) {
         return (m.access & (Opcodes.ACC_STATIC | Opcodes.ACC_ABSTRACT)) + " " + norm(m.desc, obf, cls, back);
+    }
+
+    /**
+     * The fields of its own class a method reads and writes, in order, by their old names: {@code toOld} maps a new
+     * build's "name;desc" to the old name (null for the old build, whose names are already the old ones); a field
+     * with no match counts as new.
+     */
+    static List<String> ownFieldRefs(MethodNode m, String owner, Map<String, String> toOld) {
+        List<String> res = new ArrayList<>();
+        for (AbstractInsnNode in : m.instructions) {
+            if (!(in instanceof FieldInsnNode fi) || !fi.owner.equals(owner)) continue;
+            String name = toOld == null ? fi.name : toOld.getOrDefault(fi.name + ";" + fi.desc, "+new " + fi.name);
+            res.add((fi.getOpcode() == Opcodes.GETSTATIC || fi.getOpcode() == Opcodes.GETFIELD ? "get " : "put ") + name);
+        }
+        return res;
     }
 
     static double bodySim(MethodNode a, MethodNode b) {
