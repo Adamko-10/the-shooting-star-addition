@@ -18,6 +18,12 @@ public interface Excavation {
     void finish();
 
     /**
+     * Leaves what is left to be cut as its chunks load, after the spell (The Shooting Star's lingering carvings, ticked
+     * by its spell engine): for a carving that only cuts loaded land, so none is ever loaded for it.
+     */
+    void linger();
+
+    /**
      * Keeps the chunks an excavation is waiting for loaded, a few at a time, and lets each go once it is cut (The
      * Shooting Star's "streaming" carver: a big strike never loads its whole area at once).
      */
