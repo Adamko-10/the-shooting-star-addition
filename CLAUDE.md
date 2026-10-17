@@ -1,6 +1,7 @@
 # CLAUDE.md: The Shooting Star Addition
 
-Handoff notes for whoever (human or Claude) works on this next. Written 2026-10-14 at the end of the 1.4.0 work.
+Handoff notes for whoever (human or Claude) works on this next. Written 2026-10-14 at the end of the 1.4.0 work,
+updated 2026-10-16 for 1.5.0 (§12).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
@@ -41,7 +42,7 @@ project 1719195, All Rights Reserved). It adds two skills to TSS's Stellar Remot
 
 Mod id `shooting_star_addition`, Java package `dev.ss05.halley` (the "SS-05/SS-06" names in code are the old
 codenames; players see SA-01/SA-02). GitHub `Adamko-10/the-shooting-star-addition`; CurseForge project **1725916**
-(author `adamko_10`). Current version **1.4.0** (in `gradle.properties` on every branch).
+(author `adamko_10`). Current version **1.5.0** (in `gradle.properties` on every branch; 1.4.0 is the last published).
 
 ## 2. Branches
 
@@ -164,15 +165,13 @@ Absolute paths in `dev/` scripts (`/home/claude/...`) are from the original cont
 - **`chunks_per_tick`** for Halley (`[impact]`, 12; the crater does 2×). Luna already had its own (8).
 - **Tungsten tag**: TSS's `shooting_star_demo:gungnir_hull` in `c:storage_blocks/tungsten` (optional entry), block and
   item, paths per branch (§2).
-- **`no_cooldown`** (`[stellar_remote]`): clears every cooldown before TSS syncs them.
+- **`no_cooldown`** (`[stellar_remote]`): reworked in 1.5.0 (§12); 1.4.0's version didn't work.
 - **Luna's music**: `assets/shooting_star_addition/sounds/luna_music.ogg` (`sounds.json` entry `luna_music`,
-  `stream: true`, no registered SoundEvent). `MoonFx.music()` starts it at `MoonPlan.FALL` as a non-positional
-  `SoundSource.MUSIC` sound (the Music volume slider), pitch = the speed slider, for the caster in the film and anyone
-  within 1500 blocks; it stops vanilla music first and is stopped in `removed()`. The file is the user's track cut so
-  its drop lands on `CONTACT`: drop at 24.5 s of the source, minus (CONTACT − FALL)/20 = 12.75 s → start at 11.75 s.
-  Re-make: `ffmpeg -ss 11.75 -i <source> -vn -af "afade=t=in:st=0:d=0.5,volume=13dB,alimiter=limit=0.89" -ac 2
-  -ar 44100 -c:a libvorbis -q:a 4 luna_music.ogg` (the source was quiet: max −14.8 dB). If Luna's timeline changes,
-  recompute the offset.
+  `stream: true`, no registered SoundEvent). Since 1.5.0 see §12 (master volume, its own switch, stretched to the
+  slower fall, kept in step). The 1.4.0 file was the user's track cut so its drop landed on `CONTACT`: drop at 24.5 s
+  of the source, minus 12.75 s, so start at 11.75 s: `ffmpeg -ss 11.75 -i <source> -vn -af "afade=t=in:st=0:d=0.5,
+  volume=13dB,alimiter=limit=0.89" -ac 2 -ar 44100 -c:a libvorbis -q:a 4 luna_music.ogg` (the source isn't on the
+  user's PC any more; 1.5.0 stretched that file instead).
 - **Shorter endings**: Luna's film ends at `SETTLE + 95` (6 shots), Halley's at `impact + 128` (13 shots). The molten
   seam's hiss plays once (`CONTACT + 30`).
 
@@ -181,8 +180,8 @@ Absolute paths in `dev/` scripts (`/home/claude/...`) are from the original cont
 - **Halley** (`HalleyPlan`): ARM 0, PRESS 7, MARK 9, COUNTDOWN 29, SIGHT 30, ENTRY 250, TOUCHDOWN 300, impact =
   TOUCHDOWN + trench_length / 8 (default 330 = 16.5 s), effects end impact + 196 (526 = 26.3 s); film ends impact + 128
   (458 = 22.9 s).
-- **Luna** (`MoonPlan`): PRESS 7, ALARM 10, BREAK 45, FALL 85 (4.25 s), ENTRY 260, CONTACT 340 (17.0 s), SETTLE 410,
-  effects end 680 (34 s); film ends SETTLE + 95 (505 = 25.25 s).
+- **Luna** (`MoonPlan`, since 1.5.0): PRESS 7, ALARM 10, BREAK 45, FALL 85 (4.25 s), ENTRY 305, CONTACT 405 (20.25 s),
+  SETTLE 475, effects end 745 (37.25 s); film ends SETTLE + 95 (570 = 28.5 s). (1.4.0: ENTRY 260, CONTACT 340.)
 
 Film, sounds and server all follow these plans; change a plan constant and everything moves with it.
 
@@ -273,3 +272,63 @@ Visual/sound polish the user asked for but that was cut for budget:
 - Halley's trench must be cut after the crater is finished, or the server test's `crater_carved` check fails.
 - A 1.21 record codec silently ignores unknown JSON keys: re-check data files against vanilla after porting.
 - CurseForge's upload page loses state when the tab is suspended.
+
+## 12. 1.5.0 (2026-10-16, not published yet)
+
+What the user asked for (roughly): the moon shrinks just before it lands; sync the music better and make it "a slower
+thing"; the moon cutscene is broken / sometimes doesn't play (they thought Forge), better shots, a cooler UI, a slow-mo
+zoom out of the impact with VFX; a cooler moon that glows more as it approaches (not overboard); music on by default on
+every loader with a setting in the H menu; a no-cooldown switch in the H menu, a config to allow/disallow survival
+players, and info in creative and survival about the config; Luna better with and without shaders; chunks loading
+late / wrong in cutscenes; no cooldown doesn't work at all; and the optimization from the 1.4.0 analysis (never load
+land for the outer parts, leaner moon/rim/crack building). "Slower" was read as both: a slower fall, with the music
+stretched (same pitch) to match.
+
+Findings and fixes:
+
+- **The mapping tool paired look-alike methods wrongly** (`tools/tss/TssMatch.matchMethods`): `Subject.forward()` and
+  `target()` were swapped in every 1.4.x mapping, so the films' first shots put the camera at feet + 2 x the mark's
+  world coordinates (Luna's "broken film" and the "chunks loading late" in it); in 1.4.3 a new "play for everyone" field
+  shifted CutsceneDirector's obfuscated names, so `automatic()` pointed at "cutscenes on AND play for everyone" and the
+  caster's own films only played with that on (every loader). Same-shaped methods are now also scored by the fields of
+  their own class they use (through the field matches), and equal short obfuscated names only pair when that agrees.
+  An audit of every TSS member `compat/tss` uses (bodies compared with readable 1.3.4) found nothing else. To make
+  readable jars locally: `dev/tools/Deobf.java` with ASM 9.9.1 from `~/.gradle/caches/minecraftforge/...`. The local
+  libs/ has 1.4.2 and 1.4.3 too (mappings made in order with `./gradlew tssMappings -PtssJar=<v>`, oldest first:
+  without the previous version's mapping the match is garbage).
+- **No cooldown**: TSS's cooldown was cleared, but Halley/Luna refused a second cast while one was running, and 1.4.3's
+  `Casting.clear()` also wipes every player's "play for everyone" flags. Now `NoCooldown` (server): allowed =
+  `no_cooldown` and (creative/spectator or `no_cooldown_survival`), and the player's own switch (default on, sent by the
+  client). `CastingMixin` clears only that player's entry of Casting's `Map<UUID, long[]>` (found by type,
+  `TssLink.clearCooldowns`) at the head of `cast` and of `syncCooldowns`. HalleyCasting/MoonCasting skip their "already
+  on its way" refusal for them. Join message (`NoCooldown.greet`): everyone while on, operators while off.
+- **Networking** (new, `net/`): `SettingsPayload` (server to client: no_cooldown, no_cooldown_survival; on join and on
+  config reload) and `ChoicePayload` (client to server: the player's switch, sent when settings arrive and on toggle).
+  NeoForge: `AddonNetwork` (optional registrar); each loader has its own registration. `ServerSettings` holds what the
+  client was told (plain fields, safe on a dedicated server).
+- **H menu**: TSS's menu holds the mouse (things are picked by looking at them), so the addon's plate
+  (`client/AdditionPanel`, replaces NoCooldownNote) has keyboard switches, **M** Luna's music and **C** no cooldown,
+  through `WhiteSpaceMixin` on `key(III)V` (skipped while a skill key is being rebound or when the key is one of the
+  remote's, `StarClientBridge.menuUses`). Client config `[stellar_remote]`: `luna_music`, `no_cooldown` (both true).
+- **Moon shrinking**: `MoonSphere.placement` drew it up to 2.4x its true size while falling and collapsed that within 4
+  ticks of CONTACT. Removed: it grows steadily to its true size.
+- **Slower fall + music**: ENTRY 305, CONTACT 405, SETTLE 475 (fall 16 s). `luna_music.ogg` stretched by
+  12.75/16 = 0.797 (atempo, pitch kept; 21.76 s, drop at 16.00 s). `MoonFx.Music` (tickable): SoundSource.MASTER (heard
+  with the Music slider down), switch `luna_music`, and a drift correction (up to 5% pitch) against the strike's clock.
+- **Slow motion** (film only): `MoonFx.time()` = real time minus `slowLag(t - CONTACT)` times the film weight (0.2x for
+  about 2 s, caught up by CONTACT + 130); `realTime()` is the strike's own clock (sounds, music, screen effects, sky,
+  remote). Film sounds are pitched down and particles slowed while it lasts.
+- **Film** (`client/film/MoonStoryboard`, 9 shots, see its comments) with `Stage.keep` / `client/film/FilmLand` (pull
+  the camera toward the caster until it is over loaded land, lift it out of the ground). HUD (`MoonHud.film`):
+  letterbox, phase captions, descent bar, high-speed capture tag.
+- **Moon look** (`MoonSphere`): rugged outline while falling, terminator shading, the leading face heating up (additive
+  `eyes(glow.png)` shell), seams brighter as it nears (`eyes(seams)`), adaptive mesh; with a shader pack the base is
+  `beaconBeam(surface, false)` (solid, full-bright); the culled types get both windings.
+- **World** (Luna): no region ticket. The crater round the moon (out past the slabs) is streamed; the rest of the floor
+  is a lazy carving, then `Excavation.linger()` (TSS `Carving.linger`). `world/MoonLand` (replaces MoonRim/MoonCracks):
+  rim (its inner wall cut to the floor), slabs, cracks, debris, per chunk; loaded chunks animated, the others done when
+  they load (`MoonStrike.tickLingering` from the server tick; cleared on server stop). `world/MoonVeins`: the floor's
+  veins, cut by the crater's own carver. `MoonBuild`: column ranges, waits for chunks through the loader.
+- CI: the `moon` client test now runs the real film with its HUD (`film=true hud=true`), shots retimed.
+- The forge-1.20.1 server test has no player near the mark: it loads the area round the mark itself now (as a player
+  there would), or the outer crater/rim checks see unloaded land.
