@@ -17,9 +17,9 @@ echo "$rel" | python -c 'import json,sys; [print(a["id"], a["name"]) for a in js
     -o "$dir/$name" "https://api.github.com/repos/$repo/releases/assets/$id" || gh api -H 'Accept: application/octet-stream' "repos/$repo/releases/assets/$id" > "$dir/$name"
 done
 if [ -f "$dir/secret.key.enc" ]; then
-  openssl pkeyutl -decrypt -inkey "${CI_KEY:-$HOME/.tssa-ci/ci.key}" -in "$dir/secret.key.enc" -out "$dir/k"
-  openssl enc -d -aes-256-cbc -pbkdf2 -in "$dir/secret.tgz.enc" -out "$dir/secret.tgz" -pass file:"$dir/k"
-  tar xzf "$dir/secret.tgz" -C "$dir" && rm -f "$dir/k" "$dir/secret.tgz"
+  # (in the folder itself, with plain file names: openssl on Windows doesn't take Git Bash paths in "file:")
+  key="${CI_KEY:-$HOME/.tssa-ci/ci.key}"
+  (cd "$dir" && cp "$key" ci.key.tmp && openssl pkeyutl -decrypt -inkey ci.key.tmp -in secret.key.enc -out k     && openssl enc -d -aes-256-cbc -pbkdf2 -in secret.tgz.enc -out secret.tgz -pass file:k     && tar xzf secret.tgz; rm -f k ci.key.tmp secret.tgz)
 fi
 for z in "$dir"/shots-*.zip; do [ -f "$z" ] && mkdir -p "${z%.zip}" && unzip -q -o "$z" -d "${z%.zip}"; done
 echo "$dir"; ls "$dir"; cat "$dir/summary.txt" 2>/dev/null
