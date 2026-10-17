@@ -358,6 +358,11 @@ public final class TssLink implements StarLink {
             public void finish() {
                 carving.finish();
             }
+
+            @Override
+            public void linger() {
+                Carving.linger(carving);
+            }
         };
     }
 }
