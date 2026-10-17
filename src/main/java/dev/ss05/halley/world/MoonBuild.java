@@ -23,11 +23,14 @@ import net.minecraft.world.level.block.state.BlockState;
  *
  * <p>It goes over the chunks twice: first only the outer {@link #SHELL} blocks, so the moon's whole surface is there
  * as early as possible (the client cross-fades its rendered moon into the blocks as they appear), then the inside.
+ * Each column's blocks are worked out as two ranges of heights (no test per block), and a chunk that isn't loaded is
+ * asked for through the strike's {@link Excavation.Loader} and built once it is there, never loaded on the spot.
  */
 public final class MoonBuild {
     private final ServerLevel level;
     private final MoonPlan plan;
     private final int chunksPerTick;
+    private final Excavation.Loader loader;
     /** How thick the first pass (the surface) is, in blocks. */
     private static final double SHELL = 3.0;
     /** How much of the moon is holey moon cheese: the cheese's eyes, scattered all through it. */
@@ -38,10 +41,11 @@ public final class MoonBuild {
     /** 0 = the shell, 1 = the inside. */
     private int pass;
 
-    public MoonBuild(ServerLevel level, MoonPlan plan, int chunksPerTick) {
+    public MoonBuild(ServerLevel level, MoonPlan plan, int chunksPerTick, Excavation.Loader loader) {
         this.level = level;
         this.plan = plan;
         this.chunksPerTick = Math.max(1, chunksPerTick);
+        this.loader = loader;
         this.order = footprint(plan);
     }
 
@@ -84,19 +88,28 @@ public final class MoonBuild {
     }
 
     public void tick() {
-        this.build(this.chunksPerTick);
+        this.build(this.chunksPerTick, false);
     }
 
-    /** Builds everything that is left, right now (used when the spell is cut short). */
+    /** Builds everything that is left, right now (used when the spell is cut short: this may load its chunks). */
     public void finish() {
-        this.build(Integer.MAX_VALUE);
+        this.build(Integer.MAX_VALUE, true);
     }
 
-    private void build(int count) {
+    private void build(int count, boolean now) {
         while (count > 0 && !this.done()) {
-            int end = Math.min(this.order.size(), this.next + count);
-            count -= end - this.next;
-            this.buildChunks(end, this.pass == 0);
+            ChunkPos pos = this.order.get(this.next);
+            if (!now && !this.level.hasChunk(pos.x, pos.z)) {
+                // wait for it (asked for once, let go of once built)
+                this.loader.hold(pos);
+                return;
+            }
+            this.buildChunk(pos, this.pass == 0);
+            if (this.pass == 1) {
+                this.loader.release(pos);
+            }
+            count--;
+            this.next++;
             if (this.next >= this.order.size()) {
                 this.pass++;
                 this.next = 0;
@@ -109,54 +122,59 @@ public final class MoonBuild {
         return this.plan.hash(x + 7919, y - 104729, z + 1299709) < HOLEY;
     }
 
-    private void buildChunks(int end, boolean shell) {
-        double inner = Math.max(0.0, this.plan.params.moonRadius() - SHELL);
+    /** One chunk's share of the moon: its outer shell, or the inside. */
+    private void buildChunk(ChunkPos pos, boolean shell) {
+        double r = this.plan.params.moonRadius();
+        double inner = Math.max(0.0, r - SHELL);
         int minY = this.level.getMinBuildHeight();
         int maxY = this.level.getMaxBuildHeight() - 1;
-        double r = this.plan.params.moonRadius();
+        double cy = this.plan.restCentre.y;
         BlockState cheese = HalleyContent.MOON_CHEESE.defaultBlockState();
         BlockState holey = HalleyContent.HOLEY_MOON_CHEESE.defaultBlockState();
         BlockState molten = HalleyContent.MOLTEN_MOON_CHEESE.defaultBlockState();
         boolean core = this.plan.params.core();
         Map<BlockPos, BlockState> out = new HashMap<>();
 
-        for (int i = this.next; i < end; i++) {
-            ChunkPos pos = this.order.get(i);
-            int x0 = pos.x * 16;
-            int z0 = pos.z * 16;
-            for (int dx = 0; dx < 16; dx++) {
-                int x = x0 + dx;
-                double ex = x + 0.5 - this.plan.restCentre.x;
-                double exSqr = ex * ex;
-                if (exSqr > r * r) {
+        int x0 = pos.x * 16;
+        int z0 = pos.z * 16;
+        for (int dx = 0; dx < 16; dx++) {
+            int x = x0 + dx;
+            double ex = x + 0.5 - this.plan.restCentre.x;
+            for (int dz = 0; dz < 16; dz++) {
+                int z = z0 + dz;
+                double ez = z + 0.5 - this.plan.restCentre.z;
+                double flat = ex * ex + ez * ez;
+                if (flat > r * r) {
                     continue;
                 }
-                for (int dz = 0; dz < 16; dz++) {
-                    int z = z0 + dz;
-                    double ez = z + 0.5 - this.plan.restCentre.z;
-                    double flatSqr = exSqr + ez * ez;
-                    if (flatSqr > r * r) {
+                // the blocks whose centres lie inside the moon, and of those the ones inside its shell
+                double half = Math.sqrt(r * r - flat);
+                int from = Math.max(minY, Mth.ceil(cy - half - 0.5));
+                int to = Math.min(maxY, Mth.floor(cy + half - 0.5));
+                int innerFrom = Integer.MAX_VALUE;
+                int innerTo = Integer.MIN_VALUE;
+                if (flat < inner * inner) {
+                    double innerHalf = Math.sqrt(inner * inner - flat);
+                    innerFrom = Mth.ceil(cy - innerHalf - 0.5);
+                    innerTo = Mth.floor(cy + innerHalf - 0.5);
+                    // (a block exactly on the shell's inner edge belongs to the shell)
+                    if (cy - innerHalf - 0.5 == innerFrom) {
+                        innerFrom++;
+                    }
+                    if (cy + innerHalf - 0.5 == innerTo) {
+                        innerTo--;
+                    }
+                }
+                for (int y = from; y <= to; y++) {
+                    boolean inside = y >= innerFrom && y <= innerTo;
+                    if (shell == inside) {
                         continue;
                     }
-                    double half = Math.sqrt(r * r - flatSqr);
-                    int yFrom = Math.max(minY, Mth.floor(this.plan.restCentre.y - half));
-                    int yTo = Math.min(maxY, Mth.ceil(this.plan.restCentre.y + half));
-                    for (int y = yFrom; y <= yTo; y++) {
-                        if (!this.plan.inMoon(x, y, z)) {
-                            continue;
-                        }
-                        // the shell pass takes the outer SHELL blocks, the second pass everything inside them
-                        double d = this.plan.restCentre.distanceToSqr(x + 0.5, y + 0.5, z + 0.5);
-                        if (shell != d >= inner * inner) {
-                            continue;
-                        }
-                        BlockPos at = new BlockPos(x, y, z);
-                        out.put(at, core && at.equals(this.plan.core) ? molten : this.holeyAt(x, y, z) ? holey : cheese);
-                    }
+                    BlockPos at = new BlockPos(x, y, z);
+                    out.put(at, core && at.equals(this.plan.core) ? molten : this.holeyAt(x, y, z) ? holey : cheese);
                 }
             }
         }
-        this.next = end;
         if (!out.isEmpty()) {
             StarBridge.paint(this.level, out);
         }
