@@ -61,6 +61,8 @@ final class MoonLand {
     private final int chunksPerTick;
     /** Every chunk with something to do, and what. */
     private final Long2ObjectOpenHashMap<Chunk> chunks = new Long2ObjectOpenHashMap<>();
+    /** The same chunks, nearest the mark first (the order they are started in). */
+    private final List<Chunk> ordered = new ArrayList<>();
     /** The chunks still to finish that weren't loaded (or were let go of) while the strike ran. */
     private final LongArrayList waiting = new LongArrayList();
     private int look;
@@ -100,6 +102,8 @@ final class MoonLand {
         this.layRim();
         this.layCracks();
         this.layDebris();
+        this.ordered.addAll(this.chunks.values());
+        this.ordered.sort(java.util.Comparator.comparingDouble(c -> this.nearest(c.pos.x, c.pos.z)));
     }
 
     // ---- Laying it out (cheap: a few numbers per chunk, nothing per block). -----------------------------------------
@@ -219,7 +223,9 @@ final class MoonLand {
     void tick(double t) {
         Map<BlockPos, BlockState> out = new HashMap<>();
         boolean debrisTime = MoonPlan.rise(t) >= 1.0;
-        for (Chunk c : this.chunks.values()) {
+        // a few chunks are started (surveyed) each tick, nearest the mark first, so no one tick does them all
+        int starts = 0;
+        for (Chunk c : this.ordered) {
             if (c.done) {
                 continue;
             }
@@ -228,7 +234,11 @@ final class MoonLand {
                 continue;
             }
             if (!c.started) {
+                if (starts >= this.chunksPerTick) {
+                    continue;
+                }
                 this.start(c, out);
+                starts++;
             }
             boolean rimUp = this.raise(c, t, out);
             // where the rim rises, its cracks are cut once it is up (or it would bury them again)
