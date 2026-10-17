@@ -70,6 +70,26 @@ drives deep into it, the crust buckling up against it, and comes to rest there w
 - Fissures tear out across the land all round the crater (like Gungnir's cracks), lumps of moon and crust rain down
   far beyond it, and the shock wave throws, burns and hurts further still.
 - Its own key (**N** by default), menu card, sliders, cooldown (120 s), cutscene (skippable), sounds and alarm.
+- **Its own music**, cut so the drop lands the moment it hits, and kept in step with the moon however the game runs.
+  It plays even with Minecraft's Music slider down; switch it off in the remote's menu (**H**, then **M**).
+- **The moon heats up as it comes**: a glow round its rim as it tears loose, its leading face orange as it nears the
+  air and white-hot through entry, its molten seams burning brighter. It looks right with shader packs too.
+- **Its film**: the uplink, a long lens on the moon cracking, the long fall, entry, the moon looming over you, and
+  **the impact in slow motion** while the camera pulls back, then the crater from above and the moon at rest. The
+  camera always stays over land your game has loaded.
+- **Light on the server**: only the land round the moon itself is ever loaded for it. The rest of the crater, the rim
+  and the cracks are cut where land is already loaded, and anywhere else as soon as that land loads (nothing is ever
+  generated for it).
+- **Its own music**, cut so the drop lands the moment it hits, and kept in step with the moon however the game runs.
+  It plays even with Minecraft's Music slider down; switch it off in the remote's menu (**H**, then **M**).
+- **The moon heats up as it comes**: a glow round its rim as it tears loose, its leading face orange as it nears the
+  air and white-hot through entry, its molten seams burning brighter. It looks right with shader packs too.
+- **Its film**: the uplink, a long lens on the moon cracking, the long fall, entry, the moon looming over you, and
+  **the impact in slow motion** while the camera pulls back, then the crater from above and the moon at rest. The
+  camera always stays over land your game has loaded.
+- **Light on the server**: only the land round the moon itself is ever loaded for it. The rest of the crater, the rim
+  and the cracks are cut where land is already loaded, and anywhere else as soon as that land loads (nothing is ever
+  generated for it).
 - Everything in the crater is erased; past it, the shock wave throws, burns and hurts whatever it meets.
 - **Moon cheese** (and **holey moon cheese**, the cheese's eyes, scattered all through the moon): right-click a block to place it, right-click the air to eat it. It's as good as a golden carrot, and being cheese it clears your effects like milk.
 - **Molten moon cheese**: eat it for **500 hearts** and **Strength 255** for 10 minutes (Molten Might), and a full hunger bar with full saturation (it clears your other effects first, like all moon cheese).
@@ -101,10 +121,17 @@ cap them for every skill on the remote with `max_power`, `max_damage` and `max_s
 ## No cooldown (optional)
 
 Off by default. Set `no_cooldown = true` in the `[stellar_remote]` section of
-`config/shooting_star_addition-common.toml` and every skill on the Stellar Remote — The Shooting Star's own as well as
-Halley and Luna — can be cast again straight away, for every player in that world or on that server. The remote's menu
-(**H**) shows a note in its corner saying whether it's on. Be careful with this: it lets anyone chain the most
-destructive skills back to back.
+`config/shooting_star_addition-common.toml` and players can switch off the cooldown of every skill on the Stellar
+Remote — The Shooting Star's own as well as Halley and Luna — and cast them again straight away (Halley and Luna even
+while one is still coming down).
+
+- It's for creative (and spectator) players only, unless `no_cooldown_survival = true` lets survival players use it too.
+- Each player switches it on or off for themselves in the remote's menu (**H**, then **C**); it's on until they do.
+- The menu's corner shows a small plate with both switches (Luna's music and no cooldown) and what the server allows,
+  in creative and in survival. Players are also told in chat as they join while it's on (and operators while it's off,
+  with where to switch it on).
+
+Be careful with this: it lets the most destructive skills be cast back to back.
 
 ## Installing
 
@@ -163,7 +190,8 @@ The Stellar Remote itself, in the same file:
 
 | Section          | Setting            | Default | What it does |
 |------------------|--------------------|---------|--------------|
-| stellar_remote   | `no_cooldown`      | false   | `true` = no cooldowns at all, for every skill on the remote (The Shooting Star's own too) and every player. Be careful with this. |
+| stellar_remote   | `no_cooldown`      | false   | `true` = players may switch off the cooldowns of every skill on the remote (The Shooting Star's own too), each for themselves in the remote's menu (**C**). Be careful with this. |
+| stellar_remote   | `no_cooldown_survival` | false | `true` = survival players may use `no_cooldown` too (otherwise creative and spectator only). |
 | stellar_remote   | `max_power`        | 0       | The most Power anyone can cast any remote skill with, as a multiple of that skill's default power (0 = no limit). |
 | stellar_remote   | `max_damage`       | 0       | The most Damage per hit; casts set to ∞ are held to it too (0 = no limit). |
 | stellar_remote   | `max_speed`        | 3.0     | The fastest Speed allowed (0.3-3; 3 = no limit). |
@@ -184,6 +212,13 @@ join a world.
 | `world_flashes`  | true    | The whole world lights up for an instant at touchdown and impact. Turn off if flashing light bothers you. |
 | `comet_marker`   | true    | The arrow at the edge of the screen pointing at the comet while it's out of view. |
 | `shader_packs`   | AUTO    | How it's drawn with a shader pack: `AUTO` switches to the shader-pack way whenever Iris has a pack on, `ALWAYS` uses it all the time, `NEVER` doesn't (the comet and the sky then won't show under a shader pack). |
+
+And your two switches from the remote's menu (**H**), in the `[stellar_remote]` section of the same file:
+
+| Setting          | Default | What it does |
+|------------------|---------|--------------|
+| `luna_music`     | true    | Luna's music while the moon comes down (**M** in the menu). |
+| `no_cooldown`    | true    | Cast without cooldowns where the server allows it (**C** in the menu). |
 
 ## Will it work with future versions of The Shooting Star?
 
