@@ -111,6 +111,12 @@ public final class HalleyServerTest {
     private MoonPlan moonReplicaPlan;
     private Pig moonInsideMob;
     private Pig moonBesideMob;
+    /** The region ticket this test itself adds round where Luna's mark will land (MoonStrike no longer adds one of
+     *  its own, §12), since the fake caster is never "nearby" in the sense a real, chunk-tracking client would be.
+     *  Added just before the cast, removed once the final checks have read the world. */
+    private net.minecraft.world.level.ChunkPos moonTicketChunk;
+    private static final net.minecraft.server.level.TicketType<net.minecraft.world.level.ChunkPos> MOON_TEST_TICKET =
+        net.minecraft.server.level.TicketType.create("ss06test", java.util.Comparator.comparingLong(net.minecraft.world.level.ChunkPos::toLong));
 
     private int passCount;
     private int totalCount;
@@ -667,6 +673,7 @@ public final class HalleyServerTest {
     private void castMoonByNight() {
         boolean isNight = this.level.isNight();
         this.record("arena_is_night_for_real_cast", isNight, "isNight=" + isNight);
+        this.loadLandRoundMoonMark();
         this.moonCastTick = this.tick;
         try {
             this.request(this.moonSkillIndexAtCast);
@@ -674,6 +681,44 @@ public final class HalleyServerTest {
         } catch (Throwable ex) {
             this.record("moon_cast_request_no_exception", false, "threw " + ex);
         }
+    }
+
+    /**
+     * MoonStrike no longer force-loads the land round the mark itself (§12: "Luna never loads land it doesn't
+     * need") - in real play, a nearby player's own view distance keeps it loaded, which this test's fake caster
+     * never provides. Without this, MoonLand's immediate (non-lazy) carving never gets to run on the chunks round
+     * the mark within the test's window, and the outer crater/rim checks below would see untouched land. Adds a
+     * region ticket centred on where the mark will land - the same horizontal reach-and-direction estimate The
+     * Shooting Star's own aim-ground uses (the test's caster stands put and only its yaw differs from SS-05's) -
+     * with a radius covering {@link MoonPlan#rimOuter} plus a margin, removed once the final checks have read the
+     * world ({@link #finalizeMoonChecks()}).
+     */
+    private void loadLandRoundMoonMark() {
+        double reach = MoonConfig.tuning().reach();
+        float yawRad = this.caster.getYRot() * ((float) Math.PI / 180.0F);
+        double dirX = -Math.sin(yawRad);
+        double dirZ = Math.cos(yawRad);
+        double markX = this.caster.getX() + dirX * reach;
+        double markZ = this.caster.getZ() + dirZ * reach;
+        this.moonTicketChunk = new net.minecraft.world.level.ChunkPos(Mth.floor(markX) >> 4, Mth.floor(markZ) >> 4);
+
+        // rimOuter is roughly craterRadius * 1.4 (MoonPlan.rimOuter); +40 blocks of margin, then to chunks.
+        double craterRadius = MoonConfig.tuning().craterRadius();
+        int radiusChunks = Mth.ceil((craterRadius * 1.4 + 40.0) / 16.0);
+        this.level.getChunkSource().addRegionTicket(MOON_TEST_TICKET, this.moonTicketChunk, radiusChunks, this.moonTicketChunk);
+        LOG.info("[SS05TEST] loaded {} chunks round the moon's estimated mark {} (radius {})",
+            (radiusChunks * 2 + 1) * (radiusChunks * 2 + 1), this.moonTicketChunk, radiusChunks);
+    }
+
+    /** Drops the region ticket {@link #loadLandRoundMoonMark()} added, now that the final checks have read the world. */
+    private void releaseLandRoundMoonMark() {
+        if (this.moonTicketChunk == null) {
+            return;
+        }
+        double craterRadius = MoonConfig.tuning().craterRadius();
+        int radiusChunks = Mth.ceil((craterRadius * 1.4 + 40.0) / 16.0);
+        this.level.getChunkSource().removeRegionTicket(MOON_TEST_TICKET, this.moonTicketChunk, radiusChunks, this.moonTicketChunk);
+        this.moonTicketChunk = null;
     }
 
     private void moonPostCast() {
@@ -776,6 +821,7 @@ public final class HalleyServerTest {
 
         if (this.moonReplicaPlan == null) {
             this.record("moon_world_checks_skipped", false, "no replica plan (cast or reflection failed earlier)");
+            this.releaseLandRoundMoonMark();
             return;
         }
         MoonPlan plan = this.moonReplicaPlan;
@@ -867,6 +913,8 @@ public final class HalleyServerTest {
 
         boolean notRunning = !SpellEngine.running((Skill) StarBridge.skill(true), this.caster.getUUID());
         this.record("moon_spell_completes_and_stops", notRunning, notRunning ? "" : "SpellEngine still reports it running");
+
+        this.releaseLandRoundMoonMark();
     }
 
     private BlockPos sampleTopBlockAt(double x, double z) {
