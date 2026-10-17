@@ -20,6 +20,7 @@ BODY = """
 - **Luna's and Halley's cutscenes work again.** With The Shooting Star 1.4.3 your own cutscene only played if you had "Play for everyone" on, and since 1.4.0 the first shot of each film could put the camera far off in unloaded land (the void, chunks popping in). Both came from how the addon finds its way round The Shooting Star's scrambled code, and both are fixed on every loader.
 - **No cooldown works.** Halley and Luna no longer refuse a second cast while one is still coming down, and switching cooldowns off for one player no longer touches anyone else's.
 - **The moon no longer shrinks as it lands.** It was drawn bigger than it really is on the way down and snapped back at the impact; now it grows steadily to its true size.
+- **The moon is whole in the sky.** Looking up at it, Minecraft's clouds could cut it down to the shapes of the clouds; it's now always drawn whole, solid and bright.
 
 ### Luna
 - **A slower, heavier fall**: 16 seconds from tearing loose to the impact, and **the music is stretched to match** (same pitch), so its drop still lands the moment it hits. It now keeps itself in step with the moon, even when the game stutters, and it **plays even with your Music slider down**.
