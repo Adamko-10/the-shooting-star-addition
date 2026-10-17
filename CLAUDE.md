@@ -329,6 +329,14 @@ Findings and fixes:
   rim (its inner wall cut to the floor), slabs, cracks, debris, per chunk; loaded chunks animated, the others done when
   they load (`MoonStrike.tickLingering` from the server tick; cleared on server stop). `world/MoonVeins`: the floor's
   veins, cut by the crater's own carver. `MoonBuild`: column ranges, waits for chunks through the loader.
+- **The moon hidden by the clouds** (every loader, also in 1.4.0): Minecraft's clouds are one plane drawn twice, a
+  depth-only pass first (`cloudsDepthOnly`) that writes depth over the whole layer, gaps included, so anything drawn
+  above the cloud layer only shows where a cloud is drawn (the moon was cut to the clouds' shapes whenever the camera
+  looked up at it). While pulled in, the moon is now drawn under the clouds (`MoonSphere.underClouds`, and no further
+  than 256 blocks); its surface is `beaconBeam` (solid, full-bright) everywhere, not lit entity geometry (dull brown
+  at night). Found with a local run on the real GPU: `./gradlew runClientTest -Dss05.clienttest.skill=moon
+  -Dss05.clienttest.film=true -Dss05.clienttest.hud=true -Dss05.clienttest.shots=...` (screenshots in
+  `run/clienttest/screenshots`; `renderClouds:"false"` in `run/clienttest/options.txt` turns clouds off).
 - CI: the `moon` client test now runs the real film with its HUD (`film=true hud=true`), shots retimed.
 - The forge-1.20.1 server test has no player near the mark: it loads the area round the mark itself now (as a player
   there would), or the outer crater/rim checks see unloaded land.
