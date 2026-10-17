@@ -11,6 +11,7 @@ import dev.ss05.halley.client.render.HalleyRenderTypes;
 import dev.ss05.halley.client.render.ShaderPacks;
 import dev.ss05.halley.client.sky.HalleySky;
 import dev.ss05.halley.compat.StarBridge;
+import dev.ss05.halley.net.ServerSettings;
 import java.io.IOException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ShaderInstance;
@@ -39,7 +40,10 @@ public final class HalleyClient {
         MinecraftForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
+            ServerSettings.forget();
         });
+        // once the server has said what it allows, tell it this player's own no-cooldown switch
+        ServerSettings.onReceived = AdditionPanel::sendChoice;
     }
 
     /**

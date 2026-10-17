@@ -5,6 +5,7 @@ import dev.ss05.halley.client.HalleyClient;
 import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.content.HalleyContent;
+import dev.ss05.halley.net.AddonNetwork;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -14,9 +15,11 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLConstructModEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import org.slf4j.Logger;
 
 /**
@@ -43,6 +46,13 @@ public final class HalleyAddon {
 
         context.registerConfig(ModConfig.Type.COMMON, HalleyConfig.SPEC);
         HalleyContent.register(modBus);
+        AddonNetwork.register(modBus);
+        // the no-cooldown settings, to every player whenever the config file changes
+        modBus.addListener((ModConfigEvent.Reloading event) -> {
+            if (event.getConfig().getSpec() == HalleyConfig.SPEC && ServerLifecycleHooks.getCurrentServer() != null) {
+                ServerLifecycleHooks.getCurrentServer().execute(() -> AddonNetwork.sendSettingsToAll(ServerLifecycleHooks.getCurrentServer()));
+            }
+        });
 
         // Mods are constructed in parallel. Hooking into The Shooting Star waits until every mod has been
         // constructed (the deferred queue runs on the main thread), but still runs before key bindings are
@@ -60,6 +70,17 @@ public final class HalleyAddon {
         }
 
         MinecraftForge.EVENT_BUS.addListener(HalleyAddon::warnIfDetached);
+        MinecraftForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedInEvent event) -> {
+            if (event.getEntity() instanceof ServerPlayer player) {
+                AddonNetwork.sendSettings(player);
+                NoCooldown.greet(player);
+            }
+        });
+        MinecraftForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedOutEvent event) -> {
+            if (event.getEntity() instanceof ServerPlayer player) {
+                NoCooldown.forget(player);
+            }
+        });
     }
 
     public static ResourceLocation id(String path) {

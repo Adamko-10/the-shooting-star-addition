@@ -27,6 +27,7 @@ public final class HalleyConfig {
     private static final ForgeConfigSpec.BooleanValue FROST_RAYS;
     private static final ForgeConfigSpec.BooleanValue EVACUATE_CREATIVE;
     private static final ForgeConfigSpec.BooleanValue NO_COOLDOWN;
+    private static final ForgeConfigSpec.BooleanValue NO_COOLDOWN_SURVIVAL;
     private static final ForgeConfigSpec.IntValue CHUNKS_PER_TICK;
     private static final ForgeConfigSpec.DoubleValue MAX_POWER;
     private static final ForgeConfigSpec.DoubleValue MAX_DAMAGE;
@@ -81,10 +82,14 @@ public final class HalleyConfig {
         MoonConfig.define(b);
 
         b.comment("The Stellar Remote itself.").push("stellar_remote");
-        NO_COOLDOWN = b.comment("Switches off the cooldown of every skill on the Stellar Remote - The Shooting Star's own as well",
-                "as Halley and Luna - for every player: each can be cast again straight away. Be careful with this:",
-                "it lets the most destructive skills be cast back to back. The remote's menu (H) shows whether it is on.")
+        NO_COOLDOWN = b.comment("Lets players switch off the cooldown of every skill on the Stellar Remote - The Shooting Star's own",
+                "as well as Halley and Luna: each can be cast again straight away (Halley and Luna even while one is still",
+                "coming down). Each player turns it on or off for themselves in the remote's menu (H, the C key; on by",
+                "default). Be careful with this: it lets the most destructive skills be cast back to back.")
             .define("no_cooldown", false);
+        NO_COOLDOWN_SURVIVAL = b.comment("Whether survival (and adventure) mode players may use no_cooldown too. If false, only",
+                "creative and spectator players can.")
+            .define("no_cooldown_survival", false);
         MAX_POWER = b.comment("The most Power any player can cast a skill with, as a multiple of that skill's default power",
                 "(for Halley and Luna, 1 is their configured size above and 10 is the slider's end). Every skill on the remote,",
                 "The Shooting Star's own as well. 0 (the default) means no limit.")
@@ -132,15 +137,24 @@ public final class HalleyConfig {
     }
 
     /**
-     * Whether the Stellar Remote's cooldowns are off ({@code no_cooldown}), for every skill on it; false until the config
-     * has loaded.
+     * Whether players may switch the Stellar Remote's cooldowns off ({@code no_cooldown}); false until the config has
+     * loaded. Who may, and whether they have, is {@link NoCooldown}'s.
      */
     public static boolean noCooldown() {
+        return flag(NO_COOLDOWN);
+    }
+
+    /** Whether survival players may use {@code no_cooldown} too ({@code no_cooldown_survival}). */
+    public static boolean noCooldownSurvival() {
+        return flag(NO_COOLDOWN_SURVIVAL);
+    }
+
+    private static boolean flag(ForgeConfigSpec.BooleanValue value) {
         if (!SPEC.isLoaded()) {
             return false;
         }
         try {
-            return NO_COOLDOWN.get();
+            return value.get();
         } catch (IllegalStateException notLoadedYet) {
             return false;
         }
