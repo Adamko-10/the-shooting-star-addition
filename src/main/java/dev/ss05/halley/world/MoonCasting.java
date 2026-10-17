@@ -1,6 +1,7 @@
 package dev.ss05.halley.world;
 
 import dev.ss05.halley.CastTuning;
+import dev.ss05.halley.NoCooldown;
 import dev.ss05.halley.MoonConfig;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.MoonPlan;
@@ -10,7 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
-/** What happens when SS-06's button is pressed (server side). The cooldown is handled by the remote itself. */
+/** What happens when SS-06's button is pressed (server side). The cooldown is handled by the remote itself (see NoCooldown). */
 public final class MoonCasting {
     private MoonCasting() {
     }
@@ -20,7 +21,8 @@ public final class MoonCasting {
      * sliders: the moon's and the crater's sizes are the config's times its power, and it runs at its speed.
      */
     public static boolean cast(ServerPlayer player, CastTuning cast) {
-        if (StarBridge.moonAlreadyFalling(player)) {
+        // (with no cooldown, another may be called down while one is still falling)
+        if (!NoCooldown.appliesTo(player) && StarBridge.moonAlreadyFalling(player)) {
             StarBridge.deny(player, MoonInfo.title() + ": the moon is already falling");
             return false;
         }

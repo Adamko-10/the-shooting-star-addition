@@ -13,10 +13,13 @@ import dev.ss05.halley.client.render.ShaderPacks;
 import dev.ss05.halley.client.render.WorldFrame;
 import dev.ss05.halley.client.sky.HalleySky;
 import dev.ss05.halley.compat.StarBridge;
+import dev.ss05.halley.net.ServerSettings;
+import dev.ss05.halley.net.SettingsPayload;
 import javax.annotation.Nullable;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -71,6 +74,14 @@ public final class HalleyClient implements ClientModInitializer {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
+            ServerSettings.forget();
+        });
+        // once the server has said what it allows, tell it this player's own no-cooldown switch
+        ServerSettings.onReceived = AdditionPanel::sendChoice;
+        // the server's no-cooldown settings (client-only receiver, so nothing of this loads on a dedicated server)
+        ClientPlayNetworking.registerGlobalReceiver(SettingsPayload.ID, (client, handler, buf, responseSender) -> {
+            SettingsPayload payload = SettingsPayload.read(buf);
+            client.execute(() -> ServerSettings.received(payload.noCooldown(), payload.survival()));
         });
     }
 

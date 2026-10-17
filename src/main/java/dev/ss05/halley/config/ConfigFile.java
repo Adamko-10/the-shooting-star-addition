@@ -64,6 +64,15 @@ public final class ConfigFile {
         return this.loaded;
     }
 
+    /** Sets a value (a switch the player flipped in game) and saves the file right away. Ignored before {@link #load()}. */
+    public <T> void set(Value<T> value, T newValue) {
+        if (!this.loaded) {
+            return;
+        }
+        value.value = newValue;
+        this.save();
+    }
+
     public Path path() {
         return FabricLoader.getInstance().getConfigDir().resolve(this.fileName);
     }
