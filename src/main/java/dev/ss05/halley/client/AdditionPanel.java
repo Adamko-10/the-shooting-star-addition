@@ -50,13 +50,14 @@ public final class AdditionPanel {
 
     /** A key pressed while the menu is open (from compat/tss/mixin/WhiteSpaceMixin): true if it was one of ours. */
     public static boolean key(int key) {
-        if (key == KEY_MUSIC) {
+        // (Minecraft 26.3's keys are SDL's: a letter is its lower-case character, 'm' = 109; GLFW's 'M' = 77 is taken too)
+        if (key == KEY_MUSIC || key == 'm') {
             HalleyClientConfig.setLunaMusic(!HalleyClientConfig.lunaMusic());
             musicFlippedAt = Util.getMillis();
             click(true);
             return true;
         }
-        if (key == KEY_COOLDOWN) {
+        if (key == KEY_COOLDOWN || key == 'c') {
             if (!allowedHere()) {
                 click(false);
                 return true;
