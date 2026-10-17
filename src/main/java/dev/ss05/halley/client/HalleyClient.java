@@ -8,6 +8,7 @@ import dev.ss05.halley.client.render.GlowAtlas;
 import dev.ss05.halley.client.render.ShaderPacks;
 import dev.ss05.halley.client.sky.HalleySky;
 import dev.ss05.halley.compat.StarBridge;
+import dev.ss05.halley.net.ServerSettings;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -43,7 +44,10 @@ public final class HalleyClient implements ClientModInitializer {
             MoonRenderer.release();
             MoonSphere.release();
             HalleySky.release();
+            ServerSettings.forget();
         });
+        // once the server has said what it allows, tell it this player's own no-cooldown switch
+        ServerSettings.onReceived = AdditionPanel::sendChoice;
     }
 
     /**

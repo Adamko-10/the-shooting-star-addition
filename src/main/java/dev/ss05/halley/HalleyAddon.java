@@ -5,6 +5,7 @@ import dev.ss05.halley.client.HalleyClient;
 import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.content.HalleyContent;
+import dev.ss05.halley.net.AddonNetwork;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -36,6 +37,7 @@ public final class HalleyAddon implements ModInitializer {
     public void onInitialize() {
         HalleyConfig.SPEC.load();
         HalleyContent.register();
+        AddonNetwork.register();
 
         // Fabric runs every mod's main entrypoint before any client one, so SS-05 is on the Stellar Remote before
         // The Shooting Star's client sets up the remote's key bindings: it gets its own key like the other skills.
@@ -45,7 +47,12 @@ public final class HalleyAddon implements ModInitializer {
             HalleyConfig.SPEC.load();
             StarBridge.install();
         });
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> warnIfDetached(handler.player));
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            warnIfDetached(handler.player);
+            AddonNetwork.sendSettings(handler.player);
+            NoCooldown.greet(handler.player);
+        });
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> NoCooldown.forget(handler.player));
     }
 
     public static Identifier id(String path) {

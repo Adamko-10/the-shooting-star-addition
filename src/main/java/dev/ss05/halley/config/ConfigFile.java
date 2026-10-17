@@ -102,7 +102,8 @@ public final class ConfigFile {
         }
     }
 
-    private void save() {
+    /** Writes every key's current value back to the file (for a switch flipped from the game, e.g. the remote's menu). */
+    public void save() {
         Path path = this.path();
         try {
             Files.createDirectories(path.getParent());
@@ -197,6 +198,11 @@ public final class ConfigFile {
 
         public T get() {
             return this.value;
+        }
+
+        /** Sets the value from the game (e.g. a switch flipped in the remote's menu); call {@link ConfigFile#save()} after. */
+        public void set(T value) {
+            this.value = value;
         }
 
         void reset() {

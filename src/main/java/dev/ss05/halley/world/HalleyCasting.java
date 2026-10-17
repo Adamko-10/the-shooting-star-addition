@@ -1,6 +1,7 @@
 package dev.ss05.halley.world;
 
 import dev.ss05.halley.CastTuning;
+import dev.ss05.halley.NoCooldown;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.HalleyPlan;
@@ -12,7 +13,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
-/** What happens when the button is pressed (server side). The cooldown is handled by the remote itself. */
+/** What happens when the button is pressed (server side). The cooldown is handled by the remote itself (see NoCooldown). */
 public final class HalleyCasting {
     private HalleyCasting() {
     }
@@ -22,7 +23,8 @@ public final class HalleyCasting {
      * sliders: the strike's sizes are the config's times its power, and it runs at its speed.
      */
     public static boolean cast(ServerPlayer player, CastTuning cast) {
-        if (StarBridge.alreadyFlying(player)) {
+        // (with no cooldown, another may be called down while one is still coming in)
+        if (!NoCooldown.appliesTo(player) && StarBridge.alreadyFlying(player)) {
             StarBridge.deny(player, HalleyInfo.title() + " is already on its way");
             return false;
         }
