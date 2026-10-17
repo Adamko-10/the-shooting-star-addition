@@ -508,11 +508,12 @@ public final class MoonFx {
             }
             long now = System.nanoTime();
             if (!this.started) {
-                // the track starts once its stream is open (a tick or so after it is asked for)
+                // the track starts from its beginning once its stream is open (a tick or so after it is asked for):
+                // the time that took is caught up like any other drift
                 if (Minecraft.getInstance().getSoundManager().isActive(this)) {
                     this.started = true;
                     this.last = now;
-                    this.played = Math.max(0.0, (MoonFx.this.realTime(0.0F) - MoonPlan.FALL) / 20.0 - 0.05);
+                    this.played = 0.0;
                 }
                 return;
             }
