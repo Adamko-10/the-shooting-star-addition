@@ -1,6 +1,5 @@
 package dev.ss05.halley.client.luna.render;
 
-import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
@@ -32,71 +31,82 @@ import org.joml.Vector4f;
 
 /**
  * SS-06's moon as a solid, lit, textured sphere: {@code surface.png} for the albedo, {@code seams.png} (an emissive
- * RGBA mask) for the molten cracks on top. Unlike SS-05's comet ({@code CometRenderer}), which draws additive glow
- * with its own procedural shader, this needs real textures, so it has its own tiny pipeline pair ({@code halley_moon},
+ * RGBA mask) for the molten cracks on top, and {@code glow.png} for a glowing shell of heat over its leading face as
+ * it comes down. Unlike SS-05's comet ({@code CometRenderer}), which draws additive glow with its own procedural
+ * shader, this needs real textures, so it has its own tiny pipeline pair ({@code halley_moon},
  * {@link HalleyPipelines#MOON} / {@link HalleyPipelines#MOON_EMISSIVE}): a plain texture-times-vertex-colour shader
  * that never reads Minecraft's Fog uniform, so the sphere is never fogged out while it's drawn pulled toward the
  * camera at a faked distance (see the class doc below on {@link #placement}).
  *
  * <p>While a shader pack is on, Iris drops pipelines it doesn't know, same as SS-05's own light - but unlike that
- * light, this sphere already has real textures, so no atlas needs painting: it is simply submitted a second way,
- * with the same real textures, as glowing-eyes geometry ({@link #submitForShaderPack}), which every shader pack
- * draws.
+ * light, this sphere already has real textures, so no atlas needs painting: it is simply submitted a second way, with
+ * the same real textures, as glowing-eyes geometry ({@link #submitForShaderPack}), which every shader pack draws.
  *
- * <h2>Never clipped, always the right size</h2>
+ * <h2>Always the same size</h2>
  * Far away the sphere is drawn pulled toward the camera (like {@code GlowBatch}'s billboards), scaled down to keep
  * exactly the same apparent angular size, so it never crosses the far plane. Its starting apparent size matches the
- * vanilla moon's (a quad at distance 100, half-size 20 - ratio 0.2); as {@link MoonPlan#fall} progresses that ratio
- * blends smoothly into the true {@code radius / distance}, so by touchdown it is drawn at its real world size and
- * position, correctly occluded by (and occluding) the terrain. At rest it shrinks a little more and fades away as
- * the server's block moon takes over ({@link MoonFx#sphereVisibilityAt}).
+ * vanilla moon's disc; as {@link MoonPlan#fall} progresses that grows steadily into the true {@code radius / distance},
+ * and from the moment the true size is the bigger one it is drawn at its real size and position, correctly occluded by
+ * (and occluding) the terrain. It only ever grows on its way down - never swollen past its real size and shrunk back as
+ * it lands. At rest it fades away as the server's block moon takes over ({@link MoonFx#sphereVisibilityAt}).
+ *
+ * <h2>Heating up</h2>
+ * As it falls the face it leads with warms - a faint glow round its rim as it tears loose, orange as it nears the
+ * atmosphere, white-hot through entry - and its molten seams burn brighter; its surface is rugged (craters dented into
+ * its outline) while it falls and settles to the true sphere the block moon is built as.
  */
 public final class MoonSphere {
     private static final Identifier SURFACE = HalleyAddon.id("textures/luna/surface.png");
     private static final Identifier SEAMS = HalleyAddon.id("textures/luna/seams.png");
-    private static final ByteBufferBuilder BASE_BYTES = new ByteBufferBuilder(1 << 18);
-    private static final ByteBufferBuilder SEAM_BYTES = new ByteBufferBuilder(1 << 18);
+    private static final Identifier GLOW = HalleyAddon.id("textures/luna/glow.png");
+    private static final ByteBufferBuilder BASE_BYTES = new ByteBufferBuilder(1 << 19);
+    private static final ByteBufferBuilder SEAM_BYTES = new ByteBufferBuilder(1 << 19);
+    private static final ByteBufferBuilder HEAT_BYTES = new ByteBufferBuilder(1 << 19);
+    private static final ByteBufferBuilder SEAM_GLOW_BYTES = new ByteBufferBuilder(1 << 19);
     private static final DynamicMesh BASE_MESH = new DynamicMesh("SS-06 Luna moon");
     private static final DynamicMesh SEAM_MESH = new DynamicMesh("SS-06 Luna moon seams");
+    private static final DynamicMesh HEAT_MESH = new DynamicMesh("SS-06 Luna moon heat");
+    private static final DynamicMesh SEAM_GLOW_MESH = new DynamicMesh("SS-06 Luna moon seam glow");
 
-    private static final int LONG_SEGMENTS = 28;
-    private static final int LAT_SEGMENTS = 16;
+    /** The fewest and the most latitude bands (longitude has about twice as many): more when it looms large. */
+    private static final int MIN_LAT = 16;
+    private static final int MAX_LAT = 40;
     /**
      * The sphere's starting apparent size, as a ratio of radius/distance. The vanilla moon quad (half-size 20 at
      * distance 100, ratio 0.2) draws much bigger than the disc actually visible in it (the quad's corners are empty
      * sky), so the disc you actually see is about half that: ratio 0.1.
      */
     private static final double START_RATIO = 0.1;
-    /** The most the falling moon is ever drawn at, as radius over distance (0.75 = about 37 degrees across the view). */
+    /** The most the falling moon is ever drawn at while still pulled in, as radius over distance. */
     private static final double MAX_DISPLAY_RATIO = 0.75;
     /** How many times the molten-seam texture tiles across the sphere, so its cracks spread over the whole surface
      * instead of appearing once (equirectangular, so a wider tile than tall keeps roughly square cells). */
     private static final int SEAM_TILE_U = 4;
     private static final int SEAM_TILE_V = 2;
-    /** A fixed "sun" direction for the sphere's own faked shading: gentle limb darkening only. */
+    /** Where its light comes from, for its own shading (it is lit by the sun beyond the horizon, as the moon is). */
     private static final Vec3 LIGHT_DIR = new Vec3(0.42, 0.82, 0.39).normalize();
+    /** How deep its surface relief is while it falls, as a share of its radius. */
+    private static final double RELIEF = 0.022;
 
     private MoonSphere() {
     }
 
-    /** Where and how big to draw the moon this frame; {@code radius <= 0} once it has fully faded away. */
-    public record Placement(Vec3 centre, double radius, Vec3 axis, double spin, float crack, float burn) {
-    }
-
-    /** A camera-relative vertex: position, uv on the sphere's own textures, colour (the baked lighting/alpha). */
-    private interface Sink {
-        void vertex(float x, float y, float z, float u, float v, float r, float g, float b, float a);
-
-        Sink NONE = (x, y, z, u, v, r, g, b, a) -> {
-        };
+    /**
+     * Where and how big to draw the moon this frame; {@code radius <= 0} once it has fully faded away. {@code heading}
+     * is the way it is travelling, {@code approach} 0..1 how far down it has come, {@code relief} 0..1 how rugged its
+     * outline is still drawn.
+     */
+    public record Placement(Vec3 centre, double radius, Vec3 axis, double spin, float crack, float burn, Vec3 heading,
+                            float approach, float relief) {
     }
 
     /**
-     * Far away the sphere is drawn pulled toward the camera and scaled to keep a faked apparent size that starts at
-     * {@link #START_RATIO} and grows, as {@link MoonPlan#fall} progresses, toward {@code endRatio} - the ratio the
-     * moon will actually have once it reaches {@code contactCentre}. The blend is geometric, so it only ever grows.
-     * The moment the moon's true size/position would already look at least as big as that curve, this switches to
-     * the true ratio and the true, unpulled position - exactly real size and place once close.
+     * Far away the sphere is drawn pulled toward the camera and scaled to an apparent size that starts at
+     * {@link #START_RATIO} and grows, as {@link MoonPlan#fall} progresses, toward the ratio the moon will actually have
+     * once it reaches {@code contactCentre} (computed fresh each frame, so a moving camera still sees a steady
+     * approach). The blend is geometric (an equal factor each step), so it only ever grows; whichever of that and the
+     * true size is bigger is drawn, and the true one wins smoothly as it closes in - at the true position, so it is
+     * exactly real size and place from then on (and always from {@link MoonPlan#CONTACT}).
      */
     public static Placement placement(MoonFx fx, Vec3 camera, double maxDistance, float partial) {
         MoonPlan p = fx.plan;
@@ -109,20 +119,10 @@ public final class MoonSphere {
         double endDistance = Math.max(1.0, camera.distanceTo(p.contactCentre));
         double endRatio = Math.max(trueRadius / endDistance, 1.0E-6);
         double fall = MoonPlan.fall(t);
-        double displayRatio = START_RATIO * Math.pow(endRatio / START_RATIO, fall);
-        // a cinematic exaggeration before contact, so it swells and rushes in rather than just sliding closer;
-        // collapsed back to 1 in CONTACT's first few ticks, hidden by the white flash and the impact frames
-        double exaggeration = t < MoonPlan.CONTACT ? 1.0 + 1.4 * Math.pow(fall, 1.6)
-            : Mth.lerp(Mth.clamp((t - MoonPlan.CONTACT) / 4.0, 0.0, 1.0), 2.4, 1.0);
-        displayRatio *= exaggeration;
-        // never so big that the drawn sphere would swallow the camera (a ratio of 1 = its surface at the camera):
-        // close cameras (the cutscene's) see it fill much of the view, never from the inside
-        displayRatio = Math.min(displayRatio, MAX_DISPLAY_RATIO);
+        double displayRatio = Math.min(START_RATIO * Math.pow(endRatio / START_RATIO, fall), MAX_DISPLAY_RATIO);
 
         double distance;
         double radius;
-        // from the impact on it is in the world for real: true size, true place (the display trick only ever
-        // applies while it is still falling from the sky)
         if (t >= MoonPlan.CONTACT || trueRatio >= displayRatio) {
             distance = trueDistance;
             radius = trueRadius;
@@ -137,14 +137,17 @@ public final class MoonSphere {
         dir = dl < 1.0E-6 ? new Vec3(0.0, 1.0, 0.0) : dir.scale(1.0 / dl);
         Vec3 drawCentre = camera.add(dir.scale(distance));
         Vec3 axis = new Vec3(-p.travel.z, 0.0, p.travel.x);
-        float flicker = 0.82F + 0.18F * (float) Math.sin(t * 1.7 + (p.seed & 0xFF));
+        float flicker = 0.85F + 0.15F * (float) Math.sin(t * 1.7 + (p.seed & 0xFF));
+        float approach = (float) Math.pow(fall, 0.8);
 
         // once the block moon has taken over, the rendered shell cross-fades into a glowing, cooling molten look
         // (orange-white dying down to gold) instead of just popping out - see the class doc
         int handover = fx.handoverAt();
         double cooling = handover < 0 ? 0.0 : Mth.clamp(1.0 - (t - handover) / MoonFx.COOLING_TICKS, 0.0, 1.0);
         float heat = (float) Math.max(MoonPlan.burn(t), cooling);
-        return new Placement(drawCentre, radius, axis, p.spin(t), MoonPlan.crack(t) * flicker, heat);
+        float relief = (float) (1.0 - MoonPlan.settle(t));
+        return new Placement(drawCentre, radius, axis, p.spin(t), MoonPlan.crack(t) * flicker, heat, MoonFx.headingAt(p, t),
+            approach, relief);
     }
 
     private static List<Placement> placements(Vec3 camera, double maxDistance, float partial) {
@@ -182,22 +185,34 @@ public final class MoonSphere {
 
         BufferBuilder base = new BufferBuilder(BASE_BYTES, PrimitiveTopology.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
         BufferBuilder seam = new BufferBuilder(SEAM_BYTES, PrimitiveTopology.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-        Sink baseSink = (x, y, z, u, v, r, g, b, a) -> base.addVertex(x, y, z).setUv(u, v).setColor(r, g, b, a);
-        Sink seamSink = (x, y, z, u, v, r, g, b, a) -> seam.addVertex(x, y, z).setUv(u, v).setColor(r, g, b, a);
+        BufferBuilder heat = new BufferBuilder(HEAT_BYTES, PrimitiveTopology.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        BufferBuilder seamGlow = new BufferBuilder(SEAM_GLOW_BYTES, PrimitiveTopology.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        Sinks sinks = new Sinks(
+            (x, y, z, u, v, r, g, b, a) -> base.addVertex(x, y, z).setUv(u, v).setColor(r, g, b, a),
+            (x, y, z, u, v, r, g, b, a) -> seam.addVertex(x, y, z).setUv(u, v).setColor(r, g, b, a),
+            (x, y, z, u, v, r, g, b, a) -> heat.addVertex(x, y, z).setUv(u, v).setColor(r, g, b, a),
+            (x, y, z, u, v, r, g, b, a) -> seamGlow.addVertex(x, y, z).setUv(u, v).setColor(r, g, b, a));
         for (Placement placement : placements) {
-            build(baseSink, seamSink, camera, placement);
+            // its own pipelines have culling off already, so one winding (no mirrored back face) is enough here -
+            // unlike submitForShaderPack's vanilla eyes types, which are one-sided
+            build(sinks, camera, placement, false);
         }
 
         boolean drawBase = BASE_MESH.upload(base.build());
         boolean drawSeam = SEAM_MESH.upload(seam.build());
-        if (!drawBase && !drawSeam) {
+        boolean drawHeat = HEAT_MESH.upload(heat.build());
+        boolean drawSeamGlow = SEAM_GLOW_MESH.upload(seamGlow.build());
+        if (!drawBase && !drawSeam && !drawHeat && !drawSeamGlow) {
             return;
         }
-        RenderTarget target = minecraft.gameRenderer.mainRenderTarget();
+        var target = minecraft.gameRenderer.mainRenderTarget();
         GpuBufferSlice transforms = RenderSystem.getDynamicUniforms().writeTransform(RenderSystem.getModelViewMatrixCopy(),
             new Vector4f(1.0F, 1.0F, 1.0F, 1.0F));
         AbstractTexture baseTex = minecraft.getTextureManager().getTexture(SURFACE);
         AbstractTexture seamTex = minecraft.getTextureManager().getTexture(SEAMS);
+        AbstractTexture glowTex = minecraft.getTextureManager().getTexture(GLOW);
+        // halley_moon.fsh never reads the Fog uniform (see the class doc), so unlike the vanilla render types this
+        // used to rely on, nothing here needs to be switched off to keep the pulled-in sphere from fogging out
         try (RenderPass pass = RenderSystem.getDevice().createCommandEncoder().createRenderPass(() -> "SS-06 Luna moon",
             target.getColorTextureView(), Optional.empty(), target.getDepthTextureView(), OptionalDouble.empty())) {
             RenderSystem.bindDefaultUniforms(pass);
@@ -207,10 +222,18 @@ public final class MoonSphere {
                 pass.setUniform("Sampler0", baseTex.getTextureView(), baseTex.getSampler());
                 BASE_MESH.draw(pass);
             }
+            pass.setPipeline(RenderSystem.getCompiledPipeline(HalleyPipelines.MOON_EMISSIVE));
             if (drawSeam) {
-                pass.setPipeline(RenderSystem.getCompiledPipeline(HalleyPipelines.MOON_EMISSIVE));
                 pass.setUniform("Sampler0", seamTex.getTextureView(), seamTex.getSampler());
                 SEAM_MESH.draw(pass);
+            }
+            if (drawSeamGlow) {
+                pass.setUniform("Sampler0", seamTex.getTextureView(), seamTex.getSampler());
+                SEAM_GLOW_MESH.draw(pass);
+            }
+            if (drawHeat) {
+                pass.setUniform("Sampler0", glowTex.getTextureView(), glowTex.getSampler());
+                HEAT_MESH.draw(pass);
             }
         }
     }
@@ -218,7 +241,7 @@ public final class MoonSphere {
     /**
      * Fabric's {@code LevelRenderEvents.COLLECT_SUBMITS}, while a shader pack is on: the same sphere, with its own
      * real textures (no atlas needed, unlike the glow), submitted as glowing-eyes geometry, which every shader pack
-     * draws adding its own light.
+     * draws adding its own light. Vanilla's eyes type is one-sided, so both windings are given here.
      */
     public static void submitForShaderPack(LevelRenderContext context) {
         if (MoonFx.active().isEmpty() || !ShaderPacks.active()) {
@@ -236,83 +259,203 @@ public final class MoonSphere {
         if (placements.isEmpty()) {
             return;
         }
-        context.submitNodeCollector().submitCustomGeometry(context.poseStack(), RenderTypes.eyes(SURFACE), (pose, out) -> {
+        submitEyes(context, SURFACE, placements, camera, Part.BASE);
+        submitEyes(context, SEAMS, placements, camera, Part.SEAM);
+        submitEyes(context, SEAMS, placements, camera, Part.SEAM_GLOW);
+        submitEyes(context, GLOW, placements, camera, Part.HEAT);
+    }
+
+    private enum Part { BASE, SEAM, SEAM_GLOW, HEAT }
+
+    private static void submitEyes(LevelRenderContext context, Identifier texture, List<Placement> placements, Vec3 camera, Part part) {
+        context.submitNodeCollector().submitCustomGeometry(context.poseStack(), RenderTypes.eyes(texture), (pose, out) -> {
             Sink sink = (x, y, z, u, v, r, g, b, a) -> out.addVertex(pose, x, y, z).setColor(r, g, b, a).setUv(u, v)
                 .setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightCoordsUtil.FULL_BRIGHT).setNormal(0.0F, 1.0F, 0.0F);
+            Sinks sinks = switch (part) {
+                case BASE -> new Sinks(sink, Sink.NONE, Sink.NONE, Sink.NONE);
+                case SEAM -> new Sinks(Sink.NONE, sink, Sink.NONE, Sink.NONE);
+                case SEAM_GLOW -> new Sinks(Sink.NONE, Sink.NONE, Sink.NONE, sink);
+                case HEAT -> new Sinks(Sink.NONE, Sink.NONE, sink, Sink.NONE);
+            };
             for (Placement placement : placements) {
-                build(sink, Sink.NONE, camera, placement);
-            }
-        });
-        context.submitNodeCollector().submitCustomGeometry(context.poseStack(), RenderTypes.eyes(SEAMS), (pose, out) -> {
-            Sink sink = (x, y, z, u, v, r, g, b, a) -> out.addVertex(pose, x, y, z).setColor(r, g, b, a).setUv(u, v)
-                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightCoordsUtil.FULL_BRIGHT).setNormal(0.0F, 1.0F, 0.0F);
-            for (Placement placement : placements) {
-                build(Sink.NONE, sink, camera, placement);
+                build(sinks, camera, placement, true);
             }
         });
     }
 
-    private static void build(Sink base, Sink seam, Vec3 camera, Placement placement) {
+    /** A camera-relative vertex: position, uv on the sphere's own textures, colour (the baked lighting/alpha). */
+    private interface Sink {
+        void vertex(float x, float y, float z, float u, float v, float r, float g, float b, float a);
+
+        Sink NONE = (x, y, z, u, v, r, g, b, a) -> {
+        };
+    }
+
+    /** base/seam (opaque albedo, molten crack reveal), heat (the leading-face glow shell) and seamGlow (the seams'
+     * own brightening as the moon nears), each a separate additive pass over the base. */
+    private record Sinks(Sink base, Sink seam, Sink heat, Sink seamGlow) {
+    }
+
+    /** One sphere point, worked out once per quad corner. */
+    private record Vertex(float x, float y, float z, float u, float v, Vec3 normal, double lon) {
+    }
+
+    /** What every vertex of one moon this frame needs. */
+    private static final class Frame {
+        final Placement placement;
+        final Vec3 camera;
+        final Vec3 view;
+        final double cos;
+        final double sin;
+
+        Frame(Placement placement, Vec3 camera, Vec3 view) {
+            this.placement = placement;
+            this.camera = camera;
+            this.view = view;
+            this.cos = Math.cos(placement.spin());
+            this.sin = Math.sin(placement.spin());
+        }
+
+        /** {@code seamU} is the u to use at the seam of the texture (0 or 1), so the last column doesn't wrap back. */
+        Vertex at(double lat, double lon, double seamU) {
+            double cl = Math.cos(lat);
+            Vec3 local = new Vec3(cl * Math.cos(lon), Math.sin(lat), cl * Math.sin(lon));
+            // Rodrigues' rotation: local spun about the axis by the sphere's own turn
+            Vec3 axis = this.placement.axis();
+            Vec3 rotated = local.scale(this.cos).add(axis.cross(local).scale(this.sin)).add(axis.scale(axis.dot(local) * (1.0 - this.cos)));
+            double r = this.placement.radius() * (1.0 + RELIEF * this.placement.relief() * relief(local));
+            Vec3 world = this.placement.centre().add(rotated.scale(r));
+            float u = (float) (lon / (Math.PI * 2.0));
+            if (u >= 0.999F) {
+                u = (float) seamU;
+            }
+            return new Vertex((float) (world.x - this.camera.x), (float) (world.y - this.camera.y), (float) (world.z - this.camera.z),
+                u, (float) (0.5 - lat / Math.PI), rotated, lon);
+        }
+    }
+
+    /**
+     * -1..1: how far the surface stands proud of (or is dented into) the true sphere at this point (its own, unspun
+     * direction): broad uplands and basins and a scatter of craters, the same every frame.
+     */
+    private static double relief(Vec3 d) {
+        double broad = 0.5 * Math.sin(d.x * 3.1 + 0.7) * Math.sin(d.y * 2.7 - 0.3) + 0.3 * Math.sin(d.z * 4.3 + d.x * 1.9);
+        double fine = 0.25 * Math.sin(d.x * 9.7 + d.z * 4.1) * Math.sin(d.y * 8.3 + 1.1);
+        // craters: shallow pits with a lip, round a few fixed directions
+        double craters = 0.0;
+        for (int i = 0; i < CRATERS.length; i += 4) {
+            double dot = d.x * CRATERS[i] + d.y * CRATERS[i + 1] + d.z * CRATERS[i + 2];
+            double size = CRATERS[i + 3];
+            double k = (1.0 - dot) / size;
+            if (k < 1.6) {
+                craters += k < 1.0 ? -(1.0 - k * k) : 0.35 * Math.sin((k - 1.0) / 0.6 * Math.PI);
+            }
+        }
+        return Mth.clamp(broad + fine + 0.8 * craters, -1.0, 1.0);
+    }
+
+    /** Crater centres (unit vectors) and sizes (1 - cos of their angular radius). */
+    private static final double[] CRATERS = craters();
+
+    private static double[] craters() {
+        double[] out = new double[11 * 4];
+        long h = 0x6C756E61L;
+        for (int i = 0; i < out.length; i += 4) {
+            h = h * 6364136223846793005L + 1442695040888963407L;
+            double z = ((h >>> 11) * 0x1.0p-53) * 2.0 - 1.0;
+            h = h * 6364136223846793005L + 1442695040888963407L;
+            double a = ((h >>> 11) * 0x1.0p-53) * Math.PI * 2.0;
+            double s = Math.sqrt(1.0 - z * z);
+            out[i] = s * Math.cos(a);
+            out[i + 1] = z;
+            out[i + 2] = s * Math.sin(a);
+            h = h * 6364136223846793005L + 1442695040888963407L;
+            out[i + 3] = 0.006 + ((h >>> 11) * 0x1.0p-53) * 0.03;
+        }
+        return out;
+    }
+
+    private static void build(Sinks out, Vec3 camera, Placement placement, boolean doubleSided) {
         Vec3 centre = placement.centre();
         double r = placement.radius();
-        Vec3 axis = placement.axis();
-        double angle = placement.spin();
-        double cos = Math.cos(angle);
-        double sin = Math.sin(angle);
-        float crackAlpha = placement.crack();
-        float burn = placement.burn();
+        double ratio = r / Math.max(1.0, centre.distanceTo(camera));
+        int lat = Mth.clamp((int) Math.round(MIN_LAT + ratio * 60.0), MIN_LAT, MAX_LAT);
+        int lon = lat * 2 - 4;
+        Vec3 view = centre.subtract(camera).normalize();
+        Frame frame = new Frame(placement, camera, view);
 
-        for (int i = 0; i < LAT_SEGMENTS; i++) {
-            double lat0 = Math.PI * ((double) i / LAT_SEGMENTS - 0.5);
-            double lat1 = Math.PI * ((double) (i + 1) / LAT_SEGMENTS - 0.5);
-            for (int j = 0; j < LONG_SEGMENTS; j++) {
-                double lon0 = Math.PI * 2.0 * (double) j / LONG_SEGMENTS;
-                double lon1 = Math.PI * 2.0 * (double) (j + 1) / LONG_SEGMENTS;
-                vertex(base, seam, camera, centre, r, axis, cos, sin, lat0, lon0, crackAlpha, burn);
-                vertex(base, seam, camera, centre, r, axis, cos, sin, lat0, lon1, crackAlpha, burn);
-                vertex(base, seam, camera, centre, r, axis, cos, sin, lat1, lon1, crackAlpha, burn);
-                vertex(base, seam, camera, centre, r, axis, cos, sin, lat1, lon0, crackAlpha, burn);
+        for (int i = 0; i < lat; i++) {
+            double lat0 = Math.PI * ((double) i / lat - 0.5);
+            double lat1 = Math.PI * ((double) (i + 1) / lat - 0.5);
+            for (int j = 0; j < lon; j++) {
+                double lon0 = Math.PI * 2.0 * (double) j / lon;
+                double lon1 = Math.PI * 2.0 * (double) (j + 1) / lon;
+                Vertex a = frame.at(lat0, lon0, 0.0);
+                Vertex b = frame.at(lat0, lon1, 1.0);
+                Vertex c = frame.at(lat1, lon1, 1.0);
+                Vertex d = frame.at(lat1, lon0, 0.0);
+                quad(out, frame, a, b, c, d);
+                if (doubleSided) {
+                    // the glowing-eyes type is drawn one-sided: give it both sides (the far half is hidden behind
+                    // the near one all the same)
+                    quad(out, frame, d, c, b, a);
+                }
             }
         }
     }
 
-    private static void vertex(Sink base, Sink seam, Vec3 camera, Vec3 centre, double r, Vec3 axis,
-                               double cos, double sin, double lat, double lon, float crackAlpha, float burn) {
-        double cl = Math.cos(lat);
-        Vec3 local = new Vec3(cl * Math.cos(lon), Math.sin(lat), cl * Math.sin(lon));
-        // Rodrigues' rotation: local spun about axis by the sphere's own turn
-        Vec3 rotated = local.scale(cos).add(axis.cross(local).scale(sin)).add(axis.scale(axis.dot(local) * (1.0 - cos)));
-        Vec3 world = centre.add(rotated.scale(r));
-        float x = (float) (world.x - camera.x);
-        float y = (float) (world.y - camera.y);
-        float z = (float) (world.z - camera.z);
-        float u = (float) (lon / (Math.PI * 2.0));
-        float v = (float) (0.5 - lat / Math.PI);
-
-        // bright and self-lit - more so than the vanilla moon, so it's never lost against a dark sky - with only a
-        // gentle limb darkening (and a faint cool "earthshine" on the unlit side, never truly dark), warming toward
-        // the leading edge's colour as it burns through the atmosphere, or glowing molten-hot during the hand-over
-        // to the block moon (see MoonSphere.placement)
-        float limb = 0.93F + 0.07F * (float) Math.max(0.0, rotated.dot(LIGHT_DIR));
-        float r1 = Math.min(1.0F, limb + burn * 0.4F);
-        float g1 = Math.min(1.0F, limb - burn * (limb - 0.82F) * 0.55F + burn * 0.15F);
-        float b1 = Math.max(0.05F, limb - burn * limb * 0.75F);
-        base.vertex(x, y, z, u, v, r1, g1, b1, 1.0F);
-
-        // the crack mask tiles several times over the sphere, so the molten network spreads over the whole visible
-        // surface instead of showing once (see SEAM_TILE_U/V)
-        float su = frac(u * SEAM_TILE_U);
-        float sv = frac(v * SEAM_TILE_V);
-        seam.vertex(x, y, z, su, sv, 1.0F, 1.0F, 1.0F, crackAlpha);
+    private static void quad(Sinks out, Frame frame, Vertex a, Vertex b, Vertex c, Vertex d) {
+        for (Vertex v : new Vertex[]{a, b, c, d}) {
+            vertex(out, frame, v);
+        }
     }
 
-    private static float frac(float x) {
-        return x - (float) Math.floor(x);
+    private static void vertex(Sinks out, Frame frame, Vertex v) {
+        Placement placement = frame.placement;
+        Vec3 n = v.normal();
+        float burn = placement.burn();
+        float approach = placement.approach();
+        // how squarely this point faces the way it is falling (its leading face heats first and most)
+        float lead = (float) Math.max(0.0, n.dot(placement.heading()));
+        // how close to its outline it is, seen from here (the limb catches the glow of the air round it)
+        float rim = (float) Math.pow(1.0 - Math.min(1.0, Math.abs(n.dot(frame.view))), 3.0);
+        float heat = Mth.clamp(burn * (0.3F + 0.7F * lead) + approach * approach * 0.3F * lead, 0.0F, 1.0F);
+
+        // bright and self-lit - more so than the vanilla moon, so it's never lost against a dark sky - with a soft
+        // terminator so it reads as a ball (and a faint cool "earthshine" on the unlit side, never truly dark), warming
+        // toward the leading face's colour as it burns through the atmosphere, or glowing molten-hot during the
+        // hand-over to the block moon (see placement)
+        float light = 0.74F + 0.26F * (float) Math.max(0.0, n.dot(LIGHT_DIR));
+        float hot = Math.min(1.0F, heat * 1.5F);
+        float red = Math.min(1.0F, light + hot * 0.3F);
+        float green = Math.min(1.0F, Mth.lerp(hot, light, 0.62F + 0.3F * heat));
+        float blue = Math.max(0.06F, Mth.lerp(hot, light * 0.97F, 0.22F + 0.35F * Math.max(0.0F, heat - 0.6F)));
+        // out.base()/out.seam() are a no-op (Sink.NONE) wherever that channel isn't the one being drawn right now
+        // (see build/submitEyes); the custom pipelines draw everything two-sided already (cull off), so the single
+        // call there writes once, same as a one-sided vanilla type being given both windings (see quad/build)
+        out.base().vertex(v.x(), v.y(), v.z(), v.u(), v.v(), red, green, blue, 1.0F);
+
+        // the crack mask tiles several times over the sphere, so the molten network spreads over the whole visible
+        // surface instead of showing once (see SEAM_TILE_U/V); it burns brighter the nearer the moon comes
+        float su = v.u() * SEAM_TILE_U;
+        float sv = v.v() * SEAM_TILE_V;
+        float crack = placement.crack();
+        out.seam().vertex(v.x(), v.y(), v.z(), su, sv, 1.0F, 1.0F, 1.0F, crack);
+        float seamGlow = crack * (0.15F + 0.55F * approach + 0.3F * burn);
+        out.seamGlow().vertex(v.x(), v.y(), v.z(), su, sv, seamGlow, seamGlow * 0.75F, seamGlow * 0.45F, 1.0F);
+
+        // a shell of heat over the leading face, and a glow round the rim that builds the whole way down
+        float glow = Mth.clamp(heat * (0.5F + 0.5F * lead) * 0.8F + rim * (0.12F * approach + 0.35F * burn), 0.0F, 1.0F);
+        float white = Math.max(0.0F, heat - 0.55F) * 1.6F;
+        out.heat().vertex(v.x(), v.y(), v.z(), 0.5F, 0.5F,
+            glow, glow * Math.min(1.0F, 0.45F + 0.5F * white), glow * Math.min(1.0F, 0.16F + 0.6F * white * white), 1.0F);
     }
 
     /** When the world is left: the GPU buffers go (they come back with the next strike). */
     public static void release() {
         BASE_MESH.close();
         SEAM_MESH.close();
+        HEAT_MESH.close();
+        SEAM_GLOW_MESH.close();
     }
 }

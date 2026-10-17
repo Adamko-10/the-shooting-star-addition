@@ -40,7 +40,7 @@ public final class MoonVisuals {
     }
 
     /**
-     * Maps a point (or a size) attached to the moon's true position into the same pulled/exaggerated placement the
+     * Maps a point (or a size) attached to the moon's true position into the same pulled-in placement the
      * sphere itself is drawn at ({@link MoonSphere#placement}), so its burning shroud, streamers and fragments never
      * part ways with the body they're coming off. {@code trueCentre} and {@code scale} are this frame's only.
      */
@@ -151,8 +151,10 @@ public final class MoonVisuals {
         // fades out as the full burn shroud (entry()) takes over, so the two never double up
         float steady = 1.0F - CometVisuals.smooth((t - (MoonPlan.ENTRY - 20.0)) / 30.0);
         if (steady > 0.01F) {
-            world.billboard(c, effR * 1.5, Shapes.GLOW, 0, HOT, 0.4F * steady, 0.0);
-            world.billboard(c, effR * 2.4, Shapes.GLOW, Shapes.HAZE, GOLD, 0.26F * steady, 0.0);
+            // brightening as it comes: faint while it hangs in the sky, glowing as it nears the air
+            float near = (float) Math.pow(MoonPlan.fall(t), 0.8);
+            world.billboard(c, effR * 1.5, Shapes.GLOW, 0, HOT, (0.3F + 0.25F * near) * steady, 0.0);
+            world.billboard(c, effR * (2.4 + 0.6 * near), Shapes.GLOW, Shapes.HAZE, GOLD, (0.2F + 0.16F * near) * steady, 0.0);
         }
 
         double compress = Mth.clamp((t - MoonPlan.BREAK) / Math.max(1.0, MoonPlan.ENTRY - 30.0 - MoonPlan.BREAK), 0.0, 1.0);
@@ -167,7 +169,7 @@ public final class MoonVisuals {
     /**
      * The burning shroud wrapping the body, a bow-shock cap on its leading face, a halo glow round it, and a long,
      * wide re-entry plasma trail streaming back up the path it fell, visible from far away - everything drawn at the
-     * sphere's own {@code map}ped placement (pulled in and cinematically exaggerated, see {@code MoonSphere}), so it
+     * sphere's own {@code map}ped placement (pulled in, see {@code MoonSphere}), so it
      * never parts ways with the body it's coming off and reads big even when the true moon is still a world away.
      */
     private static void entry(GlowBatch world, GlowBatch light, MoonPlan p, double t, Mapping map) {
