@@ -25,6 +25,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.util.Mth;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -78,6 +79,10 @@ public final class MoonSphere {
     private static final double START_RATIO = 0.1;
     /** The most the falling moon is ever drawn at while still pulled in, as radius over distance. */
     private static final double MAX_DISPLAY_RATIO = 0.75;
+    /** The furthest the moon is drawn while it is pulled in (it is the same size on screen wherever it is drawn). */
+    private static final double PULLED_IN = 256.0;
+    /** The nearest it is drawn while pulled in, however low the clouds (see {@link #underClouds}). */
+    private static final double PULLED_IN_MIN = 24.0;
     /** How many times the molten-seam texture tiles across the sphere, so its cracks spread over the whole surface
      * instead of appearing once (equirectangular, so a wider tile than tall keeps roughly square cells). */
     private static final int SEAM_TILE_U = 4;
@@ -138,7 +143,8 @@ public final class MoonSphere {
             distance = trueDistance;
             radius = trueRadius;
         } else {
-            distance = Math.min(trueDistance, maxDistance);
+            distance = Math.min(trueDistance, Math.min(maxDistance, PULLED_IN));
+            distance = underClouds(camera, trueCentre, distance, displayRatio, partial);
             radius = displayRatio * distance;
         }
         radius = Math.max(0.0, radius - MoonFx.radiusShrinkAt(t)) * fx.sphereVisibilityAt(t);
@@ -159,6 +165,28 @@ public final class MoonSphere {
         float relief = (float) (1.0 - MoonPlan.settle(t));
         return new Placement(drawCentre, radius, axis, p.spin(t), MoonPlan.crack(t) * flicker, heat, MoonFx.headingAt(p, t),
             approach, relief);
+    }
+
+    /**
+     * The clouds are one big plane whose depth is written all over, the gaps between them too, so whatever is drawn
+     * above their layer only shows where a cloud is drawn (the vanilla moon is part of the sky, drawn without depth, so
+     * it never meets this). While it is pulled in the moon may be drawn at any distance, so from under the clouds it
+     * is drawn just below them. This branch's cloud height comes from the camera's own environment attribute probe
+     * ({@code EnvironmentAttributes.CLOUD_HEIGHT}, Minecraft 1.21.11's replacement for the old per-dimension lookup).
+     */
+    private static double underClouds(Vec3 camera, Vec3 trueCentre, double distance, double ratio, float partial) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level == null) {
+            return distance;
+        }
+        float clouds = Gfx.camera().attributeProbe().getValue(EnvironmentAttributes.CLOUD_HEIGHT, partial);
+        Vec3 dir = trueCentre.subtract(camera).normalize();
+        if (Float.isNaN(clouds) || camera.y >= clouds || dir.y + ratio <= 1.0E-3) {
+            return distance;
+        }
+        // its top (centre + radius) four blocks under the layer
+        double fits = (clouds - 4.0 - camera.y) / (dir.y + ratio);
+        return Math.max(PULLED_IN_MIN, Math.min(distance, fits));
     }
 
     private static List<Placement> placements(Vec3 camera, double maxDistance, float partial) {
@@ -246,10 +274,9 @@ public final class MoonSphere {
 
     /**
      * Fabric's {@code WorldRenderEvents.AFTER_ENTITIES}, while a shader pack is on: the same sphere, with its own
-     * real textures (no atlas needed, unlike the glow), submitted as glowing-eyes geometry, which every shader pack
-     * draws adding its own light. Note: this branch's TSS/Fabric target has no "beacon beam" (solid, full-bright)
-     * render type handy, so the base surface keeps using glowing-eyes here too, as it did before this feature - the
-     * surface is a little less solid-looking under a shader pack than on main, but still lit and visible.
+     * real textures (no atlas needed, unlike the glow), submitted the way every shader pack draws it. Its surface is
+     * submitted the beacon's-beam way (solid, full-bright, its own shading, the same as {@link #renderSolid}'s custom
+     * pipeline draws it without a pack); the seams and the heat shell, as glowing-eyes geometry (added light).
      */
     public static void submitForShaderPack(WorldRenderContext context) {
         if (MoonFx.active().isEmpty() || !ShaderPacks.active()) {
@@ -267,9 +294,10 @@ public final class MoonSphere {
         if (placements.isEmpty()) {
             return;
         }
-        context.commandQueue().submitCustomGeometry(context.matrices(), RenderTypes.eyes(SURFACE), (pose, out) -> {
+        context.commandQueue().submitCustomGeometry(context.matrices(), RenderTypes.beaconBeam(SURFACE, false), (pose, out) -> {
+            // the beacon-beam vertex format (DefaultVertexFormat.BLOCK) has no overlay channel
             Sink sink = (x, y, z, u, v, r, g, b, a) -> out.addVertex(pose, x, y, z).setColor(r, g, b, a).setUv(u, v)
-                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightTexture.FULL_BRIGHT).setNormal(0.0F, 1.0F, 0.0F);
+                .setLight(LightTexture.FULL_BRIGHT).setNormal(0.0F, 1.0F, 0.0F);
             Sinks sinks = new Sinks(sink, Sink.NONE, Sink.NONE, Sink.NONE);
             for (Placement placement : placements) {
                 build(sinks, camera, placement);
@@ -431,7 +459,7 @@ public final class MoonSphere {
         float crack = placement.crack();
         out.seam().vertex(v.x(), v.y(), v.z(), su, sv, 1.0F, 1.0F, 1.0F, crack);
 
-        float seamGlow = crack * (0.15F + 0.55F * approach + 0.3F * burn);
+        float seamGlow = crack * (0.45F + 0.4F * approach + 0.3F * burn);
         out.seamGlow().vertex(v.x(), v.y(), v.z(), su, sv, seamGlow, seamGlow * 0.75F, seamGlow * 0.45F, 1.0F);
 
         // a shell of heat over the leading face, and a glow round the rim that builds the whole way down
