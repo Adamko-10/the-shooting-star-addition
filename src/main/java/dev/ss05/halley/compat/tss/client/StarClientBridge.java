@@ -23,6 +23,7 @@ import java.lang.reflect.Modifier;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.gui.GuiGraphics;
 import org.jspecify.annotations.Nullable;
 
@@ -211,6 +212,6 @@ public final class StarClientBridge {
     }
 
     private static boolean matches(KeyMapping mapping, int key, int scancode) {
-        return mapping != null && mapping.matches(key, scancode);
+        return mapping != null && mapping.matches(new KeyEvent(key, scancode, 0));
     }
 }

@@ -4,7 +4,6 @@ import dev.ss05.halley.net.ChoicePayload;
 import dev.ss05.halley.net.ServerSettings;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -13,6 +12,7 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
+import net.minecraft.util.Util;
 
 /**
  * The addon's own plate in the Stellar Remote's menu (H, The Shooting Star's "White Space"), in the menu's colours, in

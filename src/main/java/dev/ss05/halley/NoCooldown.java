@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.Permissions;
 
 /**
  * Who has the Stellar Remote's cooldowns off (server side). The server's config allows it ({@code no_cooldown}), for
@@ -46,7 +47,7 @@ public final class NoCooldown {
      */
     public static void greet(ServerPlayer player) {
         boolean on = HalleyConfig.noCooldown();
-        if (!on && !player.hasPermissions(2)) {
+        if (!on && !player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)) {
             return;
         }
         String who = HalleyConfig.noCooldownSurvival() ? "everyone" : "creative mode only";

@@ -36,6 +36,10 @@ public final class HalleyPipelines {
     public static final RenderPipeline MOON = moon("moon", true);
     /** The molten seams on top: {@code seams.png}, additive, depth-tested but not written (it rides on the base). */
     public static final RenderPipeline MOON_EMISSIVE = moon("moon_emissive", false);
+    /** The seams' own warm glow (a second, additive pass over the same crack mask, brighter as the moon nears). */
+    public static final RenderPipeline MOON_SEAM_GLOW = moon("moon_seam_glow", false);
+    /** The heat shell over its leading face and the glow round its rim: {@code glow.png}, additive. */
+    public static final RenderPipeline MOON_HEAT = moon("moon_heat", false);
 
     /** The dome over the vanilla sky. */
     public static final RenderPipeline SKY = sky("sky", false);

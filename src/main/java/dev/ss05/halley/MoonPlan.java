@@ -33,11 +33,14 @@ public final class MoonPlan {
     /** It tears loose from its place in the sky and starts to fall. */
     public static final int FALL = 85;
     /** It reaches the atmosphere: a burning shroud and a roar. */
-    public static final int ENTRY = 260;
-    /** Its lowest point touches the ground on the mark: the impact. */
-    public static final int CONTACT = 340;
+    public static final int ENTRY = 305;
+    /**
+     * Its lowest point touches the ground on the mark: the impact. Sixteen seconds after it tears loose: Luna's music is
+     * cut so that its drop lands here (see {@code client/luna/MoonFx#music}).
+     */
+    public static final int CONTACT = 405;
     /** It has driven down into the earth and come to rest; the crust round it has finished heaving up. */
-    public static final int SETTLE = 410;
+    public static final int SETTLE = 475;
     /** How long the spell keeps running after it comes to rest (dust, debris, the molten seam cooling). */
     public static final int AFTERMATH = 270;
     public static final int DURATION = SETTLE + AFTERMATH;
