@@ -161,8 +161,10 @@ public final class MoonHud {
     }
 
     /**
-     * The caster's film: an uplink overlay with the moon's telemetry - distance, ETA to impact and velocity readouts,
-     * warning text, and the big alert re-shown (the cutscene starts at age 0) - modelled on {@code HalleyHud.film}.
+     * The caster's film: an uplink overlay - thin letterbox bars, the phase of the strike typed out as each begins, the
+     * moon's telemetry (range, altitude, velocity, ETA), a descent bar along the bottom with the impact at its end, the
+     * target lock, a "high-speed capture" tag while the impact plays in slow motion, and the big alert re-shown (the
+     * cutscene starts at age 0) - modelled on {@code HalleyHud.film}.
      */
     public static void film(GuiGraphics g, MoonFx fx, float partial, int w, int h, @Nullable HalleyHud.Projector project) {
         float ct = fx.filmTime(partial);
@@ -173,28 +175,36 @@ public final class MoonHud {
         if (fade <= 0.01F) {
             return;
         }
-        if (ct >= MoonPlan.ALARM && ct <= MoonPlan.ALARM + MoonFx.ALARM_TICKS) {
-            alert(g, fx, ct, w, h);
-        }
         MoonPlan p = fx.plan;
         Font font = Minecraft.getInstance().font;
         int a = (int) (fade * 255.0F);
         boolean flicker = (int) (ct * 3.0F) % 11 == 0;
         int ink = a << 24 | GOLD;
         int dim = (int) (a * 0.55F) << 24 | 0xFFE2C8;
-        int m = 12;
+
+        // letterbox bars, eased in as the film starts
+        int bar = (int) (h * 0.055F * Mth.clamp(ct / 12.0F, 0.0F, 1.0F) * fade);
+        if (bar > 0) {
+            g.fill(0, 0, w, bar, (int) (a * 0.92F) << 24);
+            g.fill(0, h - bar, w, h, (int) (a * 0.92F) << 24);
+        }
+        if (ct >= MoonPlan.ALARM && ct <= MoonPlan.ALARM + MoonFx.ALARM_TICKS) {
+            alert(g, fx, ct, w, h);
+        }
+        int m = 12 + bar;
         int arm = 22;
-        corner(g, m, m, arm, 1, 1, ink);
-        corner(g, w - m, m, arm, -1, 1, ink);
-        corner(g, m, h - m, arm, 1, -1, ink);
-        corner(g, w - m, h - m, arm, -1, -1, ink);
-        text(g, font, "UPLINK // " + Codenames.LUNA + " > LUNA", m + 6, m + 6, flicker ? dim : ink, 1.0F);
-        text(g, font, String.format(Locale.ROOT, "T+%05.2f", ct / 20.0F), m + 6, m + 17, dim, 1.0F);
+        corner(g, 12, m, arm, 1, 1, ink);
+        corner(g, w - 12, m, arm, -1, 1, ink);
+        corner(g, 12, h - m, arm, 1, -1, ink);
+        corner(g, w - 12, h - m, arm, -1, -1, ink);
+        text(g, font, "UPLINK // " + Codenames.LUNA + " > LUNA", 18, m + 6, flicker ? dim : ink, 1.0F);
+        text(g, font, String.format(Locale.ROOT, "T+%05.2f", ct / 20.0F), 18, m + 17, dim, 1.0F);
         String clock = ct < MoonPlan.CONTACT ? String.format(Locale.ROOT, "IMPACT T-%05.2f", Math.max(0.0F, (MoonPlan.CONTACT - ct) / 20.0F))
             : "IMPACT CONFIRMED";
-        right(g, font, clock, w - m - 6, m + 6, ink, 1.0F);
+        right(g, font, clock, w - 18, m + 6, ink, 1.0F);
         right(g, font, String.format(Locale.ROOT, "LOCK %d / %d / %d", Mth.floor(p.target.x), Mth.floor(p.target.y), Mth.floor(p.target.z)),
-            w - m - 6, h - m - 14, dim, 1.0F);
+            w - 18, m + 17, dim, 1.0F);
+        phase(g, font, ct, h, m, a);
 
         if (ct >= MoonPlan.ALARM && ct < MoonPlan.ALARM + 70.0F && project != null) {
             float[] at = project.project(p.target.add(0.0, 0.5, 0.0));
@@ -208,24 +218,40 @@ public final class MoonHud {
             }
         }
 
-        if (ct >= MoonPlan.BREAK && ct < MoonPlan.CONTACT && project != null) {
+        if (ct >= MoonPlan.BREAK && ct < MoonPlan.CONTACT) {
             Vec3 moon = p.centre(ct);
-            float[] at = project.project(moon);
-            if (at != null) {
-                double d = moon.distanceTo(MoonFx.camera());
-                int size = (int) Mth.clamp(20.0 - d / 300.0, 8.0, 20.0);
-                box(g, (int) at[0], (int) at[1], size, ink);
-                text(g, font, Codenames.LUNA + " · LUNA", at[0] + size + 4, at[1] - 9, ink, 1.0F);
-                text(g, font, String.format(Locale.ROOT, "RANGE %.2f KM · ALT %,.0f M", d / 1000.0, moon.y - p.target.y),
-                    at[0] + size + 4, at[1] + 1, dim, 1.0F);
+            if (project != null) {
+                float[] at = project.project(moon);
+                if (at != null) {
+                    double d = moon.distanceTo(MoonFx.camera());
+                    int size = (int) Mth.clamp(20.0 - d / 300.0, 8.0, 20.0);
+                    box(g, (int) at[0], (int) at[1], size, ink);
+                    text(g, font, Codenames.LUNA + " · LUNA", at[0] + size + 4, at[1] - 9, ink, 1.0F);
+                    text(g, font, String.format(Locale.ROOT, "RANGE %.2f KM · ALT %,.0f M", d / 1000.0, moon.y - p.target.y),
+                        at[0] + size + 4, at[1] + 1, dim, 1.0F);
+                }
             }
             double eta = Math.max(0.0, MoonPlan.CONTACT - ct) / 20.0;
-            text(g, font, String.format(Locale.ROOT, "V %,.0f M/S", p.speed(ct) * 20.0), 18, h - 40, ink, 1.5F);
-            text(g, font, String.format(Locale.ROOT, "ETA %.1f S · CLOSING", eta), 18, h - 24, dim, 1.0F);
+            right(g, font, String.format(Locale.ROOT, "V %,.0f M/S", p.speed(ct) * 20.0), w - 18, h - m - 44, ink, 1.5F);
+            right(g, font, String.format(Locale.ROOT, "ETA %.1f S · CLOSING", eta), w - 18, h - m - 28, dim, 1.0F);
             if (ct >= MoonPlan.ENTRY - 30.0F) {
                 boolean blink = (int) (ct / 2.0F) % 2 == 0;
-                bracketed(g, font, "ENTRY · PLASMA SHEATH", w / 2, 30, blink ? ink : dim, 1.5F);
+                bracketed(g, font, "ENTRY · PLASMA SHEATH", w / 2, m + 22, blink ? ink : dim, 1.5F);
             }
+        }
+        descent(g, font, ct, w, h, m, a);
+
+        // the impact in slow motion: a high-speed camera's tag, and its frame rate
+        float rate = fx.filmRate(fx.realTime(partial));
+        if (rate < 0.97F && ct >= MoonPlan.CONTACT) {
+            float k = Mth.clamp((1.0F - rate) / 0.6F, 0.0F, 1.0F);
+            int b = (int) (a * k);
+            if ((int) (ct / 6.0F) % 2 == 0) {
+                g.fill(18, m + 32, 24, m + 38, b << 24 | 0xE0302A);
+            }
+            text(g, font, String.format(Locale.ROOT, "HIGH-SPEED CAPTURE · %.2f×", rate), 28, m + 31, b << 24 | 0xFFFFFF, 1.0F);
+            text(g, font, String.format(Locale.ROOT, "%d FPS", Math.round(24.0F / Math.max(0.05F, rate))), 28, m + 41,
+                (int) (b * 0.6F) << 24 | 0xFFE2C8, 1.0F);
         }
 
         if (ct >= MoonPlan.CONTACT + 4.0F && ct < MoonPlan.CONTACT + 60.0F) {
@@ -237,6 +263,72 @@ public final class MoonHud {
             centered(g, font, String.format(Locale.ROOT, "IMPACT ZONE Ø%d · MOON Ø%d · %d%% BURIED",
                 p.params.craterRadius() * 2, p.params.moonRadius() * 2, p.params.buriedPercent()), w / 2, h - m - 30, b << 24 | 0xFFE2C8, 1.25F);
         }
+    }
+
+    /** One phase of the strike: when it starts, its caption and the line under it. */
+    private record Phase(int at, String title, String sub) {
+    }
+
+    private static final Phase[] PHASES = {
+        new Phase(MoonPlan.PRESS, "PHASE 1 · UPLINK", "EARTH SYSTEM SHUTDOWN AUTHORISED"),
+        new Phase(MoonPlan.BREAK, "PHASE 2 · FRACTURE", "LUNAR CRUST FAILING ALONG MOLTEN SEAMS"),
+        new Phase(MoonPlan.FALL, "PHASE 3 · DESCENT", "ORBIT LOST · ON COURSE FOR THE MARK"),
+        new Phase(MoonPlan.ENTRY, "PHASE 4 · ENTRY", "ATMOSPHERIC INTERFACE · HULL AT 9000 K"),
+        new Phase(MoonPlan.CONTACT, "PHASE 5 · IMPACT", "THE MOON IS DOWN"),
+        new Phase(MoonPlan.SETTLE, "AFTERMATH", "IMPACT ZONE ERASED · THE MOON AT REST"),
+    };
+
+    /** A lower-third caption typed out as each phase begins, then fading. */
+    private static void phase(GuiGraphics g, Font font, float ct, int h, int m, int a) {
+        for (int i = PHASES.length - 1; i >= 0; i--) {
+            Phase phase = PHASES[i];
+            float since = ct - phase.at();
+            if (since < 0.0F) {
+                continue;
+            }
+            float k = Curve.window(since, 0.0F, 3.0F, 56.0F, 70.0F);
+            int b = (int) (a * k);
+            if (b < 4) {
+                return;
+            }
+            int typed = Math.min(phase.title().length(), (int) (since * 1.6F));
+            int typedSub = Math.min(phase.sub().length(), Math.max(0, (int) ((since - 6.0F) * 2.4F)));
+            boolean cursor = typed < phase.title().length() && (int) (ct * 2.0F) % 2 == 0;
+            int x = 18;
+            int y = h - m - 78;
+            g.fill(x, y - 3, x + 2, y + 21, b << 24 | GOLD);
+            text(g, font, phase.title().substring(0, typed) + (cursor ? "_" : ""), x + 7, y, b << 24 | 0xFFFFFF, 1.25F);
+            text(g, font, phase.sub().substring(0, typedSub), x + 7, y + 13, (int) (b * 0.7F) << 24 | 0xFFE2C8, 1.0F);
+            return;
+        }
+    }
+
+    /** Along the bottom: how far down the moon has come, with the fracture, the fall, entry and the impact marked. */
+    private static void descent(GuiGraphics g, Font font, float ct, int w, int h, int m, int a) {
+        if (ct < MoonPlan.ALARM || ct > MoonPlan.CONTACT + 40.0F) {
+            return;
+        }
+        float out = Mth.clamp((MoonPlan.CONTACT + 40.0F - ct) / 20.0F, 0.0F, 1.0F);
+        int b = (int) (a * out * Mth.clamp((ct - MoonPlan.ALARM) / 10.0F, 0.0F, 1.0F));
+        if (b < 4) {
+            return;
+        }
+        int x0 = w / 2 - Math.min(160, w / 4);
+        int x1 = w / 2 + Math.min(160, w / 4);
+        int y = h - m - 8;
+        g.fill(x0, y, x1, y + 1, (int) (b * 0.5F) << 24 | 0xFFE2C8);
+        float k = Mth.clamp((ct - MoonPlan.ALARM) / (MoonPlan.CONTACT - MoonPlan.ALARM), 0.0F, 1.0F);
+        int filled = x0 + Math.round((x1 - x0) * k);
+        g.fill(x0, y - 1, filled, y + 2, b << 24 | GOLD);
+        for (int at : new int[]{MoonPlan.BREAK, MoonPlan.FALL, MoonPlan.ENTRY, MoonPlan.CONTACT}) {
+            int tx = x0 + Math.round((x1 - x0) * (at - MoonPlan.ALARM) / (float) (MoonPlan.CONTACT - MoonPlan.ALARM));
+            boolean passed = ct >= at;
+            g.fill(tx, y - 4, tx + 1, y + 5, (passed ? b : (int) (b * 0.5F)) << 24 | (passed ? GOLD : 0xFFE2C8));
+        }
+        // the moon's marker riding the bar, pulsing faster as it closes in
+        float pulse = 0.6F + 0.4F * (float) Math.abs(Math.sin(ct * (0.15F + 0.5F * k)));
+        g.fill(filled - 2, y - 3, filled + 3, y + 4, (int) (b * pulse) << 24 | 0xFFFFFF);
+        centered(g, font, "DESCENT", (x0 + x1) / 2, y - 14, (int) (b * 0.6F) << 24 | 0xFFE2C8, 1.0F);
     }
 
     private static float pseudo(long seed) {
