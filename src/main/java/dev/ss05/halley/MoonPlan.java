@@ -29,27 +29,40 @@ public final class MoonPlan {
     /** A creative-mode caster standing where the moon will land is lifted clear. */
     public static final int EVAC = 12;
     /** The moon shudders and cracks; molten seams open across it. */
-    public static final int BREAK = 45;
-    /** It tears loose from its place in the sky and starts to fall. */
-    public static final int FALL = 85;
-    /** It reaches the atmosphere: a burning shroud and a roar. */
-    public static final int ENTRY = 305;
+    public static final int BREAK = 30;
+    /** It tears loose from its place in the sky and starts to come down, slowly at first, growing as it nears. */
+    public static final int FALL = 50;
+    /** Its first trail (dust and grit shed from its cracks) has started to show behind it. */
+    public static final int TRAIL = FALL + 35;
     /**
-     * Its lowest point touches the ground on the mark: the impact. Sixteen seconds after it tears loose: Luna's music is
-     * cut so that its drop lands here (see {@code client/luna/MoonFx#music}).
+     * It hits the atmosphere: from here it accelerates hard all the way down, burning, with a blazing trail in place of
+     * the dust one.
      */
-    public static final int CONTACT = 405;
+    public static final int ENTRY = 200;
+    /**
+     * Its lowest point touches the ground on the mark: the impact - at the same time as Halley's (its default trench).
+     * Luna's music is cut so that its drop lands here (see {@code client/luna/MoonFx#music}).
+     */
+    public static final int CONTACT = 330;
     /** It has driven down into the earth and come to rest; the crust round it has finished heaving up. */
-    public static final int SETTLE = 475;
+    public static final int SETTLE = 400;
     /** How long the spell keeps running after it comes to rest (dust, debris, the molten seam cooling). */
     public static final int AFTERMATH = 270;
     public static final int DURATION = SETTLE + AFTERMATH;
 
     // ---- The fall. -----------------------------------------------------------------------------------------------
-    /** How far away the moon starts, in blocks (only its direction and apparent size matter; it is drawn pulled in). */
-    public static final double START_DISTANCE = 3200.0;
-    /** Bigger = the moon hangs far away longer and then rushes in at the end. */
-    public static final double FALL_EASE = 2.6;
+    /**
+     * How big it looks from the mark when it starts falling, as its radius over its distance: about the vanilla moon's
+     * disc. It starts this far away for its size (ten radii for 0.1), so a bigger moon (the remote's power slider)
+     * starts further off and looks just as big in the sky - and it is always drawn at its true size from there on.
+     */
+    public static final double START_RATIO = 0.1;
+    /** How much of the way down it has come when it hits the atmosphere. */
+    public static final double ENTRY_SHARE = 0.3;
+    /** How fast it is still speeding up at {@link #ENTRY}, as a multiple of its average speed so far. */
+    private static final double CRUISE_END_SLOPE = 1.2;
+    /** How the dive from {@link #ENTRY} speeds up: bigger = more of it in the last moments. */
+    private static final double DIVE_POWER = 2.5;
     /** The lowest it may start, in degrees above the horizon (if the moon is lower than that, it starts from there). */
     public static final double MIN_ELEVATION_DEGREES = 18.0;
     /** How far the moon turns about its own axis over the whole fall, in turns. */
@@ -110,7 +123,7 @@ public final class MoonPlan {
         this.sky = clampElevation(params.sky());
 
         double r = params.moonRadius();
-        this.startCentre = this.target.add(this.sky.scale(START_DISTANCE));
+        this.startCentre = this.target.add(this.sky.scale(r / START_RATIO));
         this.contactCentre = this.target.add(this.sky.scale(r));
         this.restCentre = new Vec3(this.target.x, params.groundY() + r - 2.0 * r * params.buried(), this.target.z);
         this.core = BlockPos.containing(this.restCentre);
@@ -165,7 +178,11 @@ public final class MoonPlan {
 
     // ---- The moon's motion. --------------------------------------------------------------------------------------
 
-    /** 0 while it hangs in the sky, rising to 1 at {@link #CONTACT}: how much of the way down it has come. */
+    /**
+     * 0 while it hangs in the sky, rising to 1 at {@link #CONTACT}: how much of the way down it has come (by distance).
+     * Two stages, its speed never jumping between them: it tears loose and comes on steadily, visibly growing, to
+     * {@link #ENTRY_SHARE} of the way at {@link #ENTRY}; then it dives, faster and faster, the rest of the way.
+     */
     public static double fall(double t) {
         if (t <= FALL) {
             return 0.0;
@@ -173,7 +190,15 @@ public final class MoonPlan {
         if (t >= CONTACT) {
             return 1.0;
         }
-        return Math.pow((t - FALL) / (CONTACT - FALL), FALL_EASE);
+        double k = CRUISE_END_SLOPE;
+        if (t < ENTRY) {
+            double u = (t - FALL) / (ENTRY - FALL);
+            return ENTRY_SHARE * ((k - 2.0) * u * u * u + (3.0 - k) * u * u);
+        }
+        double w = (t - ENTRY) / (CONTACT - ENTRY);
+        // its speed at ENTRY, carried on into the dive
+        double c = k * ENTRY_SHARE / (ENTRY - FALL) * (CONTACT - ENTRY) / (1.0 - ENTRY_SHARE);
+        return ENTRY_SHARE + (1.0 - ENTRY_SHARE) * (c * w + (1.0 - c) * Math.pow(w, DIVE_POWER));
     }
 
     /**
@@ -234,15 +259,25 @@ public final class MoonPlan {
         return (float) Mth.clamp((t - BREAK) / (FALL - BREAK), 0.0, 1.0);
     }
 
-    /** 0..1: the burning shroud of atmospheric entry (builds from {@link #ENTRY}, fades after it comes to rest). */
+    /**
+     * 0..1: the burning shroud of atmospheric entry: it catches fire at {@link #ENTRY} (most of the way within two
+     * seconds), blazes hotter all the way down, and fades after the impact.
+     */
     public static float burn(double t) {
-        if (t < ENTRY - 30) {
+        if (t < ENTRY - 15) {
             return 0.0F;
         }
         if (t < CONTACT) {
-            return (float) Mth.clamp((t - (ENTRY - 30)) / (CONTACT - (ENTRY - 30)), 0.0, 1.0);
+            double k = (t - (ENTRY - 15)) / (CONTACT - (ENTRY - 15));
+            double light = smoothstep(0.0, 45.0, t - (ENTRY - 15));
+            return (float) Mth.clamp(0.65 * light + 0.35 * k * k, 0.0, 1.0);
         }
         return (float) Mth.clamp(1.0 - (t - CONTACT) / 120.0, 0.0, 1.0);
+    }
+
+    /** 0..1: the dust trail of the steady approach, from {@link #TRAIL}, giving way to the burning one at entry. */
+    public static float dustTrail(double t) {
+        return (float) (smoothstep(TRAIL, TRAIL + 40.0, t) * (1.0 - smoothstep(ENTRY - 10.0, ENTRY + 25.0, t)));
     }
 
     /** 0..1: how hard the ground shakes under it (rumbling as it nears, the impact, then dying away). */

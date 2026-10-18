@@ -33,6 +33,12 @@ public final class MoonVisuals {
     static final int DUST = 0xC0703C;
     /** Molten rock cooling down: dark red. */
     static final int EMBER = 0x8A1C0A;
+    /** Moonlight, and the pale dust of moon cheese it sheds as it comes. */
+    static final int PALE = 0xFFF1D2;
+    static final int CHEESE = 0xE6CF8E;
+
+    /** How many tongues of flame peel off its leading edge as it burns. */
+    private static final int FLAMES = 12;
 
     private static final int FRAGMENTS = 6;
 
@@ -61,14 +67,20 @@ public final class MoonVisuals {
             return;
         }
         mark(world, p, t, land);
-        double trueRadius = Math.max(1.0E-6, p.params.moonRadius());
-        Mapping map = new Mapping(p.centre(t), placement.centre(), placement.radius() / trueRadius);
+        // the sphere is drawn at its true size, or pulled in and scaled down about the camera (see MoonSphere): the same
+        // scale about the camera puts everything attached to it where it belongs
+        Vec3 trueCentre = p.centre(t);
+        double trueDistance = Math.max(1.0E-6, trueCentre.distanceTo(world.camera()));
+        Mapping map = new Mapping(trueCentre, placement.centre(), placement.centre().distanceTo(world.camera()) / trueDistance);
         if (t >= MoonPlan.BREAK && t < MoonPlan.CONTACT + 10.0) {
-            // always-on, so it reads against the night long before it starts burning: a luminous halo and a
-            // compression glow building on the leading face as it nears the atmosphere
+            // always on, so it reads against the night long before it starts burning: a soft moonlit halo, and a
+            // glow building on the leading face as it nears the atmosphere
             halo(world, p, t, map);
         }
-        if (t >= MoonPlan.ENTRY - 30.0 && t <= MoonPlan.CONTACT + 10.0) {
+        if (MoonPlan.dustTrail(t) > 0.0F) {
+            approachTrail(world, p, t, map);
+        }
+        if (t >= MoonPlan.ENTRY - 15.0 && t <= MoonPlan.CONTACT + 10.0) {
             entry(world, light, p, t, map);
             fragments(world, light, p, t, map);
         }
@@ -138,9 +150,9 @@ public final class MoonVisuals {
     }
 
     /**
-     * Always on while it falls, long before it starts to burn: a luminous rim glow and halo round the body, so it
-     * reads against the night sky from far away, plus a faint compression glow building on its leading face as it
-     * nears the atmosphere - the moon "crashing down", not just sliding closer.
+     * Always on while it falls, long before it starts to burn: a soft halo of moonlight round it (a moon, not a sun: no
+     * hot core, no lens flare), and a faint glow building on its leading face as it nears the atmosphere. Drawn at its
+     * centre, so the sphere itself hides the middle and only the halo round its outline shows.
      */
     private static void halo(GlowBatch world, MoonPlan p, double t, Mapping map) {
         double effR = map.size(p.params.moonRadius());
@@ -148,29 +160,61 @@ public final class MoonVisuals {
             return;
         }
         Vec3 c = map.displayCentre();
-        // fades out as the full burn shroud (entry()) takes over, so the two never double up
-        float steady = 1.0F - CometVisuals.smooth((t - (MoonPlan.ENTRY - 20.0)) / 30.0);
+        // fades out as the burning shroud (entry()) takes over, so the two never double up
+        float steady = 1.0F - CometVisuals.smooth((t - (MoonPlan.ENTRY - 15.0)) / 30.0);
         if (steady > 0.01F) {
-            // brightening as it comes: faint while it hangs in the sky, glowing as it nears the air
-            float near = (float) Math.pow(MoonPlan.fall(t), 0.8);
-            world.billboard(c, effR * 1.5, Shapes.GLOW, 0, HOT, (0.3F + 0.25F * near) * steady, 0.0);
-            world.billboard(c, effR * (2.4 + 0.6 * near), Shapes.GLOW, Shapes.HAZE, GOLD, (0.2F + 0.16F * near) * steady, 0.0);
+            float near = (float) MoonPlan.fall(t);
+            world.billboard(c, effR * 1.9, Shapes.GLOW, Shapes.HAZE, PALE, (0.16F + 0.12F * near) * steady, 0.0);
+            world.billboard(c, effR * 3.2, Shapes.GLOW, Shapes.HAZE, CHEESE, (0.07F + 0.06F * near) * steady, 0.0);
         }
 
-        double compress = Mth.clamp((t - MoonPlan.BREAK) / Math.max(1.0, MoonPlan.ENTRY - 30.0 - MoonPlan.BREAK), 0.0, 1.0);
-        float build = (float) Math.pow(compress, 2.4) * (1.0F - CometVisuals.smooth((t - (MoonPlan.ENTRY - 8.0)) / 24.0));
+        double compress = Mth.clamp((t - MoonPlan.FALL) / Math.max(1.0, MoonPlan.ENTRY - MoonPlan.FALL), 0.0, 1.0);
+        float build = (float) Math.pow(compress, 2.2) * (1.0F - CometVisuals.smooth((t - MoonPlan.ENTRY) / 20.0));
         if (build > 0.01F) {
             Vec3 heading = MoonFx.headingAt(p, t);
             double angle = world.screenAngle(c, heading);
-            world.billboard(c.add(heading.scale(effR * 0.35)), effR * 1.3, Shapes.BOW, 0, FIRE, 0.55F * build, angle);
+            world.billboard(c.add(heading.scale(effR * 0.4)), effR * 1.35, Shapes.BOW, 0, FIRE, 0.35F * build, angle);
         }
     }
 
     /**
-     * The burning shroud wrapping the body, a bow-shock cap on its leading face, a halo glow round it, and a long,
-     * wide re-entry plasma trail streaming back up the path it fell, visible from far away - everything drawn at the
-     * sphere's own {@code map}ped placement (pulled in, see {@code MoonSphere}), so it
-     * never parts ways with the body it's coming off and reads big even when the true moon is still a world away.
+     * Its first trail, while it comes on steadily (from {@link MoonPlan#TRAIL} until it catches fire): a long, pale
+     * stream of moon dust and grit shed from its cracks, drifting back up the way it came, with glinting chips of it
+     * tumbling away down the trail. Calm and cold, so the burning one that takes over at entry is the step up.
+     */
+    private static void approachTrail(GlowBatch world, MoonPlan p, double t, Mapping map) {
+        float k = MoonPlan.dustTrail(t);
+        double effR = map.size(p.params.moonRadius());
+        if (k <= 0.01F || effR < 0.05) {
+            return;
+        }
+        Vec3 c = map.displayCentre();
+        Vec3 heading = MoonFx.headingAt(p, t);
+        Vec3 back = heading.scale(-1.0);
+        world.ribbon(c, c.add(back.scale(effR * 10.0)), Vec3.ZERO, effR * 0.85, effR * 2.4, 24, Shapes.STREAK, Shapes.DUST,
+            CHEESE, 0.3F * k);
+        world.ribbon(c, c.add(back.scale(effR * 6.0)), Vec3.ZERO, effR * 0.4, effR * 0.9, 18, Shapes.STREAK, Shapes.ION,
+            PALE, 0.22F * k);
+        // chips of it, shed from the cracks and falling behind, glinting
+        Vec3 side = side(world, c, heading);
+        Vec3 up = heading.cross(side);
+        for (int i = 0; i < 14; i++) {
+            long h = hash(p.seed ^ 0x7472L, i);
+            double along = Mth.frac(frac(h) + t * (0.004 + 0.003 * frac(h >>> 9)));
+            double spread = effR * (0.5 + 1.3 * along) * (frac(h >>> 17) - 0.5) * 2.0;
+            double lift = effR * (0.5 + 1.3 * along) * (frac(h >>> 25) - 0.5) * 2.0;
+            Vec3 at = c.add(back.scale(effR * (1.0 + 8.0 * along))).add(side.scale(spread)).add(up.scale(lift));
+            float glint = (0.6F + 0.4F * (float) Math.sin(t * 0.7 + i * 2.3)) * (float) (1.0 - along);
+            world.billboard(at, effR * 0.16, Shapes.GLOW, 0, i % 3 == 0 ? GOLD : PALE, 0.55F * k * glint, 0.0);
+        }
+    }
+
+    /**
+     * Burning through the atmosphere, accelerating hard: a bow shock standing off its leading edge, a sheath of fire
+     * round its outline, tongues of flame peeling off its edge and streaming back, and a long blazing wake up the sky -
+     * everything drawn at the sphere's own {@code map}ped placement (pulled in, see {@code MoonSphere}), so it never
+     * parts ways with the body it's coming off. None of it covers the moon's face: that stays rock, glowing (see
+     * {@code MoonSphere}).
      */
     private static void entry(GlowBatch world, GlowBatch light, MoonPlan p, double t, Mapping map) {
         float burn = MoonPlan.burn(t);
@@ -178,25 +222,60 @@ public final class MoonVisuals {
         if (burn <= 0.003F || effR < 0.05) {
             return;
         }
-        Vec3 displayCentre = map.displayCentre();
+        Vec3 c = map.displayCentre();
         Vec3 heading = MoonFx.headingAt(p, t);
-        double angle = world.screenAngle(displayCentre, heading);
+        double angle = world.screenAngle(c, heading);
+        Vec3 back = heading.scale(-1.0);
 
-        // the bow-shock cap, about the moon's own size, on the leading face
-        light.billboard(displayCentre.add(heading.scale(effR * 0.55)), effR * 1.5, Shapes.BOW, 0, FIRE, 0.95F * burn, angle);
-        light.billboard(displayCentre, effR * 1.15, Shapes.BOW, 0, HOT, 0.65F * burn, angle);
-        light.billboard(displayCentre.add(heading.scale(effR * 0.3)), effR * 0.8, Shapes.BOW, 0, WHITE, 0.35F * burn, angle);
-        // the plasma sheath wrapping the whole body, and a wide halo glow round it, bright enough to spot at night
-        world.billboard(displayCentre, effR * 2.1, Shapes.GLOW, 0, FIRE, 0.75F * burn, 0.0);
-        world.billboard(displayCentre, effR * 3.6, Shapes.GLOW, Shapes.HAZE, HOT, 0.5F * burn, 0.0);
-        world.rect(displayCentre, effR * 13.0, effR * 0.55, Shapes.FLARE, 0, FIRE, 0.55F * burn);
+        // the bow shock: one burning crescent hugging its leading edge (two, further out, read as ghost copies of it)
+        light.billboard(c.add(heading.scale(effR * 0.45)), effR * 1.38, Shapes.BOW, 0, FIRE, 0.6F * burn, angle);
+        // the sheath of fire round its outline (at its centre: the sphere hides the middle, the rim glows round it)
+        world.billboard(c, effR * 1.75, Shapes.GLOW, Shapes.HAZE, FIRE, 0.8F * burn, 0.0);
+        world.billboard(c, effR * 3.0, Shapes.GLOW, Shapes.HAZE, DEEP, 0.45F * burn, 0.0);
 
-        // a long, bright, wide trail streaming back up the sky - several more moon diameters than before, so it's
-        // seen from far off long before the moon itself is close
-        Vec3 back = displayCentre.subtract(heading.scale(effR * 13.0));
-        world.ribbon(displayCentre, back, Vec3.ZERO, effR * 1.3, effR * 2.6, 26, Shapes.STREAK, Shapes.DUST, FIRE, 0.75F * burn);
-        world.ribbon(displayCentre, back, Vec3.ZERO, effR * 0.8, effR * 1.6, 26, Shapes.STREAK, Shapes.PLASMA, HOT, 0.9F * burn);
-        world.ribbon(displayCentre, back, Vec3.ZERO, effR * 0.35, effR * 0.75, 18, Shapes.STREAK, Shapes.ION, WHITE, 0.7F * burn);
+        // tongues of flame peeling off its edge on the leading side and streaming back past it
+        Vec3 side = side(world, c, heading);
+        Vec3 forward = forward(world, c, heading, side);
+        for (int i = 0; i < FLAMES; i++) {
+            long h = hash(p.seed ^ 0x666CL, i);
+            double a = ((i + 0.5) / FLAMES - 0.5) * Math.PI * 1.7 + (frac(h) - 0.5) * 0.25;
+            Vec3 out = forward.scale(Math.cos(a)).add(side.scale(Math.sin(a)));
+            Vec3 root = c.add(out.scale(effR * 0.97));
+            float flicker = 0.65F + 0.35F * (float) Math.sin(t * (0.9 + frac(h >>> 8)) + i * 1.9);
+            double length = effR * (1.4 + 2.2 * frac(h >>> 16)) * (0.6 + 0.6 * burn) * (0.85 + 0.3 * flicker);
+            Vec3 tail = root.add(back.scale(length)).add(out.scale(effR * 0.35));
+            world.ribbon(root, tail, out.scale(effR * 0.25), effR * 0.2, effR * 0.05, 8, Shapes.STREAK, Shapes.PLASMA,
+                i % 3 == 0 ? HOT : FIRE, 0.65F * burn * flicker);
+        }
+
+        // the wake: a long, blazing trail back up the sky, smoke-dark at its edges, white-hot down its middle
+        double reach = effR * (11.0 + 7.0 * burn);
+        world.ribbon(c, c.add(back.scale(reach)), Vec3.ZERO, effR * 1.5, effR * 3.6, 30, Shapes.STREAK, Shapes.DUST, DEEP,
+            0.5F * burn);
+        world.ribbon(c, c.add(back.scale(reach * 0.8)), Vec3.ZERO, effR * 1.05, effR * 2.2, 30, Shapes.STREAK, Shapes.PLASMA,
+            FIRE, 0.85F * burn);
+        world.ribbon(c, c.add(back.scale(reach * 0.55)), Vec3.ZERO, effR * 0.5, effR * 0.9, 22, Shapes.STREAK, Shapes.ION,
+            HOT, 0.75F * burn);
+    }
+
+    /** A unit vector across the moon's line of travel as seen from the camera (any, if it comes straight at it). */
+    private static Vec3 side(GlowBatch batch, Vec3 at, Vec3 heading) {
+        Vec3 view = at.subtract(batch.camera());
+        Vec3 side = heading.cross(view);
+        if (side.lengthSqr() < 1.0E-8 * Math.max(1.0, view.lengthSqr())) {
+            side = heading.cross(Math.abs(heading.y) < 0.9 ? new Vec3(0.0, 1.0, 0.0) : new Vec3(1.0, 0.0, 0.0));
+        }
+        return side.normalize();
+    }
+
+    /** The way it travels, flattened onto the screen (square to the line of sight), as a unit vector. */
+    private static Vec3 forward(GlowBatch batch, Vec3 at, Vec3 heading, Vec3 side) {
+        Vec3 view = at.subtract(batch.camera());
+        Vec3 f = view.cross(side);
+        if (f.dot(heading) < 0.0) {
+            f = f.scale(-1.0);
+        }
+        return f.lengthSqr() < 1.0E-12 ? heading : f.normalize();
     }
 
     /** Glowing fragments breaking off the moon as it burns through the atmosphere, bursting a few seconds later -
