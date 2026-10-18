@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **The Shooting Star Addition** - handoff notes for whoever (human or Claude) works on this next. Written 2026-10-14 at
-the end of the 1.4.0 work, updated 2026-10-17 for 1.5.0 (§12; status in §9).
+the end of the 1.4.0 work, updated 2026-10-17 for 1.5.0 (§12) and 2026-10-18 for the user's 1.5.0 test round (§13; status in §9).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
@@ -119,8 +119,8 @@ the Fabric branches, as in CI). Put TSS jars in `libs/`, one per supported versi
 `the-shooting-star-demo-<ver>-<loader>.jar` and downloaded like CI does
 (`https://www.cursemaven.com/curse/maven/the-shooting-star-demo-1719195/<id>/the-shooting-star-demo-1719195-<id>.jar`,
 ids in `dev/ci/branches/<branch>.sh`). Make the mappings oldest first, each from the previous one:
-`./gradlew tssMappings -PtssJar=1.4.0`, then 1.4.1, 1.4.2, 1.4.3 (a mapping made without the previous version's is
-garbage). The build's `tssPack` step checks every TSS member and mixin target against every version: a "missing"
+`./gradlew tssMappings -PtssJar=1.4.0`, then 1.4.1, 1.4.2, 1.4.3, 1.4.4 (a mapping made without the previous version's
+is garbage). Every worktree's libs/ has all of them, mapped, as of 2026-10-18. The build's `tssPack` step checks every TSS member and mixin target against every version: a "missing"
 there is a real bug. Fabric 1.20.1's Loom sometimes fails once with "Cannot mutate content repository descriptor":
 run again. The `dev/tools/*.sh` scripts are the old container's (`/home/claude/...`), not usable here.
 
@@ -138,7 +138,7 @@ against a readable copy of the newest jar and packs one mapped copy of `compat/t
 - `dev/ci/push-wip.sh <branch> [local ref]` (run from any worktree; it uses its own `dev/ci/`) builds a commit = the branch + `dev/ci/common/` + `dev/ci/branches/<branch>.sh` (as
   `.github/ci/branch.sh`) and force-pushes it to `wip/<branch>`. The branch itself is untouched.
 - The workflow downloads TSS jars from CurseForge by file id (`TSS_FILES` in `dev/ci/branches/<branch>.sh`), maps every
-  version in `TSS_OBF` (1.4.0 1.4.1 1.4.2 1.4.3), builds, runs the client tests and (forge-1.20.1) the server test, and
+  version in `TSS_OBF` (1.4.0 1.4.1 1.4.2 1.4.3 1.4.4), builds, runs the client tests and (forge-1.20.1) the server test, and
   publishes everything as a **draft release** `ci-<branch>-<run>`: `summary.txt` (`ok:`/`FAIL:` lines), `commit.txt`,
   the jar, `shots-*.zip` screenshots, and an encrypted `secret` part (logs, mappings, `skill-api.txt` = javap of TSS's
   `Skill` per version) that only the holder of the private key can read.
@@ -214,8 +214,9 @@ container's absolute paths (`/home/claude/...`): adjust before use.
 - **Halley** (`HalleyPlan`): ARM 0, PRESS 7, MARK 9, COUNTDOWN 29, SIGHT 30, ENTRY 250, TOUCHDOWN 300, impact =
   TOUCHDOWN + trench_length / 8 (default 330 = 16.5 s), effects end impact + 196 (526 = 26.3 s); film ends impact + 128
   (458 = 22.9 s).
-- **Luna** (`MoonPlan`, since 1.5.0): PRESS 7, ALARM 10, BREAK 45, FALL 85 (4.25 s), ENTRY 305, CONTACT 405 (20.25 s),
-  SETTLE 475, effects end 745 (37.25 s); film ends SETTLE + 95 (570 = 28.5 s). (1.4.0: ENTRY 260, CONTACT 340.)
+- **Luna** (`MoonPlan`, since §13): PRESS 7, ALARM 10 (music starts), BREAK 30, FALL 50, TRAIL 85, ENTRY 200, CONTACT
+  330 (16.5 s, Halley's default impact), SETTLE 400, effects end 670 (33.5 s); film ends SETTLE + 95 (495). (1.4.0:
+  ENTRY 260, CONTACT 340; the first 1.5.0 push: ENTRY 305, CONTACT 405.)
 
 Film, sounds and server all follow these plans; change a plan constant and everything moves with it.
 
@@ -228,7 +229,13 @@ build now takes the range from `libs/`. If `TssMatch` fails with "Mapping target
 whose obfuscated name equals a readable target: the rename logic in `TssMatch` handles that case; extend it if a new
 kind appears.
 
-TSS 1.4.3 CurseForge file ids: NeoForge 9171007, Forge 9171001, Fabric 9170986 (older ones are in the branch scripts).
+TSS 1.4.4 CurseForge file ids (2026-10-17): NeoForge 9231715, Forge 9231721, Fabric 9231726; 1.4.3: 9171007, 9171001,
+9170986 (older ones are in the branch scripts). 1.4.4 needed no code change: the mapping is clean (it removed TSS's evac
+members, MouseTurnMixin's and, on 1.21.11, `WhiteSpace.ITEMS/itemOf`, none of which `compat/tss` uses); the 1.5.0 jars
+just didn't list it. To find what a new TSS's own skills do differently, decompile the readable jar the build makes
+(`build/shooting-star-named/*.jar`) with Vineflower (`~/.gradle/caches/modules-2/files-2.1/org.vineflower/...`) into
+the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.log`) times every carving
+(`[carve-timer]`).
 
 ## 8. Publishing (only when the user says so)
 
@@ -248,12 +255,14 @@ TSS 1.4.3 CurseForge file ids: NeoForge 9171007, Forge 9171001, Fabric 9170986 (
    other mod links) exactly as it is**; update the rest to match the features.
 7. Delete `wip/*` branches and `ci-*` drafts.
 
-## 9. Status (2026-10-17)
+## 9. Status (2026-10-18)
 
-- **1.5.0 is pushed, not released**: all seven branches are on GitHub (CI green on every one: builds, client tests,
-  server test 70/70). No 1.5.0 tags, GitHub releases or CurseForge files yet: the user asked only for the branches.
-  Next, when the user says so: §8 steps 3-7 (changelog ready in `dev/publish/changelog_150.py`).
-- Test jars under their release names: `The Shooting Star Addition releases\1.5.0 (to test)\` (from the last CI round).
+- **1.5.0's first push is on GitHub, not released**; the user tested it and asked for the changes in §13. Those are
+  committed on all seven local branches (three commits each, plus this file) and went through one CI round on `wip/*`;
+  **not pushed to the real branches** (the user pushes/releases only after testing). Still 1.5.0 (never published).
+  Next, when the user says so: push the branches, then §8 steps 3-7 (changelog ready in `dev/publish/changelog_150.py`).
+- Test jars under their release names: `The Shooting Star Addition releases\1.5.0 (to test 2)\` (from §13's CI round);
+  `1.5.0 (to test)` holds the first push's.
 - The user added `me mantainer need contrib.txt` on main (kept; main's 1.5.0 commits are rebased on it).
 - Leftovers: the `wip/*` branches and `ci-*` draft releases (1.4.0's and 1.5.0's); one stash entry
   ("additionpanel-soundevent-fix-temp") a porting agent made against the rules, superseded and harmless.
@@ -309,7 +318,11 @@ Visual/sound polish the user asked for but that was cut for budget:
 - `TssMatch` used to pair same-shaped methods by obfuscated name, which silently swapped `Subject.forward/target` and
   shifted `CutsceneDirector.automatic` in 1.4.3 (§12). It now compares the fields they use, but after a TSS update
   still check what `compat/tss` calls: deobfuscate with `dev/tools/Deobf.java` and compare bodies with readable 1.3.4.
-- Minecraft's clouds write depth over their whole layer: anything drawn above it shows only where a cloud is (§12).
+- Minecraft's clouds (1.21.1) are drawn after the entities, and their shader discards the gaps, so a moon drawn at its
+  true depth before them is hidden by the clouds and shows between them. §12's claim that they write depth over the whole
+  layer was wrong; pulling the moon under the cloud layer (1.5.0's first push) made it show *through* the clouds (§13).
+- Every `Carving.paint` (and TSS carving) relights the chunk and resends it whole to every player: write each chunk as
+  few times as possible (§13).
 - Git Bash on Windows: long inline heredocs/Python with quotes sometimes fail to parse (write scripts to files);
   Windows Python prints CRLF (strip `\r` when piping); native openssl doesn't take Git Bash paths after `file:`.
 - Background agents can be cut off by usage limits mid cherry-pick: check each worktree's `git status` and resume.
@@ -381,3 +394,48 @@ Findings and fixes:
 - CI: the `moon` client test now runs the real film with its HUD (`film=true hud=true`), shots retimed.
 - The forge-1.20.1 server test has no player near the mark: it loads the area round the mark itself now (as a player
   there would), or the outer crater/rim checks see unloaded land.
+
+## 13. 1.5.0, second round (2026-10-18: the user's test of the first push)
+
+What the user asked for: the moon's approach longer, landing at the same time as Halley's; it fully accelerates a
+little earlier; a different trail while it approaches (not from the very start) that turns into a cooler one as it
+is about to crash; the model looked worse, especially in re-entry ("it just looks wrong"); a smoother hand-over from
+the model to the blocks; the moon not seen through the clouds (until it is under them); the music sounded bad (the
+user gave the original track, `Video-Project-48.mp3` in the parent folder) and should start a little sooner; the music
+not following Minecraft's Music slider; M and C in the H menu doing nothing; chunk destruction not as smooth as TSS's
+own; the moon resizing wrongly with the power slider and changing size mid-fall; and "fix for new shooting star ver"
+(TSS 1.4.4, out 2026-10-17).
+
+Findings and fixes (main `449de31`, `f64b0c3`, `e72839c`; cherry-picked to every branch, 26.3 and 1.21.11 by hand):
+
+- **M/C**: TSS calls `WhiteSpace.key(key, scancode, modifiers)`, presses only; the mixin read the third argument as the
+  action and required 1, so the keys worked only with Shift held. 26.3/1.21.11 (KeyEvent) never had the bug.
+- **Timeline** (§6): CONTACT 330. `MoonPlan.fall()` is two stages with no speed jump: a steady approach (a cubic) to
+  `ENTRY_SHARE` 0.3 at ENTRY, then a dive whose speed rises about fourfold (`DIVE_POWER` 2.5). `burn()` catches fire at
+  ENTRY; `dustTrail()` for the approach. Film takes retimed.
+- **True size**: the moon starts `moon_radius / START_RATIO` (ten radii) from the mark, so it looks like the vanilla
+  moon at any power, and `MoonSphere.placement` always draws it at its true size and place, pulled in along the line
+  of sight past the far plane (`fits = far / (1 + R/D)`, scaled about the camera: identical on screen). The first
+  push blended a made-up apparent size that depended on the camera (jumping between film shots, shrinking at low power).
+  `MoonVisuals` maps everything attached to the moon with the same camera scale.
+- **Clouds**: with true depth the clouds hide it while it's above them; when it can't be drawn far enough out to stay
+  behind the cloud layer (`hiddenByClouds`), it is drawn without depth (`beaconBeam(surface, true)`; 26.3/1.21.11:
+  `HalleyPipelines.MOON_BLEND`) so the clouds drawn later still cover it. Only camera-facing quads are built.
+- **Look**: no sun-like hot core or lens flare; the pale moon with a real terminator while it comes on; through entry its
+  leading face is tinted molten (craters still visible), the seams blaze, a shell of fire sits on its leading edge
+  (rim-weighted); one bow-shock crescent hugging its edge (two read as ghost copies), a sheath round its outline,
+  `FLAMES` tongues of flame off its edge, a longer wake; a pale dust trail with glinting chips from TRAIL until entry.
+- **Hand-over**: at rest the sphere (a block bigger) crumbles away patch by patch (`MoonSphere.crumble`, translucent)
+  over 50 ticks, glowing as it cools, with chips, dust and steam (`MoonFx.crumbleParticles`).
+- **Music**: re-cut from the original (drop at 24.45 s) 8.45 s in, not stretched; starts at ALARM (`MoonFx.MUSIC_AT`),
+  drop on CONTACT 16 s later; `SoundSource.MUSIC`. Recipe in `docs/SS-06-LUNA.md`.
+- **The impact's lag**: `Carving.paint` relights and resends each chunk it touches. `MoonLand` heaved the rim column by
+  column with jittered steps, so most rim chunks were rewritten every tick for seconds (and the cracks every tick while
+  they ran). Now each chunk's rim rises in `JOLTS` (3) jolts, all its columns together; cracks at most every
+  `PAINT_EVERY` (6) ticks; at most `MAX_PAINTS` (12) chunks a tick; `MoonBuild` writes each chunk once (no surface-first
+  pass), 15 ms a tick at most; the crater is resent once. Measured on a default strike: 673 writes for 589 chunks,
+  worst tick 44 ms (TSS's own crater carving: 38-55 ms). TSS 1.4.x also has a build-ahead carving path (sections built on
+  a worker thread, `Carving.b(double)` / a batch floor callback `a$a.floors`, used by Gungnir) - obfuscated, new
+  members only, not used by us.
+- **Local client test**: use `-Dss05.clienttest.view=aerial` with `film=true`, as CI does; without a view the film
+  doesn't show.
