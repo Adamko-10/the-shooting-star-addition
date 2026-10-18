@@ -50,7 +50,7 @@ project 1719195, All Rights Reserved). It adds two skills to TSS's Stellar Remot
 
 Mod id `shooting_star_addition`, Java package `dev.ss05.halley` (the "SS-05/SS-06" names in code are the old
 codenames; players see SA-01/SA-02). GitHub `Adamko-10/the-shooting-star-addition`; CurseForge project **1725916**
-(author `adamko_10`). Current version **1.5.1** (in `gradle.properties` on every branch; 1.5.1 is the last published, on GitHub only so far).
+(author `adamko_10`). Current version **1.5.1** (in `gradle.properties` on every branch; 1.5.1 is the last published).
 
 ## 2. Branches
 
@@ -263,12 +263,19 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
 
 ## 9. Status (2026-10-18)
 
-- **1.5.1 is released on GitHub** (2026-10-18): all seven branches pushed, seven releases `v1.5.1...` (main's is
-  latest) with the jars and the changelog from `dev/publish/changelog_151.py` (everything since 1.4.0). The jars were
-  built locally from the release commits (code identical to §13's green CI round; only the version changed).
-  **CurseForge is not done yet** (the user chose GitHub only for now): next, when they say so, §8 step 5 with the
-  jars and changelogs in `The Shooting Star Addition releases/1.5.1/` (on Adam's PC, ask him to turn off the tab suspender first),
-  then step 6 (project description) and step 7 (delete `wip/*` and `ci-*` drafts).
+- **1.5.1 is released** (2026-10-18): all seven branches pushed; seven GitHub releases `v1.5.1...` (main's is latest)
+  with the jars and the changelog from `dev/publish/changelog_151.py` (everything since 1.4.0), and seven CurseForge
+  files (Release, Client + Server, auto-publish once approved; TSS [Demo] required, + Fabric API on Fabric). The jars
+  were built locally from the release commits (code identical to §13's green CI round; only the version changed); copies
+  and changelogs in `The Shooting Star Addition releases/1.5.1/`. The `wip/*` branches and all `ci-*` drafts were
+  deleted afterwards. Not done: the CurseForge project description (§8 step 6) - only when the user asks.
+- CurseForge's upload form (authors.curseforge.com, `#/projects/1725916/files/create`) on this PC: screenshots time
+  out, so it was driven by script: MUI autocompletes found by their label (Environment, Modloader, Java, Minecraft;
+  remove chips via `.MuiChip-deleteIcon`, add by setting the input's value with the native setter + an `input` event,
+  then clicking the exact `[role=option]`); the editor switched to Markdown, then `textarea.mde-text` set the same way;
+  Fabric API added through "Add related project" (search "Fabric API", option "ID: 306612", "Required Dependency").
+  The form copies the previous file's fields, sometimes stale ones and never Fabric API reliably: set every field each
+  time. The tool output hides version-like strings (dots): print them with the dots replaced.
 - 1.5.0 is the first push of the same work: GitHub releases only (2026-10-17, 5 downloads), never on CurseForge; the
   user tested it and asked for §13. Its releases were left as they are; 1.5.1 supersedes it.
 - The user added `me mantainer need contrib.txt` on main (kept; main's 1.5.0 commits are rebased on it).
