@@ -1,5 +1,6 @@
 package dev.ss05.halley.world;
 
+import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.content.HalleyContent;
@@ -55,6 +56,17 @@ final class MoonLand {
     /** How many waiting chunks a lingering strike looks at each tick, and the most it works on. */
     private static final int LOOK_PER_TICK = 48;
     private static final int WORK_PER_TICK = 2;
+    /**
+     * How many jolts each chunk's rim heaves up in. Every chunk written is relit and sent again, whole, to everyone who
+     * has it loaded (The Shooting Star's {@code Carving.paint}, as its own carvings do), and the client rebuilds all of
+     * it: so a chunk's columns all rise together, in a few jolts (each a little before or after its neighbours'), rather
+     * than column by column every tick - which, in 1.5.0, resent most of the rim's chunks every tick for seconds.
+     */
+    private static final int JOLTS = 3;
+    /** The fewest ticks between two writes of the same chunk while its cracks run out across it. */
+    private static final int PAINT_EVERY = 6;
+    /** The most chunks written in one tick (more wait for the next: the rim catches up a jolt at a time). */
+    private static final int MAX_PAINTS = 12;
 
     private final ServerLevel level;
     private final MoonPlan plan;
@@ -67,6 +79,12 @@ final class MoonLand {
     private final LongArrayList waiting = new LongArrayList();
     private int look;
     private boolean ended;
+    /** What writing its chunks has cost so far (for one log line once the loaded land is done, like The Shooting
+     * Star's own carvings log theirs). */
+    private int writes;
+    private long writeNanos;
+    private long worstNanos;
+    private boolean logged;
 
     /** One crack sample: crack {@code crack} at {@code along} (0 at its start, 1 at its tip). */
     private record Sample(int crack, double along) {
@@ -89,6 +107,9 @@ final class MoonLand {
         boolean[] cut;
         boolean started;
         boolean done;
+        /** The jolts its rim has made, and when it was last written (the tick). */
+        int jolts;
+        double paintedAt = -1.0E9;
 
         Chunk(ChunkPos pos) {
             this.pos = pos;
@@ -223,9 +244,15 @@ final class MoonLand {
     void tick(double t) {
         Map<BlockPos, BlockState> out = new HashMap<>();
         boolean debrisTime = MoonPlan.rise(t) >= 1.0;
-        // a few chunks are started (surveyed) each tick, nearest the mark first, so no one tick does them all
+        // a few chunks are started (surveyed) each tick, nearest the mark first, so no one tick does them all; and only
+        // so many are written per tick, each no more often than it must be (see JOLTS)
         int starts = 0;
+        int paints = 0;
+        int cap = Math.max(MAX_PAINTS, this.chunksPerTick);
         for (Chunk c : this.ordered) {
+            if (paints >= cap) {
+                break;
+            }
             if (c.done) {
                 continue;
             }
@@ -233,6 +260,7 @@ final class MoonLand {
                 // not loaded (or let go of while it was being worked on): done as it loads, after the strike
                 continue;
             }
+            int before = out.size();
             if (!c.started) {
                 if (starts >= this.chunksPerTick) {
                     continue;
@@ -240,12 +268,25 @@ final class MoonLand {
                 this.start(c, out);
                 starts++;
             }
-            boolean rimUp = this.raise(c, t, out);
-            // where the rim rises, its cracks are cut once it is up (or it would bury them again)
-            boolean cracked = (rimUp || c.columns.length == 0) && this.cutCracks(c, t, out);
+            int jolts = this.joltsAt(c, t);
+            boolean jolt = jolts > c.jolts;
+            if (jolt) {
+                c.jolts = jolts;
+            }
+            boolean rimUp = this.raise(c, c.jolts >= JOLTS ? Double.MAX_VALUE : c.jolts, out);
+            // where the rim rises, its cracks are cut once it is up (or it would bury them again); between the rim's
+            // jolts, a chunk is written again for its cracks only every few ticks
+            boolean cracked = false;
+            if (rimUp || c.columns.length == 0) {
+                cracked = (jolt || t - c.paintedAt >= PAINT_EVERY) ? this.cutCracks(c, t, out) : this.cracksLeft(c) == 0;
+            }
             if (rimUp && cracked && debrisTime) {
                 this.debris(c, out);
                 c.done = true;
+            }
+            if (out.size() > before) {
+                c.paintedAt = t;
+                paints++;
             }
         }
         this.paint(out);
@@ -415,8 +456,14 @@ final class MoonLand {
         return true;
     }
 
-    /** Heaves the chunk's columns up to where they have got by {@code t}; true once all are fully up. */
-    private boolean raise(Chunk c, double t, Map<BlockPos, BlockState> out) {
+    /** How many of its {@link #JOLTS} the chunk's rim has made by time {@code t} (all of its columns together). */
+    private int joltsAt(Chunk c, double t) {
+        int steps = this.plan.rimStep(c.pos.x * 16 + 8, c.pos.z * 16 + 8, t);
+        return steps >= MoonPlan.RIM_STEPS ? JOLTS : steps * JOLTS / MoonPlan.RIM_STEPS;
+    }
+
+    /** Heaves the chunk's columns up to {@code jolts} of {@link #JOLTS} ({@code MAX_VALUE}: all the way); true once all are fully up. */
+    private boolean raise(Chunk c, double jolts, Map<BlockPos, BlockState> out) {
         boolean all = true;
         for (int i = 0; i < c.columns.length; i++) {
             int height = c.heights[i];
@@ -425,8 +472,7 @@ final class MoonLand {
             }
             int x = c.pos.x * 16 + (c.columns[i] & 15);
             int z = c.pos.z * 16 + (c.columns[i] >> 4);
-            int step = t == Double.MAX_VALUE ? MoonPlan.RIM_STEPS : this.plan.rimStep(x, z, t);
-            int want = step >= MoonPlan.RIM_STEPS ? height : Math.round(height * step / (float) MoonPlan.RIM_STEPS);
+            int want = jolts >= JOLTS ? height : (int) Math.round(height * jolts / JOLTS);
             if (want > c.placed[i]) {
                 this.lift(c, i, x, z, want, out);
             }
@@ -469,6 +515,17 @@ final class MoonLand {
             return this.plan.hash(z, 139, x) < 0.6 ? Blocks.COARSE_DIRT.defaultBlockState() : Blocks.ROOTED_DIRT.defaultBlockState();
         }
         return layer;
+    }
+
+    /** How many of the chunk's crack samples are still to be cut. */
+    private int cracksLeft(Chunk c) {
+        int left = 0;
+        for (int s = 0; s < c.samples.size(); s++) {
+            if (!c.cut[s]) {
+                left++;
+            }
+        }
+        return left;
     }
 
     /** Cuts the chunk's share of every crack out as far as it has run by {@code t}; true once all of it is cut. */
@@ -609,8 +666,26 @@ final class MoonLand {
 
     private void paint(Map<BlockPos, BlockState> out) {
         if (!out.isEmpty()) {
+            long start = System.nanoTime();
             StarBridge.paint(this.level, out);
+            long took = System.nanoTime() - start;
+            this.writes += countChunks(out);
+            this.writeNanos += took;
+            this.worstNanos = Math.max(this.worstNanos, took);
         }
+        if (!this.logged && this.ended || !this.logged && this.loadedDone()) {
+            this.logged = true;
+            HalleyAddon.LOG.info("Luna's rim and cracks: {} chunk writes for {} chunks in {} ms (worst tick {} ms)", this.writes,
+                this.chunks.size(), this.writeNanos / 1_000_000L, this.worstNanos / 1_000_000L);
+        }
+    }
+
+    private static int countChunks(Map<BlockPos, BlockState> out) {
+        it.unimi.dsi.fastutil.longs.LongOpenHashSet seen = new it.unimi.dsi.fastutil.longs.LongOpenHashSet();
+        for (BlockPos pos : out.keySet()) {
+            seen.add(ChunkPos.asLong(pos.getX() >> 4, pos.getZ() >> 4));
+        }
+        return seen.size();
     }
 
     // ---- The land itself. ------------------------------------------------------------------------------------------
