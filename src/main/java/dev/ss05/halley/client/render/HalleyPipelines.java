@@ -48,6 +48,12 @@ public final class HalleyPipelines {
     public static final BindGroupLayout MOON_SAMPLER = BindGroupLayouts.SAMPLER0;
     /** SS-06's moon sphere: {@code surface.png}, opaque, depth-tested and written. */
     public static final RenderPipeline MOON = moon("moon", OPAQUE, true);
+    /** Straight alpha blending, for the sphere while it crumbles away (or must stay behind the clouds). */
+    private static final ColorTargetState BLEND = new ColorTargetState(Optional.of(BlendFunction.TRANSLUCENT), GpuFormat.RGBA8_UNORM,
+        ColorTargetState.WRITE_COLOR);
+    /** SS-06's moon sphere, blending and writing no depth: crumbling away over the block moon, or kept behind the
+     * clouds where it can't be drawn far enough out (see {@code MoonSphere}). */
+    public static final RenderPipeline MOON_BLEND = moon("moon_blend", BLEND, false);
     /** The molten seams on top: {@code seams.png}, additive, depth-tested but not written (it rides on the base). */
     public static final RenderPipeline MOON_EMISSIVE = moon("moon_emissive", ADD, false);
 

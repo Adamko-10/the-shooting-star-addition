@@ -89,14 +89,15 @@ public final class MoonStoryboard {
         })));
 
         // 3. Low on the land beside the mark, looking up: the red sky, the moon starting to come down over the horizon.
-        takes.add(Take.cut(MoonPlan.FALL + 12, MoonPlan.FALL + 90, safe(plan, (x, p, k) -> {
+        takes.add(Take.cut(MoonPlan.FALL + 12, MoonPlan.FALL + 70, safe(plan, (x, p, k) -> {
             Vec3 pos = mark.add(side.scale(radius * l(k, 0.5, 0.42))).add(travel.scale(-radius * 0.18)).add(0.0, 2.4, 0.0);
             Vec3 moon = plan.centre(x.time(p));
             return new Pose(x.keep(pos, x.feet(p)), moon, (float) l(k, 74.0, 70.0), 0.0F);
         })));
 
-        // 4. The long fall: a slow half-orbit round the mark at a distance, the moon growing over the land it will hit.
-        takes.add(Take.cut(MoonPlan.FALL + 90, MoonPlan.ENTRY - 12, safe(plan, (x, p, k) -> {
+        // 4. The long approach: a slow half-orbit round the mark at a distance, the moon growing over the land it will hit,
+        //    its dust trail behind it, until it catches fire.
+        takes.add(Take.cut(MoonPlan.FALL + 70, MoonPlan.ENTRY + 10, safe(plan, (x, p, k) -> {
             double angle = Math.toRadians(l(k, -20.0, 28.0));
             Vec3 around = side.scale(-Math.cos(angle)).add(travel.scale(Math.sin(angle)));
             Vec3 pos = mark.add(around.scale(radius * 0.95 + moonR * 0.5)).add(0.0, 6.0 + moonR * 0.18, 0.0);
@@ -106,7 +107,7 @@ public final class MoonStoryboard {
         })));
 
         // 5. Entry: tracking alongside its line of fall, the burning moon and the ground it is about to hit both in frame.
-        takes.add(Take.cut(MoonPlan.ENTRY - 12, MoonPlan.CONTACT - 26, safe(plan, (x, p, k) -> {
+        takes.add(Take.cut(MoonPlan.ENTRY + 10, MoonPlan.CONTACT - 26, safe(plan, (x, p, k) -> {
             Vec3 pos = mark.add(side.scale(radius * 1.05 + moonR * 0.9)).add(travel.scale(radius * l(k, 0.35, 0.1)))
                 .add(0.0, 4.0 + moonR * 0.25, 0.0);
             Vec3 moon = plan.centre(x.time(p));
