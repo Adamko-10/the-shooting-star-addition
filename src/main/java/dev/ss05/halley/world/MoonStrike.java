@@ -73,9 +73,9 @@ public final class MoonStrike {
     /**
      * Ticks after everything is cut and built at which the crater's chunks are sent to players again. The fast carver
      * sends each chunk the moment it is cut, before the light engine has caught up, so a fresh crater's floor can look
-     * unlit in patches (as Halley's scar does).
+     * unlit in patches (as Halley's scar does). Once: each resend makes every client rebuild every chunk of the crater.
      */
-    private static final int[] RESEND_AFTER = {40, 140};
+    private static final int[] RESEND_AFTER = {60};
 
     /** The molten seam where moon and land meet: magma, with lava pooled in it. */
     private static final Palette SEAM = Palette.of(Blocks.MAGMA_BLOCK, 50, Blocks.LAVA, 35, Blocks.BLACKSTONE, 15);

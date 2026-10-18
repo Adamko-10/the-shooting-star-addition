@@ -141,7 +141,7 @@ public final class MoonSphere {
     private static boolean hiddenByClouds(Vec3 camera, Vec3 dir, double distance, double radius, double trueDistance,
                                           double trueRadius, float partial) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level == null || minecraft.options.getCloudsType() == CloudStatus.OFF) {
+        if (minecraft.level == null || minecraft.options.cloudStatus().get() == CloudStatus.OFF) {
             return false;
         }
         double clouds = minecraft.gameRenderer.mainCamera().attributeProbe().getValue(EnvironmentAttributes.CLOUD_HEIGHT, partial);
