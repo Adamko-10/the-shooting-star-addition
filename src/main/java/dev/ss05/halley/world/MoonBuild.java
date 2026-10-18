@@ -21,25 +21,25 @@ import net.minecraft.world.level.block.state.BlockState;
  * own small class rather than another {@code StarBridge.excavate} shape; what to place comes straight from
  * {@link MoonPlan#inMoon}, so it is always the same sphere the client films.
  *
- * <p>It goes over the chunks twice: first only the outer {@link #SHELL} blocks, so the moon's whole surface is there
- * as early as possible (the client cross-fades its rendered moon into the blocks as they appear), then the inside.
- * Each column's blocks are worked out as two ranges of heights (no test per block), and a chunk that isn't loaded is
- * asked for through the strike's {@link Excavation.Loader} and built once it is there, never loaded on the spot.
+ * <p>Each chunk is built once, whole, nearest the mark first: every chunk written is relit and sent again to everyone
+ * who has it loaded (The Shooting Star's {@code Carving.paint}), so building a chunk in two goes (its surface first, as
+ * 1.5.0 did) cost twice that for nothing - the client draws its own moon a block bigger over the blocks until they are
+ * all there anyway. Each column's blocks are worked out as a range of heights (no test per block), and a chunk that isn't
+ * loaded is asked for through the strike's {@link Excavation.Loader} and built once it is there, never loaded on the
+ * spot.
  */
 public final class MoonBuild {
     private final ServerLevel level;
     private final MoonPlan plan;
     private final int chunksPerTick;
     private final Excavation.Loader loader;
-    /** How thick the first pass (the surface) is, in blocks. */
-    private static final double SHELL = 3.0;
+    /** The most time the builder takes in one tick (at least one chunk is always built). */
+    private static final long BUDGET_NANOS = 15_000_000L;
     /** How much of the moon is holey moon cheese: the cheese's eyes, scattered all through it. */
     private static final double HOLEY = 0.12;
 
     private final List<ChunkPos> order;
     private int next;
-    /** 0 = the shell, 1 = the inside. */
-    private int pass;
 
     public MoonBuild(ServerLevel level, MoonPlan plan, int chunksPerTick, Excavation.Loader loader) {
         this.level = level;
@@ -79,12 +79,7 @@ public final class MoonBuild {
     }
 
     public boolean done() {
-        return this.pass > 1;
-    }
-
-    /** Whether the moon's whole surface has been built (the inside may still be filling). */
-    public boolean shellDone() {
-        return this.pass > 0;
+        return this.next >= this.order.size();
     }
 
     public void tick() {
@@ -97,23 +92,22 @@ public final class MoonBuild {
     }
 
     private void build(int count, boolean now) {
+        long start = System.nanoTime();
         while (count > 0 && !this.done()) {
+            if (!now && System.nanoTime() - start > BUDGET_NANOS) {
+                // a big moon's chunks hold tens of thousands of blocks each: the rest wait for the next tick
+                return;
+            }
             ChunkPos pos = this.order.get(this.next);
             if (!now && !this.level.hasChunk(pos.x, pos.z)) {
                 // wait for it (asked for once, let go of once built)
                 this.loader.hold(pos);
                 return;
             }
-            this.buildChunk(pos, this.pass == 0);
-            if (this.pass == 1) {
-                this.loader.release(pos);
-            }
+            this.buildChunk(pos);
+            this.loader.release(pos);
             count--;
             this.next++;
-            if (this.next >= this.order.size()) {
-                this.pass++;
-                this.next = 0;
-            }
         }
     }
 
@@ -122,10 +116,9 @@ public final class MoonBuild {
         return this.plan.hash(x + 7919, y - 104729, z + 1299709) < HOLEY;
     }
 
-    /** One chunk's share of the moon: its outer shell, or the inside. */
-    private void buildChunk(ChunkPos pos, boolean shell) {
+    /** One chunk's share of the moon, all of it. */
+    private void buildChunk(ChunkPos pos) {
         double r = this.plan.params.moonRadius();
-        double inner = Math.max(0.0, r - SHELL);
         int minY = this.level.getMinY();
         int maxY = this.level.getMaxY();
         double cy = this.plan.restCentre.y;
@@ -147,29 +140,11 @@ public final class MoonBuild {
                 if (flat > r * r) {
                     continue;
                 }
-                // the blocks whose centres lie inside the moon, and of those the ones inside its shell
+                // the blocks whose centres lie inside the moon
                 double half = Math.sqrt(r * r - flat);
                 int from = Math.max(minY, Mth.ceil(cy - half - 0.5));
                 int to = Math.min(maxY, Mth.floor(cy + half - 0.5));
-                int innerFrom = Integer.MAX_VALUE;
-                int innerTo = Integer.MIN_VALUE;
-                if (flat < inner * inner) {
-                    double innerHalf = Math.sqrt(inner * inner - flat);
-                    innerFrom = Mth.ceil(cy - innerHalf - 0.5);
-                    innerTo = Mth.floor(cy + innerHalf - 0.5);
-                    // (a block exactly on the shell's inner edge belongs to the shell)
-                    if (cy - innerHalf - 0.5 == innerFrom) {
-                        innerFrom++;
-                    }
-                    if (cy + innerHalf - 0.5 == innerTo) {
-                        innerTo--;
-                    }
-                }
                 for (int y = from; y <= to; y++) {
-                    boolean inside = y >= innerFrom && y <= innerTo;
-                    if (shell == inside) {
-                        continue;
-                    }
                     BlockPos at = new BlockPos(x, y, z);
                     out.put(at, core && at.equals(this.plan.core) ? molten : this.holeyAt(x, y, z) ? holey : cheese);
                 }
