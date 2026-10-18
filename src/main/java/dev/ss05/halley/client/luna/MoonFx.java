@@ -52,16 +52,21 @@ public final class MoonFx {
     private static final double SOUND_SPEED = 17.0;
     /** ...but never more than this late. */
     private static final int MAX_SOUND_DELAY = 30;
+    /**
+     * When Luna's music starts: with the alarm, sixteen seconds before the impact - {@code luna_music.ogg} is the track
+     * cut so that its drop comes sixteen seconds in (the original's drop is at 24.45 s, so it starts 8.45 s in).
+     */
+    private static final int MUSIC_AT = MoonPlan.ALARM;
     /** How far from the mark (in blocks) a player outside the film still hears Luna's music. */
     private static final double MUSIC_RANGE = 1500.0;
     /** Further than this from the strike, nobody sees its particles anyway. */
     private static final double PARTICLE_RANGE = 900.0;
     /** How often, in ticks, the block moon is polled for after SETTLE. */
     private static final int POLL_EVERY = 5;
-    /** How long the rendered sphere takes to fade away once it's handed over (or the strike is about to end): a slow
-     * cross-fade into a glowing, cooling molten shell (see {@link #sphereVisibilityAt}, {@code MoonSphere}'s cooling
-     * tint and {@code MoonVisuals}' handover glow), not a pop. */
-    private static final float HANDOVER_FADE = 55.0F;
+    /** How long the rendered sphere takes to crumble away once it's handed over (or the strike is about to end): patch
+     * by patch, glowing as it cools (see {@link #sphereVisibilityAt}, {@code MoonSphere}'s cooling tint and crumbling,
+     * {@code MoonVisuals}' handover glow and the chips and steam of {@link #crumbleParticles}), not a pop. */
+    private static final float HANDOVER_FADE = 50.0F;
     /** How long the cooling molten-shell look lingers after handover, in ticks (see the same places). */
     public static final float COOLING_TICKS = 100.0F;
 
@@ -313,6 +318,9 @@ public final class MoonFx {
         if (this.plan.params.carve() && this.handoverAt < 0 && t >= MoonPlan.SETTLE && t % POLL_EVERY == 0) {
             this.checkBuilt(level);
         }
+        if (camera.distanceTo(this.plan.target) < PARTICLE_RANGE) {
+            this.crumbleParticles(level, t);
+        }
     }
 
     /** Polls a handful of points just inside the moon's surface for moon-cheese blocks (see the class doc). */
@@ -347,6 +355,32 @@ public final class MoonFx {
     }
 
     /**
+     * While the sphere crumbles away over the block moon: chips of cheese, dust and wisps of steam come off its surface,
+     * so the sphere giving way to blocks reads as the moon's crust breaking up as it cools, not a swap.
+     */
+    private void crumbleParticles(ClientLevel level, int t) {
+        if (this.handoverAt < 0 || t < this.handoverAt || t > this.handoverAt + HANDOVER_FADE) {
+            return;
+        }
+        MoonPlan p = this.plan;
+        RandomSource r = this.random;
+        double radius = p.params.moonRadius() + 0.6;
+        BlockParticleOption cheese = new BlockParticleOption(ParticleTypes.BLOCK, HalleyContent.MOON_CHEESE.defaultBlockState());
+        int n = this.count((int) (12 + radius * 0.6));
+        for (int i = 0; i < n; i++) {
+            // anywhere on the upper part of the sphere (the rest is buried)
+            double z = r.nextDouble() * 1.1 - 0.1;
+            double a = r.nextDouble() * Math.PI * 2.0;
+            double s = Math.sqrt(Math.max(0.0, 1.0 - z * z));
+            Vec3 out = new Vec3(s * Math.cos(a), z, s * Math.sin(a));
+            Vec3 at = p.restCentre.add(out.scale(radius));
+            ParticleOptions kind = i % 3 == 0 ? ParticleTypes.CLOUD : i % 3 == 1 ? ParticleTypes.CAMPFIRE_COSY_SMOKE : cheese;
+            double speed = kind == cheese ? 0.25 : 0.06;
+            particle(level, kind, at, out.x * speed, out.y * speed + 0.05, out.z * speed);
+        }
+    }
+
+    /**
      * 1 while the rendered sphere should show at full size, fading to 0 once the block moon has taken over (or, if
      * nothing is ever carved, near the very end of the strike).
      */
@@ -365,12 +399,12 @@ public final class MoonFx {
     }
 
     /**
-     * How much smaller than its true size to draw the sphere (negative = bigger): at rest it is drawn a block bigger,
-     * so it covers the block moon (whose block corners reach ~0.9 past the radius) while the server is still building
-     * it, instead of the blocks showing through it piece by piece; then it cross-fades away (see sphereVisibilityAt).
+     * How much bigger than its true size to draw the sphere: at rest it is drawn a block bigger, so it covers the block
+     * moon (whose block corners reach ~0.9 past the radius) while the server is still building it, instead of the
+     * blocks showing through it piece by piece; then it crumbles away over them (see sphereVisibilityAt).
      */
-    public static double radiusShrinkAt(double t) {
-        return -1.0 * MoonPlan.settle(t);
+    public static double restOversizeAt(double t) {
+        return MoonPlan.settle(t);
     }
 
     public void removed() {
@@ -415,6 +449,8 @@ public final class MoonFx {
             this.play(HalleyContent.MOON_TEAR, sky(camera, at), 1.6F, 1.0F, film);
             this.follow(HalleyContent.MOON_FALL, 1.8F, film,
                 age -> age > MoonPlan.CONTACT ? null : sky(camera(), p.centre(Math.min(age, MoonPlan.CONTACT))));
+        }
+        if (t == MUSIC_AT) {
             this.music(film, camera);
         }
         if (t == MoonPlan.ENTRY) {
@@ -461,10 +497,10 @@ public final class MoonFx {
     }
 
     /**
-     * Luna's music, from the moment the moon tears loose: cut so that its drop lands on the impact, sixteen seconds on
-     * (at the remote's speed slider too, as its pitch follows the film's). Heard by the caster and whoever is near enough
-     * to see it come down, unless they have switched it off in the remote's menu (M); it plays at the game's master
-     * volume, so it is there even with the Music slider down, and the game's own background music makes way for it.
+     * Luna's music, from the alarm: cut so that its drop lands on the impact, sixteen seconds on (at the remote's speed
+     * slider too, as its pitch follows the film's). Heard by the caster and whoever is near enough to see it come down,
+     * unless they have switched it off in the remote's menu (M); it plays on the game's Music volume slider, and the
+     * game's own background music makes way for it.
      */
     private void music(boolean film, Vec3 camera) {
         if (this.music != null || !HalleyClientConfig.lunaMusic() || !film && camera.distanceTo(this.plan.target) > MUSIC_RANGE) {
@@ -491,7 +527,7 @@ public final class MoonFx {
         private boolean started;
 
         Music() {
-            super(SoundEvent.createVariableRangeEvent(HalleyAddon.id("luna_music")), SoundSource.MASTER, SoundInstance.createUnseededRandom());
+            super(SoundEvent.createVariableRangeEvent(HalleyAddon.id("luna_music")), SoundSource.MUSIC, SoundInstance.createUnseededRandom());
             this.base = MoonFx.this.pitch;
             this.volume = 0.85F;
             this.pitch = this.base;
@@ -521,7 +557,7 @@ public final class MoonFx {
             this.last = now;
             // a long gap: the game was paused, and the music with it
             this.played += (dt > 1.0 ? 0.05 : dt) * this.pitch;
-            double want = (MoonFx.this.realTime(0.0F) - MoonPlan.FALL) / 20.0;
+            double want = (MoonFx.this.realTime(0.0F) - MUSIC_AT) / 20.0;
             // at the speed slider's ends the game can't play it fast or slow enough anyway: leave it be
             if (Math.abs(this.base - MoonFx.this.host.speed()) < 0.01F) {
                 double drift = this.played - want;

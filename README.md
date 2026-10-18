@@ -58,9 +58,9 @@ land round it.
 ## Luna
 
 Flip the cover and press the button: **EARTH SYSTEM SHUT DOWN**, and the sky falls to night (like Halley's). The moon, right where it hangs in your
-sky, shudders and cracks open along glowing molten seams, leaves its place and falls onto your crosshair, slowly at
-first and then faster and faster, growing until it fills the sky. It burns through the atmosphere in a shroud of fire,
-hits the ground in a white flash and a shock ring, blasts a crater more than twice its own width out of the land and
+sky, shudders and cracks open along glowing molten seams, leaves its place and comes down onto your crosshair, growing
+as it comes, a trail of moon dust behind it, then hits the atmosphere and dives, faster and faster, burning, until it
+fills the sky, and hits the ground (16.5 seconds after the button, like Halley's comet) in a white flash and a shock ring, blasts a crater more than twice its own width out of the land and
 drives deep into it, the crust buckling up against it, and comes to rest there with most of it buried: a whole moon of
 **moon cheese**, with one block of **molten moon cheese** at its very centre.
 
@@ -70,10 +70,12 @@ drives deep into it, the crust buckling up against it, and comes to rest there w
 - Fissures tear out across the land all round the crater (like Gungnir's cracks), lumps of moon and crust rain down
   far beyond it, and the shock wave throws, burns and hurts further still.
 - Its own key (**N** by default), menu card, sliders, cooldown (120 s), cutscene (skippable), sounds and alarm.
-- **Its own music**, cut so the drop lands the moment it hits, and kept in step with the moon however the game runs.
-  It plays even with Minecraft's Music slider down; switch it off in the remote's menu (**H**, then **M**).
-- **The moon heats up as it comes**: a glow round its rim as it tears loose, its leading face orange as it nears the
-  air and white-hot through entry, its molten seams burning brighter. It looks right with shader packs too.
+- **Its own music**, from the alarm, cut so the drop lands the moment it hits, and kept in step with the moon however
+  the game runs. It follows Minecraft's Music volume slider; switch it off in the remote's menu (**H**, then **M**).
+- **The moon heats up as it comes**: the pale moon with glowing seams while it comes on, then through entry its
+  leading face turns molten, its seams blaze and fire wraps its edge, with a bow shock, flames peeling off it and a
+  long blazing trail. Always drawn at its true size (whatever the power slider), hidden by the clouds until it comes
+  down through them, and it crumbles into its blocks when it lands. It looks right with shader packs too.
 - **Its film**: the uplink, a long lens on the moon cracking, the long fall, entry, the moon looming over you, and
   **the impact in slow motion** while the camera pulls back, then the crater from above and the moon at rest. The
   camera always stays over land your game has loaded.
