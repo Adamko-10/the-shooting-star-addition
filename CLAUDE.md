@@ -9,6 +9,12 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
 
 ## 0. The user's rules (follow these exactly)
 
+**Two people work on this, on two PCs. Check which one you are on first:** if the project sits in a folder called
+`software files` (e.g. `C:\Users\HamzaTom\Desktop\Dont Touch\software files\shooting star adon with adam\`), you
+are on **Hamza's PC**; anywhere else, you are on **Adam's PC**. Adam is the one with the Chrome tab suspender and the
+2 AM shutdown policy; Hamza has neither (no tab suspender to ask about, never shut his PC down). The two rules marked
+*(Adam's PC only)* below apply only on Adam's PC; everything else applies on both.
+
 - **Never ship or commit The Shooting Star's jar, code, data, assets or mappings.** `libs/*.jar` and `libs/mappings/`
   are git-ignored. Mappings are made locally or in CI and never pushed.
 - Commit as `Adamko-10 <Adamko-10@users.noreply.github.com>`, with the session's `Co-Authored-By:` / `Claude-Session:`
@@ -24,11 +30,11 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
 - In Markdown changelogs, don't put `(` right after `]`.
 - Never print the GitHub token. Never enter credentials anywhere.
 - **Every change goes to every branch** (§3). Sonnet subagents (`model: "sonnet"`) are fine for bounded mechanical work.
-- For browser uploads (CurseForge), ask the user to disable their Chrome tab suspender first.
+- *(Adam's PC only)* For browser uploads (CurseForge), ask the user to disable their Chrome tab suspender first.
 - Deleting the user's files needs permission (rename mods to `.disabled` instead).
 - Talking to the user: after coding, give a clear list of **what they need to do**; for testing, a list of **what to
   test**. They may say "you can stop telling me now"; start again when the topic changes (building → testing etc.).
-- If finishing a task past 2 AM their time, shut down their PC (unless told not to). If running low on tokens, schedule
+- *(Adam's PC only)* If finishing a task past 2 AM their time, shut down their PC (unless told not to). If running low on tokens, schedule
   a continuation.
 - The user is budget-conscious: don't over-test; one CI round per change set is normally enough, and they test in game.
 
@@ -250,7 +256,7 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
    react-mde `textarea.mde-text` (switch to Markdown). Release type **Release**; environment **Client + Server**;
    game versions per branch; relations: **The Shooting Star [Demo]** required (+ **Fabric API** required on Fabric);
    there are no default relations, so add them every time. Upload from the path the file chooser can reach. Ask the
-   user to turn off their tab suspender first.
+   user to turn off their tab suspender first (Adam's PC only, see §0).
 6. Project description: `dev/publish/curseforge-description.md`. **Keep the top part (title line, Discord, YouTube,
    other mod links) exactly as it is**; update the rest to match the features.
 7. Delete `wip/*` branches and `ci-*` drafts.
@@ -261,7 +267,7 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
   latest) with the jars and the changelog from `dev/publish/changelog_151.py` (everything since 1.4.0). The jars were
   built locally from the release commits (code identical to §13's green CI round; only the version changed).
   **CurseForge is not done yet** (the user chose GitHub only for now): next, when they say so, §8 step 5 with the
-  jars and changelogs in `The Shooting Star Addition releases/1.5.1/` (ask them to turn off the tab suspender first),
+  jars and changelogs in `The Shooting Star Addition releases/1.5.1/` (on Adam's PC, ask him to turn off the tab suspender first),
   then step 6 (project description) and step 7 (delete `wip/*` and `ci-*` drafts).
 - 1.5.0 is the first push of the same work: GitHub releases only (2026-10-17, 5 downloads), never on CurseForge; the
   user tested it and asked for §13. Its releases were left as they are; 1.5.1 supersedes it.
