@@ -261,7 +261,7 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
   latest) with the jars and the changelog from `dev/publish/changelog_151.py` (everything since 1.4.0). The jars were
   built locally from the release commits (code identical to §13's green CI round; only the version changed).
   **CurseForge is not done yet** (the user chose GitHub only for now): next, when they say so, §8 step 5 with the
-  jars and changelogs in `The Shooting Star Addition releases.5.1\` (ask them to turn off the tab suspender first),
+  jars and changelogs in `The Shooting Star Addition releases/1.5.1/` (ask them to turn off the tab suspender first),
   then step 6 (project description) and step 7 (delete `wip/*` and `ci-*` drafts).
 - 1.5.0 is the first push of the same work: GitHub releases only (2026-10-17, 5 downloads), never on CurseForge; the
   user tested it and asked for §13. Its releases were left as they are; 1.5.1 supersedes it.
