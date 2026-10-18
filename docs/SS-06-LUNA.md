@@ -13,36 +13,39 @@ Times are ticks since the button (`MoonPlan`).
 2. **ALARM (10):** **"EARTH SYSTEM SHUT DOWN"** slams across the screen in big red letters with a glitch/scanline
    look, over a siren (`luna_alarm`). Other players nearby get it in their action bar. The night sky starts to turn a
    sick red-orange. The mark appears on the ground (gold).
-3. **BREAK (45-85):** the moon, *exactly where the vanilla moon hangs in the sky* (same direction, same apparent
+3. **BREAK (30-50):** the moon, *where the vanilla moon hangs in the sky* (same direction, same apparent
    size), shudders. Glowing molten seams crack open across it (`luna_crack`). The vanilla moon is hidden from here on
    (it is replaced by ours).
-4. **FALL (85-405):** it leaves its place and comes down a straight line onto the mark, slow at first and then
-   faster and faster (`MoonPlan.fall`, ease 2.6), slowly turning, growing until it fills the sky (steadily: drawn at
-   no more than its true size, `MoonSphere.placement`), its leading face heating up. A long rising roar
-   (`luna_fall`) and Luna's music (`luna_music`, its drop on CONTACT, 16 s on). The ground starts to rumble (camera
-   shake grows). Fragments break off and stream behind it.
-5. **ENTRY (305-405):** it hits the atmosphere: a burning orange-white shroud and a bow shock on its leading face,
-   flames streaming back up its path, the whole sky lit orange (`luna_entry`).
-6. **CONTACT (405):** its lowest point touches the mark. White flash, impact frames, huge camera shake, a shock
+4. **FALL (50-200):** it tears loose and comes down a straight line onto the mark, steadily, slowly turning,
+   visibly growing (`MoonPlan.fall`: 30% of the way by ENTRY, its speed still rising). It is always drawn at its true
+   size and place (`MoonSphere.placement`), so it looks the same from every camera and at every power. From TRAIL
+   (FALL + 35) a pale trail of moon dust and glinting chips streams behind it (`MoonVisuals.approachTrail`). A long
+   rising roar (`luna_fall`). The ground starts to rumble (camera shake grows).
+5. **ENTRY (200-330):** it hits the atmosphere and dives, faster and faster (the rest of the way, its speed rising
+   about fourfold): its leading face turns molten orange (still rock: its craters stay readable), its seams blaze, a
+   shell of fire wraps its leading edge, a bow shock stands off it, tongues of flame peel off its edge, and the dust
+   trail gives way to a long blazing wake; fragments break off and burst; the whole sky lit orange (`luna_entry`).
+6. **CONTACT (330, the same time as Halley's impact):** its lowest point touches the mark. White flash, impact frames, huge camera shake, a shock
    ring racing out along the ground, jets of fire squirting out from under it, a dome of dust, rock and cheese chunks
    thrown out on long arcs, `luna_impact`. The server erases everything in the impact zone, blasts what is beyond it
    and digs the crater.
-7. **SETTLE (405-475):** it drives on down into the crater and comes to rest, most of it buried (`luna_settle`),
+7. **SETTLE (330-400):** it drives on down into the crater and comes to rest, most of it buried (`luna_settle`),
    while the crust buckles up against it and the crater's rim heaves up and cracks race out across the land. The
    server builds the moon out of **moon cheese**, with **one block of molten moon cheese** at its very centre.
-8. **AFTERMATH (475-745):** dust hangs and drifts, debris rains down (`luna_debris`), smoke rises off the burning
+8. **AFTERMATH (400-670):** dust hangs and drifts, debris rains down (`luna_debris`), smoke rises off the burning
    crater floor, the molten seam round the moon cools from white to dull red, the sky slowly returns to night.
 
 The caster gets a cutscene (like Halley's), skippable with the remote's cutscene key; it ends at SETTLE + 95. Over
 the impact it runs in slow motion (`MoonFx.slowLag`: a fifth of the speed for about two seconds, caught up by
 CONTACT + 130; the strike itself, the music and the screen effects keep real time). Everyone else watches it live.
 
-**Music** (`luna_music.ogg`, a `sounds.json` entry, no registered SoundEvent): the user's track, cut 11.75 s in and
-stretched to 0.797 of its speed (`atempo`, same pitch) so its drop lands on CONTACT, 16.0 s after FALL. `MoonFx.Music`
-starts it at FALL at master volume (heard with the Music slider down; each player's `luna_music` switch, **M** in the
-remote's menu), pitched with the speed slider, and nudges its speed by up to 5% every tick to stay in step with the
-strike's clock. If the timeline changes, re-cut it: `ffmpeg -ss 11.75 -i <source> -af "atempo=<12.75 / new fall
-seconds>,afade=..." -c:a libvorbis -q:a 5 luna_music.ogg` (or stretch the current file by old fall / new fall).
+**Music** (`luna_music.ogg`, a `sounds.json` entry, no registered SoundEvent): the user's track (`Video-Project-48.mp3`,
+its drop at 24.45 s), cut 8.45 s in so its drop lands on CONTACT, 16.0 s after ALARM - never time-stretched (1.5.0's
+stretched cut sounded bad). `MoonFx.Music` starts it at ALARM (`MUSIC_AT`) on the Music volume slider (each player's
+`luna_music` switch, **M** in the remote's menu), pitched with the speed slider, and nudges its speed by up to 5% every
+tick to stay in step with the strike's clock. If the timeline changes, re-cut it from the original: `ffmpeg -ss <24.45 -
+(CONTACT - MUSIC_AT) / 20> -i <source> -vn -af "afade=t=in:st=0:d=0.6,volume=13dB,alimiter=limit=0.95:level=disabled"
+-ac 2 -ar 44100 -c:a libvorbis -q:a 6 luna_music.ogg`.
 
 ## Rules
 
@@ -63,8 +66,8 @@ seconds>,afade=..." -c:a libvorbis -q:a 5 luna_music.ogg` (or stretch the curren
 
 - `sky`: unit vector toward the vanilla moon at cast time (`MoonPlan.skyDirection(level.getTimeOfDay(1))`), lifted
   to at least 18 degrees above the horizon. Sent to clients inside `MoonParams`.
-- The moon (radius `moon_radius`, default 48) starts `START_DISTANCE` (3200) blocks up `sky` from the mark, falls
-  to `contactCentre` (its surface touching the mark), then drives down to `restCentre` (centre
+- The moon (radius `moon_radius`, default 48) starts `moon_radius / START_RATIO` (ten radii) up `sky` from the
+  mark - so it looks as big as the vanilla moon whatever its size - falls to `contactCentre` (its surface touching the mark), then drives down to `restCentre` (centre
   `moon_radius*(1-2*buried)` above the old ground; `buried_percent` default 70), easing out hard (`MoonPlan.settle`).
 - The crater, round the mark (`r` = the moon's radius):
   - its floor is dug `craterDepth` = `min(0.34 r, 0.6 r buried)` under the old ground next to the moon, rising to
@@ -76,8 +79,8 @@ seconds>,afade=..." -c:a libvorbis -q:a 5 luna_music.ogg` (or stretch the curren
     floor from `rimInner`, its outer slope falls away to the old ground by `rimOuter` (crest + 40%), in upturned
     plates (`crestPlates`) `rim_height` (9) tall at the crest, with a broken spill of thrown ground past it;
   - slabs of crust buckle up against the moon over the floor (`rimPlates`, out `plateReach` = 0.32 r from the seam,
-    up to 0.8 × `rim_height` over the floor); all in `rimHeight`, heaved up in jolts (`rimStep`) while the moon
-    drives in.
+    up to 0.8 × `rim_height` over the floor); all in `rimHeight`, heaved up in jolts while the moon drives in
+    (each chunk's columns together, `MoonLand.JOLTS`, timed by `rimStep` at the chunk's middle).
 - Everything within `eraseRadius()` (the rim's crest + 2) is erased at CONTACT; the shock wave reaches
   `blastRadius()` (impact radius × `blast_reach`, 3).
 - Cracks: `MAIN_CRACKS` (16) fissures out of the rim, with branches, out to about the blast radius, and
@@ -103,8 +106,13 @@ seconds>,afade=..." -c:a libvorbis -q:a 5 luna_music.ogg` (or stretch the curren
   (`world/MoonLand`): animated where loaded, the other chunks in one go as they load, after the strike
   (`MoonLand.tickLingering`, every server tick). No land is ever loaded or generated for anything outside the moon's
   own crater.
-- SETTLE: build the moon (`world/MoonBuild`), once the crater round it is dug: each column as two height ranges (its
-  shell first), waiting for chunks through the loader rather than loading them on the spot.
+- **Every chunk written is relit and resent whole** (The Shooting Star's `Carving.paint`; the client rebuilds all of
+  it), so each chunk is written as few times as it can be: the rim in `JOLTS` (3) jolts per chunk, its cracks at most
+  every `PAINT_EVERY` (6) ticks, at most `MAX_PAINTS` (12) chunks a tick, the moon in one pass per chunk (at most
+  15 ms a tick), and the crater resent once, 60 ticks after everything is done. (1.5.0 heaved the rim column by column,
+  which resent most of its chunks every tick for seconds: the lag players felt.)
+- SETTLE: build the moon (`world/MoonBuild`), once the crater round it is dug: each column as a height range, each
+  chunk once, waiting for chunks through the loader rather than loading them on the spot.
 - If the spell is cut short, finish the crater round the moon and the moon at once (like Halley's `end()`); the rest
   lingers.
 - `carve_terrain = false`: no blocks change, creatures still get hit.
