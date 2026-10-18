@@ -26,9 +26,11 @@ abstract class WhiteSpaceMixin {
     }
 
     @Inject(method = "key(III)V", at = @At("HEAD"), cancellable = true, require = 0, remap = false)
-    private static void ss05halley$panelKey(int key, int scancode, int action, CallbackInfo ci) {
-        // a press (not a release or a repeat), not while a skill's key is being rebound, and not one of the remote's own
-        if (action == 1 && WhiteSpace.capturesInput() && !StarClientBridge.menuUses(key, scancode) && AdditionPanel.key(key)) {
+    private static void ss05halley$panelKey(int key, int scancode, int modifiers, CallbackInfo ci) {
+        // The Shooting Star calls this for presses only, and its third argument is the modifier keys held (not the
+        // press/release action: reading it as one made M and C work only with Shift held). Not while a skill's key is
+        // being rebound, and not one of the remote's own.
+        if (WhiteSpace.capturesInput() && !StarClientBridge.menuUses(key, scancode) && AdditionPanel.key(key)) {
             ci.cancel();
         }
     }
