@@ -3,7 +3,8 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **The Shooting Star Addition** - handoff notes for whoever (human or Claude) works on this next. Written 2026-10-14 at
-the end of the 1.4.0 work, updated 2026-10-17 for 1.5.0 (§12) and 2026-10-18 for the user's 1.5.0 test round (§13; status in §9).
+the end of the 1.4.0 work, updated 2026-10-17 for 1.5.0 (§12) and 2026-10-18 for the user's 1.5.0 test round (§13; status in §9),
+and 2026-10-29 with the agreed plan for the next updates and SA-03 Proxima (§14, §15). Nothing in §14/§15 is built yet.
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
@@ -263,6 +264,12 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
 
 ## 9. Status (2026-10-18)
 
+- **2026-10-29** open items:
+  - **NeoForge music** (reported against 1.5.0): Luna's music and its M switch didn't work on NeoForge but did on
+    Forge. 1.5.1 fixed M/C (they needed Shift) and moved the music to `SoundSource.MUSIC` (§13); the user will retest
+    on 1.5.1. If still broken, suspect `AddonNetwork` (NeoForge's optional payload registrar): `SettingsPayload` not
+    reaching the client or the switch not reaching `MoonFx.Music`.
+  - The user wants to be told when to start work; **don't start §14/§15 until they say so**.
 - **1.5.1 is released** (2026-10-18): all seven branches pushed; seven GitHub releases `v1.5.1...` (main's is latest)
   with the jars and the changelog from `dev/publish/changelog_151.py` (everything since 1.4.0), and seven CurseForge
   files (Release, Client + Server, auto-publish once approved; TSS [Demo] required, + Fabric API on Fabric). The jars
@@ -298,12 +305,20 @@ From the community list the user forwarded (they picked 1, 2 and 4 for 1.4.0):
    chunk streaming. Mostly a "no", explain it to players.
 6. **Protected-blocks tag**: `shooting_star_addition:unbreakable` (block tag) that Halley/Luna never carve (e.g. bedrock,
    spawn blocks, claims). Check it in `Excavation`/the strike carvers before replacing a block. Cheap and useful.
+   **Planned for the next update (§14).**
 7. **Slider scroll steps**: TSS's slider behaviour; ours follow `Power`'s own `step()`. Could only be changed in TSS.
 8. **Typing a number into the sliders** (text box): TSS's menu; a mixin into `WhiteSpace` would be fragile.
 9. **Fonts**: TSS's menu font; not ours to change.
 10. **Harder recipe**: for the remote; goes with 3.
-11. **Yog-Sothoth** skill, 12. **supernova / black hole / TON-618** skills, 14. **planets**: new skills (SA-03...).
-   Each is a project like Luna (plan, params, strike, fx, storyboard, sounds, config, docs).
+11. **Yog-Sothoth** skill, 12. **supernova / black hole / TON-618** skills, 14. **planets**: new skills (SA-04...).
+   Each is a project like Luna (plan, params, strike, fx, storyboard, sounds, config, docs). SA-03 is Proxima (§15).
+   **SA-04 candidates the user wants to discuss later (remind them once Proxima is under way):**
+   - **Neutron star**: gravity waves causing earthquakes, volcanoes, tsunamis and cracks "in the entire world". Must be
+     scaled to a region (whole-map edits would freeze the server): pulses of gravity waves, cracks rippling out from a
+     centre, a few magma vents, the sea pulling back and surging in.
+   - **White hole**: spews matter and energy over the land. Concept still rough.
+   (Both came from the user's community poll, 2026-10-20, alongside the solar flare; inspired by TSS's own black hole.)
+16. **Custom animation when a boss is hit by a shooting-star laser** (user's note, 2026-10-15). Not discussed yet.
 13. The CurseForge comment asking for speed/range/damage options: done by the sliders (1.4.0).
 15. **Music for skills**: Luna has hers; the user plans one for Halley too (same approach as §6: cut the track so its
    drop lands on Halley's impact, `HalleyPlan` impact = 330 at default trench length, start at e.g. ENTRY or SIGHT).
@@ -454,3 +469,110 @@ Findings and fixes (main `449de31`, `f64b0c3`, `e72839c`; cherry-picked to every
   members only, not used by us.
 - **Local client test**: use `-Dss05.clienttest.view=aerial` with `film=true`, as CI does; without a view the film
   doesn't show.
+
+## 14. Next updates (agreed 2026-10-22/23, not started)
+
+Order: **(1)** NeoForge music check (§9) → **(2)** next update (1.6.0): operator commands, Epic mode, protected-blocks
+tag → **(3)** SA-03 Proxima (§15), later. **One addon** for everything (the user decided; per-skill on/off switches in
+the config instead of a second addon, which would double the mapping/branch/CI/CurseForge work every TSS update).
+
+- **Operator strike commands** (the user definitely wants these next): operators only (permission level 2), trigger a
+  skill without the remote, e.g. `/ssa strike <halley|luna> <pos> [power] [speed] [damage]` (add `proxima` when it
+  exists). Reuse the cast path (`HalleyCasting`/`MoonCasting`) with a `CastTuning`; decide what "caster" means for
+  the film (the command's source player if any, else no film, or the nearest player). Mind the server slider limits
+  (§6) - operators probably bypass them. Needed for the user's server finale (below).
+- **Epic mode** (user, 2026-10-19): the plate's **M** switch becomes "Epic mode": Luna's music **and** a slower, more
+  ominous fall. Decided: **the slow fall applies to everyone watching** (server-side timing); the music stays each
+  player's own choice. So the caster's switch must travel with the cast (like the no-cooldown choice via
+  `ChoicePayload`) and pick a slower `MoonPlan` timeline; the music needs its own cut for it (1.5.1's is cut, not
+  stretched, to the 16 s from ALARM to CONTACT, §13; recipe in `docs/SS-06-LUNA.md`). The normal fall: probably keep
+  1.5.1's (CONTACT 330, with Halley's impact, which the user asked for in §13); confirm with the user.
+- **Protected-blocks tag** (§10 #6): `shooting_star_addition:unbreakable`; matters even more for Proxima's wide area.
+
+### The user's server (personal, not a mod feature as such)
+
+The user runs a modded server (Montauk County partnership) where this addon will be used; its finale is a big event
+(to be recorded for a long-form video). Plans and what the mod could do for them:
+
+- **Solar Residue economy**: at the end of the server the user fires flares; players collect Solar Residue and sell it
+  to the user for currency in a Discord-bot economy (also limited roles/badges). Remind the user of this when Proxima
+  is built. Mod-side ideas (none decided):
+  - a "flare storm" operator command, e.g. `/ssa flarestorm <radius> <count>`, scattering several small Proxima flares;
+  - residue stamped with an event tag (data component/NBT) so creative-spawned copies don't count;
+  - getting it to the bot: simplest is in-game hand-over and manual payout; smoother is a sell command that removes
+    the residue and writes `player, amount` to a log file the bot reads (or a webhook). Decide once the bot is known.
+- **The finale date is unknown**: ask; it decides how soon the strike commands must ship.
+- Other event ideas from the user's notes (not discussed in detail): an operator-only block that spawns through a
+  portal animation and opens like a case to give the Stellar Remote (ties into §10 #3); keep one skill unused in the
+  finale and point players to download the addon to try it; mention in the community that updates may be slower.
+
+## 15. SA-03 · Proxima (design agreed 2026-10-22/23, not started)
+
+A red-dwarf flare star inside a Dyson sphere fires a solar flare and then a coronal mass ejection (CME) at the
+crosshair. Name: **Proxima** (Proxima Centauri, a real flare star; the user loves it), skill id `proxima`, SA-03.
+Sources: the user's notes, a Gemini chat, another AI's design brief (`solar_flare_chat.txt`) and a CurseForge thread
+(conaialator: "an artificial red dwarf with a Dyson sphere ... or more likely a CME, which brings the plasma"; the
+user: "a large radius but small block damage depth-wise"). The user approved all of the ideas below; numbers are
+starting points to tune. Write this up as `docs/SS-07-PROXIMA.md` (like `docs/SS-06-LUNA.md`) when work starts.
+
+**Look**: deep crimson, magenta, white-violet at the hottest points (distinct from Halley's ice and Luna's grey/orange).
+
+**Intro** (styled like TSS 1.5.0's intro): the camera leaves the world for space (a camera sequence, not a teleport;
+skippable like the other films). Title card **"DYSON SPHERE"**: a dark metal lattice round a red star, panels opening
+like an iris. Two plasma loops twist into an **infinity sign** (the user's idea; real physics: twisted "sigmoid"
+regions erupt when the loops reconnect), flare white at the crossing, collapse to a point. Title card **"CORONAL MASS
+EJECTION"** written in the CME's own plasma filaments, half-formed, torn apart as the wave launches.
+
+**Draft `ProximaPlan`** (ticks): ARM/PRESS 0-7 as the others; INTRO ~10-90; FLASH ~90 (phase 1); FRONT ~100-260
+(phase 2); HUSH ~260-270 (near-silence, everyone thinks it's over); IMPACT ~270 (phase 3); AFTER ~270-600 (pullback
+shot, sky arc breaking up, residue zone). Flash before plasma is real: flare light arrives in minutes, a CME in days.
+
+- **Phase 1 · Flash Burn**: sky goes white-red; leaves ignite/char, plants wither, exposed water steams (shallow pools
+  may partly evaporate at high power, never oceans); exposed non-creative players and mobs catch fire and take damage.
+- **Phase 2 · Coronal Front**: a giant 3D ring sweeping across the sky (bright thin shock front + a larger translucent
+  plasma sheath with filaments). **Visual only**, no crater, no main damage.
+- **Phase 3 · Ground Zero**: white point at the mark, cracks of light, pulse + bass hit, crater and radial shockwave,
+  dust/embers/heat shimmer. Damage in tiers: centre devastating, middle heavy + burning, outer moderate + stagger.
+
+**Crater: wide and shallow** (user's CurseForge idea; realistic and cheap): outer zone (huge radius) removes/chars
+leaves, grass, flowers, snow, crops and scorches 1-2 blocks of topsoil; middle zone turns trunks to charred logs/ash
+and ground to coarse dirt/blackstone/basalt; centre a bowl **6 blocks deep** (decided), tapering to the 1-2 block
+scorch, glassy floor (tinted glass, obsidian, magma veins). Power scales radius and depth. Reuse Luna's machinery
+(streamed carving near the centre, lazy carving + `linger()` further out), honour the `unbreakable` tag (§14), never
+load the whole area (§11).
+
+**Shelter**: a player is safe from phases 1/3 surface damage with N solid blocks above them (config; not just
+`canSeeSky`, so a glass roof isn't a bunker). Underground players still feel it: muffled boom and rumble with camera
+shake, dust from the ceiling, cave mouths glowing red, torches/lanterns flickering, the radio-burst sound.
+
+**Knockback**: players get a small capped push (config) sold by camera shake, flash and bass; mobs get full knockback;
+the caster, creative and spectator players are never pushed; optional observer protection in the server config.
+
+**Sliders**: Power = flare class (label it like real classes, logarithmic: e.g. 0.1x = C1, 1x = M5, 3x = X1,
+10x = X20/"superflare"), sets radius and crater; Damage and Speed as for the other skills. **Visual wave size** is
+cosmetic only and goes on the addon's plate (a key like M/C) or the client config, never in TSS's menu (fragile, §10
+#7/#8), and must never change damage or destruction.
+
+**Space details for nerds**: Type II radio burst (the CME shock's radio whine drifts **down** in pitch) as the front's
+signature sound; compasses (and recovery compasses) spin during the front; Carrington-style sparks: redstone lamps
+flicker and some redstone wire sparks (harmless); auroras (red/green curtains) for a night or two after; "radio
+blackout": briefly garble the skill's own chat/HUD text only, never other players' chat.
+
+**Aftermath**: **Solar Residue** block (Proxima's Comet Heart / moon cheese: glows, crackles, minable; the user's
+server economy uses it, §14); thin ash layer (snow-layer-like) over the scorched zone; **radiation zone** in the
+crater with a visible shimmer and rising hum at its edge, damage over time inside, **fades by default (~10 min at 1x
+power), config to make it permanent**; final shot pulls back over the ruined land, tilts up to the plasma arc breaking
+apart, ambient sound returns slowly; smoke columns, drifting ash, steam.
+
+**Random solar flares** (server tick, no caster, **off by default**): three tiers - minor (sky flash only), major
+(burns exposed plants and players, no crater), cataclysm (full event, only if an admin enables it). Warn first in chat
+("Space weather alert: X-class flare incoming"), give time to reach shelter, respect the protected tag, cooldowns and
+frequency in config.
+
+**Music**: the user has **full permission to use the OST** they picked (the G-Man / Drillman track, the part where
+Drillman shields everyone, remixed; 2026-10-20). They will send the file; cut it so its drop lands on IMPACT, as with
+Luna (§6).
+
+**Config** (server unless noted): per-skill enable switch; crater radius/depth caps; scorch radius; shelter depth;
+player/mob knockback; residue zone duration/damage/permanent; random flares (on, frequency, max tier); cosmetic-only
+mode (no terrain changes). Client: wave size, flash/shake intensity.
