@@ -1,7 +1,7 @@
 package dev.ss05.halley.compat.tss;
 
-import cyou.rimuru.shootingstardemo.mc1201.magic.Power;
-import cyou.rimuru.shootingstardemo.mc1201.magic.Skill;
+import cyou.rimuru.rimulib.mc1201.skill.Power;
+import cyou.rimuru.rimulib.mc1201.skill.Skill;
 import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.HalleyPlan;
@@ -52,11 +52,9 @@ public final class HalleySkill implements Skill {
         return new Power(CastTuning.MIN_POWER, CastTuning.MAX_POWER, 1.0F, true, HalleyConfig.tuning().craterRadius() * 2.0F);
     }
 
-    /**
-     * Above this power the remote's menu warns that the cast is very heavy (The Shooting Star 1.4.2+; this is that
-     * version's name for the method, which older versions simply don't have).
-     */
-    public float l() {
+    /** Above this power the remote's menu warns that the cast is very heavy. */
+    @Override
+    public float warnAbove() {
         return 3.0F;
     }
 

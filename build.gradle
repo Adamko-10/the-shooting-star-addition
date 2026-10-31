@@ -54,6 +54,8 @@ repositories {
     // The user's own copy of The Shooting Star goes in libs/; the build compiles against a readable copy of it.
     // The Shooting Star, as the readable copy gradle/tss.gradle makes of it (see below)
     flatDir { dirs layout.buildDirectory.dir('shooting-star-named') }
+    // RimuLib is already readable, straight from libs/ (no deobfuscation step needed for it).
+    flatDir { dirs 'libs' }
 }
 
 legacyForge {
@@ -261,10 +263,24 @@ tasks.register('prodServerTestJars') {
     dependsOn tasks.named('tssPack'), tssReobfServertest
 }
 
+// RimuLib (The Shooting Star 1.5.0+'s library, readable): compiled against, loaded in the dev runs, never shipped.
+var rimulib = fileTree(dir: 'libs', include: 'rimulib*.jar')
+if (rimulib.files.size() > 1) {
+    throw new GradleException("libs/ has more than one RimuLib: ${rimulib.files*.name} - keep one")
+}
+
 dependencies {
     // The remapping configurations only take modules, so each jar is named as a flatDir module. It needs a group and a
     // version (any) for the remapping to match it; flatDir ignores the group and finds <name>.jar.
     shootingStarNamed.each { File jar ->
+        var module = "local:${jar.name - '.jar'}:0"
+        modCompileOnly module
+        modRuntimeOnly module
+    }
+    // RimuLib (The Shooting Star 1.5.0+'s library): readable, but still a Forge jar compiled against SRG names, so it
+    // needs the same module-remapping treatment as The Shooting Star's own jar (clienttest sees it too, through
+    // clienttestCompileOnly's extendsFrom compileOnly, declared above).
+    rimulib.each { File jar ->
         var module = "local:${jar.name - '.jar'}:0"
         modCompileOnly module
         modRuntimeOnly module
@@ -304,6 +320,8 @@ var generateModMetadata = tasks.register('generateModMetadata', ProcessResources
         loader_version_range       : loader_version_range,
         shooting_star_mod_id       : shooting_star_mod_id,
         shooting_star_version_range: tssVersionRange,
+        rimulib_mod_id             : rimulib_mod_id,
+        rimulib_version_range      : rimulib_version_range,
         mod_id                     : mod_id,
         mod_name                   : mod_name,
         mod_license                : mod_license,

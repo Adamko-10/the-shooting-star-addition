@@ -121,15 +121,19 @@ ext.tssVersions = tssObf.files.collect { File file ->
 tssVersions.groupBy { it.tag }.each { tag, same ->
     if (same.size() > 1) throw new GradleException("libs/ has more than one The Shooting Star ${tag}: ${same*.jar*.name} - keep one")
 }
+// The oldest The Shooting Star the release jar supports (tss_min_version in gradle.properties): 1.5.0 moved its skill
+// API into RimuLib, so the older jars stay in libs/ only for the mapping chain (tssMappings).
+def tssMin = project.findProperty('tss_min_version')
+ext.tssSupported = tssVersions.findAll { tssMin == null || tssCompare(it.version, tssMin as String) >= 0 }
 if (!tssVersions.isEmpty()) {
-    logger.lifecycle("The Shooting Star versions: ${tssVersions*.version.join(', ')} (compiling against ${tssVersions[0].version})")
+    logger.lifecycle("The Shooting Star versions: ${tssSupported*.version.join(', ')} (compiling against ${tssVersions[0].version})")
 }
 // The one the dev runs and the test harness use: -PtssTest=1.4.0, default the newest.
 def tssTestVersion = project.findProperty('tssTest')
-ext.tssTest = tssTestVersion == null ? (tssVersions ? tssVersions[0] : null)
-    : tssVersions.find { tssCompare(it.version, tssTestVersion as String) == 0 }
+ext.tssTest = tssTestVersion == null ? (tssSupported ? tssSupported[0] : null)
+    : tssSupported.find { tssCompare(it.version, tssTestVersion as String) == 0 }
 if (tssTestVersion != null && tssTest == null) {
-    throw new GradleException("-PtssTest=${tssTestVersion}: libs/ has no The Shooting Star ${tssTestVersion} (it has ${tssVersions*.version})")
+    throw new GradleException("-PtssTest=${tssTestVersion}: libs/ has no supported The Shooting Star ${tssTestVersion} (it has ${tssSupported*.version})")
 }
 def tssLatest = files(tssVersions ? [tssVersions[0].jar] : [])
 ext.tssTestJar = files(tssTest ? [tssTest.jar] : [])
@@ -137,7 +141,7 @@ ext.tssTestJar = files(tssTest ? [tssTest.jar] : [])
 // For neoforge.mods.toml / mods.toml: "[1.3.3,1.3.5),[1.4.0,1.4.2)" (each version up to its next patch).
 ext.tssVersionRange = {
     def ranges = []
-    tssVersions.reverse().each {
+    tssSupported.reverse().each {
         def n = tssNumbers(it.version)
         def lower = n.join('.'), upper = (n.size() > 1 ? n[0..-2] + [n[-1] + 1] : [n[0] + 1]).join('.')
         if (ranges && ranges[-1][1] == lower) ranges[-1][1] = upper else ranges << [lower, upper]
@@ -145,7 +149,7 @@ ext.tssVersionRange = {
     ranges.collect { "[${it[0]},${it[1]})" }.join(',')
 }()
 // For fabric.mod.json: ['1.3.4-demo', '1.4.1-demo'], oldest first (Fabric ignores the +mc26.3 part).
-ext.tssVersionList = tssVersions.reverse().collect { it.version.split(/\+/, 2)[0] }
+ext.tssVersionList = tssSupported.reverse().collect { it.version.split(/\+/, 2)[0] }
 
 // ---- The readable copy (compile and dev runs) ----------------------------------------------------------------------
 
@@ -225,7 +229,7 @@ tasks.register('tssMappings', JavaExec) {
 // The loader's own jar task writes to build/libs-raw, and this writes the release jar to build/libs.
 ext.tssPack = { TaskProvider<? extends AbstractArchiveTask> jarTask ->
     jarTask.configure { destinationDirectory = layout.buildDirectory.dir('libs-raw') }
-    def versions = tssVersions
+    def versions = tssSupported
     def pack = tasks.register('tssPack', JavaExec) {
         description = 'Makes the release jar, with a copy of compat/tss/ for every The Shooting Star in libs/'
         def input = jarTask.flatMap { it.archiveFile }

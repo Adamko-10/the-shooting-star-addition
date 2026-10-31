@@ -10,8 +10,11 @@ client_setup() {
 }
 client_test() {
   local name="$1" task="$2"; shift 2
+  # the production-style run (the release jar with The Shooting Star's own jar) has its own game directory
+  local dir=run/clienttest
+  case "$task" in *rodClientTest*) dir=run/prodclient ;; esac
   client_setup
-  rm -rf run/clienttest/screenshots
+  rm -rf "$dir/screenshots"
   # Forge's early loading window wants OpenGL 4.6, which the software renderer doesn't offer: switch it off
   mkdir -p run/clienttest/config
   printf 'earlyWindowControl = false\n' > run/clienttest/config/fml.toml
@@ -19,9 +22,9 @@ client_test() {
       > "$SECRET/client-$name.log" 2>&1; then
     :
   fi
-  if ls run/clienttest/screenshots/*.png > /dev/null 2>&1; then
-    (cd run/clienttest/screenshots && zip -q -r "$OUT/shots-$name.zip" .)
-    ok "client test $name ($(ls run/clienttest/screenshots/*.png | wc -l) screenshots)"
+  if ls "$dir"/screenshots/*.png > /dev/null 2>&1; then
+    (cd "$dir/screenshots" && zip -q -r "$OUT/shots-$name.zip" .)
+    ok "client test $name ($(ls "$dir"/screenshots/*.png | wc -l) screenshots)"
   else
     fail "client test $name (no screenshots)"
   fi

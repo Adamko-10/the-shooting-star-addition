@@ -83,10 +83,14 @@ public final class HalleyAddon {
         });
         MinecraftForge.EVENT_BUS.addListener((TickEvent.ServerTickEvent event) -> {
             if (event.phase == TickEvent.Phase.END) {
+                StarBridge.tick(ServerLifecycleHooks.getCurrentServer());
                 MoonStrike.tickLingering();
             }
         });
-        MinecraftForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> MoonStrike.clearLingering());
+        MinecraftForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> {
+            StarBridge.clear();
+            MoonStrike.clearLingering();
+        });
         MinecraftForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedOutEvent event) -> {
             if (event.getEntity() instanceof ServerPlayer player) {
                 NoCooldown.forget(player);

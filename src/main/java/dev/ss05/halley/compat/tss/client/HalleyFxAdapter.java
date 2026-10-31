@@ -1,21 +1,23 @@
 package dev.ss05.halley.compat.tss.client;
 
-import cyou.rimuru.shootingstardemo.mc1201.client.cinematic.CutsceneDirector;
-import cyou.rimuru.shootingstardemo.mc1201.client.cinematic.Subject;
+import cyou.rimuru.rimulib.mc1201.client.cinematic.CutsceneDirector;
+import cyou.rimuru.rimulib.mc1201.client.cinematic.Subject;
 import cyou.rimuru.shootingstardemo.mc1201.client.fx.Frame;
 import cyou.rimuru.shootingstardemo.mc1201.client.fx.FxManager;
-import cyou.rimuru.shootingstardemo.mc1201.client.fx.Overlay;
+import cyou.rimuru.rimulib.mc1201.client.text.Overlay;
 import cyou.rimuru.shootingstardemo.mc1201.client.fx.SpellFx;
-import cyou.rimuru.shootingstardemo.mc1201.client.render.ScreenFx;
-import cyou.rimuru.shootingstardemo.mc1201.net.SpellFxPayload;
-import cyou.rimuru.shootingstardemo.mc1201.registry.ModSounds;
+import cyou.rimuru.rimulib.mc1201.client.render.ScreenFx;
+import cyou.rimuru.shootingstardemo.mc1201.l1l1i1lii1;
 import dev.ss05.halley.HalleyPlan;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
+import dev.ss05.halley.compat.tss.StrikeFx;
 import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.phys.Vec3;
 
@@ -23,8 +25,8 @@ import net.minecraft.world.phys.Vec3;
 final class HalleyFxAdapter extends SpellFx {
     private final HalleyFx fx;
 
-    HalleyFxAdapter(SpellFxPayload payload) {
-        super(payload);
+    HalleyFxAdapter(StrikeFx strike) {
+        super(StarClientBridge.payload(strike));
         Subject subject = this.subject();
         this.fx = new HalleyFx(new HalleyFx.Host() {
             @Override
@@ -55,13 +57,23 @@ final class HalleyFxAdapter extends SpellFx {
             @Nullable
             @Override
             public SoundEvent remoteSound(boolean press) {
-                return press ? ModSounds.STAR_PRESS : ModSounds.STAR_ARM;
+                return BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("shooting_star_demo", press ? "star_press" : "star_arm"));
             }
-        }, payload.casterId(), this.origin, this.target, payload.yaw(), payload.seed(), payload.targets());
+        }, strike.casterId(), this.origin, this.target, strike.yaw(), strike.seed(), strike.targets());
     }
 
     HalleyFx halley() {
         return this.fx;
+    }
+
+    /** The game's partial tick for this frame (The Shooting Star's Frame no longer names it). */
+    private static float partial() {
+        return Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
+    }
+
+    /** The film's subject: the caster, the strike's target and the way they faced. */
+    Subject subject() {
+        return this.liiillli1l();
     }
 
     /** The remote's speed slider for this cast: the film's clock runs at it too. */
@@ -70,24 +82,19 @@ final class HalleyFxAdapter extends SpellFx {
     }
 
     @Override
-    protected void onTick(Minecraft minecraft, ClientLevel level, int t) {
-        this.fx.tick(minecraft, level, t);
+    public void beamTick(ClientLevel level, int t) {
+        this.fx.tick(Minecraft.getInstance(), level, t);
     }
 
     /** The strike's own length, from the packet (this client's config may differ from the server's). */
     @Override
-    protected int duration() {
+    public int duration() {
         return this.fx.plan.duration;
     }
 
     @Override
-    protected void onRemoved() {
+    public void onRemoved() {
         this.fx.removed();
-    }
-
-    @Override
-    public Vec3 focus() {
-        return this.target;
     }
 
     /** Post-processing and HUD reach as far as the trench and the shock wave do, and then some. */
@@ -99,13 +106,13 @@ final class HalleyFxAdapter extends SpellFx {
 
     @Override
     public void screen(Frame frame, ScreenFx screen) {
-        this.fx.screen(new Screen(screen), frame.partial());
+        this.fx.screen(new Screen(screen), partial());
     }
 
     @Override
     public void hud(GuiGraphics graphics, Frame frame) {
-        HalleyHud.world(graphics, this.fx, frame.partial(), Overlay.width(graphics));
-        HalleyHud.marker(graphics, this.fx, frame.partial(), Overlay.width(graphics), Overlay.height(graphics));
+        HalleyHud.world(graphics, this.fx, partial(), Overlay.width(graphics));
+        HalleyHud.marker(graphics, this.fx, partial(), Overlay.width(graphics), Overlay.height(graphics));
     }
 
     /** SS-05's screen effects written into the remote's post-processing settings for this frame. */
@@ -162,6 +169,6 @@ final class HalleyFxAdapter extends SpellFx {
 
     /** The remote's own "stopped world" look (a protected helper, so it is reached from here, the subclass). */
     private static void frozen(ScreenFx screen, float k, float fps) {
-        stoppedWorld(screen, k, fps);
+        liiillli1l(screen, k, fps);
     }
 }

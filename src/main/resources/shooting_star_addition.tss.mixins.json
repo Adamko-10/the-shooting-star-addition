@@ -9,7 +9,6 @@
   ],
   "client": [
     "FxManagerMixin",
-    "RemoteRendererMixin",
     "WhiteSpaceMixin"
   ],
   "injectors": {
