@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **The Shooting Star Addition** - handoff notes for whoever (human or Claude) works on this next. Written 2026-10-14 at
 the end of the 1.4.0 work, updated 2026-10-17 for 1.5.0 (§12) and 2026-10-18 for the user's 1.5.0 test round (§13; status in §9),
 and 2026-10-29 with the agreed plan for the next updates and SA-03 Proxima (§14, §15). Nothing in §14/§15 is built yet.
+**2026-10-31: 1.6.0 = The Shooting Star 1.5.0 + RimuLib support (§16); read §16 before §5, which describes 1.4.x.**
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
@@ -26,8 +27,8 @@ are on **Hamza's PC**; anywhere else, you are on **Adam's PC**. Adam is the one 
   `v<ver>+<suffix>` on the others, named `The Shooting Star Addition <ver> [<Loader> <MC>]`, the release jar attached,
   and a Markdown changelog written for players. Reuse the same text for CurseForge.
 - Release jar names: **only** `The Shooting Star Addition <mod version> [<Loader> <Minecraft version>].jar`.
-- CurseForge files: **Release**, **Client + Server**, depending on **The Shooting Star [Demo]** (required), plus
-  **Fabric API** (required) on Fabric builds.
+- CurseForge files: **Release**, **Client + Server**, depending on **The Shooting Star [Demo]** (required) and, since
+  1.6.0, **RimuLib** (required), plus **Fabric API** (required) on Fabric builds.
 - In Markdown changelogs, don't put `(` right after `]`.
 - Never print the GitHub token. Never enter credentials anywhere.
 - **Every change goes to every branch** (§3). Sonnet subagents (`model: "sonnet"`) are fine for bounded mechanical work.
@@ -51,7 +52,7 @@ project 1719195, All Rights Reserved). It adds two skills to TSS's Stellar Remot
 
 Mod id `shooting_star_addition`, Java package `dev.ss05.halley` (the "SS-05/SS-06" names in code are the old
 codenames; players see SA-01/SA-02). GitHub `Adamko-10/the-shooting-star-addition`; CurseForge project **1725916**
-(author `adamko_10`). Current version **1.5.1** (in `gradle.properties` on every branch; 1.5.1 is the last published).
+(author `adamko_10`). Current version **1.6.0** (in `gradle.properties` on every branch; TSS 1.5.0 only, §16).
 
 ## 2. Branches
 
@@ -576,3 +577,44 @@ Luna (§6).
 **Config** (server unless noted): per-skill enable switch; crater radius/depth caps; scorch radius; shelter depth;
 player/mob knockback; residue zone duration/damage/permanent; random flares (on, frequency, max tier); cosmetic-only
 mode (no terrain changes). Client: wave size, flash/shake intensity.
+
+## 16. 1.6.0: The Shooting Star 1.5.0 and RimuLib (2026-10-30/31)
+
+TSS 1.5.0 (CurseForge 2026-10-30; NeoForge 9377531, Forge 9377538, Fabric 9377519) needs a new library mod,
+**RimuLib** (project 1753907, mod id `rimulib`, 1.1.5: NeoForge 9377390, Forge 9377397, Fabric 9377404; Fabric is a
+bundle with nested jars per MC like TSS's). Everything below is true of 1.6.0; §5 describes 1.4.x.
+
+- **What moved**: the skill API (`skill.Skill/Power/Tuning/SkillSet`), the remote's menu (`client.magic.WhiteSpace`,
+  `SkillKeys`), films (`client.cinematic.*`), `client.render.ScreenFx`, `client.text.Overlay`, `erase.Erasure` (now with
+  an `ErasePolicy`), `terrain.Carving` and networking (`net.RimuNet/RimuPacket`) are RimuLib's, **readable**, package
+  `cyou.rimuru.rimulib.mc1211.` (`mc1201.` on Forge 1.20.1, none on Fabric). Use RimuLib wherever it has the thing.
+- **What's left in TSS** is obfuscated harder: classes flattened into the version package (`mc1211/i1l1...`), members
+  overloaded on one name (`liiillli1l`), generic signatures stripped, and its calls hidden behind invokedynamic
+  bootstraps that look members up by obfuscated name. Consequences:
+  - **The readable copy of TSS can't run** (its bootstraps can't find renamed members): `runClient`/`runClientTest` and
+    forge-1.20.1's server test fail inside TSS. Test with the production-style runs (`runProdClientTest` on main,
+    `prodClientTest` on Fabric), which load the release jar with TSS's real jar. The Forge branches have none, so CI
+    only builds them (the pack check verifies every TSS reference).
+  - `TssMatch.flat()` lets classes match across the flat package (66/146 classes on main). Unmatched members keep
+    their obfuscated names in the readable copy, and `compat/tss` uses a few of them as they are (`Casting.liiillli1l(
+    ServerPlayer,int,float,float,float,float,boolean)` = the cast request, the payload record `l1l1i1lii1`,
+    `SpellFx.liiillli1l()` = its Subject, static `SpellFx.liiillli1l(ScreenFx,float,float)` = stopped world); names
+    may differ per loader build. Check them with javap after every TSS update.
+- **TSS's spell engine only takes its own skills** (`ActiveSpell(StarSkill, ...)`, an enum). So `compat/tss/Spell`
+  runs Halley and Luna (clock at the speed slider, as ActiveSpell did), ticked by `StarBridge.tick(server)` from the
+  loader's server tick (`StarBridge.clear()` on stop). `StrikeFx` (our record, sent with `RimuNet.send`, declared with
+  `RimuNet.s2c` in `TssLink.install()`) starts the effects on clients; the client builds TSS's own payload record from
+  it and adds our `SpellFx` subclasses to `FxManager`. Fabric's client side is `RimuNetClient.receive`.
+- **Joining the remote**: `TssLink.install()` writes Halley/Luna into RimuLib `SkillSet`'s tables by field name
+  (`BY_NAMESPACE`, `OWNER`, `INDEX`, `skills`, `caster`), into the set of namespace `shooting_star_demo` that holds
+  TSS's skill enum. RimuLib marks them in the menu as another mod's skills (`AddonSkills.unofficial`, a red ⚠).
+- **Gone with 1.5.0**: the remote animation for our strikes (`RemoteRendererMixin`, `RemoteRenderer.strikeTime` no
+  longer exists), cast titles for bystanders, the evac lift (`liftClear` now sets the caster down outside the crater
+  with slow falling). Ward/affects are our own copies of 1.4.x `SpellUtil`.
+- **Build**: `tss_min_version=1.5.0` (gradle.properties) - only TSS >= it is packed; the older jars stay in libs/ for
+  the mapping chain (1.4.0 ... 1.4.4, then `./gradlew tssMappings -PtssJar=1.5.0`). RimuLib's jar goes in libs/
+  (`rimulib-<ver>-<loader>.jar`, one only); `rimulib` is a required dependency in the metadata
+  (`rimulib_version_range`). CI downloads it (`RIMULIB_FILE` in `dev/ci/branches/*.sh`).
+- **Verified**: main (NeoForge) in a local production run on the real GPU: attaches (Halley #6, Luna #7), Luna's cast,
+  film, screen effects, crater, the H menu with the plate.
+- Changelog: `dev/publish/changelog_160.py`. Players on TSS 1.4.4 or older keep 1.5.1.
