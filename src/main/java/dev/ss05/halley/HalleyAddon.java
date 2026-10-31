@@ -49,8 +49,14 @@ public final class HalleyAddon implements ModInitializer {
             HalleyConfig.SPEC.load();
             StarBridge.install();
         });
-        ServerTickEvents.END_SERVER_TICK.register(server -> MoonStrike.tickLingering());
-        ServerLifecycleEvents.SERVER_STOPPED.register(server -> MoonStrike.clearLingering());
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            StarBridge.tick(server);
+            MoonStrike.tickLingering();
+        });
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+            StarBridge.clear();
+            MoonStrike.clearLingering();
+        });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             warnIfDetached(handler.player);
             AddonNetwork.sendSettings(handler.player);

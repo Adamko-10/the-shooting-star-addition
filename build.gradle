@@ -72,6 +72,12 @@ ext.tssNested = '+mc26.3'
 apply from: 'gradle/tss.gradle'
 tssPack(tasks.named('jar'))
 
+// RimuLib (The Shooting Star 1.5.0+'s library, readable): compiled against, loaded in the dev runs, never shipped.
+var rimulib = fileTree(dir: 'libs', include: 'rimulib*.jar')
+if (rimulib.files.size() > 1) {
+    throw new GradleException("libs/ has more than one RimuLib: ${rimulib.files*.name} - keep one")
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
@@ -79,9 +85,12 @@ dependencies {
 
     compileOnly tssNamed
     localRuntime tssNamed
+    compileOnly rimulib
+    localRuntime rimulib
+    clienttestCompileOnly rimulib
 
-    // The clienttest source set sees exactly what 'main' sees (Minecraft, Fabric, The Shooting Star), plus this
-    // addon's own compiled classes (to call StarBridge/HalleyContent) - only 'main' gets Loom's modding
+    // The clienttest source set sees exactly what 'main' sees (Minecraft, Fabric, The Shooting Star, RimuLib), plus
+    // this addon's own compiled classes (to call StarBridge/HalleyContent) - only 'main' gets Loom's modding
     // dependencies automatically, so its resolved classpaths are extended onto clienttest's directly.
     clienttestImplementation sourceSets.main.output
 }
@@ -105,6 +114,7 @@ processResources {
         version                    : project.mod_version,
         shooting_star_mod_id       : project.shooting_star_mod_id,
         shooting_star_versions     : tssVersionList.join('", "'),
+        rimulib_mod_id             : project.rimulib_mod_id,
     ]
     inputs.properties replaceProperties
     filesMatching('fabric.mod.json') {
@@ -143,7 +153,7 @@ def clienttestJar = tasks.register('clienttestJar', Jar) {
 def reobfClienttest = tssReobf(clienttestJar, 'tssReobfClienttest', 'prodtest')
 tasks.register('prodClientTest', net.fabricmc.loom.task.prod.ClientProductionRunTask) {
     // setFrom: Loom adds the project's own jar by default, which here is the readable one in build/libs-raw
-    mods.setFrom(tasks.named('tssPack'), reobfClienttest, configurations.prodMods, tssTestJar)
+    mods.setFrom(tasks.named('tssPack'), reobfClienttest, configurations.prodMods, tssTestJar, rimulib)
     runDir = file('run/prodclient')
     jvmArgs.add('-Dss05.clienttest=true')
     ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat', 'hud', 'cam', 'land', 'final', 'world', 'power', 'damage', 'speed'].each { key ->

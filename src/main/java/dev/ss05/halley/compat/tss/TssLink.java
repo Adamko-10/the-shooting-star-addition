@@ -1,44 +1,48 @@
 package dev.ss05.halley.compat.tss;
 
+import cyou.rimuru.rimulib.erase.ErasePolicy;
+import cyou.rimuru.rimulib.erase.Erasure;
+import cyou.rimuru.rimulib.net.RimuNet;
+import cyou.rimuru.rimulib.skill.Skill;
+import cyou.rimuru.rimulib.skill.SkillSet;
+import cyou.rimuru.rimulib.skill.Tuning;
+import cyou.rimuru.rimulib.terrain.Carving;
 import cyou.rimuru.shootingstardemo.magic.Casting;
-import cyou.rimuru.shootingstardemo.magic.Skill;
-import cyou.rimuru.shootingstardemo.magic.SkillSet;
-import cyou.rimuru.shootingstardemo.magic.Tuning;
-import cyou.rimuru.shootingstardemo.registry.ModSkills;
-import cyou.rimuru.shootingstardemo.spell.GreaterTeleportation;
 import cyou.rimuru.shootingstardemo.spell.SpellEngine;
-import cyou.rimuru.shootingstardemo.spell.SpellUtil;
-import cyou.rimuru.shootingstardemo.star.Carving;
-import cyou.rimuru.shootingstardemo.star.Erasure;
 import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.compat.StarLink;
+import dev.ss05.halley.compat.TssVersion;
 import dev.ss05.halley.compat.tss.client.StarClientBridge;
 import dev.ss05.halley.world.Excavation;
 import dev.ss05.halley.world.HalleyCasting;
 import dev.ss05.halley.world.HalleyInfo;
 import dev.ss05.halley.world.MoonCasting;
 import dev.ss05.halley.world.MoonInfo;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.OwnableEntity;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -69,36 +73,35 @@ public final class TssLink implements StarLink {
     /**
      * Adds Halley and Luna to the Stellar Remote: after the built-in skills, each with its own index, key binding,
      * menu row, tooltip line and cooldown, exactly as if they had been among them. Safe to call more than once.
+     *
+     * <p>Since The Shooting Star 1.5.0 the remote's skill list is RimuLib's {@code SkillSet} (not obfuscated). It is
+     * still built once with no "add a skill" hook, so Halley and Luna are written into its tables the way
+     * {@code SkillSet.register} puts a set's skills there; RimuLib then shows them as an addon's skills.
      */
     @Override
     @SuppressWarnings("unchecked")
     public void install() throws ReflectiveOperationException {
-        SkillSet remote = ModSkills.STELLAR_REMOTE;
         if (SkillSet.of(SKILL) != null) {
             return;
         }
-
-        // Look everything up first, so that a renamed field fails before anything has been changed.
-        // SkillSet's private tables and the remote's own list and caster: Halley has to write to them, because the
-        // Stellar Remote's skill list is built once, from an enum, with no public "add a skill" hook. The Shooting
-        // Star 1.4.0+ is obfuscated, so they are found by their types (all distinct), not their names.
-        List<Skill> all = (List<Skill>) field(true, List.class, Skill.class).get(null);
-        Map<Skill, SkillSet> owner = (Map<Skill, SkillSet>) field(true, Map.class, Skill.class, SkillSet.class).get(null);
-        Map<Skill, Integer> index = (Map<Skill, Integer>) field(true, Map.class, Skill.class, Integer.class).get(null);
-        Field skillsField = field(false, List.class, Skill.class);
-        Field casterField = field(false, SkillSet.Caster.class, Skill.class);
+        SkillSet remote = remote();
+        Map<String, List<Skill>> byNamespace = (Map<String, List<Skill>>) field("BY_NAMESPACE").get(null);
+        Map<Skill, SkillSet> owner = (Map<Skill, SkillSet>) field("OWNER").get(null);
+        Map<Skill, Integer> index = (Map<Skill, Integer>) field("INDEX").get(null);
+        Field skillsField = field("skills");
+        Field casterField = field("caster");
         SkillSet.Caster<Skill> builtIn = (SkillSet.Caster<Skill>) casterField.get(remote);
+        List<Skill> all = byNamespace.get(remote.namespace());
         List<Skill> before = remote.skills;
-        if (builtIn == null || before == null || before.isEmpty()) {
+        if (builtIn == null || all == null || before == null || before.isEmpty()) {
             throw new IllegalStateException("the Stellar Remote has no skills to join");
         }
 
         List<Skill> after = new ArrayList<>(before);
         after.add(SKILL);
         after.add(MOON);
-        // The Shooting Star hands every cast a Tuning: the three sliders under the skill in the remote's menu (power,
-        // damage, speed), clamped to the skill's range. Halley and Luna have their own power() range, so they get theirs
-        // too, as the addon's own CastTuning; the built-in skills get theirs unchanged.
+        // The remote hands every cast a Tuning: the sliders under the skill in its menu (power, damage, speed), clamped
+        // to the skill's range. Halley and Luna get theirs as the addon's own CastTuning; the built-in skills unchanged.
         SkillSet.Caster<Skill> caster = (player, skill, tuning) -> skill == SKILL ? HalleyCasting.cast(player, tune(tuning))
             : skill == MOON ? MoonCasting.cast(player, tune(tuning)) : builtIn.cast(player, skill, tuning);
 
@@ -120,9 +123,33 @@ public final class TssLink implements StarLink {
             casterField.set(remote, builtIn);
             throw failed;
         }
+        // the strikes' effect packet: declared now, before RimuLib registers its packets with the loader
+        RimuNet.s2c(StrikeFx.PACKET);
 
         HalleyAddon.LOG.info("{} (Halley) joined the Stellar Remote as skill #{} (key slot {}).", HalleyInfo.title(), after.indexOf(SKILL) + 1, SkillSet.indexOf(SKILL));
         HalleyAddon.LOG.info("{} (Luna) joined the Stellar Remote as skill #{} (key slot {}).", MoonInfo.title(), after.indexOf(MOON) + 1, SkillSet.indexOf(MOON));
+    }
+
+    /** The Stellar Remote's skill set: The Shooting Star's set that holds its own skills (an enum of them). */
+    private static SkillSet remote() {
+        SkillSet found = null;
+        for (SkillSet set : SkillSet.all(TssVersion.MOD_ID)) {
+            if (!set.hidden && set.skills.stream().anyMatch(skill -> skill instanceof Enum<?>)
+                && (found == null || set.skills.size() > found.skills.size())) {
+                found = set;
+            }
+        }
+        if (found == null) {
+            throw new IllegalStateException("The Shooting Star registered no Stellar Remote skills");
+        }
+        return found;
+    }
+
+    /** One of SkillSet's fields, by name (RimuLib isn't obfuscated). */
+    private static Field field(String name) throws NoSuchFieldException {
+        Field field = SkillSet.class.getDeclaredField(name);
+        field.setAccessible(true);
+        return field;
     }
 
     /** The remote's sliders for one cast, as the addon's own type (the defaults if there are none). */
@@ -135,29 +162,33 @@ public final class TssLink implements StarLink {
         return new Tuning(tune.power(), tune.damage(), tune.speed());
     }
 
+    @Override
+    public void tick(MinecraftServer server) {
+        Spell.tickAll();
+    }
+
+    @Override
+    public void clear() {
+        Spell.clear();
+    }
+
     /**
      * Clears one player's cooldowns on the remote (the no-cooldown option): The Shooting Star keeps, per player, the
-     * game time each skill is ready again, in one static {@code Map<UUID, long[]>} of Casting's (found by its type: its
-     * names change every release); without an entry there, every skill is ready.
+     * game time each skill is ready again, in a static map of Casting's from UUID to long[]; without an entry there,
+     * every skill is ready. Its names (and, since 1.5.0, its generic types) are obfuscated, so the map is the static
+     * one whose entry for this player is a long[].
      */
     public static void clearCooldowns(ServerPlayer player) {
         try {
-            if (readyAt == null) {
-                Field found = null;
-                for (Field field : Casting.class.getDeclaredFields()) {
-                    if (Modifier.isStatic(field.getModifiers()) && field.getType() == Map.class
-                        && field.getGenericType() instanceof ParameterizedType type
-                        && Arrays.equals(type.getActualTypeArguments(), new java.lang.reflect.Type[]{java.util.UUID.class, long[].class})) {
-                        found = found == null ? field : null;
+            for (Field field : Casting.class.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers()) && Map.class.isAssignableFrom(field.getType())) {
+                    field.setAccessible(true);
+                    Map<?, ?> map = (Map<?, ?>) field.get(null);
+                    if (map != null && map.get(player.getUUID()) instanceof long[]) {
+                        map.remove(player.getUUID());
                     }
                 }
-                if (found == null) {
-                    throw new NoSuchFieldException("Casting has no single Map<UUID, long[]> field");
-                }
-                found.setAccessible(true);
-                readyAt = found;
             }
-            ((Map<?, ?>) readyAt.get(null)).remove(player.getUUID());
         } catch (ReflectiveOperationException | RuntimeException failed) {
             if (!warnedCooldowns) {
                 warnedCooldowns = true;
@@ -166,36 +197,7 @@ public final class TssLink implements StarLink {
         }
     }
 
-    private static Field readyAt;
     private static boolean warnedCooldowns;
-
-    /** SkillSet's one field (static or not) of type {@code raw<args>}. */
-    private static Field field(boolean isStatic, Class<?> raw, Class<?>... args) throws NoSuchFieldException {
-        Field found = null;
-        for (Field field : SkillSet.class.getDeclaredFields()) {
-            if (Modifier.isStatic(field.getModifiers()) != isStatic || field.getType() != raw
-                || !(field.getGenericType() instanceof ParameterizedType type) || !Arrays.equals(type.getActualTypeArguments(), args)) {
-                continue;
-            }
-            if (found != null) {
-                throw new NoSuchFieldException("SkillSet has more than one " + describe(isStatic, raw, args));
-            }
-            found = field;
-        }
-        if (found == null) {
-            throw new NoSuchFieldException("SkillSet has no " + describe(isStatic, raw, args));
-        }
-        found.setAccessible(true);
-        return found;
-    }
-
-    private static String describe(boolean isStatic, Class<?> raw, Class<?>... args) {
-        StringBuilder b = new StringBuilder(isStatic ? "static " : "").append(raw.getSimpleName()).append('<');
-        for (int i = 0; i < args.length; i++) {
-            b.append(i == 0 ? "" : ", ").append(args[i].getSimpleName());
-        }
-        return b.append("> field").toString();
-    }
 
     @Override
     public void installClient() {
@@ -221,17 +223,17 @@ public final class TssLink implements StarLink {
 
     @Override
     public void startHalley(ServerPlayer caster, Vec3 target, long seed, HalleyParams params, CastTuning tuning) {
-        SpellEngine.start(new HalleySpell(caster, target, seed, params, tuning));
+        Spell.start(new HalleySpell(caster, target, seed, params, tuning));
     }
 
     @Override
     public void startMoon(ServerPlayer caster, Vec3 target, long seed, MoonParams params, CastTuning tuning) {
-        SpellEngine.start(new MoonSpell(caster, target, seed, params, tuning));
+        Spell.start(new MoonSpell(caster, target, seed, params, tuning));
     }
 
     @Override
     public boolean alreadyFlying(boolean moon, ServerPlayer player) {
-        return SpellEngine.running(moon ? MOON : SKILL, player.getUUID());
+        return Spell.running(moon ? MOON : SKILL, player.getUUID());
     }
 
     @Override
@@ -246,76 +248,56 @@ public final class TssLink implements StarLink {
 
     @Override
     public void ward(ServerPlayer caster) {
-        SpellUtil.ward(caster);
+        // as The Shooting Star's own spells ward their caster (1.4.x SpellUtil.ward)
+        caster.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 40, 4, true, false, true));
+        caster.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 40, 0, true, false, true));
     }
 
     @Override
     public boolean affects(Entity entity, ServerPlayer caster) {
-        return SpellUtil.affects(entity, caster);
+        // as The Shooting Star's own spells choose (1.4.x SpellUtil.affects)
+        if (!(entity instanceof LivingEntity living) || !living.isAlive() || entity instanceof ArmorStand || entity.isSpectator()) {
+            return false;
+        }
+        if (caster == null) {
+            return true;
+        }
+        if (entity == caster || entity.isPassengerOfSameVehicle(caster)) {
+            return false;
+        }
+        return !(entity instanceof OwnableEntity pet && caster.getUUID().equals(pet.getOwnerUUID()));
     }
 
     @Override
     public void erase(ServerLevel level, LivingEntity victim, ServerPlayer attacker) {
-        try {
-            STRIKE.invokeExact(level, victim, attacker);
-        } catch (RuntimeException | Error failed) {
-            throw failed;
-        } catch (Throwable failed) {
-            throw new IllegalStateException(failed);
-        }
+        Erasure.strike(policy(), level, victim, attacker);
     }
 
     @Override
     public void hit(ServerLevel level, LivingEntity victim, ServerPlayer attacker, float damage) {
-        try {
-            HIT.invokeExact(level, victim, attacker, damage);
-        } catch (RuntimeException | Error failed) {
-            throw failed;
-        } catch (Throwable failed) {
-            throw new IllegalStateException(failed);
-        }
+        Erasure.hit(policy(), level, victim, attacker, damage);
     }
 
-    /**
-     * Erasure.strike(ServerLevel, victim, ServerPlayer) and Erasure.hit(ServerLevel, victim, ServerPlayer, float).
-     * Their victim is a LivingEntity up to 1.3.x and any Entity from 1.4.0, so each is found by that shape (the one
-     * public static void method of Erasure taking a ServerLevel, an entity and a ServerPlayer, and a float for hit),
-     * and the same code calls them in every version.
-     */
-    private static final MethodHandle STRIKE = erasure(false);
-    private static final MethodHandle HIT = erasure(true);
+    /** How The Shooting Star's skills erase: its own two damage types, and its "force kill" settings. */
+    private static ErasePolicy policy() {
+        return ErasePolicy.unmake(damage("shooting_star"), damage("shooting_star_hit"))
+            .forceKill(Tuning.forceKill(TssVersion.MOD_ID), Tuning.maxDamage(TssVersion.MOD_ID));
+    }
 
-    private static MethodHandle erasure(boolean hit) {
-        String name = hit ? "hit(ServerLevel, entity, ServerPlayer, float)" : "strike(ServerLevel, entity, ServerPlayer)";
-        Method found = null;
-        for (Method method : Erasure.class.getDeclaredMethods()) {
-            Class<?>[] p = method.getParameterTypes();
-            if (!Modifier.isStatic(method.getModifiers()) || !Modifier.isPublic(method.getModifiers()) || method.getReturnType() != void.class
-                || p.length != (hit ? 4 : 3) || p[0] != ServerLevel.class || p[2] != ServerPlayer.class
-                || !p[1].isAssignableFrom(LivingEntity.class) || !Entity.class.isAssignableFrom(p[1])
-                || hit && p[3] != float.class) {
-                continue;
-            }
-            if (found != null) {
-                throw new IllegalStateException("Erasure has more than one " + name);
-            }
-            found = method;
-        }
-        if (found == null) {
-            throw new IllegalStateException("Erasure has no " + name);
-        }
-        try {
-            MethodType type = hit ? MethodType.methodType(void.class, ServerLevel.class, LivingEntity.class, ServerPlayer.class, float.class)
-                : MethodType.methodType(void.class, ServerLevel.class, LivingEntity.class, ServerPlayer.class);
-            return MethodHandles.publicLookup().unreflect(found).asType(type);
-        } catch (IllegalAccessException failed) {
-            throw new IllegalStateException(failed);
-        }
+    private static ResourceKey<DamageType> damage(String name) {
+        return ResourceKey.create(Registries.DAMAGE_TYPE, Identifier.fromNamespaceAndPath(TssVersion.MOD_ID, name));
     }
 
     @Override
     public boolean liftClear(ServerPlayer caster, Vec3 target, double zone, double refuge, int ticks) {
-        return GreaterTeleportation.lift(caster, target, zone, refuge, ticks) != null;
+        // The Shooting Star 1.5.0 has no lift to call any more: set the caster down out of the zone, falling slowly
+        Vec3 away = caster.position().subtract(target).multiply(1.0, 0.0, 1.0);
+        Vec3 dir = away.lengthSqr() < 1.0E-4 ? new Vec3(1.0, 0.0, 0.0) : away.normalize();
+        Vec3 to = target.add(dir.scale(refuge));
+        int y = caster.serverLevel().getHeight(Heightmap.Types.MOTION_BLOCKING, (int) Math.floor(to.x), (int) Math.floor(to.z));
+        caster.teleportTo(to.x, y + 1.0, to.z);
+        caster.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, ticks, 0, true, false, true));
+        return true;
     }
 
     @Override
