@@ -1,9 +1,9 @@
 package dev.ss05.halley.compat.tss.client;
 
-import cyou.rimuru.shootingstardemo.client.cinematic.CameraPose;
-import cyou.rimuru.shootingstardemo.client.cinematic.Cutscene;
-import cyou.rimuru.shootingstardemo.client.cinematic.Shot;
-import cyou.rimuru.shootingstardemo.client.cinematic.Subject;
+import cyou.rimuru.rimulib.client.cinematic.CameraPose;
+import cyou.rimuru.rimulib.client.cinematic.Cutscene;
+import cyou.rimuru.rimulib.client.cinematic.Shot;
+import cyou.rimuru.rimulib.client.cinematic.Subject;
 import dev.ss05.halley.client.film.FilmLand;
 import dev.ss05.halley.client.film.MoonStoryboard;
 import dev.ss05.halley.client.luna.MoonFx;

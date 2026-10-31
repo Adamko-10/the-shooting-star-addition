@@ -7,6 +7,7 @@ import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.world.Excavation;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -82,6 +83,20 @@ public final class StarBridge {
             return (StarLink) type.getDeclaredConstructor().newInstance();
         }
         throw new IllegalStateException("this build of The Shooting Star Addition doesn't support The Shooting Star " + version);
+    }
+
+    /** Runs the strikes in progress; from the loader's server tick. Does nothing if the addon didn't attach. */
+    public static void tick(MinecraftServer server) {
+        if (link != null) {
+            link.tick(server);
+        }
+    }
+
+    /** Forgets every strike in progress; when the server stops. */
+    public static void clear() {
+        if (link != null) {
+            link.clear();
+        }
     }
 
     /** The client half: catches Halley's and Luna's effect packets. Does nothing if the server half didn't attach. */

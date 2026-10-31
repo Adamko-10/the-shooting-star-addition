@@ -383,6 +383,11 @@ public class TssMatch {
         return n.substring(0, n.lastIndexOf('/'));
     }
 
+    /** TSS 1.5.0 moved its obfuscated classes into the version package itself (PREFIX, no further nesting), so any package matches there. */
+    static boolean flat(String n) {
+        return pkg(n).equals(PREFIX.endsWith("/") ? PREFIX.substring(0, PREFIX.length() - 1) : PREFIX);
+    }
+
     static String outer(String n) {
         int i = n.lastIndexOf('$');
         return i < 0 ? null : n.substring(0, i);
@@ -394,7 +399,7 @@ public class TssMatch {
     }
 
     static double score(ClassNode o, ClassNode n, Map<String, String> cls, Map<String, String> back) {
-        if (!pkg(o.name).equals(pkg(n.name)) || kind(o) != kind(n)) return -1;
+        if (!(pkg(o.name).equals(pkg(n.name)) || flat(n.name)) || kind(o) != kind(n)) return -1;
         if ((outer(o.name) == null) != (outer(n.name) == null) || anonymous(o.name) != anonymous(n.name)) return -1;
         if (outer(n.name) != null) {
             String mo = cls.get(outer(n.name));
