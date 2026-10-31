@@ -73,10 +73,13 @@ apply from: 'gradle/tss.gradle'
 tssPack(tasks.named('jar'))
 
 // RimuLib (The Shooting Star 1.5.0+'s library, readable): compiled against, loaded in the dev runs, never shipped.
-var rimulib = fileTree(dir: 'libs', include: 'rimulib*.jar')
-if (rimulib.files.size() > 1) {
-    throw new GradleException("libs/ has more than one RimuLib: ${rimulib.files*.name} - keep one")
+// Its jar is a bundle with one nested jar per Minecraft version (META-INF/jars/...+mc26.3.jar), same as The Shooting
+// Star's own (tssNested above): take the 26.3 build out of it.
+var rimulibBundles = fileTree(dir: 'libs', include: 'rimulib*.jar')
+if (rimulibBundles.files.size() > 1) {
+    throw new GradleException("libs/ has more than one RimuLib: ${rimulibBundles.files*.name} - keep one")
 }
+var rimulib = files(rimulibBundles.files.collect { tssNestedNow(it, tssNested) })
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"

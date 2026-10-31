@@ -7,7 +7,6 @@ import cyou.rimuru.shootingstardemo.client.fx.FxManager;
 import cyou.rimuru.rimulib.client.text.Overlay;
 import cyou.rimuru.shootingstardemo.client.fx.SpellFx;
 import cyou.rimuru.rimulib.client.render.ScreenFx;
-import cyou.rimuru.shootingstardemo.l1l1i1lii1;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.MoonHud;
@@ -57,7 +56,7 @@ final class MoonFxAdapter extends SpellFx {
             @Nullable
             @Override
             public SoundEvent remoteSound(boolean press) {
-                return BuiltInRegistries.SOUND_EVENT.get(Identifier.fromNamespaceAndPath("shooting_star_demo", press ? "star_press" : "star_arm"));
+                return BuiltInRegistries.SOUND_EVENT.getValue(Identifier.fromNamespaceAndPath("shooting_star_demo", press ? "star_press" : "star_arm"));
             }
         }, strike.casterId(), this.origin, this.target, strike.seed(), strike.targets());
     }
@@ -68,7 +67,7 @@ final class MoonFxAdapter extends SpellFx {
 
     /** The game's partial tick for this frame (The Shooting Star's Frame no longer names it). */
     private static float partial() {
-        return Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
+        return Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true);
     }
 
     /** The film's subject: the caster, the strike's target and the way they faced. */

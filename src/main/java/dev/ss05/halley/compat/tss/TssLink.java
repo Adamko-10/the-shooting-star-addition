@@ -124,7 +124,7 @@ public final class TssLink implements StarLink {
             throw failed;
         }
         // the strikes' effect packet: declared now, before RimuLib registers its packets with the loader
-        RimuNet.s2c(StrikeFx.PACKET);
+        RimuNet.s2c(StrikeFx.TYPE, StrikeFx.CODEC);
 
         HalleyAddon.LOG.info("{} (Halley) joined the Stellar Remote as skill #{} (key slot {}).", HalleyInfo.title(), after.indexOf(SKILL) + 1, SkillSet.indexOf(SKILL));
         HalleyAddon.LOG.info("{} (Luna) joined the Stellar Remote as skill #{} (key slot {}).", MoonInfo.title(), after.indexOf(MOON) + 1, SkillSet.indexOf(MOON));
@@ -249,7 +249,7 @@ public final class TssLink implements StarLink {
     @Override
     public void ward(ServerPlayer caster) {
         // as The Shooting Star's own spells ward their caster (1.4.x SpellUtil.ward)
-        caster.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 40, 4, true, false, true));
+        caster.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 40, 4, true, false, true));
         caster.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 40, 0, true, false, true));
     }
 
@@ -265,7 +265,8 @@ public final class TssLink implements StarLink {
         if (entity == caster || entity.isPassengerOfSameVehicle(caster)) {
             return false;
         }
-        return !(entity instanceof OwnableEntity pet && caster.getUUID().equals(pet.getOwnerUUID()));
+        return !(entity instanceof OwnableEntity pet && pet.getOwnerReference() != null
+            && caster.getUUID().equals(pet.getOwnerReference().getUUID()));
     }
 
     @Override
@@ -294,7 +295,7 @@ public final class TssLink implements StarLink {
         Vec3 away = caster.position().subtract(target).multiply(1.0, 0.0, 1.0);
         Vec3 dir = away.lengthSqr() < 1.0E-4 ? new Vec3(1.0, 0.0, 0.0) : away.normalize();
         Vec3 to = target.add(dir.scale(refuge));
-        int y = caster.serverLevel().getHeight(Heightmap.Types.MOTION_BLOCKING, (int) Math.floor(to.x), (int) Math.floor(to.z));
+        int y = caster.level().getHeight(Heightmap.Types.MOTION_BLOCKING, (int) Math.floor(to.x), (int) Math.floor(to.z));
         caster.teleportTo(to.x, y + 1.0, to.z);
         caster.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, ticks, 0, true, false, true));
         return true;

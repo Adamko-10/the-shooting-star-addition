@@ -35,7 +35,7 @@ abstract class Spell {
 
     Spell(Skill skill, ServerPlayer caster, Vec3 target, long seed, CastTuning tuning) {
         this.skill = skill;
-        this.level = caster.serverLevel();
+        this.level = caster.level();
         this.casterId = caster.getUUID();
         this.caster = caster;
         this.origin = caster.position();
@@ -76,7 +76,7 @@ abstract class Spell {
         // as far as the built-in skills' effects reach
         double range = 512.0;
         for (ServerPlayer player : spell.level.players()) {
-            if (player.distanceToSqr(spell.target) <= range * range && RimuNet.canSend(player, StrikeFx.PACKET)) {
+            if (player.distanceToSqr(spell.target) <= range * range && RimuNet.canSend(player, StrikeFx.TYPE)) {
                 RimuNet.send(player, fx);
             }
         }

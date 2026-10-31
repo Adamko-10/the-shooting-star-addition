@@ -417,7 +417,7 @@ final class Harness {
             player.teleportTo(level, SPAWN_X, groundY, SPAWN_Z, Set.of(), -90f, pitch, true);
 
             player.setGameMode(GameType.CREATIVE);
-            player.getInventory().setItem(player.getInventory().getSelectedSlot(), new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.Identifier.fromNamespaceAndPath("shooting_star_demo", "stellar_remote"))));
+            player.getInventory().setItem(player.getInventory().getSelectedSlot(), new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.Identifier.fromNamespaceAndPath("shooting_star_demo", "stellar_remote"))));
 
             CutsceneDirector.setEnabled(HarnessParams.FILM);
         });

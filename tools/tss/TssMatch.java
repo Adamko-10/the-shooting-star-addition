@@ -383,9 +383,13 @@ public class TssMatch {
         return n.substring(0, n.lastIndexOf('/'));
     }
 
-    /** TSS 1.5.0 moved its obfuscated classes into the version package itself (mc1211/i1l1...), so any package matches there. */
+    /**
+     * TSS 1.5.0 moved its obfuscated classes into the version package itself (PREFIX minus its trailing slash, e.g.
+     * mc1211/i1l1... on the multi-version loaders, or the bare shootingstardemo package on Fabric), so any package
+     * matches there.
+     */
     static boolean flat(String n) {
-        return pkg(n).matches(".*/mc[0-9]+");
+        return pkg(n).equals(PREFIX.endsWith("/") ? PREFIX.substring(0, PREFIX.length() - 1) : PREFIX);
     }
 
     static String outer(String n) {
@@ -598,6 +602,11 @@ public class TssMatch {
                 double s = (2 * bodySim(ma, mb) + callerSim(o.name, ma, n.name, mb)) / 3.0;
                 List<String> fa = ownFieldRefs(ma, o.name, null), fb = ownFieldRefs(mb, n.name, ownFields);
                 if (!fa.isEmpty() || !fb.isEmpty()) s = (s + jaccard(fa, fb)) / 2.0;
+                // Which of TSS's own (matched) types a method checks against (instanceof/checkcast) is a strong,
+                // obfuscation-stable signal for methods that dispatch by type (e.g. one overlay method per built-in
+                // skill's effect class): weight it as heavily as the body score itself.
+                List<String> ta = ownTypeRefs(ma, false, cls, back), tb = ownTypeRefs(mb, true, cls, back);
+                if (!ta.isEmpty() || !tb.isEmpty()) s = (s + jaccard(ta, tb)) / 2.0;
                 if (ma.name.equals(mb.name)) s += 0.01;
                 ps.add(new P(ma, mb, s));
             }
@@ -605,6 +614,14 @@ public class TssMatch {
             for (P p : ps) {
                 if (res.containsKey(p.b) || res.containsValue(p.a) || p.s < 0.35) continue;
                 res.put(p.b, p.a);
+            }
+            // Second chance, stricter conditions: an old method still unmatched, with exactly one new method of this
+            // shape not already claimed by something else - no ambiguity left to get wrong - and a score clearly
+            // above noise (a swapped/unrelated pair scores far lower: §11's past bug was never this close).
+            for (P p : ps) {
+                if (res.containsValue(p.a) || res.containsKey(p.b) || p.s < 0.25) continue;
+                long rivals = ps.stream().filter(q -> q.b == p.b && !res.containsValue(q.a)).count();
+                if (rivals == 1) res.put(p.b, p.a);
             }
         }
         // leftovers whose descriptor changed a little (a parameter widened, e.g. LivingEntity -> Entity)
@@ -653,6 +670,21 @@ public class TssMatch {
             if (!(in instanceof FieldInsnNode fi) || !fi.owner.equals(owner)) continue;
             String name = toOld == null ? fi.name : toOld.getOrDefault(fi.name + ";" + fi.desc, "+new " + fi.name);
             res.add((fi.getOpcode() == Opcodes.GETSTATIC || fi.getOpcode() == Opcodes.GETFIELD ? "get " : "put ") + name);
+        }
+        return res;
+    }
+
+    /**
+     * The TSS classes a method checks itself against (instanceof/checkcast/new), by their old (matched) names - a
+     * method that dispatches by type (one branch per subtype) is told apart from a look-alike mostly by which types
+     * it dispatches on, even once an obfuscation wrapper has otherwise changed its body a lot.
+     */
+    static List<String> ownTypeRefs(MethodNode m, boolean obfSide, Map<String, String> cls, Map<String, String> back) {
+        List<String> res = new ArrayList<>();
+        for (AbstractInsnNode in : m.instructions) {
+            if (!(in instanceof TypeInsnNode ti) || !ti.desc.startsWith(PREFIX)) continue;
+            String mapped = obfSide ? cls.get(ti.desc) : (back.containsKey(ti.desc) ? ti.desc : null);
+            res.add(mapped != null ? mapped : "?" + ti.desc);
         }
         return res;
     }
