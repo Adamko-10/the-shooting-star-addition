@@ -104,7 +104,6 @@ dependencies {
     // to named) like The Shooting Star's, while configuring.
     modCompileOnly rimulib
     modLocalRuntime rimulib
-    clienttestCompileOnly rimulib
 
     // The clienttest source set sees exactly what 'main' sees (Minecraft, Fabric, The Shooting Star), plus this
     // addon's own compiled classes (to call StarBridge/HalleyContent) - only 'main' gets Loom's modding

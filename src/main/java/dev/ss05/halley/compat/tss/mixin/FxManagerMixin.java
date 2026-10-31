@@ -15,7 +15,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Pseudo
 @Mixin(targets = "cyou.rimuru.shootingstardemo.client.fx.FxManager", remap = false)
 abstract class FxManagerMixin {
-    @Inject(method = "renderFilmHud(Lnet/minecraft/client/gui/GuiGraphics;F)V", at = @At("TAIL"), require = 0, remap = false)
+    // TSS 1.5.0 renamed this to renderHud (films themselves moved to RimuLib; checked via the 1.5.0 mapping, §5).
+    @Inject(method = "renderHud(Lnet/minecraft/client/gui/GuiGraphics;F)V", at = @At("TAIL"), require = 0, remap = false)
     private static void ss05halley$filmHud(GuiGraphics graphics, float partial, CallbackInfo ci) {
         StarClientBridge.renderFilmHud(graphics, partial);
     }

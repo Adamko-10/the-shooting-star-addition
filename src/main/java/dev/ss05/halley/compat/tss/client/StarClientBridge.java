@@ -3,12 +3,12 @@ package dev.ss05.halley.compat.tss.client;
 import cyou.rimuru.rimulib.client.cinematic.CutsceneDirector;
 import cyou.rimuru.rimulib.client.magic.SkillKeys;
 import cyou.rimuru.rimulib.client.magic.WhiteSpace;
+import cyou.rimuru.rimulib.client.net.RimuNetClient;
 import cyou.rimuru.rimulib.client.text.Overlay;
-import cyou.rimuru.rimulib.net.RimuNet;
 import cyou.rimuru.rimulib.skill.Skill;
 import cyou.rimuru.rimulib.skill.SkillSet;
 import cyou.rimuru.shootingstardemo.client.fx.FxManager;
-import cyou.rimuru.shootingstardemo.l1l1i1lii1;
+import cyou.rimuru.shootingstardemo.llil1ii111;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
@@ -45,8 +45,7 @@ public final class StarClientBridge {
             return;
         }
         try {
-            RimuNet.clientHandler(StrikeFx.PACKET, packet -> {
-                StrikeFx strike = (StrikeFx) packet;
+            RimuNetClient.receive(StrikeFx.PACKET, (strike, context) -> {
                 if (strike.skill() == SkillSet.indexOf(TssLink.SKILL)) {
                     start(strike);
                 } else if (strike.skill() == SkillSet.indexOf(TssLink.MOON)) {
@@ -64,8 +63,8 @@ public final class StarClientBridge {
      * The Shooting Star's own effect packet for a strike, which its effects are built from: (skill, caster, origin,
      * target, yaw, seed, targets, flags, power, speed, width). Its class name is obfuscated since 1.5.0 and unmapped.
      */
-    static l1l1i1lii1 payload(StrikeFx s) {
-        return new l1l1i1lii1(s.skill(), s.casterId(), s.origin().x, s.origin().y, s.origin().z, s.target().x, s.target().y,
+    static llil1ii111 payload(StrikeFx s) {
+        return new llil1ii111(s.skill(), s.casterId(), s.origin().x, s.origin().y, s.origin().z, s.target().x, s.target().y,
             s.target().z, s.yaw(), s.seed(), s.targets(), s.flags(), s.power(), s.speed(), 1.0F);
     }
 

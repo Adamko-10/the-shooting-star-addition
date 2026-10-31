@@ -383,9 +383,14 @@ public class TssMatch {
         return n.substring(0, n.lastIndexOf('/'));
     }
 
-    /** TSS 1.5.0 moved its obfuscated classes into the version package itself (mc1211/i1l1...), so any package matches there. */
+    /**
+     * TSS 1.5.0 moved its obfuscated classes into the version package itself (PREFIX's root, e.g. mc1211/i1l1... on
+     * NeoForge/Forge, or straight under cyou/rimuru/shootingstardemo on Fabric, which has no per-version suffix), so
+     * any package matches there.
+     */
     static boolean flat(String n) {
-        return pkg(n).matches(".*/mc[0-9]+");
+        String root = PREFIX.endsWith("/") ? PREFIX.substring(0, PREFIX.length() - 1) : PREFIX;
+        return pkg(n).equals(root);
     }
 
     static String outer(String n) {
