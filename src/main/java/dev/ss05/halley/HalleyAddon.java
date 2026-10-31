@@ -76,8 +76,14 @@ public final class HalleyAddon {
                 NoCooldown.greet(player);
             }
         });
-        NeoForge.EVENT_BUS.addListener(ServerTickEvent.Post.class, event -> MoonStrike.tickLingering());
-        NeoForge.EVENT_BUS.addListener(ServerStoppedEvent.class, event -> MoonStrike.clearLingering());
+        NeoForge.EVENT_BUS.addListener(ServerTickEvent.Post.class, event -> {
+            StarBridge.tick(event.getServer());
+            MoonStrike.tickLingering();
+        });
+        NeoForge.EVENT_BUS.addListener(ServerStoppedEvent.class, event -> {
+            StarBridge.clear();
+            MoonStrike.clearLingering();
+        });
         NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerLoggedOutEvent.class, event -> {
             if (event.getEntity() instanceof ServerPlayer player) {
                 NoCooldown.forget(player);

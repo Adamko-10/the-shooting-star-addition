@@ -1,6 +1,5 @@
 package dev.ss05.halley.compat.tss;
 
-import cyou.rimuru.shootingstardemo.mc1211.spell.ActiveSpell;
 import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.HalleyPlan;
@@ -12,12 +11,12 @@ import net.minecraft.world.phys.Vec3;
  * SS-05 running inside The Shooting Star's spell engine (which ticks it, keeps one per caster, and sends the effect
  * packet to nearby players). All the behaviour is in {@link HalleyStrike}; this only adapts it.
  */
-public final class HalleySpell extends ActiveSpell {
+final class HalleySpell extends Spell {
     private final HalleyStrike strike;
 
     /** {@code tuning} is the remote's sliders: the spell engine runs this spell (and every client its film) at its speed. */
-    public HalleySpell(ServerPlayer caster, Vec3 target, long seed, HalleyParams params, CastTuning tuning) {
-        super(TssLink.SKILL, caster, caster.position(), target, seed, false, TssLink.tuning(tuning));
+    HalleySpell(ServerPlayer caster, Vec3 target, long seed, HalleyParams params, CastTuning tuning) {
+        super(TssLink.SKILL, caster, target, seed, tuning);
         HalleyPlan plan = new HalleyPlan(this.origin, this.target, caster.getYRot(), seed, params);
         this.strike = new HalleyStrike(this.level, plan, caster, tuning);
     }

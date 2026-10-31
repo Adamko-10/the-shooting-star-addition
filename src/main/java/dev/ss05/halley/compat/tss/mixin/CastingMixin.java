@@ -1,11 +1,12 @@
 package dev.ss05.halley.compat.tss.mixin;
 
+import cyou.rimuru.rimulib.mc1211.skill.Power;
+import cyou.rimuru.rimulib.mc1211.skill.Skill;
+import cyou.rimuru.rimulib.mc1211.skill.SkillSet;
 import cyou.rimuru.shootingstardemo.mc1211.magic.Casting;
-import cyou.rimuru.shootingstardemo.mc1211.magic.Power;
-import cyou.rimuru.shootingstardemo.mc1211.magic.Skill;
-import cyou.rimuru.shootingstardemo.mc1211.magic.Tuning;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.NoCooldown;
+import dev.ss05.halley.compat.TssVersion;
 import dev.ss05.halley.compat.tss.TssLink;
 import net.minecraft.server.level.ServerPlayer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,7 +14,6 @@ import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
 /**
  * The no-cooldown option ({@code no_cooldown} in the common config, see {@link NoCooldown}): for a player who has it,
  * their cooldowns are cleared just before a cast is checked against them, and again just before The Shooting Star
@@ -34,35 +34,36 @@ abstract class CastingMixin {
         }
     }
 
-    @Inject(method = "cast(Lnet/minecraft/server/level/ServerPlayer;Lcyou/rimuru/shootingstardemo/mc1211/magic/Skill;Lcyou/rimuru/shootingstardemo/mc1211/magic/Tuning;)V",
-            at = @At("HEAD"), cancellable = true, require = 0, remap = false)
-    private static void ss05halley$limit(ServerPlayer player, Skill skill, Tuning tuning, CallbackInfo ci) {
+    /**
+     * The cast request: (player, the skill's index, power, damage, speed, width, play the film for everyone). Its name
+     * is obfuscated since The Shooting Star 1.5.0 (and not mapped to a readable one), so it is named as it is.
+     */
+    @Inject(method = "liiillli1l(Lnet/minecraft/server/level/ServerPlayer;IFFFFZ)V", at = @At("HEAD"), cancellable = true, require = 0, remap = false)
+    private static void ss05halley$limit(ServerPlayer player, int index, float power, float damage, float speed, float width,
+                                         boolean everyone, CallbackInfo ci) {
         if (player != null && NoCooldown.appliesTo(player)) {
             TssLink.clearCooldowns(player);
         }
-        if (tuning == null || skill == null || Float.isNaN(tuning.power()) || Float.isNaN(tuning.damage()) || Float.isNaN(tuning.speed())) {
+        if (Float.isNaN(power) || Float.isNaN(damage) || Float.isNaN(speed)) {
             return;
         }
         HalleyConfig.Limits limits = HalleyConfig.limits();
-        float power = tuning.power();
-        float damage = tuning.damage();
-        float speed = Math.min(tuning.speed(), limits.speed());
-        if (limits.power() > 0.0F) {
-            try {
-                Power range = skill.power();
-                if (range != null) {
-                    power = Math.min(power, Math.max(range.min(), range.initial() * limits.power()));
-                }
-            } catch (LinkageError olderVersion) {
-                // a Shooting Star without power ranges: leave power as it is
+        float heldPower = power;
+        float heldDamage = damage;
+        float heldSpeed = Math.min(speed, limits.speed());
+        Skill skill = SkillSet.byIndex(TssVersion.MOD_ID, index);
+        if (limits.power() > 0.0F && skill != null) {
+            Power range = skill.power();
+            if (range != null) {
+                heldPower = Math.min(power, Math.max(range.min(), range.initial() * limits.power()));
             }
         }
         if (limits.damage() > 0.0F) {
-            damage = Math.min(damage, limits.damage());
+            heldDamage = Math.min(damage, limits.damage());
         }
-        if (power != tuning.power() || damage != tuning.damage() || speed != tuning.speed()) {
+        if (heldPower != power || heldDamage != damage || heldSpeed != speed) {
             ci.cancel();
-            Casting.cast(player, skill, new Tuning(power, damage, speed));
+            Casting.liiillli1l(player, index, heldPower, heldDamage, heldSpeed, width, everyone);
         }
     }
 }

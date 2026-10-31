@@ -125,8 +125,16 @@ ext.tssNested = null
 apply from: 'gradle/tss.gradle'
 tssPack(tasks.named('jar'))
 
+// RimuLib (The Shooting Star 1.5.0+'s library, readable): compiled against, loaded in the dev runs, never shipped.
+var rimulib = fileTree(dir: 'libs', include: 'rimulib*.jar')
+if (rimulib.files.size() > 1) {
+    throw new GradleException("libs/ has more than one RimuLib: ${rimulib.files*.name} - keep one")
+}
+
 dependencies {
     compileOnly tssNamed
+    compileOnly rimulib
+    clienttestCompileOnly rimulib
     // The harness sees main's classes (StarBridge, etc.) and compiles against The Shooting Star the same way.
     clienttestImplementation sourceSets.main.output
     clienttestCompileOnly tssNamed
@@ -136,14 +144,14 @@ dependencies {
 // before every run. The clientTest run has its own game directory (run/clienttest), so it gets its own copy too.
 // (Only one The Shooting Star at a time: a copy of another version left there from before is removed.)
 var copyShootingStar = tasks.register('copyShootingStar', Sync) {
-    from tssNamed
+    from tssNamed, rimulib
     into layout.projectDirectory.dir('run/mods')
-    preserve { exclude 'the-shooting-star*.jar' }
+    preserve { exclude 'the-shooting-star*.jar', 'rimulib*.jar' }
 }
 var copyShootingStarForClientTest = tasks.register('copyShootingStarForClientTest', Sync) {
-    from tssNamed
+    from tssNamed, rimulib
     into layout.projectDirectory.dir('run/clienttest/mods')
-    preserve { exclude 'the-shooting-star*.jar' }
+    preserve { exclude 'the-shooting-star*.jar', 'rimulib*.jar' }
 }
 tasks.matching { it.name.startsWith('run') && it.name != 'runProdClientTest' }.configureEach {
     dependsOn copyShootingStar, copyShootingStarForClientTest
@@ -159,7 +167,7 @@ var clienttestJar = tasks.register('clienttestJar', Jar) {
 }
 var reobfClienttest = tssReobf(clienttestJar, 'tssReobfClienttest', 'prodtest')
 var copyProdMods = tasks.register('copyProdMods', Sync) {
-    from tasks.named('tssPack'), reobfClienttest, tssTestJar
+    from tasks.named('tssPack'), reobfClienttest, tssTestJar, rimulib
     into layout.projectDirectory.dir('run/prodclient/mods')
 }
 tasks.matching { it.name == 'runProdClientTest' }.configureEach {
@@ -182,6 +190,8 @@ var generateModMetadata = tasks.register('generateModMetadata', ProcessResources
         loader_version_range       : loader_version_range,
         shooting_star_mod_id       : shooting_star_mod_id,
         shooting_star_version_range: tssVersionRange,
+        rimulib_mod_id             : rimulib_mod_id,
+        rimulib_version_range      : rimulib_version_range,
         mod_id                     : mod_id,
         mod_name                   : mod_name,
         mod_license                : mod_license,
