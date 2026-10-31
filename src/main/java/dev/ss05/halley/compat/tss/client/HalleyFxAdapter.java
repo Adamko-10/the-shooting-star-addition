@@ -7,7 +7,7 @@ import cyou.rimuru.shootingstardemo.mc1201.client.fx.FxManager;
 import cyou.rimuru.rimulib.mc1201.client.text.Overlay;
 import cyou.rimuru.shootingstardemo.mc1201.client.fx.SpellFx;
 import cyou.rimuru.rimulib.mc1201.client.render.ScreenFx;
-import cyou.rimuru.shootingstardemo.mc1201.l1l1i1lii1;
+import cyou.rimuru.shootingstardemo.mc1201.net.SpellFxPayload;
 import dev.ss05.halley.HalleyPlan;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
@@ -68,7 +68,7 @@ final class HalleyFxAdapter extends SpellFx {
 
     /** The game's partial tick for this frame (The Shooting Star's Frame no longer names it). */
     private static float partial() {
-        return Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
+        return Minecraft.getInstance().getPartialTick();
     }
 
     /** The film's subject: the caster, the strike's target and the way they faced. */

@@ -50,6 +50,9 @@ public interface StarLink {
 
     boolean alreadyFlying(boolean moon, ServerPlayer player);
 
+    /** The caster's currently running strike (its origin, target and seed), or null (the test harness only). */
+    StrikeInfo activeStrike(boolean moon, java.util.UUID caster);
+
     /** The point on the ground under the crosshair (or under a creature in it), the way the built-in skills aim. */
     Vec3 aimGround(ServerPlayer player, double reach, double fallback);
 

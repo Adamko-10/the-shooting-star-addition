@@ -1,14 +1,10 @@
 package dev.ss05.halley.servertest;
 
 import com.mojang.logging.LogUtils;
+import cyou.rimuru.rimulib.mc1201.skill.Skill;
+import cyou.rimuru.rimulib.mc1201.skill.SkillSet;
+import cyou.rimuru.rimulib.mc1201.skill.Tuning;
 import cyou.rimuru.shootingstardemo.mc1201.magic.Casting;
-import cyou.rimuru.shootingstardemo.mc1201.magic.Skill;
-import cyou.rimuru.shootingstardemo.mc1201.magic.SkillSet;
-import cyou.rimuru.shootingstardemo.mc1201.magic.Tuning;
-import cyou.rimuru.shootingstardemo.mc1201.registry.ModItems;
-import cyou.rimuru.shootingstardemo.mc1201.registry.ModSkills;
-import cyou.rimuru.shootingstardemo.mc1201.spell.ActiveSpell;
-import cyou.rimuru.shootingstardemo.mc1201.spell.SpellEngine;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.HalleyPlan;
@@ -16,6 +12,8 @@ import dev.ss05.halley.MoonConfig;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.compat.StarBridge;
+import dev.ss05.halley.compat.StrikeInfo;
+import dev.ss05.halley.compat.TssVersion;
 import dev.ss05.halley.content.HalleyContent;
 import dev.ss05.halley.world.HalleyInfo;
 import dev.ss05.halley.world.MoonInfo;
@@ -224,7 +222,8 @@ public final class HalleyServerTest {
         this.record("arena_built", true, "");
 
         this.caster = FakePlayerFactory.getMinecraft(this.level);
-        this.caster.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.STELLAR_REMOTE));
+        this.caster.setItemInHand(InteractionHand.MAIN_HAND,
+            new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(new ResourceLocation("shooting_star_demo", "stellar_remote"))));
         double eyeHeight = this.caster.getEyeHeight();
         float pitch = (float) Math.toDegrees(Math.atan2(eyeHeight, CAST_DISTANCE));
         // yaw 270 = facing +X (east), a flat look slightly downward to land on the arena's floor ~220 blocks out.
@@ -244,11 +243,13 @@ public final class HalleyServerTest {
 
         Skill skill = (Skill) StarBridge.skill(false);
         SkillSet owner = SkillSet.of(skill);
-        this.record("skill_owned_by_stellar_remote", owner == ModSkills.STELLAR_REMOTE, "owner=" + owner);
+        // RimuLib doesn't name which SkillSet is "the Stellar Remote"; Luna joining the same set it did is as close
+        // a check as there is without it.
+        this.record("skill_owned_by_stellar_remote", owner != null && owner == SkillSet.of((Skill) StarBridge.skill(true)), "owner=" + owner);
 
         // The Shooting Star's own skills come first: Halley right after them, under its own codename (SA-01, a
         // series of the addon's own, so it never clashes with a built-in SS number).
-        int builtIns = SkillSet.skillCount() - 2;
+        int builtIns = SkillSet.skillCount(TssVersion.MOD_ID) - 2;
         int index = SkillSet.indexOf(skill);
         this.record("skill_index_after_builtins", index == builtIns, "index=" + index + " builtIns=" + builtIns);
         this.record("skill_codename", skill.title().equals("SA-01 · Halley"), "title=" + skill.title());
@@ -313,9 +314,9 @@ public final class HalleyServerTest {
 
         Skill skill = (Skill) StarBridge.skill(true);
         SkillSet owner = SkillSet.of(skill);
-        this.record("moon_skill_owned_by_stellar_remote", owner == ModSkills.STELLAR_REMOTE, "owner=" + owner);
+        this.record("moon_skill_owned_by_stellar_remote", owner != null && owner == SkillSet.of((Skill) StarBridge.skill(false)), "owner=" + owner);
 
-        int builtIns = SkillSet.skillCount() - 2;
+        int builtIns = SkillSet.skillCount(TssVersion.MOD_ID) - 2;
         int index = SkillSet.indexOf(skill);
         this.record("moon_skill_index_after_halley", index == builtIns + 1, "index=" + index + " builtIns=" + builtIns);
         this.record("moon_skill_codename", skill.title().equals("SA-02 · Luna"), "title=" + skill.title());
@@ -391,23 +392,12 @@ public final class HalleyServerTest {
     }
 
     private void postCast() {
-        boolean running = SpellEngine.running((Skill) StarBridge.skill(false), this.caster.getUUID());
+        boolean running = StarBridge.alreadyFlying(this.caster);
         this.record("cast_starts_spell", running, running ? "" : "SpellEngine.running() is false right after the cast");
 
-        ActiveSpell found = null;
-        try {
-            for (Object o : this.activeSpells()) {
-                ActiveSpell as = (ActiveSpell) o;
-                if (as.skill == (Skill) StarBridge.skill(false) && as.casterId.equals(this.caster.getUUID())) {
-                    found = as;
-                    break;
-                }
-            }
-            this.record("read_active_spell_reflection", found != null,
-                found != null ? "" : "no matching ActiveSpell in SpellEngine.ACTIVE");
-        } catch (Throwable ex) {
-            this.record("read_active_spell_reflection", false, "threw " + ex);
-        }
+        StrikeInfo found = StarBridge.activeStrike(false, this.caster.getUUID());
+        this.record("read_active_spell_reflection", found != null,
+            found != null ? "" : "no matching active strike on the server");
 
         if (found == null) {
             return;
@@ -415,15 +405,15 @@ public final class HalleyServerTest {
 
         try {
             HalleyConfig.Tuning tuning = HalleyConfig.tuning();
-            Vec3 origin = found.origin;
-            Vec3 target = found.target;
+            Vec3 origin = found.origin();
+            Vec3 target = found.target();
             Vec3 flat = new Vec3(target.x - origin.x, 0.0, target.z - origin.z);
             Vec3 dir = flat.lengthSqr() < 1.0 ? new Vec3(1.0, 0.0, 0.0) : flat.normalize();
             double tdX = target.x + dir.x * tuning.trenchLength();
             double tdZ = target.z + dir.z * tuning.trenchLength();
             int ground = this.level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Mth.floor(tdX), Mth.floor(tdZ));
             HalleyParams params = HalleyParams.of(tuning, ground);
-            this.replicaPlan = new HalleyPlan(origin, target, this.caster.getYRot(), found.seed, params);
+            this.replicaPlan = new HalleyPlan(origin, target, this.caster.getYRot(), found.seed(), params);
             this.record("replica_plan_built", true, "target=" + target + " touchdown=" + this.replicaPlan.touchdown);
         } catch (Throwable ex) {
             this.record("replica_plan_built", false, "threw " + ex);
@@ -438,10 +428,10 @@ public final class HalleyServerTest {
         }
 
         try {
-            int before = this.countActive();
+            boolean before = StarBridge.alreadyFlying(this.caster);
             this.request(this.skillIndexAtCast);
-            int after = this.countActive();
-            int remaining = Casting.remaining(this.caster, (Skill) StarBridge.skill(false));
+            boolean after = StarBridge.alreadyFlying(this.caster);
+            int remaining = this.remaining((Skill) StarBridge.skill(false));
             int expected = HalleyConfig.tuning().cooldownTicks();
             boolean pass = after == before && remaining > 0 && remaining <= expected && remaining >= expected - 40;
             this.record("cooldown_refuses_second_cast", pass,
@@ -456,11 +446,11 @@ public final class HalleyServerTest {
             // otherwise); with both on, the next time the remote sends them their cooldowns they are cleared first.
             setFlag("NO_COOLDOWN", true);
             Casting.syncCooldowns(this.caster);
-            int kept = Casting.remaining(this.caster, (Skill) StarBridge.skill(false));
+            int kept = this.remaining((Skill) StarBridge.skill(false));
             this.record("no_cooldown_creative_only_by_default", kept > 0, "remaining=" + kept + " with no_cooldown on, survival off");
             setFlag("NO_COOLDOWN_SURVIVAL", true);
             Casting.syncCooldowns(this.caster);
-            int remaining = Casting.remaining(this.caster, (Skill) StarBridge.skill(false));
+            int remaining = this.remaining((Skill) StarBridge.skill(false));
             this.record("no_cooldown_clears_cooldowns", remaining == 0, "remaining=" + remaining + " with no_cooldown and no_cooldown_survival on");
         } catch (Throwable ex) {
             this.record("no_cooldown_clears_cooldowns", false, "threw " + ex);
@@ -482,38 +472,13 @@ public final class HalleyServerTest {
     }
 
     /**
-     * The spells SpellEngine holds. The Shooting Star 1.4.0+ is obfuscated, so its lists are found by their type
-     * (static List<ActiveSpell>: the running ones and the ones about to start), never by name.
+     * How many more ticks until this skill is ready again for the test's caster, 0 if it's ready now (The Shooting
+     * Star 1.5.0's {@code Casting.readyAt(player)} is a {@code long[]} indexed the same way the remote's menu slots
+     * are, {@link SkillSet#indexOf}).
      */
-    @SuppressWarnings("unchecked")
-    private List<Object> activeSpells() throws ReflectiveOperationException {
-        List<Object> all = new ArrayList<>();
-        int lists = 0;
-        for (Field f : SpellEngine.class.getDeclaredFields()) {
-            if (!java.lang.reflect.Modifier.isStatic(f.getModifiers()) || f.getType() != List.class
-                || !(f.getGenericType() instanceof java.lang.reflect.ParameterizedType type)
-                || type.getActualTypeArguments()[0] != ActiveSpell.class) {
-                continue;
-            }
-            f.setAccessible(true);
-            all.addAll((List<Object>) f.get(null));
-            lists++;
-        }
-        if (lists == 0) {
-            throw new NoSuchFieldException("SpellEngine has no static List<ActiveSpell>");
-        }
-        return all;
-    }
-
-    private int countActive() throws ReflectiveOperationException {
-        int n = 0;
-        for (Object o : this.activeSpells()) {
-            ActiveSpell as = (ActiveSpell) o;
-            if (as.skill == (Skill) StarBridge.skill(false) && as.casterId.equals(this.caster.getUUID())) {
-                n++;
-            }
-        }
-        return n;
+    private int remaining(Skill skill) {
+        long readyAt = Casting.readyAt(this.caster)[SkillSet.indexOf(skill)];
+        return (int) Math.max(0L, readyAt - this.level.getGameTime());
     }
 
     // ---- Test mobs. -----------------------------------------------------------------------------------------------
@@ -548,7 +513,7 @@ public final class HalleyServerTest {
 
     private void watch() {
         int elapsed = this.tick - this.castTick;
-        boolean running = SpellEngine.running((Skill) StarBridge.skill(false), this.caster.getUUID());
+        boolean running = StarBridge.alreadyFlying(this.caster);
         if (running) {
             this.wasRunning = true;
         }
@@ -621,7 +586,7 @@ public final class HalleyServerTest {
         this.checkMob("beside_mob_hurt_and_frozen", this.besideMob, false);
         this.checkControlMob();
 
-        boolean notRunning = !SpellEngine.running((Skill) StarBridge.skill(false), this.caster.getUUID());
+        boolean notRunning = !StarBridge.alreadyFlying(this.caster);
         this.record("spell_completes_and_stops", notRunning, notRunning ? "" : "SpellEngine still reports it running");
     }
 
@@ -668,7 +633,7 @@ public final class HalleyServerTest {
         this.record("arena_is_day_for_refusal_check", isDay, "isDay=" + isDay + " isNight=" + this.level.isNight());
         try {
             this.request(this.moonSkillIndexAtCast);
-            boolean running = SpellEngine.running((Skill) StarBridge.skill(true), this.caster.getUUID());
+            boolean running = StarBridge.moonAlreadyFalling(this.caster);
             this.record("moon_day_cast_refused", !running, running ? "a moonfall started during the day" : "");
         } catch (Throwable ex) {
             this.record("moon_day_cast_refused", false, "threw " + ex);
@@ -728,23 +693,12 @@ public final class HalleyServerTest {
     }
 
     private void moonPostCast() {
-        boolean running = SpellEngine.running((Skill) StarBridge.skill(true), this.caster.getUUID());
+        boolean running = StarBridge.moonAlreadyFalling(this.caster);
         this.record("moon_cast_starts_spell", running, running ? "" : "SpellEngine.running() is false right after the cast");
 
-        ActiveSpell found = null;
-        try {
-            for (Object o : this.activeSpells()) {
-                ActiveSpell as = (ActiveSpell) o;
-                if (as.skill == (Skill) StarBridge.skill(true) && as.casterId.equals(this.caster.getUUID())) {
-                    found = as;
-                    break;
-                }
-            }
-            this.record("moon_read_active_spell_reflection", found != null,
-                found != null ? "" : "no matching ActiveSpell in SpellEngine.ACTIVE");
-        } catch (Throwable ex) {
-            this.record("moon_read_active_spell_reflection", false, "threw " + ex);
-        }
+        StrikeInfo found = StarBridge.activeStrike(true, this.caster.getUUID());
+        this.record("moon_read_active_spell_reflection", found != null,
+            found != null ? "" : "no matching active strike on the server");
 
         if (found == null) {
             return;
@@ -752,11 +706,11 @@ public final class HalleyServerTest {
 
         try {
             // Rebuilt the same way MoonCasting.cast() builds it: the sky direction read at cast time, from the
-            // target/seed the running spell actually used (public fields on ActiveSpell, like HalleyPlan's replica).
+            // target/seed the running strike actually used, like HalleyPlan's replica.
             Vec3 sky = MoonPlan.skyDirection(this.level.getTimeOfDay(1.0F));
-            MoonParams params = MoonParams.of(MoonConfig.tuning(), Mth.floor(found.target.y), sky);
-            this.moonReplicaPlan = new MoonPlan(found.origin, found.target, found.seed, params);
-            this.record("moon_replica_plan_built", true, "target=" + found.target + " core=" + this.moonReplicaPlan.core);
+            MoonParams params = MoonParams.of(MoonConfig.tuning(), Mth.floor(found.target().y), sky);
+            this.moonReplicaPlan = new MoonPlan(found.origin(), found.target(), found.seed(), params);
+            this.record("moon_replica_plan_built", true, "target=" + found.target() + " core=" + this.moonReplicaPlan.core);
         } catch (Throwable ex) {
             this.record("moon_replica_plan_built", false, "threw " + ex);
             return;
@@ -799,7 +753,7 @@ public final class HalleyServerTest {
 
     private void moonWatch() {
         int elapsed = this.tick - this.moonCastTick;
-        boolean running = SpellEngine.running((Skill) StarBridge.skill(true), this.caster.getUUID());
+        boolean running = StarBridge.moonAlreadyFalling(this.caster);
         if (running) {
             this.moonWasRunning = true;
         }
@@ -917,7 +871,7 @@ public final class HalleyServerTest {
         this.checkMob("moon_inside_mob_erased", this.moonInsideMob, true);
         this.checkMob("moon_beside_mob_hurt", this.moonBesideMob, false);
 
-        boolean notRunning = !SpellEngine.running((Skill) StarBridge.skill(true), this.caster.getUUID());
+        boolean notRunning = !StarBridge.moonAlreadyFalling(this.caster);
         this.record("moon_spell_completes_and_stops", notRunning, notRunning ? "" : "SpellEngine still reports it running");
 
         this.releaseLandRoundMoonMark();
@@ -1095,11 +1049,14 @@ public final class HalleyServerTest {
     }
 
     /**
-     * The cast packet's path (the remote sends its sliders with it; The Shooting Star clamps them to the skill's range
-     * and casts): the untuned defaults. Casting.cast is the same in every version (1.4.3 added a flag to request).
+     * The cast packet's path (the remote sends its sliders with it; The Shooting Star clamps them to the skill's
+     * range and casts): the untuned defaults. The Shooting Star 1.5.0's cast request is obfuscated and unmapped
+     * (player, the skill's index, power, damage, speed, width, play the film for everyone) - same name as
+     * {@code compat/tss/mixin/CastingMixin} and the client-test harness use.
      */
     private void request(int skillIndex) {
-        Skill skill = SkillSet.byIndex(skillIndex);
-        Casting.cast(this.caster, skill, Tuning.initial(skill).clampFor(skill));
+        Skill skill = SkillSet.byIndex(TssVersion.MOD_ID, skillIndex);
+        Tuning tuning = Tuning.initial(skill).clampFor(skill);
+        Casting.liiillli1l(this.caster, skillIndex, tuning.power(), tuning.damage(), tuning.speed(), tuning.width(), false);
     }
 }

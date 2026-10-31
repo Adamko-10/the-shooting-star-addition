@@ -1,9 +1,9 @@
 package dev.ss05.halley.compat.tss;
 
-import cyou.rimuru.rimulib.mc1211.net.RimuNet;
-import cyou.rimuru.rimulib.mc1211.skill.Skill;
-import cyou.rimuru.rimulib.mc1211.skill.SkillSet;
-import cyou.rimuru.shootingstardemo.mc1211.magic.Casting;
+import cyou.rimuru.rimulib.mc1201.net.RimuNet;
+import cyou.rimuru.rimulib.mc1201.skill.Skill;
+import cyou.rimuru.rimulib.mc1201.skill.SkillSet;
+import cyou.rimuru.shootingstardemo.mc1201.magic.Casting;
 import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.HalleyAddon;
 import java.util.ArrayList;
@@ -92,12 +92,17 @@ abstract class Spell {
     }
 
     static boolean running(Skill skill, UUID caster) {
+        return find(skill, caster) != null;
+    }
+
+    /** The running strike for this skill and caster, or null (the test harness reads its origin/target/seed back). */
+    static Spell find(Skill skill, UUID caster) {
         for (Spell spell : ACTIVE) {
             if (spell.skill == skill && spell.casterId.equals(caster)) {
-                return true;
+                return spell;
             }
         }
-        return false;
+        return null;
     }
 
     static void tickAll() {

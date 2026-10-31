@@ -82,7 +82,69 @@ public class TssRemap {
             remapper.finish();
         }
         if (reobf) Files.deleteIfExists(input);
+        if (!reobf) dedupFields(out);
         System.out.println(mode + " -> " + out);
+    }
+
+    /**
+     * The Shooting Star's own obfuscator reuses one short field name across several fields of different types in the
+     * same class (legal bytecode: fields are keyed by name AND descriptor); the readable copy keeps whichever of them
+     * TssMatch couldn't match under that same shared name too. NeoForge's reobfuscation tool (net.neoforged.art)
+     * builds its class model keyed by name alone and throws "Duplicate key" on such a class, so every repeat beyond the
+     * first is renamed here (declarations and every reference to that exact name+descriptor, wherever it appears in the
+     * jar: safe, since a rename is only ever triggered by a genuine same-class clash).
+     */
+    static void dedupFields(Path jar) throws IOException {
+        Map<String, ClassNode> classes = new LinkedHashMap<>();
+        loadClasses(jar, classes, "");
+        Map<String, String> renames = new HashMap<>(); // "name;desc" -> new name
+        int[] counter = {0};
+        for (ClassNode c : classes.values()) {
+            Map<String, List<FieldNode>> byName = new LinkedHashMap<>();
+            for (FieldNode f : c.fields) {
+                byName.computeIfAbsent(f.name, k -> new ArrayList<>()).add(f);
+            }
+            for (List<FieldNode> group : byName.values()) {
+                for (int i = 1; i < group.size(); i++) {
+                    FieldNode f = group.get(i);
+                    String key = f.name + ";" + f.desc;
+                    String newName = renames.computeIfAbsent(key, k -> f.name + "$dup" + (counter[0]++));
+                    f.name = newName;
+                }
+            }
+        }
+        if (renames.isEmpty()) {
+            return;
+        }
+        for (ClassNode c : classes.values()) {
+            for (MethodNode m : c.methods) {
+                for (AbstractInsnNode in : m.instructions) {
+                    if (in instanceof FieldInsnNode fi) {
+                        String newName = renames.get(fi.name + ";" + fi.desc);
+                        if (newName != null) fi.name = newName;
+                    }
+                }
+            }
+        }
+        Path tmp = Files.createTempFile("tss-dedup", ".jar");
+        try (ZipFile in = new ZipFile(jar.toFile()); ZipOutputStream zout = new ZipOutputStream(Files.newOutputStream(tmp))) {
+            for (ZipEntry e : Collections.list(in.entries())) {
+                if (e.isDirectory()) continue;
+                zout.putNextEntry(new ZipEntry(e.getName()));
+                if (e.getName().endsWith(".class")) {
+                    String cls = e.getName().substring(0, e.getName().length() - 6);
+                    ClassNode n = classes.get(cls);
+                    ClassWriter w = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+                    n.accept(w);
+                    zout.write(w.toByteArray());
+                } else {
+                    zout.write(in.getInputStream(e).readAllBytes());
+                }
+                zout.closeEntry();
+            }
+        }
+        Files.move(tmp, jar, StandardCopyOption.REPLACE_EXISTING);
+        System.out.println("deobf: renamed " + renames.size() + " clashing field name(s) in " + jar.getFileName());
     }
 
     // ---- verify ------------------------------------------------------------------------------------------------------

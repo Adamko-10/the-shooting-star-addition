@@ -15,7 +15,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Pseudo
 @Mixin(targets = "cyou.rimuru.shootingstardemo.mc1201.client.fx.FxManager", remap = false)
 abstract class FxManagerMixin {
-    @Inject(method = "renderFilmHud(Lnet/minecraft/client/gui/GuiGraphics;F)V", at = @At("TAIL"), require = 0, remap = false)
+    // "renderFilmHud" is obfuscated and unmapped in The Shooting Star 1.5.0: javap/decompiling the readable jar
+    // (build/shooting-star-named) found it as the one method of this shape that switches on instanceof
+    // StarFx/GungnirFx/SevenStarsFx/<Seven Stars' finale type>, matching this method's own job (the built-in skills'
+    // film overlays, by type, not the polymorphic per-effect hud() dispatch the other same-shaped method does).
+    @Inject(method = "liiillli1l(Lnet/minecraft/client/gui/GuiGraphics;F)V", at = @At("TAIL"), require = 0, remap = false)
     private static void ss05halley$filmHud(GuiGraphics graphics, float partial, CallbackInfo ci) {
         StarClientBridge.renderFilmHud(graphics, partial);
     }

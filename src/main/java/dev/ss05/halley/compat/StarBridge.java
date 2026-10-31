@@ -147,6 +147,11 @@ public final class StarBridge {
         return link().alreadyFlying(true, player);
     }
 
+    /** The caster's currently running strike, or null (the test harness only). */
+    public static StrikeInfo activeStrike(boolean moon, java.util.UUID caster) {
+        return link != null ? link.activeStrike(moon, caster) : null;
+    }
+
     public static Vec3 aimGround(ServerPlayer player, double reach, double fallback) {
         return link().aimGround(player, reach, fallback);
     }

@@ -237,6 +237,12 @@ public final class TssLink implements StarLink {
     }
 
     @Override
+    public dev.ss05.halley.compat.StrikeInfo activeStrike(boolean moon, java.util.UUID caster) {
+        Spell spell = Spell.find(moon ? MOON : SKILL, caster);
+        return spell == null ? null : new dev.ss05.halley.compat.StrikeInfo(spell.origin, spell.target, spell.seed);
+    }
+
+    @Override
     public Vec3 aimGround(ServerPlayer player, double reach, double fallback) {
         return SpellEngine.aimGround(player, reach, fallback);
     }
