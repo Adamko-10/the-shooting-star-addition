@@ -25,6 +25,15 @@ for entry in $TSS_FILES; do
   fi
 done
 
+# ---- RimuLib, The Shooting Star 1.5.0+'s library (compiled against, loaded in the client tests) ----
+if [ -n "${RIMULIB_FILE:-}" ]; then
+  if curl -fsSL --retry 4 --retry-delay 5 -o "libs/rimulib-${TSS_LOADER}.jar"       "https://www.cursemaven.com/curse/maven/rimulib-1753907/${RIMULIB_FILE}/rimulib-1753907-${RIMULIB_FILE}.jar"; then
+    log "fetched RimuLib ($TSS_LOADER)"
+  else
+    fail "download of RimuLib"
+  fi
+fi
+
 # ---- Anything the branch needs to set up first (defined in branch.sh) ----
 if declare -f ci_prepare > /dev/null; then
   ci_prepare
@@ -70,7 +79,7 @@ fi
 # ---- The readable The Shooting Star's skill interface (the method names Halley and Luna override; logs only) ----
 for j in build/shooting-star-named/*.jar; do
   [ -f "$j" ] || continue
-  for c in $(unzip -Z1 "$j" | grep -E '/magic/Skill\.class$'); do
+  for c in $(unzip -Z1 "$j" | grep -E '/magic/Skill\.class$|/star/StarSkill\.class$'); do
     echo "== $(basename "$j") $c" >> "$SECRET/skill-api.txt"
     "$JAVA_HOME/bin/javap" -cp "$j" -p "${c%.class}" >> "$SECRET/skill-api.txt" 2>&1 || true
   done

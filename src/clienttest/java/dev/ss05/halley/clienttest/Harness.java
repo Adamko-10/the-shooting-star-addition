@@ -2,12 +2,11 @@ package dev.ss05.halley.clienttest;
 
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
-import cyou.rimuru.shootingstardemo.client.cinematic.CutsceneDirector;
-import cyou.rimuru.shootingstardemo.client.magic.WhiteSpace;
+import cyou.rimuru.rimulib.client.cinematic.CutsceneDirector;
+import cyou.rimuru.rimulib.client.magic.WhiteSpace;
 import cyou.rimuru.shootingstardemo.magic.Casting;
-import cyou.rimuru.shootingstardemo.magic.Skill;
-import cyou.rimuru.shootingstardemo.magic.Tuning;
-import cyou.rimuru.shootingstardemo.registry.ModItems;
+import cyou.rimuru.rimulib.skill.Skill;
+import cyou.rimuru.rimulib.skill.Tuning;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.compat.StarBridge;
@@ -263,7 +262,7 @@ public final class Harness {
             player.teleportTo(level, SPAWN_X, groundY, SPAWN_Z, -90f, pitch);
 
             player.setGameMode(GameType.CREATIVE);
-            player.getInventory().setItem(player.getInventory().selected, new ItemStack(ModItems.STELLAR_REMOTE));
+            player.getInventory().setItem(player.getInventory().selected, new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("shooting_star_demo", "stellar_remote"))));
 
             CutsceneDirector.setEnabled(HarnessParams.FILM);
         });
@@ -299,7 +298,8 @@ public final class Harness {
             Tuning tuning = new Tuning(slider("power", initial.power()), slider("damage", initial.damage()),
                 slider("speed", initial.speed())).clampFor(skill);
             log("tuning: power " + tuning.power() + ", damage " + tuning.damage() + ", speed " + tuning.speed());
-            Casting.cast(player, skill, tuning);
+            // The Shooting Star 1.5.0's cast request (obfuscated, unmapped): player, index, power, damage, speed, width, for everyone
+            Casting.liiillli1l(player, index, tuning.power(), tuning.damage(), tuning.speed(), tuning.width(), false);
             // Filmed from a camera of its own: the caster is lifted high and clear, flying, so the ground Luna heaves up
             // never closes over their head (the overlay for a view blocked by a block is drawn from the player's eyes,
             // not the camera's)
