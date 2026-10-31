@@ -1,21 +1,23 @@
 package dev.ss05.halley.compat.tss.client;
 
-import cyou.rimuru.shootingstardemo.client.cinematic.CutsceneDirector;
-import cyou.rimuru.shootingstardemo.client.cinematic.Subject;
+import cyou.rimuru.rimulib.client.cinematic.CutsceneDirector;
+import cyou.rimuru.rimulib.client.cinematic.Subject;
 import cyou.rimuru.shootingstardemo.client.fx.Frame;
 import cyou.rimuru.shootingstardemo.client.fx.FxManager;
-import cyou.rimuru.shootingstardemo.client.fx.Overlay;
+import cyou.rimuru.rimulib.client.text.Overlay;
 import cyou.rimuru.shootingstardemo.client.fx.SpellFx;
-import cyou.rimuru.shootingstardemo.client.render.ScreenFx;
+import cyou.rimuru.rimulib.client.render.ScreenFx;
 import cyou.rimuru.shootingstardemo.net.SpellFxPayload;
-import cyou.rimuru.shootingstardemo.registry.ModSounds;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.MoonHud;
+import dev.ss05.halley.compat.tss.StrikeFx;
 import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.phys.Vec3;
 
@@ -23,8 +25,8 @@ import net.minecraft.world.phys.Vec3;
 final class MoonFxAdapter extends SpellFx {
     private final MoonFx fx;
 
-    MoonFxAdapter(SpellFxPayload payload) {
-        super(payload);
+    MoonFxAdapter(StrikeFx strike) {
+        super(StarClientBridge.payload(strike));
         Subject subject = this.subject();
         this.fx = new MoonFx(new MoonFx.Host() {
             @Override
@@ -55,13 +57,23 @@ final class MoonFxAdapter extends SpellFx {
             @Nullable
             @Override
             public SoundEvent remoteSound(boolean press) {
-                return press ? ModSounds.STAR_PRESS : ModSounds.STAR_ARM;
+                return BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("shooting_star_demo", press ? "star_press" : "star_arm"));
             }
-        }, payload.casterId(), this.origin, this.target, payload.seed(), payload.targets());
+        }, strike.casterId(), this.origin, this.target, strike.seed(), strike.targets());
     }
 
     MoonFx moon() {
         return this.fx;
+    }
+
+    /** The game's partial tick for this frame (The Shooting Star's Frame no longer names it). */
+    private static float partial() {
+        return Minecraft.getInstance().getFrameTime();
+    }
+
+    /** The film's subject: the caster, the strike's target and the way they faced. */
+    Subject subject() {
+        return this.liiillli1l();
     }
 
     /** The remote's speed slider for this cast: the film's clock runs at it too. */
@@ -70,23 +82,18 @@ final class MoonFxAdapter extends SpellFx {
     }
 
     @Override
-    protected void onTick(Minecraft minecraft, ClientLevel level, int t) {
-        this.fx.tick(minecraft, level, t);
+    public void beamTick(ClientLevel level, int t) {
+        this.fx.tick(Minecraft.getInstance(), level, t);
     }
 
     @Override
-    protected int duration() {
+    public int duration() {
         return MoonPlan.DURATION;
     }
 
     @Override
-    protected void onRemoved() {
+    public void onRemoved() {
         this.fx.removed();
-    }
-
-    @Override
-    public Vec3 focus() {
-        return this.target;
     }
 
     @Override
@@ -96,12 +103,12 @@ final class MoonFxAdapter extends SpellFx {
 
     @Override
     public void screen(Frame frame, ScreenFx screen) {
-        this.fx.screen(new Screen(screen), frame.partial());
+        this.fx.screen(new Screen(screen), partial());
     }
 
     @Override
     public void hud(GuiGraphics graphics, Frame frame) {
-        MoonHud.hud(graphics, this.fx, frame.partial(), Overlay.width(graphics), Overlay.height(graphics));
+        MoonHud.hud(graphics, this.fx, partial(), Overlay.width(graphics), Overlay.height(graphics));
     }
 
     /** SS-06's screen effects written into the remote's post-processing settings for this frame. */
@@ -158,6 +165,6 @@ final class MoonFxAdapter extends SpellFx {
 
     /** The remote's own "stopped world" look (a protected helper, so it is reached from here, the subclass). */
     private static void frozen(ScreenFx screen, float k, float fps) {
-        stoppedWorld(screen, k, fps);
+        liiillli1l(screen, k, fps);
     }
 }

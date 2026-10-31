@@ -78,6 +78,14 @@ ext.tssNested = '+mc1.20.1'
 apply from: 'gradle/tss.gradle'
 tssPack(tasks.named('remapJar'))
 
+// RimuLib (The Shooting Star 1.5.0+'s library, readable): compiled against, loaded in the dev runs, never shipped.
+// Bundled as one jar for several Minecraft versions too; the 1.20.1 build is taken out of it the same way TSS's is.
+var rimulibJars = fileTree(dir: 'libs', include: 'rimulib*.jar')
+if (rimulibJars.files.size() > 1) {
+    throw new GradleException("libs/ has more than one RimuLib: ${rimulibJars.files*.name} - keep one")
+}
+var rimulib = rimulibJars.isEmpty() ? files() : files(tssNestedNow(rimulibJars.singleFile, tssNested))
+
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings loom.officialMojangMappings()
@@ -90,6 +98,10 @@ dependencies {
     def tssNamedNow = tssVersions.isEmpty() ? files() : tssDeobfNow(tssVersions[0].jar)
     modCompileOnly tssNamedNow
     modLocalRuntime tssNamedNow
+    // RimuLib is readable (not obfuscated like The Shooting Star), so Loom's own mod remapping is enough; only the
+    // 1.20.1 build has to be taken out of the bundle first (see rimulib below).
+    modCompileOnly rimulib
+    modLocalRuntime rimulib
 
     // The clienttest source set sees exactly what 'main' sees (Minecraft, Fabric, The Shooting Star), plus this
     // addon's own compiled classes (to call StarBridge/HalleyContent) - only 'main' gets Loom's modding
@@ -116,6 +128,7 @@ processResources {
         version                    : project.mod_version,
         shooting_star_mod_id       : project.shooting_star_mod_id,
         shooting_star_versions     : tssVersionList.join('", "'),
+        rimulib_mod_id             : project.rimulib_mod_id,
     ]
     inputs.properties replaceProperties
     filesMatching('fabric.mod.json') {
@@ -167,7 +180,7 @@ def remapClienttestJar = tasks.register('remapClienttestJar', net.fabricmc.loom.
 def reobfClienttest = tssReobf(remapClienttestJar, 'tssReobfClienttest', 'prodtest')
 tasks.register('prodClientTest', net.fabricmc.loom.task.prod.ClientProductionRunTask) {
     // setFrom: Loom adds the project's own jar by default, which here is the one before tssPack (build/libs-raw)
-    mods.setFrom(tasks.named('tssPack'), reobfClienttest, configurations.prodMods, tssTestJar)
+    mods.setFrom(tasks.named('tssPack'), reobfClienttest, configurations.prodMods, tssTestJar, rimulib)
     runDir = file('run/prodclient')
     jvmArgs.add('-Dss05.clienttest=true')
     ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat', 'hud', 'cam', 'land', 'final', 'world', 'power', 'damage', 'speed'].each { key ->

@@ -1,41 +1,33 @@
 package dev.ss05.halley.compat.tss.client;
 
-import cyou.rimuru.shootingstardemo.client.cinematic.CutsceneDirector;
-import cyou.rimuru.shootingstardemo.client.fx.CastTitles;
+import cyou.rimuru.rimulib.client.cinematic.CutsceneDirector;
+import cyou.rimuru.rimulib.client.magic.SkillKeys;
+import cyou.rimuru.rimulib.client.magic.WhiteSpace;
+import cyou.rimuru.rimulib.client.net.RimuNetClient;
+import cyou.rimuru.rimulib.client.text.Overlay;
+import cyou.rimuru.rimulib.skill.Skill;
+import cyou.rimuru.rimulib.skill.SkillSet;
 import cyou.rimuru.shootingstardemo.client.fx.FxManager;
-import cyou.rimuru.shootingstardemo.client.fx.Overlay;
-import cyou.rimuru.shootingstardemo.client.fx.SpellFx;
-import cyou.rimuru.shootingstardemo.client.magic.SkillKeys;
-import cyou.rimuru.shootingstardemo.client.magic.WhiteSpace;
-import cyou.rimuru.shootingstardemo.magic.Skill;
 import cyou.rimuru.shootingstardemo.net.SpellFxPayload;
-import cyou.rimuru.shootingstardemo.registry.ModSkills;
-import cyou.rimuru.shootingstardemo.star.StarSkill;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.MoonHud;
-import dev.ss05.halley.compat.StarBridge;
+import dev.ss05.halley.compat.tss.StrikeFx;
 import dev.ss05.halley.compat.tss.TssLink;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import javax.annotation.Nullable;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 
 /**
  * The client half of {@link TssLink}: the only client code that touches The Shooting Star. It catches Halley's and
- * Luna's effect packets on their way to the remote's effect manager and starts {@link HalleyFx}/{@link MoonFx} for
- * them instead.
+ * Luna's effect packets ({@link StrikeFx}, through RimuLib's network) and starts their effects in the remote's effect
+ * manager, and their films in RimuLib's director.
  *
  * <h2>When The Shooting Star updates</h2>
- * Fix the imports here and in {@link HalleyFxAdapter}/{@link HalleyCutscene} and {@link MoonFxAdapter}/
- * {@link MoonCutscene}. The small mixins in {@code compat/tss/mixin} (film overlay, remote animation) switch
- * themselves off if their targets move, as do the vanilla ones in {@code compat/mixin} (raised arm, hiding the
- * vanilla moon); the skills and their effects keep working without them.
+ * Fix the imports here and in the adapters. The small mixins in {@code compat/tss/mixin} (film overlay, menu plate)
+ * switch themselves off if their targets move; the skills and their effects keep working without them.
  */
 public final class StarClientBridge {
     private static boolean installed;
@@ -43,77 +35,61 @@ public final class StarClientBridge {
     private StarClientBridge() {
     }
 
-    /**
-     * Wraps The Shooting Star's receiver for its effect packet (registered in its client initializer, so this runs
-     * once every mod's client has started): Halley's and Luna's packets start their own effects, everything else goes
-     * on to the remote's own handler untouched. (Fabric hands these packets over on the game's own thread.)
-     */
+    /** Registers the handler for Halley's and Luna's own effect packet ({@link StrikeFx}), through RimuLib's network. */
     public static synchronized void install() {
         if (installed) {
             return;
         }
         try {
-            @Nullable ClientPlayNetworking.PlayPacketHandler<SpellFxPayload> builtIn = ClientPlayNetworking.unregisterGlobalReceiver(SpellFxPayload.TYPE);
-            if (builtIn == null) {
-                HalleyAddon.LOG.warn("Halley found no receiver for The Shooting Star's effect packets; it is adding one "
-                    + "that hands every other skill's packets straight to the remote's effect manager.");
-            }
-            boolean registered = ClientPlayNetworking.registerGlobalReceiver(SpellFxPayload.TYPE, (packet, player, sender) -> {
-                if (StarBridge.installed() && packet.spell() == StarBridge.skillIndex()) {
-                    start(packet);
-                } else if (StarBridge.installed() && packet.spell() == StarBridge.moonIndex()) {
-                    startMoon(packet);
-                } else if (builtIn != null) {
-                    builtIn.receive(packet, player, sender);
-                } else {
-                    FxManager.start(packet);
+            RimuNetClient.receive(StrikeFx.PACKET, (packet, ctx) -> {
+                StrikeFx strike = (StrikeFx) packet;
+                if (strike.skill() == SkillSet.indexOf(TssLink.SKILL)) {
+                    start(strike);
+                } else if (strike.skill() == SkillSet.indexOf(TssLink.MOON)) {
+                    startMoon(strike);
                 }
             });
-            if (!registered) {
-                throw new IllegalStateException("the effect packet's receiver couldn't be replaced");
-            }
             installed = true;
         } catch (Throwable failed) {
-            HalleyAddon.LOG.error("Halley couldn't hook its effects into The Shooting Star; strikes will happen "
-                + "but won't be shown. See compat/tss/client/StarClientBridge.java.", failed);
+            HalleyAddon.LOG.error("Halley and Luna couldn't hook their effects into The Shooting Star; strikes will "
+                + "happen but won't be shown. See compat/tss/client/StarClientBridge.java.", failed);
         }
     }
 
     /**
-     * The Shooting Star 1.4.3+ sets this in a spell's effect flags when its caster plays their films for everyone near
-     * the spell (the remote's menu, "Play for everyone"); earlier versions never set it.
+     * The Shooting Star's own effect packet for a strike, which its effects are built from: (skill, caster, origin,
+     * target, yaw, seed, targets, flags, power, speed, width). Its class name is obfuscated since 1.5.0 and unmapped.
      */
-    private static final int FLAG_FILM_FOR_EVERYONE = 8;
-
-    /** Whether this client plays the strike's film: the caster's own, or anyone's when they play it for everyone. */
-    private static boolean films(boolean mine, SpellFxPayload payload) {
-        return CutsceneDirector.automatic() && (mine || (payload.flags() & FLAG_FILM_FOR_EVERYONE) != 0);
+    static SpellFxPayload payload(StrikeFx s) {
+        return new SpellFxPayload(s.skill(), s.casterId(), s.origin().x, s.origin().y, s.origin().z, s.target().x, s.target().y,
+            s.target().z, s.yaw(), s.seed(), s.targets(), s.flags(), s.power(), s.speed(), 1.0F);
     }
 
-    private static void start(SpellFxPayload payload) {
+    /** Whether this client plays the strike's film: the caster's own, or anyone's when they play it for everyone. */
+    private static boolean films(boolean mine, StrikeFx strike) {
+        return CutsceneDirector.automatic() && (mine || (strike.flags() & StrikeFx.FLAG_FOR_EVERYONE) != 0);
+    }
+
+    private static void start(StrikeFx strike) {
         if (Minecraft.getInstance().level == null) {
             return;
         }
-        HalleyFxAdapter fx = new HalleyFxAdapter(payload);
+        HalleyFxAdapter fx = new HalleyFxAdapter(strike);
         FxManager.add(fx);
-        if (films(fx.halley().mine, payload)) {
+        if (films(fx.halley().mine, strike)) {
             CutsceneDirector.play(HalleyCutscene.of(fx));
-        } else if (!fx.halley().mine) {
-            CastTitles.show(TssLink.SKILL, false, fx.focus());
         }
     }
 
     /** SS-06's effects (and its film, for the caster, or everyone near it when the caster plays it for everyone). */
-    private static void startMoon(SpellFxPayload payload) {
+    private static void startMoon(StrikeFx strike) {
         if (Minecraft.getInstance().level == null) {
             return;
         }
-        MoonFxAdapter fx = new MoonFxAdapter(payload);
+        MoonFxAdapter fx = new MoonFxAdapter(strike);
         FxManager.add(fx);
-        if (films(fx.moon().mine, payload)) {
+        if (films(fx.moon().mine, strike)) {
             CutsceneDirector.play(MoonCutscene.of(fx));
-        } else if (!fx.moon().mine) {
-            CastTitles.show(TssLink.MOON, false, fx.focus());
         }
     }
 
@@ -146,59 +122,19 @@ public final class StarClientBridge {
     }
 
     /**
-     * From compat/mixin: the Stellar Remote animates its cover, button and screen for its newest strike. If that is
-     * SS-05's or SS-06's, hand it that skill's clock instead of the one it found ({@code builtIn}, -1 for none).
-     */
-    public static float remoteClock(float builtIn, float partial) {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player == null) {
-            return builtIn;
-        }
-        int id = minecraft.player.getId();
-        int halleyAge = HalleyFx.newestAgeFor(id);
-        int moonAge = MoonFx.newestAgeFor(id);
-        boolean useMoon = moonAge >= 0 && (halleyAge < 0 || moonAge < halleyAge);
-        int mine = useMoon ? moonAge : halleyAge;
-        if (mine < 0) {
-            return builtIn;
-        }
-        if (builtIn >= 0.0F) {
-            for (StarSkill skill : StarSkill.values()) {
-                SpellFx other = FxManager.latest(skill);
-                if (other != null && other.casterId() == id && other.age() < mine) {
-                    return builtIn;
-                }
-            }
-        }
-        return useMoon ? MoonFx.remoteClockFor(id, partial) : HalleyFx.remoteClockFor(id, partial);
-    }
-
-    /** WhiteSpace's static Skill field: the skill whose key is being rebound in the menu, or null. Found by its type. */
-    private static Field binding;
-    private static boolean bindingLooked;
-
-    /**
      * Whether the remote's menu has a use for this key right now (from compat/mixin, before the addon's plate takes M
      * or C): a skill's key is being rebound, or it is the menu's, the films' or a skill's own key. When unsure, yes.
      */
     public static boolean menuUses(int key, int scancode) {
         try {
-            if (!bindingLooked) {
-                bindingLooked = true;
-                for (Field field : WhiteSpace.class.getDeclaredFields()) {
-                    if (Modifier.isStatic(field.getModifiers()) && field.getType() == Skill.class) {
-                        field.setAccessible(true);
-                        binding = binding == null ? field : null;
-                    }
-                }
-            }
-            if (binding == null || binding.get(null) != null) {
+            if (WhiteSpace.binding() != null) {
                 return true;
             }
             if (matches(SkillKeys.menu, key, scancode) || matches(SkillKeys.cutscenes, key, scancode)) {
                 return true;
             }
-            for (Skill skill : ModSkills.STELLAR_REMOTE.skills) {
+            SkillSet remote = SkillSet.of(TssLink.SKILL);
+            for (Skill skill : remote != null ? remote.skills : java.util.List.<Skill>of()) {
                 if (matches(SkillKeys.of(skill), key, scancode)) {
                     return true;
                 }

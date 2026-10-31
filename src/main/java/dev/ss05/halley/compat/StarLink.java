@@ -6,6 +6,7 @@ import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.world.Excavation;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -20,6 +21,12 @@ import net.minecraft.world.phys.Vec3;
 public interface StarLink {
     /** Adds Halley and Luna to the Stellar Remote. Throws if this version of The Shooting Star doesn't let it. */
     void install() throws Exception;
+
+    /** Runs the strikes in progress, once per server tick (The Shooting Star 1.5.0+ doesn't run them for us). */
+    void tick(MinecraftServer server);
+
+    /** Forgets every strike in progress (the server stopped). */
+    void clear();
 
     /** Catches Halley's and Luna's effect packets on the client (see compat/tss/client/StarClientBridge). */
     void installClient();
