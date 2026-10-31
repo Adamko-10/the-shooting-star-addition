@@ -37,3 +37,12 @@ versionRange = "${shooting_star_version_range}"
 ordering = "AFTER"
 side = "BOTH"
 reason = "The Shooting Star Addition adds skills to The Shooting Star's Stellar Remote."
+
+# The Shooting Star 1.5.0+ keeps its skills, menu and films in RimuLib, which the addon joins.
+[[dependencies.${mod_id}]]
+modId = "${rimulib_mod_id}"
+mandatory = true
+versionRange = "${rimulib_version_range}"
+ordering = "AFTER"
+side = "BOTH"
+reason = "The Shooting Star Addition joins RimuLib's skill list."
