@@ -42,7 +42,7 @@ public final class HalleyAddon implements ModInitializer {
         AddonNetwork.register();
 
         // Halley and Luna join the Stellar Remote once The Shooting Star has registered its skills: Fabric runs main
-        // entrypoints in no fixed order, so that is just before RimuLib's client starts (compat/mixin/RimulibClientMixin)
+        // entrypoints in no fixed order, so that is just before RimuLib's client starts (client/mixin/RimulibClientMixin)
         // or, on a dedicated server, in HalleyServer.
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {

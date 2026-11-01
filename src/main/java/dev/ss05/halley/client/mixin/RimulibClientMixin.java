@@ -1,4 +1,4 @@
-package dev.ss05.halley.compat.mixin;
+package dev.ss05.halley.client.mixin;
 
 import dev.ss05.halley.compat.StarBridge;
 import org.spongepowered.asm.mixin.Mixin;
