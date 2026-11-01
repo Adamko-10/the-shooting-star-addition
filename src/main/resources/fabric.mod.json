@@ -21,6 +21,9 @@
     ],
     "client": [
       "dev.ss05.halley.client.HalleyClient"
+    ],
+    "server": [
+      "dev.ss05.halley.HalleyServer"
     ]
   },
   "mixins": [
