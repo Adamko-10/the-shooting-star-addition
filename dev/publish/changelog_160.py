@@ -30,7 +30,7 @@ BODY = """
 Everything else (both skills, their films, music, sliders, no cooldown and the server's limits) works as in 1.5.1.
 """
 EXTRA = {
-    'fabric-26.3': "\nNote for Fabric 26.3: as of 1.6.0's release, The Shooting Star 1.5.0's own Fabric 26.3 build doesn't start (two of its shaders fail to load), with or without this addon. This version is ready for when The Shooting Star fixes that.\n",
+    'fabric-26.3': "\nNote for Fabric 26.3: as of 1.6.0's release, The Shooting Star 1.5.0's own Fabric 26.3 build doesn't start: two of its own shaders fail to load, a problem in The Shooting Star itself. This version is ready for when The Shooting Star fixes that.\n",
 }
 os.makedirs(OUT, exist_ok=True)
 for b, head in HEAD.items():
