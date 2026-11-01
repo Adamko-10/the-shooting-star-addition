@@ -4,6 +4,7 @@
   "package": "dev.ss05.halley.compat.mixin",
   "compatibilityLevel": "JAVA_17",
   "client": [
+    "RimulibClientMixin",
     "ClientLevelMixin",
     "ClientLevelTimeMixin",
     "FogRendererMixin",
