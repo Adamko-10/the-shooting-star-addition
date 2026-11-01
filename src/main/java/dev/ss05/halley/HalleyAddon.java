@@ -41,9 +41,9 @@ public final class HalleyAddon implements ModInitializer {
         HalleyContent.register();
         AddonNetwork.register();
 
-        // Fabric runs every mod's main entrypoint before any client one, so SS-05 is on the Stellar Remote before
-        // The Shooting Star's client sets up the remote's key bindings: it gets its own key like the other skills.
-        StarBridge.install();
+        // Halley and Luna join the Stellar Remote once The Shooting Star has registered its skills: Fabric runs main
+        // entrypoints in no fixed order, so that is just before RimuLib's client starts (compat/mixin/RimulibClientMixin)
+        // or, on a dedicated server, in HalleyServer.
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             HalleyConfig.SPEC.load();
