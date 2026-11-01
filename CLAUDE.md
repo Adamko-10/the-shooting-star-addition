@@ -263,7 +263,12 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
    other mod links) exactly as it is**; update the rest to match the features.
 7. Delete `wip/*` branches and `ci-*` drafts.
 
-## 9. Status (2026-10-18)
+## 9. Status (2026-11-01)
+
+- **1.6.0 is released** (2026-11-01, §16): all seven branches pushed (CI green: builds everywhere; in-game tests on
+  main and Fabric 1.21.1/1.20.1/1.21.11; none on Forge, none possible on 26.3, see §16), seven GitHub releases
+  `v1.6.0...` and seven CurseForge files (TSS [Demo] + RimuLib required, + Fabric API on Fabric). Jars: CI's, from the
+  pushed code; copies in `The Shooting Star Addition releases/1.6.0 (to test)/`. The user didn't test before release.
 
 - **2026-10-29** open items:
   - **NeoForge music** (reported against 1.5.0): Luna's music and its M switch didn't work on NeoForge but did on
@@ -617,4 +622,17 @@ bundle with nested jars per MC like TSS's). Everything below is true of 1.6.0; �
   (`rimulib_version_range`). CI downloads it (`RIMULIB_FILE` in `dev/ci/branches/*.sh`).
 - **Verified**: main (NeoForge) in a local production run on the real GPU: attaches (Halley #6, Luna #7), Luna's cast,
   film, screen effects, crater, the H menu with the plate.
+- **Fabric attach order**: Fabric runs main entrypoints in no fixed order, and TSS registers its skills in its own,
+  so attaching in our `onInitialize` failed ("registered no Stellar Remote skills"). We attach at the head of RimuLib's
+  client entrypoint (`RimulibClientMixin`, in the branch's own mixin package: `compat/mixin` on 1.21.1/1.20.1,
+  `client/mixin` on 1.21.11/26.3; before RimuLib makes the skill keys) and, on dedicated servers, in the `server`
+  entrypoint `HalleyServer`.
+- **Fabric 26.3**: TSS 1.5.0's own 26.3 build ships its core shaders (`shaders/core/armillary_glow`, `remote_screen`)
+  with scrambled text (`#extension ... : _lllll`, renamed includes), so the game dies loading them, on CI and on the
+  user's GPU alike; nothing in TSS/RimuLib rewrites them. Our side attaches (Halley #6, Luna #7). Wait for a TSS fix.
+- Per-branch name differences in 1.5.0's readable copy (javap them after every TSS update): the payload record is
+  `l1l1i1lii1` on NeoForge, readable `net.SpellFxPayload` on Forge/Fabric; FxManager's film-HUD hook maps to
+  `renderFilmHud` on NeoForge/Forge 1.21.1, an obfuscated name on Forge 1.20.1/Fabric 1.20.1/26.3, `renderHud` on
+  Fabric 1.21.1 (harmless: our film overlays draw only while a film plays). forge-1.20.1's `TssRemap` renames clashing
+  field names (its SRG tool crashed on them); Fabric's `TssMatch` copies compare `flat()` against the prefix.
 - Changelog: `dev/publish/changelog_160.py`. Players on TSS 1.4.4 or older keep 1.5.1.
