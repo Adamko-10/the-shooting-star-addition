@@ -6,6 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 the end of the 1.4.0 work, updated 2026-10-17 for 1.5.0 (§12) and 2026-10-18 for the user's 1.5.0 test round (§13; status in §9),
 and 2026-10-29 with the agreed plan for the next updates and SA-03 Proxima (§14, §15). Nothing in §14/§15 is built yet.
 **2026-10-31: 1.6.0 = The Shooting Star 1.5.0 + RimuLib support (§16); read §16 before §5, which describes 1.4.x.**
+2026-11-03: how RimuLib 1.2.2 makes huge carvings fast and how we'd use it (§17).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
@@ -31,11 +32,20 @@ are on **Hamza's PC**; anywhere else, you are on **Adam's PC**. Adam is the one 
   1.6.0, **RimuLib** (required), plus **Fabric API** (required) on Fabric builds.
 - In Markdown changelogs, don't put `(` right after `]`.
 - Never print the GitHub token. Never enter credentials anywhere.
-- **Every change goes to every branch** (§3). Sonnet subagents (`model: "sonnet"`) are fine for bounded mechanical work.
+- **New features are built on one branch first** (`main`, unless the user picks another; user, 2026-11-03): the user
+  wants to see a feature as they imagine it (look, VFX, film, sounds) in one version, test it and approve it before
+  anything is ported. Only after that approval does it go to the other six branches (§3); from then on **every change
+  goes to every branch**. Sonnet subagents (`model: "sonnet"`) are fine for bounded mechanical work.
 - *(Adam's PC only)* For browser uploads (CurseForge), ask the user to disable their Chrome tab suspender first.
 - Deleting the user's files needs permission (rename mods to `.disabled` instead).
 - Talking to the user: after coding, give a clear list of **what they need to do**; for testing, a list of **what to
   test**. They may say "you can stop telling me now"; start again when the topic changes (building → testing etc.).
+  Adam skims long replies (2026-11-03): keep replies short, ask every open question as clickable choices
+  (AskUserQuestion), and re-ask anything earlier left unanswered.
+- **Reminders to give the user** (bring each up at its moment, unasked; the user wants none forgotten):
+  - idea #16 (§10), for the Mrityu mod: "later", e.g. at the end of a work session;
+  - Proxima's other film ideas (§15, "Extra content") once Proxima's film is built and again when it ships;
+  - the SA-04 candidates (§10) once Proxima is under way; the Solar Residue economy (§14) when Proxima is built.
 - *(Adam's PC only)* If finishing a task past 2 AM their time, shut down their PC (unless told not to). If running low on tokens, schedule
   a continuation.
 - The user is budget-conscious: don't over-test; one CI round per change set is normally enough, and they test in game.
@@ -63,6 +73,8 @@ All branches live in **one** git repository, one worktree per branch. On the use
 `origin/fabric-1.21.1`: push it with `git push origin fabric-1.21.1-next:fabric-1.21.1`), `tssa-fabric1201`. Leave
 `tssa-fabric1211` alone: it holds the user's old uncommitted 1.3.0-era edits on the local `fabric-1.21.1` branch.
 **Never use `git stash` with worktrees**: the stash stack is shared by all of them and pops land on the wrong branch.
+On **Adam's PC** there is one plain clone on `main`, no worktrees: `C:\Users\adam_\Documents\the-shooting-star-addition`
+(made 2026-11-03). Its `libs/` is empty: TSS/RimuLib jars and the mapping chain (§4) come before its first build.
 
 | Branch | Loader / MC | TSS package prefix | Release tag | Jar label |
 |---|---|---|---|---|
@@ -263,7 +275,33 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
    other mod links) exactly as it is**; update the rest to match the features.
 7. Delete `wip/*` branches and `ci-*` drafts.
 
-## 9. Status (2026-11-01)
+## 9. Status (2026-11-03)
+
+- **2026-11-03** (Adam's PC):
+  - **TSS 1.5.1 is out** (CurseForge 2026-11-01, after our 1.6.0). `tssVersionRange` (gradle/tss.gradle) allows each
+    supported version up to its next patch, so 1.6.0 should declare TSS `[1.5.0,1.5.1)` and refuse to load next to
+    1.5.1. Not yet checked against the released jar, nor 1.5.1's obfuscated names (§16).
+  - **Why TSS's big carvings feel instant** (read from an unobfuscated early TSS 1.5.0 build for Fabric 1.21.11 and
+    RimuLib 1.1.4, decompiled in the scratchpad): Gungnir (`RADIUS` 400) holds one chunk ticket (radius <= 32) from
+    the cast to its impact, so the 16 s wind-up loads the land; `Carving.buildAhead(front)` builds each chunk's carved
+    sections on 2-8 "Carving builder" threads from copied palettes a few ticks before the wave reaches it, and the
+    server thread only swaps them in (a `ChunkEdits` stamp throws away copies of chunks that changed meanwhile);
+    sections wholly above the floor become empty sections; `batched(floors)` computes floors for many chunks at once;
+    `perTick(36)` follows the visual wave front. We already use flatten/perTick/streaming/linger/paint
+    (`TssLink.excavate`), not `buildAhead` or `batched`, and Luna holds no wind-up ticket (§12).
+  - The server finale is "in a while": no deadline. The Discord bot: decide later. Halley's music: the user thought of
+    something like Interstellar's "Cornfield Chase" (Hans Zimmer, copyrighted: not shippable without a licence).
+  - **Decisions**: the user plays and tests on **NeoForge 1.21.1**, so `main` is the one-version branch (§0). TSS 1.5.1
+    (and newer) support ships **with Proxima**, not as a fix of its own. Their server uses a claims mod (FTB Chunks):
+    no claim support wanted (our carving writes straight into chunks, so it ignores claims). The user is making
+    Proxima's music now. When work starts: the addon's plate in the H menu says that Luna's music follows Minecraft's
+    **Music** volume slider (§13).
+  - **TSS 1.5.2 / RimuLib 1.2.2 (early access)**: TSS 1.5.2's early jar is a launcher that logs in (hardware id) and
+    loads the mod into memory: nothing to read in it, and don't try to get round that (no memory dumps either: the user
+    asked, 2026-11-03, and dropped the idea). RimuLib 1.2.2 is a plain jar and holds all the speed-ups: see §17.
+  - **The TSS developer's terms** (the user's notes, 2026-10-18): rimuru.dev said the addon may go on despite the
+    obfuscation; he doesn't want Bedrock ports or his assets used. Never use TSS's assets (players asking for films
+    "exactly like the original" get the style, made with RimuLib's film tools, not copies).
 
 - **1.6.0 is released** (2026-11-01, §16): all seven branches pushed (CI green: builds everywhere; in-game tests on
   main and Fabric 1.21.1/1.20.1/1.21.11; none on Forge, none possible on 26.3, see §16), seven GitHub releases
@@ -324,10 +362,37 @@ From the community list the user forwarded (they picked 1, 2 and 4 for 1.4.0):
      centre, a few magma vents, the sea pulling back and surging in.
    - **White hole**: spews matter and energy over the land. Concept still rough.
    (Both came from the user's community poll, 2026-10-20, alongside the solar flare; inspired by TSS's own black hole.)
-16. **Custom animation when a boss is hit by a shooting-star laser** (user's note, 2026-10-15). Not discussed yet.
+16. **Custom animation when a boss is hit by a shooting-star laser** (user's note, 2026-10-15): for the user's
+   **Mrityu mod**, not this addon. **Remind the user about it later.**
 13. The CurseForge comment asking for speed/range/damage options: done by the sliders (1.4.0).
 15. **Music for skills**: Luna has hers; the user plans one for Halley too (same approach as §6: cut the track so its
    drop lands on Halley's impact, `HalleyPlan` impact = 330 at default trench length, start at e.g. ENTRY or SIGHT).
+
+From the user's own notes (notebook and Discord self-DMs, 2026-10-23..11-03; none decided yet):
+
+- **Luna Omega**: retcon Luna into a random rogue moon (so it can stay made of cheese) and add **Luna Omega**, the
+  real moon, not made of cheese. (Reading confirmed 2026-11-03; the user isn't sure about the idea yet.)
+- **Black holes** (for the TON-618 idea, #12): a small one with no film (or a spawn animation) that compresses mass and
+  sucks it in, destabilises, then stabilises, with a switch to stop it stabilising; a huge one in the sky
+  ("gigantophobia") with a film.
+- **Combined skills**: e.g. Luna + Gungnir = a molten moon-cheese moon, its own model and a new film.
+- Proxima: blocks thrown into the air (block displacement); its own default key and configs.
+- Luna: a switch on the H-menu plate to keep the moon model after landing instead of crumbling (for filming; the
+  note "make this toggleable in h menu" meant this, user 2026-11-03); a delayed shockwave.
+- Halley: a little less screen shake in the seconds after the explosion. Both skills: a setting to reduce or remove
+  impact frames.
+
+From the CurseForge comments (reviewed 2026-11-03):
+
+- **Gravitia keybind** (TSS's own SS-06, which has no key): a toggle to give it one. The user promised it for "the next
+  major update". The remote's keys are RimuLib's (`client.magic.SkillKeys`, readable); why Gravitia has none is not
+  checked yet.
+- **Title cards** like TSS 1.5.0's for our films (Proxima's are planned, §15).
+- **The sounds sound AI-made** (they are): replace the main ones with real or licensed sounds.
+- **Films "exactly like the original"**: the style, not TSS's assets (§9).
+- **Incursion** (gomez_96): two Earths colliding. Could reuse Luna's machinery.
+- **Pulsar** (sound_dream): a gamma-ray beam sweeping a line, leaving radiation. Fits the SA-04 neutron star.
+- Forge: players found it buggy, and since 1.6.0 Forge gets no in-game test (§16): test it once before a release.
 
 Visual/sound polish the user asked for but that was cut for budget:
 
@@ -485,14 +550,14 @@ the config instead of a second addon, which would double the mapping/branch/CI/C
 - **Operator strike commands** (the user definitely wants these next): operators only (permission level 2), trigger a
   skill without the remote, e.g. `/ssa strike <halley|luna> <pos> [power] [speed] [damage]` (add `proxima` when it
   exists). Reuse the cast path (`HalleyCasting`/`MoonCasting`) with a `CastTuning`; decide what "caster" means for
-  the film (the command's source player if any, else no film, or the nearest player). Mind the server slider limits
-  (§6) - operators probably bypass them. Needed for the user's server finale (below).
+  the film (the command's source player if any, else no film, or the nearest player). Commands ignore the server
+  slider limits (§6): operators set them (user, 2026-11-03). Needed for the user's server finale (below).
 - **Epic mode** (user, 2026-10-19): the plate's **M** switch becomes "Epic mode": Luna's music **and** a slower, more
   ominous fall. Decided: **the slow fall applies to everyone watching** (server-side timing); the music stays each
   player's own choice. So the caster's switch must travel with the cast (like the no-cooldown choice via
   `ChoicePayload`) and pick a slower `MoonPlan` timeline; the music needs its own cut for it (1.5.1's is cut, not
-  stretched, to the 16 s from ALARM to CONTACT, §13; recipe in `docs/SS-06-LUNA.md`). The normal fall: probably keep
-  1.5.1's (CONTACT 330, with Halley's impact, which the user asked for in §13); confirm with the user.
+  stretched, to the 16 s from ALARM to CONTACT, §13; recipe in `docs/SS-06-LUNA.md`). The normal fall keeps
+  1.5.1's (CONTACT 330, with Halley's impact, which the user asked for in §13; confirmed 2026-11-03).
 - **Protected-blocks tag** (§10 #6): `shooting_star_addition:unbreakable`; matters even more for Proxima's wide area.
 
 ### The user's server (personal, not a mod feature as such)
@@ -528,6 +593,25 @@ skippable like the other films). Title card **"DYSON SPHERE"**: a dark metal lat
 like an iris. Two plasma loops twist into an **infinity sign** (the user's idea; real physics: twisted "sigmoid"
 regions erupt when the loops reconnect), flare white at the crossing, collapse to a point. Title card **"CORONAL MASS
 EJECTION"** written in the CME's own plasma filaments, half-formed, torn apart as the wave launches.
+
+**How it reaches Earth: the lens beam** (decided 2026-11-03; the intro above stays): the star stays home, 4.2 light
+years away. After the infinity-sign flare, the Dyson sphere's panels fold into one giant lens that focuses the flare
+into a beam; a gate near Earth catches it and spreads it back out into the wave (phase 2's coronal front comes out of
+the gate).
+
+**Look like TSS's films** (user, 2026-11-03: "as similar as the original mod as possible", the Earth and the camera
+movement especially): use RimuLib's film tools (`client.cinematic`: `CameraRig`, `Shot`, `Subject`, `CutsceneDirector`),
+which TSS's own films use, so the camera feels the same. TSS's space Earth comes from free imagery it credits
+(`textures/moonfall`, `shooting_star/CREDITS.txt`): NASA Blue Marble / Black Marble (day, lights, clouds, height), the
+LRO Moon, the ESO Milky Way (CC BY 4.0), Solar System Scope planets (CC BY 4.0). Download those from their sources
+(credit the CC BY ones), never copy TSS's files or shaders (§9, the developer's terms); write our own Earth shader
+and match it by eye.
+
+**Extra content** (the user liked these too; not for now, **mention them** per §0): a gate in the sky above the
+target with the star staying home; an artificial red dwarf in its Dyson sphere parked high above Earth (the
+commenter's original idea; "Proxima" = now the nearest star); "fired years ago" (a "4.2 YEARS AGO" card at Proxima
+Centauri as the flare launches, then "NOW" as it arrives); Proxima itself warping next to Earth. Could be alternate
+films, a setting, or other skills.
 
 **Draft `ProximaPlan`** (ticks): ARM/PRESS 0-7 as the others; INTRO ~10-90; FLASH ~90 (phase 1); FRONT ~100-260
 (phase 2); HUSH ~260-270 (near-silence, everyone thinks it's over); IMPACT ~270 (phase 3); AFTER ~270-600 (pullback
@@ -636,3 +720,57 @@ bundle with nested jars per MC like TSS's). Everything below is true of 1.6.0; �
   Fabric 1.21.1 (harmless: our film overlays draw only while a film plays). forge-1.20.1's `TssRemap` renames clashing
   field names (its SRG tool crashed on them); Fabric's `TssMatch` copies compare `flat()` against the prefix.
 - Changelog: `dev/publish/changelog_160.py`. Players on TSS 1.4.4 or older keep 1.5.1.
+
+## 17. How RimuLib 1.2.2 makes big carvings fast (read 2026-11-03, nothing used yet)
+
+Read from RimuLib 1.2.2's Fabric 1.21.11 jar (early access, decompiled in the scratchpad). Check the NeoForge 1.21.1
+build has the same once it's public: `Fresh` hooks `ChunkStatusTasks` (1.20.5+), so 1.20.1 builds may lack it. The
+idea behind all of it: **the server thread only copies and swaps; the rest runs on helper threads or never happens.**
+
+- **One shared budget**: `Carving.tick(front)` cuts until 30 ms of the server tick are used (`TICK_BUDGET_NS`), shared
+  by every carving that tick (static `budgetTick`/`budgetUsedNs`), so ours and TSS's together stay under 30 ms.
+  `perTick(n)` now only applies when something listens to block changes (`Carving.watch`) or on a client level;
+  otherwise a batch is up to 128 chunks (`HELPED_BATCH`), so our `chunks_per_tick` (§6) stops mattering for floors.
+- **Parallel cutting** (`cutTogether`/`inParallel`): the batch is split over 2-8 helper threads (`BUILDERS` = cores - 2)
+  plus the server thread, each writing straight into its own chunks' live sections (`setBlockState(..., false)`: no
+  updates, no neighbours). Each thread stops when its measured time per chunk would pass the deadline; leftovers
+  carry to the next tick. Sections wholly above the floor are replaced by a new empty section, not cleared block by
+  block. Floors (`Carving.Floor`) and surfaces (`Surface`) of `flatten` are still computed on the server thread, so
+  ours need not be thread-safe for this.
+- **Batched aftermath** (server thread): light marks only for sections whose emptiness changed, one light job per
+  chunk, block entities above the floor removed; `sendAll` builds the chunk packets on helpers (chunks without block
+  entities) and sends each chunk once. `relightAll(level, chunks)` does the same for any chunk list, and since 1.2.2
+  `Carving.paint` uses it, so `MoonLand`/`MoonBuild` get batched relight/send for free.
+- **Heightmaps from the palette** (`primeHeightmaps`): one pass per column over the section palettes, skipping empty
+  sections and starting at the known floor, filling every heightmap type at once (vanilla rescans each type).
+- **Build-ahead** (`buildAhead(front)`, since 1.1.4, §9): chunks the wave reaches soon are built from copied palettes on
+  the `BUILD` pool and swapped in when it arrives; a `ChunkEdits` stamp (bumped by `ChunkEdits.touched`) discards a copy
+  whose chunk changed meanwhile.
+- **Lazy carvings** hold tickets for up to 64 waiting chunks at a time (`Tickets.hold`) and re-sweep a waiting list of
+  over 4096 chunks only every 20 ticks.
+- **`SectionSink`** (bulk edits for shapes that aren't a floor: our moon, rim, cracks): `begin(level, ranges, x0, z0,
+  cell, clearLo, clearHi)` lists the chunks and their y ranges; `take(level, deadline[, held])` (server thread,
+  time-boxed) copies those sections and watches their stamps; `prepare()` (off-thread) makes working copies, sections
+  wholly inside the cell and the clear band starting empty; `get`/`put`/`clear` (off-thread) build the shape;
+  `stale(level)` says whether a chunk changed meanwhile; `apply(level)` (server thread) swaps the built sections in,
+  drops dead block entities, marks light and returns the chunk keys for `relightAll`. `SectionCodec` reads/builds a
+  section straight from palette ids.
+- **`Fresh`** (carve land before it exists): `Fresh.hold(level, chunkKey)` *before* the chunk generates (null if
+  already held). RimuLib's `ChunkStatusTasksMixin` parks that chunk just before its light step (`hold.held()`,
+  `hold.chunk()` = the proto-chunk). Pass `key -> hold` to `SectionSink.take`; `apply` writes the parked chunk and
+  releases it (`settle`: dead block entities, heightmaps, light marks), then generation lights it once. Generated,
+  carved, lit and sent once: no carve-relight-resend. Only for chunks not generated yet (an existing chunk never
+  arrives). Release every hold (`dropFresh` or `release(level, false)`), or that chunk never finishes generating
+  (`Fresh.releaseAll` runs on server stop).
+- **`Bulwark`** (not speed): a shield API for other mods. Every `Carving` warns raised `Ward`s when it is made
+  (`Bulwark.cut`), and carvings and `paint` skip the columns a ward spares (`Bulwark.spares`); the eraser spares
+  sheltered entities. So our strikes already respect other mods' RimuLib shields.
+
+**What it means for us** (when work starts, on `main` first, §0):
+1. Updating to RimuLib 1.2.2 alone gives the crater floors (`TssLink.excavate`, `Carving.flatten`) parallel cutting,
+   the shared budget and batched sends, and `paint` batched relight/send. No code change.
+2. Hold the land ahead from the cast, as Gungnir does (one ticket, radius <= 32), plus `Fresh.hold` for chunks not
+   generated yet, so the wind-up generates them already carved.
+3. Move `MoonBuild`/`MoonLand`'s per-chunk `paint` calls to one `SectionSink` per cell: copy on the server thread, build
+   on helpers, swap and `relightAll` once.
+4. `buildAhead` for the crater's streamed part.
