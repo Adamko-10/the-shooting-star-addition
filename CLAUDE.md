@@ -295,6 +295,11 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
   `test builds\2026-11-03 Luna preload, TSS 1.5.1\` (the folder marked "TSS 1.5.0 (older)" is the first build).
   New idea: Stellar Convergence (§18). Commands: TSS's skills too, and a no-limits warning (§14). The user reset the
   API key and bot token that were in their Discord export. Still unknown: the server finale date.
+  **Where the user plays (Adam's PC)**: the Modrinth App profile `D:\ModrinthApp\profiles\NeoForge 1.21.1 (1)\mods`
+  (the user asked for test jars to go there). It has TSS 1.5.1, RimuLib 1.2.1 and the test addon jar since
+  2026-11-03 (copied in by hand, so Modrinth shows them as unmanaged), next to Sodium, Iris, Lithium, C2ME (alpha:
+  changes chunk generation, suspect it first if craters or loading misbehave), ModernFix, Distant Horizons and others.
+  Replace the addon jar there with each new test build (the old one renamed `.disabled`, §0).
 - **2026-11-03** (Adam's PC):
   - **TSS 1.5.1 is out** (CurseForge 2026-11-01, after our 1.6.0). `tssVersionRange` (gradle/tss.gradle) allows each
     supported version up to its next patch, so 1.6.0 declares TSS `[1.5.0,1.5.1)` and refuses to load next to 1.5.1
