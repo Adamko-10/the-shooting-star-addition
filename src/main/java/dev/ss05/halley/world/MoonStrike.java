@@ -60,14 +60,17 @@ import net.minecraft.world.phys.Vec3;
  *
  * <h2>Never loading land it doesn't need</h2>
  * Like The Shooting Star's own carvings, it only loads the land the moon itself needs: the crater round the moon (and
- * the moon's own chunks) are loaded a few at a time as they are cut and built. Everything further out - the rest of
- * the crater's floor, the rim, the cracks, the debris - is done where land is loaded, and wherever it isn't, as that
- * land next loads (while the server runs: The Shooting Star's lingering carvings, and {@link MoonLand}'s). Nothing is
- * ever generated for it.
+ * the moon's own chunks), held from the cast on so they are loaded by the time the moon lands (like Halley's crater and
+ * The Shooting Star's Gungnir), and a bigger moonfall's rest a few chunks at a time as it is cut and built. Everything
+ * further out - the rest of the crater's floor, the rim, the cracks, the debris - is done where land is loaded, and
+ * wherever it isn't, as that land next loads (while the server runs: The Shooting Star's lingering carvings, and
+ * {@link MoonLand}'s). Nothing out there is ever generated for it.
  */
 public final class MoonStrike {
     private static final TicketType<ChunkPos> TICKET = TicketType.create(HalleyAddon.MOD_ID + ":luna", Comparator.comparingLong(ChunkPos::toLong));
     private static final int EVAC_COLOR = 0x6FE8FF;
+    /** The most chunks round the mark held loaded from the cast (Halley's cap too); a bigger moonfall streams the rest. */
+    private static final int MAX_TICKET_RADIUS = 12;
 
     /**
      * Ticks after everything is cut and built at which the crater's chunks are sent to players again. The fast carver
@@ -94,6 +97,9 @@ public final class MoonStrike {
     private final CastTuning cast;
     private final MoonParams params;
     private final MoonConfig.Tuning tuning;
+    /** The chunk of the mark and how many chunks round it are held loaded from the cast (0: none, or let go). */
+    private final ChunkPos markChunk;
+    private int heldRadius;
     /** The single chunks the carver (or the moon's builder) is streaming in (see {@link Excavation.Loader}), let go once cut or at the end. */
     private final Set<ChunkPos> streamed = new HashSet<>();
     private final Excavation.Loader loader = new Excavation.Loader() {
@@ -136,6 +142,12 @@ public final class MoonStrike {
         this.cast = cast;
         this.params = plan.params;
         this.tuning = MoonConfig.tuning();
+        this.markChunk = new ChunkPos(Mth.floor(plan.target.x) >> 4, Mth.floor(plan.target.z) >> 4);
+        if (this.params.carve()) {
+            // loaded (generated if need be) over the 16 s fall, not all at once when the moon lands
+            this.heldRadius = Math.min(MAX_TICKET_RADIUS, (int) Math.ceil((this.coreRadius() + 16.0) / 16.0));
+            this.level.getChunkSource().addRegionTicket(TICKET, this.markChunk, this.heldRadius, this.markChunk);
+        }
         HalleyAddon.LOG.debug("Luna called by {}: mark {}, falling from {}", caster.getScoreboardName(), plan.target, plan.startCentre);
     }
 
@@ -156,6 +168,10 @@ public final class MoonStrike {
     // ---- Chunk tickets: only ever for the chunks the crater round the moon and the moon itself are waiting for. -----
 
     private void releaseChunks() {
+        if (this.heldRadius > 0) {
+            this.level.getChunkSource().removeRegionTicket(TICKET, this.markChunk, this.heldRadius, this.markChunk);
+            this.heldRadius = 0;
+        }
         for (ChunkPos pos : this.streamed) {
             this.releaseChunk(pos);
         }
