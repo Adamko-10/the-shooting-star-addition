@@ -81,9 +81,9 @@ On **Adam's PC** everything lives in the project folder `C:\Users\adam_\Document
 2026-11-03): `the-shooting-star-addition\` (one plain clone on `main`, no worktrees), `early access\` (TSS 1.5.0
 early build, TSS 1.5.2's locked launcher, RimuLib 1.1.4 and 1.2.2: never commit, never share), `old versions\` (older
 release jars and the 1.1.0 handoff), `old notes\` (older CLAUDE.md copies, superseded by this file). Release jars go in
-`releases\<ver>\`. An older clone at `C:\Users\adam_\Documents\the-shooting-star-addition` is superseded (delete only
-with the user's OK). The clone's `libs/` is empty: TSS/RimuLib jars and the mapping chain (§4) come before its first
-build.
+`releases\<ver>\`, test jars in `test builds\<date> <what>\`. The first clone, `C:\Users\adam_\Documents\the-shooting-star-addition`,
+went to the Recycle Bin (user's OK, 2026-11-03; nothing unpushed). The clone's `libs/` has TSS 1.3.3-1.5.0 (NeoForge)
+and RimuLib 1.1.5, mapped (§4).
 
 | Branch | Loader / MC | TSS package prefix | Release tag | Jar label |
 |---|---|---|---|---|
