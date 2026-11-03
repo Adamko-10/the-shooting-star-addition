@@ -6,11 +6,14 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-/** Client to server: the player's own no-cooldown switch in the Stellar Remote's menu (see {@code NoCooldown}). */
-public record ChoicePayload(boolean noCooldown) implements CustomPacketPayload {
+/**
+ * Client to server: the player's own switches in the Stellar Remote's menu that the server acts on: no cooldown (see
+ * {@code NoCooldown}) and where the evac takes them (true: straight up; see {@code Evac}).
+ */
+public record ChoicePayload(boolean noCooldown, boolean evacLift) implements CustomPacketPayload {
     public static final Type<ChoicePayload> TYPE = new Type<>(HalleyAddon.id("no_cooldown"));
     public static final StreamCodec<ByteBuf, ChoicePayload> CODEC = StreamCodec.composite(
-        ByteBufCodecs.BOOL, ChoicePayload::noCooldown, ChoicePayload::new);
+        ByteBufCodecs.BOOL, ChoicePayload::noCooldown, ByteBufCodecs.BOOL, ChoicePayload::evacLift, ChoicePayload::new);
 
     @Override
     public Type<ChoicePayload> type() {

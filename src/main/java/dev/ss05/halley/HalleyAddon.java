@@ -87,6 +87,7 @@ public final class HalleyAddon {
         NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerLoggedOutEvent.class, event -> {
             if (event.getEntity() instanceof ServerPlayer player) {
                 NoCooldown.forget(player);
+                Evac.forget(player);
             }
         });
     }

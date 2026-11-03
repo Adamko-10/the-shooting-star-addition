@@ -73,8 +73,11 @@ public interface StarLink {
      */
     void hit(ServerLevel level, LivingEntity victim, ServerPlayer attacker, float damage);
 
-    /** Teleports a caster standing within {@code zone} of the target out to {@code refuge}, held in the air. */
-    boolean liftClear(ServerPlayer caster, Vec3 target, double zone, double refuge, int ticks);
+    /**
+     * Takes a caster standing within {@code zone} of the target out of it, falling slowly: straight up ({@code lift}),
+     * or out to {@code refuge} from the target when that land is loaded (else up). Never onto land that isn't loaded.
+     */
+    boolean liftClear(ServerPlayer caster, Vec3 target, double zone, double refuge, int ticks, boolean lift);
 
     /** Places blocks fast (straight into the chunk sections), relights and resends the chunks. */
     void paint(ServerLevel level, Map<BlockPos, BlockState> blocks);

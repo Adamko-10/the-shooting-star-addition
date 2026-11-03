@@ -173,8 +173,8 @@ public final class StarBridge {
         link().hit(level, victim, attacker, damage);
     }
 
-    public static boolean liftClear(ServerPlayer caster, Vec3 target, double zone, double refuge, int ticks) {
-        return link().liftClear(caster, target, zone, refuge, ticks);
+    public static boolean liftClear(ServerPlayer caster, Vec3 target, double zone, double refuge, int ticks, boolean lift) {
+        return link().liftClear(caster, target, zone, refuge, ticks, lift);
     }
 
     public static void paint(ServerLevel level, Map<BlockPos, BlockState> blocks) {

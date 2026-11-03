@@ -26,6 +26,8 @@ import dev.ss05.halley.world.MoonCasting;
 import dev.ss05.halley.world.MoonInfo;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -296,20 +298,53 @@ public final class TssLink implements StarLink {
     }
 
     @Override
-    public boolean liftClear(ServerPlayer caster, Vec3 target, double zone, double refuge, int ticks) {
-        // The Shooting Star 1.5.0 has no lift to call any more: set the caster down out of the zone, falling slowly
-        Vec3 away = caster.position().subtract(target).multiply(1.0, 0.0, 1.0);
-        Vec3 dir = away.lengthSqr() < 1.0E-4 ? new Vec3(1.0, 0.0, 0.0) : away.normalize();
-        Vec3 to = target.add(dir.scale(refuge));
-        int y = caster.serverLevel().getHeight(Heightmap.Types.MOTION_BLOCKING, (int) Math.floor(to.x), (int) Math.floor(to.z));
-        caster.teleportTo(to.x, y + 1.0, to.z);
+    public boolean liftClear(ServerPlayer caster, Vec3 target, double zone, double refuge, int ticks, boolean lift) {
+        // The Shooting Star 1.5.0 has no lift to call any more: take the caster out of the zone, falling slowly. Never
+        // onto land that isn't loaded: its height reads as the bottom of the world (bedrock), and the teleport waits for
+        // it to load, behind the strike's own chunks (a 40 s freeze at 10x, 2026-11-03)
+        ServerLevel level = caster.serverLevel();
+        Vec3 to = null;
+        if (!lift) {
+            Vec3 away = caster.position().subtract(target).multiply(1.0, 0.0, 1.0);
+            Vec3 dir = away.lengthSqr() < 1.0E-4 ? new Vec3(1.0, 0.0, 0.0) : away.normalize();
+            BlockPos edge = BlockPos.containing(target.add(dir.scale(refuge)));
+            if (level.hasChunkAt(edge)) {
+                to = new Vec3(edge.getX() + 0.5, level.getHeight(Heightmap.Types.MOTION_BLOCKING, edge.getX(), edge.getZ()) + 1.0,
+                    edge.getZ() + 0.5);
+            }
+        }
+        if (to == null) {
+            // straight up, above the strike: the caster's own chunk is loaded
+            double y = Math.min(Math.max(target.y + zone, caster.getY() + 24.0), level.getMaxBuildHeight() + 16.0);
+            to = new Vec3(caster.getX(), y, caster.getZ());
+        }
+        caster.teleportTo(to.x, to.y, to.z);
         caster.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, ticks, 0, true, false, true));
         return true;
     }
 
     @Override
     public void paint(ServerLevel level, Map<BlockPos, BlockState> blocks) {
+        // paint looks at each block's block entity first, which loads saved ones the crater left behind (MoonLand's rim
+        // and cracks: 244 warnings at 10x, 2026-11-03)
+        LongSet chunks = new LongOpenHashSet();
+        for (BlockPos at : blocks.keySet()) {
+            if (chunks.add(ChunkPos.asLong(at))) {
+                dropStaleBlockEntities(level, at.getX() >> 4, at.getZ() >> 4);
+            }
+        }
         Carving.paint(level, blocks);
+    }
+
+    /**
+     * Drops a chunk's saved block entities not loaded yet whose block is gone (cut by a carving, covered by the moon):
+     * loading one fails with a warning or a stack trace each ("Tried to load a DUMMY block entity").
+     */
+    private static void dropStaleBlockEntities(ServerLevel level, int x, int z) {
+        if (level.getChunkSource().getChunkNow(x, z) instanceof ChunkAccessMixin chunk) {
+            LevelChunk live = (LevelChunk) chunk;
+            chunk.ss05halley$pendingBlockEntities().keySet().removeIf(at -> !live.getBlockState(at).hasBlockEntity());
+        }
     }
 
     @Override
@@ -338,12 +373,7 @@ public final class TssLink implements StarLink {
             @Override
             public void apply() {
                 sink.apply(level);
-                // saved block entities not loaded yet whose block is gone (cut by the crater, covered by the moon) are
-                // dropped quietly; loading them fails with a warning or a stack trace each
-                if (level.getChunkSource().getChunkNow(pos.x, pos.z) instanceof ChunkAccessMixin chunk) {
-                    LevelChunk live = (LevelChunk) chunk;
-                    chunk.ss05halley$pendingBlockEntities().keySet().removeIf(at -> !live.getBlockState(at).hasBlockEntity());
-                }
+                dropStaleBlockEntities(level, pos.x, pos.z);
             }
 
             @Override

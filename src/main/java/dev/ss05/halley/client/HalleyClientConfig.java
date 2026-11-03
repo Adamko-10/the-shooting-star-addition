@@ -27,6 +27,7 @@ public final class HalleyClientConfig {
     private static final ModConfigSpec.EnumValue<PackMode> SHADER_PACKS;
     private static final ModConfigSpec.BooleanValue LUNA_MUSIC;
     private static final ModConfigSpec.BooleanValue NO_COOLDOWN;
+    private static final ModConfigSpec.BooleanValue EVAC_LIFT;
 
     static {
         ModConfigSpec.Builder b = new ModConfigSpec.Builder();
@@ -57,6 +58,9 @@ public final class HalleyClientConfig {
         NO_COOLDOWN = b.comment("Cast without cooldowns where the server allows it (its no_cooldown setting; C in the remote's",
                 "menu). Has no effect on a server that doesn't allow it.")
             .define("no_cooldown", true);
+        EVAC_LIFT = b.comment("In creative, standing where your own strike lands: true lifts you straight up above it, false",
+                "takes you out to the crater's edge (onto land that is loaded, else up). E in the remote's menu.")
+            .define("evac_lift", true);
         b.pop();
         SPEC = b.build();
     }
@@ -99,6 +103,15 @@ public final class HalleyClientConfig {
 
     public static void setNoCooldown(boolean on) {
         set(NO_COOLDOWN, on);
+    }
+
+    /** Your evac switch: true lifts you straight up, false takes you to the crater's edge. */
+    public static boolean evacLift() {
+        return get(EVAC_LIFT);
+    }
+
+    public static void setEvacLift(boolean on) {
+        set(EVAC_LIFT, on);
     }
 
     /** Sets and saves a switch (kept for this session if the config isn't loaded). */

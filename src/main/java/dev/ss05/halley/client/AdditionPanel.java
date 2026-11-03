@@ -17,7 +17,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * The addon's own plate in the Stellar Remote's menu (H, The Shooting Star's "White Space"), in the menu's colours, in
- * its top left corner: two switches - Luna's music (M) and no-cooldown (C) - and what the server allows. The menu holds
+ * its top left corner: three switches - Luna's music (M), where the evac takes you (E: up, or to the edge) and
+ * no-cooldown (C) - and what the server allows. The menu holds
  * the mouse (you pick things in it by looking at them), so these are flipped with their keys, shown on the plate.
  *
  * <p>No-cooldown is the server's to allow ({@code no_cooldown}, and {@code no_cooldown_survival} for survival players);
@@ -39,10 +40,12 @@ public final class AdditionPanel {
     /** GLFW key codes. */
     public static final int KEY_MUSIC = 77;
     public static final int KEY_COOLDOWN = 67;
+    public static final int KEY_EVAC = 69;
     private static final float SLIDE_MILLIS = 160.0F;
 
     private static long musicFlippedAt;
     private static long cooldownFlippedAt;
+    private static long evacFlippedAt;
 
     private AdditionPanel() {
     }
@@ -54,6 +57,13 @@ public final class AdditionPanel {
         if (key == KEY_MUSIC) {
             HalleyClientConfig.setLunaMusic(!HalleyClientConfig.lunaMusic());
             musicFlippedAt = Util.getMillis();
+            click(true);
+            return true;
+        }
+        if (key == KEY_EVAC) {
+            HalleyClientConfig.setEvacLift(!HalleyClientConfig.evacLift());
+            evacFlippedAt = Util.getMillis();
+            sendChoice();
             click(true);
             return true;
         }
@@ -71,11 +81,11 @@ public final class AdditionPanel {
         return false;
     }
 
-    /** Tells the server this player's own switch (as they join, and whenever they flip it). */
+    /** Tells the server this player's own switches (as they join, and whenever they flip one). */
     public static void sendChoice() {
         ClientPacketListener connection = Minecraft.getInstance().getConnection();
         if (connection != null && connection.hasChannel(ChoicePayload.TYPE)) {
-            PacketDistributor.sendToServer(new ChoicePayload(HalleyClientConfig.noCooldown()));
+            PacketDistributor.sendToServer(new ChoicePayload(HalleyClientConfig.noCooldown(), HalleyClientConfig.evacLift()));
         }
     }
 
@@ -115,7 +125,7 @@ public final class AdditionPanel {
         }
 
         int w = Math.max(WIDTH, Math.max(font.width(status), font.width(Component.translatable("gui.shooting_star_addition.no_cooldown.disabled"))) + 22);
-        int h = cooldownOff ? 104 : 92;
+        int h = cooldownOff ? 136 : 124;
         g.pose().pushPose();
         // over the menu, in its top left corner
         g.pose().translate(8.0F, 8.0F, 400.0F);
@@ -133,18 +143,29 @@ public final class AdditionPanel {
         g.drawString(font, Component.translatable("gui.shooting_star_addition.music.hint"), 11, 38, 0xFF000000 | GREY, false);
         g.fill(11, 51, w - 10, 52, 0xFF000000 | RULE);
 
+        // where the evac takes you: up (the switch on) or to the edge
+        row(g, font, 58, Component.translatable("gui.shooting_star_addition.evac"), "E", HalleyClientConfig.evacLift(), true,
+            evacFlippedAt, w, "gui.shooting_star_addition.evac.up", "gui.shooting_star_addition.evac.edge");
+        g.drawString(font, Component.translatable("gui.shooting_star_addition.evac.hint"), 11, 70, 0xFF000000 | GREY, false);
+        g.fill(11, 83, w - 10, 84, 0xFF000000 | RULE);
+
         // no cooldown, and what the server allows
-        row(g, font, 58, Component.translatable("gui.shooting_star_addition.no_cooldown"), "C", cooldownOff, allowed, cooldownFlippedAt, w);
-        g.drawString(font, Component.translatable("gui.shooting_star_addition.no_cooldown.hint"), 11, 70, 0xFF000000 | GREY, false);
-        g.drawString(font, status, 11, 81, 0xFF000000 | statusColor, false);
+        row(g, font, 90, Component.translatable("gui.shooting_star_addition.no_cooldown"), "C", cooldownOff, allowed, cooldownFlippedAt, w);
+        g.drawString(font, Component.translatable("gui.shooting_star_addition.no_cooldown.hint"), 11, 102, 0xFF000000 | GREY, false);
+        g.drawString(font, status, 11, 113, 0xFF000000 | statusColor, false);
         if (cooldownOff) {
-            g.drawString(font, Component.translatable("gui.shooting_star_addition.no_cooldown.careful"), 11, 92, 0xFF000000 | WARN, false);
+            g.drawString(font, Component.translatable("gui.shooting_star_addition.no_cooldown.careful"), 11, 124, 0xFF000000 | WARN, false);
         }
         g.pose().popPose();
     }
 
-    /** A label, a key cap and a switch, on one line. */
     private static void row(GuiGraphics g, Font font, int y, Component label, String key, boolean on, boolean enabled, long flippedAt, int w) {
+        row(g, font, y, label, key, on, enabled, flippedAt, w, "gui.shooting_star_addition.on", "gui.shooting_star_addition.off");
+    }
+
+    /** A label, a key cap and a switch, on one line; {@code onText}/{@code offText} name its two states. */
+    private static void row(GuiGraphics g, Font font, int y, Component label, String key, boolean on, boolean enabled, long flippedAt, int w,
+                            String onText, String offText) {
         g.drawString(font, label.copy().withStyle(ChatFormatting.BOLD), 11, y + 1, 0xFF000000 | (enabled ? INK : GREY), false);
         int sw = 26;
         int sx = w - 12 - sw;
@@ -161,7 +182,7 @@ public final class AdditionPanel {
         plate(g, sx, y, sx + sw, y + 10, 0xFF000000 | track);
         int knob = sx + 1 + Math.round((sw - 10) * at);
         plate(g, knob, y + 1, knob + 8, y + 9, 0xFF000000 | (enabled ? 0xFFFFFF : 0xF0F1F3));
-        Component state = Component.translatable(on ? "gui.shooting_star_addition.on" : "gui.shooting_star_addition.off");
+        Component state = Component.translatable(on ? onText : offText);
         g.drawString(font, state, sx - 22 - font.width(state), y + 1, 0xFF000000 | (on ? GOLD : GREY), false);
     }
 

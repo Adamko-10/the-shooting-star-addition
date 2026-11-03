@@ -1,5 +1,6 @@
 package dev.ss05.halley.net;
 
+import dev.ss05.halley.Evac;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.NoCooldown;
 import net.minecraft.server.MinecraftServer;
@@ -22,12 +23,14 @@ public final class AddonNetwork {
     }
 
     private static void payloads(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar("1").optional();
+        // 2: ChoicePayload carries the evac switch too
+        PayloadRegistrar registrar = event.registrar("2").optional();
         registrar.playToClient(SettingsPayload.TYPE, SettingsPayload.CODEC,
             (payload, context) -> context.enqueueWork(() -> ServerSettings.received(payload.noCooldown(), payload.survival())));
         registrar.playToServer(ChoicePayload.TYPE, ChoicePayload.CODEC, (payload, context) -> context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player) {
                 NoCooldown.choose(player, payload.noCooldown());
+                Evac.choose(player, payload.evacLift());
             }
         }));
     }
