@@ -1,5 +1,6 @@
 package dev.ss05.halley.compat.tss;
 
+import cyou.rimuru.rimulib.mc1211.bulwark.Bulwark;
 import cyou.rimuru.rimulib.mc1211.erase.ErasePolicy;
 import cyou.rimuru.rimulib.mc1211.erase.Erasure;
 import cyou.rimuru.rimulib.mc1211.net.RimuNet;
@@ -7,6 +8,7 @@ import cyou.rimuru.rimulib.mc1211.skill.Skill;
 import cyou.rimuru.rimulib.mc1211.skill.SkillSet;
 import cyou.rimuru.rimulib.mc1211.skill.Tuning;
 import cyou.rimuru.rimulib.mc1211.terrain.Carving;
+import cyou.rimuru.rimulib.mc1211.terrain.SectionSink;
 import cyou.rimuru.shootingstardemo.mc1211.magic.Casting;
 import cyou.rimuru.shootingstardemo.mc1211.l111i1lil1;
 import dev.ss05.halley.CastTuning;
@@ -21,6 +23,8 @@ import dev.ss05.halley.world.HalleyCasting;
 import dev.ss05.halley.world.HalleyInfo;
 import dev.ss05.halley.world.MoonCasting;
 import dev.ss05.halley.world.MoonInfo;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -42,6 +46,7 @@ import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
@@ -304,6 +309,66 @@ public final class TssLink implements StarLink {
     @Override
     public void paint(ServerLevel level, Map<BlockPos, BlockState> blocks) {
         Carving.paint(level, blocks);
+    }
+
+    @Override
+    public Excavation.Sink sink(ServerLevel level, ChunkPos pos, int fromY, int toY) {
+        Long2ObjectMap<int[]> range = new Long2ObjectOpenHashMap<>();
+        range.put(pos.toLong(), new int[]{fromY, toY});
+        // no band of whole sections to empty (its bottom above its top): only blocks are put
+        SectionSink sink = SectionSink.snapshot(level, range, pos.getMinBlockX(), pos.getMinBlockZ(), 16,
+            Integer.MAX_VALUE, Integer.MIN_VALUE);
+        return new Excavation.Sink() {
+            @Override
+            public void prepare() {
+                sink.prepare();
+            }
+
+            @Override
+            public void put(int x, int y, int z, BlockState state) {
+                sink.put(x, y, z, state);
+            }
+
+            @Override
+            public boolean stale() {
+                return sink.stale(level);
+            }
+
+            @Override
+            public void apply() {
+                LevelChunk chunk = level.getChunkSource().getChunkNow(pos.x, pos.z);
+                if (chunk != null) {
+                    // saved block entities not loaded yet are loaded now, while their blocks are still there, so the
+                    // sink drops the ones it covers (else they stay behind: "Tried to load a DUMMY block entity")
+                    for (BlockPos at : List.copyOf(chunk.getBlockEntitiesPos())) {
+                        chunk.getBlockEntity(at);
+                    }
+                }
+                sink.apply(level);
+            }
+
+            @Override
+            public void release() {
+                sink.release(level);
+            }
+        };
+    }
+
+    @Override
+    public void relight(ServerLevel level, List<ChunkPos> chunks) {
+        List<LevelChunk> loaded = new ArrayList<>(chunks.size());
+        for (ChunkPos pos : chunks) {
+            LevelChunk chunk = level.getChunkSource().getChunkNow(pos.x, pos.z);
+            if (chunk != null) {
+                loaded.add(chunk);
+            }
+        }
+        Carving.relightAll(level, loaded);
+    }
+
+    @Override
+    public boolean spares(ServerLevel level, int x, int z) {
+        return Bulwark.spares(level, x, z);
     }
 
     @Override

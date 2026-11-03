@@ -5,6 +5,7 @@ import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.world.Excavation;
+import java.util.List;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
@@ -12,6 +13,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
@@ -177,6 +179,18 @@ public final class StarBridge {
 
     public static void paint(ServerLevel level, Map<BlockPos, BlockState> blocks) {
         link().paint(level, blocks);
+    }
+
+    public static Excavation.Sink sink(ServerLevel level, ChunkPos pos, int fromY, int toY) {
+        return link().sink(level, pos, fromY, toY);
+    }
+
+    public static void relight(ServerLevel level, List<ChunkPos> chunks) {
+        link().relight(level, chunks);
+    }
+
+    public static boolean spares(ServerLevel level, int x, int z) {
+        return link().spares(level, x, z);
     }
 
     public static Excavation excavate(ServerLevel level, Vec3 centre, double radius, Excavation.Floor floor,

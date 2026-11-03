@@ -1,13 +1,17 @@
 package dev.ss05.halley.world;
 
+import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.content.HalleyContent;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -16,30 +20,48 @@ import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Builds SS-06's fallen moon out of moon cheese (holey here and there, and the one molten block at its heart), a
- * few chunks per tick, nearest the mark first, so a huge moon never freezes the server tick. Server side only. Unlike
+ * chunk at a time, nearest the mark first, so a huge moon never freezes the server tick. Server side only. Unlike
  * {@link Excavation} (which only ever cuts blocks away above a floor), this one also places blocks, so it is its
  * own small class rather than another {@code StarBridge.excavate} shape; what to place comes straight from
  * {@link MoonPlan#inMoon}, so it is always the same sphere the client films.
  *
- * <p>Each chunk is built once, whole, nearest the mark first: every chunk written is relit and sent again to everyone
- * who has it loaded (The Shooting Star's {@code Carving.paint}), so building a chunk in two goes (its surface first, as
- * 1.5.0 did) cost twice that for nothing - the client draws its own moon a block bigger over the blocks until they are
- * all there anyway. Each column's blocks are worked out as a range of heights (no test per block), and a chunk that isn't
- * loaded is asked for through the strike's {@link Excavation.Loader} and built once it is there, never loaded on the
- * spot.
+ * <p>The way The Shooting Star builds its own big strikes (RimuLib's section sink): each chunk's sections are copied on
+ * the server thread, filled with the moon on a few builder threads, and swapped back into the chunk whole, then the
+ * chunks swapped in that tick are relit and sent together. The server thread only copies and swaps (a 10x moon has
+ * ~1000 times the blocks: building it block by block on the server thread froze it for seconds, 2026-11-03). A copy
+ * of a chunk written meanwhile is thrown away and made again. Each chunk is built once, whole (the client draws its own
+ * moon a block bigger over the blocks until they are all there); one that isn't loaded is asked for through the
+ * strike's {@link Excavation.Loader} and built once it is there, never loaded on the spot.
  */
 public final class MoonBuild {
+    /** The most time the server thread spends on the moon in one tick (at least one chunk always gets done). */
+    private static final long BUDGET_NANOS = 15_000_000L;
+    /** How much of the moon is holey moon cheese: the cheese's eyes, scattered all through it. */
+    private static final double HOLEY = 0.12;
+    /** The builder threads: a few, so the server and world generation keep cores of their own. */
+    private static final int BUILDERS = Math.max(1, Math.min(4, Runtime.getRuntime().availableProcessors() - 2));
+    private static final ExecutorService BUILD = Executors.newFixedThreadPool(BUILDERS, task -> {
+        Thread thread = new Thread(task, "Luna moon builder");
+        thread.setDaemon(true);
+        return thread;
+    });
+    /** Chunks copied and being filled at once, at most. */
+    private static final int IN_FLIGHT = BUILDERS * 3;
+
     private final ServerLevel level;
     private final MoonPlan plan;
     private final int chunksPerTick;
     private final Excavation.Loader loader;
-    /** The most time the builder takes in one tick (at least one chunk is always built). */
-    private static final long BUDGET_NANOS = 15_000_000L;
-    /** How much of the moon is holey moon cheese: the cheese's eyes, scattered all through it. */
-    private static final double HOLEY = 0.12;
+    private final int fromY;
+    private final int toY;
 
     private final List<ChunkPos> order;
     private int next;
+    /** Chunks copied and being filled, oldest first: swapped in in that order. */
+    private final ArrayDeque<Job> jobs = new ArrayDeque<>();
+
+    private record Job(ChunkPos pos, Excavation.Sink sink, CompletableFuture<Void> fill) {
+    }
 
     public MoonBuild(ServerLevel level, MoonPlan plan, int chunksPerTick, Excavation.Loader loader) {
         this.level = level;
@@ -47,6 +69,9 @@ public final class MoonBuild {
         this.chunksPerTick = Math.max(1, chunksPerTick);
         this.loader = loader;
         this.order = footprint(plan);
+        double r = plan.params.moonRadius();
+        this.fromY = Math.max(level.getMinBuildHeight(), Mth.floor(plan.restCentre.y - r - 1.0));
+        this.toY = Math.min(level.getMaxBuildHeight() - 1, Mth.ceil(plan.restCentre.y + r + 1.0));
     }
 
     /** Every chunk whose square touches the moon's horizontal footprint around {@code restCentre}, nearest the mark first. */
@@ -79,36 +104,80 @@ public final class MoonBuild {
     }
 
     public boolean done() {
-        return this.next >= this.order.size();
+        return this.next >= this.order.size() && this.jobs.isEmpty();
     }
 
     public void tick() {
-        this.build(this.chunksPerTick, false);
+        this.build(false);
     }
 
     /** Builds everything that is left, right now (used when the spell is cut short: this may load its chunks). */
     public void finish() {
-        this.build(Integer.MAX_VALUE, true);
+        this.build(true);
     }
 
-    private void build(int count, boolean now) {
+    private void build(boolean now) {
         long start = System.nanoTime();
-        while (count > 0 && !this.done()) {
+        List<ChunkPos> built = new ArrayList<>();
+        int started = 0;
+        while (!this.done()) {
+            Job job = this.jobs.peek();
+            if (job != null && (now || job.fill().isDone())) {
+                this.jobs.poll();
+                try {
+                    job.fill().join();
+                } catch (CompletionException failed) {
+                    HalleyAddon.LOG.error("Luna: building the moon in chunk {} failed, leaving it out", job.pos(), failed);
+                    job.sink().release();
+                    this.loader.release(job.pos());
+                    continue;
+                }
+                if (job.sink().stale()) {
+                    // written since it was copied (the rim, the cracks): copy it again
+                    job.sink().release();
+                    this.jobs.addFirst(this.start(job.pos(), now));
+                    continue;
+                }
+                job.sink().apply();
+                this.loader.release(job.pos());
+                built.add(job.pos());
+            } else {
+                if (this.next >= this.order.size()
+                        || !now && (this.jobs.size() >= IN_FLIGHT || started >= this.chunksPerTick)) {
+                    break;
+                }
+                ChunkPos pos = this.order.get(this.next);
+                if (!now && !this.level.hasChunk(pos.x, pos.z)) {
+                    // wait for it (asked for once, let go of once built)
+                    this.loader.hold(pos);
+                    break;
+                }
+                this.jobs.add(this.start(pos, now));
+                this.next++;
+                started++;
+            }
             if (!now && System.nanoTime() - start > BUDGET_NANOS) {
-                // a big moon's chunks hold tens of thousands of blocks each: the rest wait for the next tick
-                return;
+                break;
             }
-            ChunkPos pos = this.order.get(this.next);
-            if (!now && !this.level.hasChunk(pos.x, pos.z)) {
-                // wait for it (asked for once, let go of once built)
-                this.loader.hold(pos);
-                return;
-            }
-            this.buildChunk(pos);
-            this.loader.release(pos);
-            count--;
-            this.next++;
         }
+        if (!built.isEmpty()) {
+            StarBridge.relight(this.level, built);
+        }
+    }
+
+    /** Copies one chunk and fills the copy on a builder thread (on this one when {@code now}). */
+    private Job start(ChunkPos pos, boolean now) {
+        if (now) {
+            this.level.getChunk(pos.x, pos.z);
+        }
+        // kept loaded until its sections are swapped in
+        this.loader.hold(pos);
+        Excavation.Sink sink = StarBridge.sink(this.level, pos, this.fromY, this.toY);
+        if (now) {
+            this.fill(pos, sink);
+            return new Job(pos, sink, CompletableFuture.completedFuture(null));
+        }
+        return new Job(pos, sink, CompletableFuture.runAsync(() -> this.fill(pos, sink), BUILD));
     }
 
     /** Whether the moon's block here is one of the cheese's holes (always the same for the same block). */
@@ -116,17 +185,15 @@ public final class MoonBuild {
         return this.plan.hash(x + 7919, y - 104729, z + 1299709) < HOLEY;
     }
 
-    /** One chunk's share of the moon, all of it. */
-    private void buildChunk(ChunkPos pos) {
+    /** One chunk's share of the moon, all of it, into its copy (a builder thread: only plan maths and the copy). */
+    private void fill(ChunkPos pos, Excavation.Sink sink) {
+        sink.prepare();
         double r = this.plan.params.moonRadius();
-        int minY = this.level.getMinBuildHeight();
-        int maxY = this.level.getMaxBuildHeight() - 1;
         double cy = this.plan.restCentre.y;
         BlockState cheese = HalleyContent.MOON_CHEESE.get().defaultBlockState();
         BlockState holey = HalleyContent.HOLEY_MOON_CHEESE.get().defaultBlockState();
         BlockState molten = HalleyContent.MOLTEN_MOON_CHEESE.get().defaultBlockState();
-        boolean core = this.plan.params.core();
-        Map<BlockPos, BlockState> out = new HashMap<>();
+        BlockPos core = this.plan.params.core() ? this.plan.core : null;
 
         int x0 = pos.x * 16;
         int z0 = pos.z * 16;
@@ -137,21 +204,18 @@ public final class MoonBuild {
                 int z = z0 + dz;
                 double ez = z + 0.5 - this.plan.restCentre.z;
                 double flat = ex * ex + ez * ez;
-                if (flat > r * r) {
+                if (flat > r * r || StarBridge.spares(this.level, x, z)) {
                     continue;
                 }
                 // the blocks whose centres lie inside the moon
                 double half = Math.sqrt(r * r - flat);
-                int from = Math.max(minY, Mth.ceil(cy - half - 0.5));
-                int to = Math.min(maxY, Mth.floor(cy + half - 0.5));
+                int from = Math.max(this.fromY, Mth.ceil(cy - half - 0.5));
+                int to = Math.min(this.toY, Mth.floor(cy + half - 0.5));
                 for (int y = from; y <= to; y++) {
-                    BlockPos at = new BlockPos(x, y, z);
-                    out.put(at, core && at.equals(this.plan.core) ? molten : this.holeyAt(x, y, z) ? holey : cheese);
+                    boolean heart = core != null && x == core.getX() && y == core.getY() && z == core.getZ();
+                    sink.put(x, y, z, heart ? molten : this.holeyAt(x, y, z) ? holey : cheese);
                 }
             }
-        }
-        if (!out.isEmpty()) {
-            StarBridge.paint(this.level, out);
         }
     }
 }
