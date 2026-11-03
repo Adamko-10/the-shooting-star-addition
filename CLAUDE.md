@@ -300,6 +300,15 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
   2026-11-03 (copied in by hand, so Modrinth shows them as unmanaged), next to Sodium, Iris, Lithium, C2ME (alpha:
   changes chunk generation, suspect it first if craters or loading misbehave), ModernFix, Distant Horizons and others.
   Replace the addon jar there with each new test build (the old one renamed `.disabled`, §0).
+- **2026-11-03, night** (Adam's PC): the user tested the TSS 1.5.1 build: it works. Their log (Luna at 10x power):
+  server stalls of 2-18 s for ~5 minutes, from `MoonBuild` (a `Map<BlockPos, BlockState>` per chunk, then
+  `Carving.paint`, on the server thread; a 10x moon has ~1000x the blocks), not from C2ME; MoonLand's rim and cracks
+  took 1.8 s in all (930 writes, 27108 chunks, worst tick 66 ms). Also ~720 "Tried to load a DUMMY block entity ... but
+  found not block entity block moon_cheese" warnings (saved block entities left under the moon; cause not proven).
+  Done on main, built, **not tested in game**: `MoonBuild` now builds through RimuLib's `SectionSink` (§17, item 3);
+  no cooldown now works for TSS's own skills (§12, below); `TssRemap` maps descriptors of unmapped mixin targets.
+  Test jar `test builds\2026-11-03 Luna fast build\`, also in the Modrinth profile (the two earlier test jars there are
+  renamed `.disabled`). The next major update's contents are decided (§14).
 - **2026-11-03** (Adam's PC):
   - **TSS 1.5.1 is out** (CurseForge 2026-11-01, after our 1.6.0). `tssVersionRange` (gradle/tss.gradle) allows each
     supported version up to its next patch, so 1.6.0 declares TSS `[1.5.0,1.5.1)` and refuses to load next to 1.5.1
@@ -566,11 +575,32 @@ Findings and fixes (main `449de31`, `f64b0c3`, `e72839c`; cherry-picked to every
 - **Local client test**: use `-Dss05.clienttest.view=aerial` with `film=true`, as CI does; without a view the film
   doesn't show.
 
-## 14. Next updates (agreed 2026-10-22/23, not started)
+## 14. Next updates (agreed 2026-10-22/23; the next major update's list decided 2026-11-03)
 
-Order: **(1)** NeoForge music check (§9) → **(2)** next update (1.6.0): operator commands, Epic mode, protected-blocks
-tag → **(3)** SA-03 Proxima (§15), later. **One addon** for everything (the user decided; per-skill on/off switches in
-the config instead of a second addon, which would double the mapping/branch/CI/CurseForge work every TSS update).
+**The next major update** (the user, 2026-11-03), on `main` first (§0), then ported:
+- done on main, to test: TSS 1.5.1 + RimuLib 1.2.1 (§16); Luna holds its land from the cast and builds its moon
+  through RimuLib's section sink (§17); no cooldown for TSS's own skills (below);
+- **Luna fast build** for MoonLand too (rim, cracks: still per-chunk `paint`), if the moon alone isn't enough;
+- **operator commands + Epic mode + protected-blocks tag** (below);
+- **SA-03 Proxima** (§15);
+- **Stellar Convergence** (§18);
+- smaller: the **Gravitia keybind** (promised to players), the **keep-the-moon switch** (H menu, §10), **less shake
+  after Halley + a setting to reduce or remove impact frames** (§10), the H-menu note that Luna's music follows the
+  Music slider (§9), title cards (§10);
+- **sounds: overhaul the existing ones** (the user: "dont replace ai sounds lets just overhaul them"; rework,
+  layer and process what we have rather than swapping in licensed packs). Ask what "overhaul" should cover first.
+
+**No cooldown for TSS's own skills** (fixed 2026-11-03, main): TSS 1.5.1's cast of its own skills (`il1i1li1l11
+.liiillli1l(ServerPlayer, liiliiii1, Tuning)`, unmapped) refuses one while the same player's last of that skill runs
+("X is already on its way"): it asks `l111i1lil1.liiillli1l(liiliiii1, UUID)` (the old `SpellEngine`'s "running spell
+of this skill by this caster"). `StarCastMixin` sets `NoCooldown.casting` around that cast for players no cooldown
+applies to; `SpellsMixin` makes the lookup return null meanwhile. Clearing the cooldown map alone (`CastingMixin`)
+never covered that check. Both names change with every TSS update (§16).
+
+Order before that (2026-10-22): **(1)** NeoForge music check (§9) → **(2)** operator commands, Epic mode,
+protected-blocks tag → **(3)** SA-03 Proxima (§15). **One addon** for everything (the user decided; per-skill on/off
+switches in the config instead of a second addon, which would double the mapping/branch/CI/CurseForge work every TSS
+update).
 
 - **Operator strike commands** (the user definitely wants these next): operators only (permission level 2), trigger a
   skill without the remote, e.g. `/ssa strike <halley|luna> <pos> [power] [speed] [damage]` (add `proxima` when it
@@ -819,9 +849,15 @@ idea behind all of it: **the server thread only copies and swaps; the rest runs 
    chunks like Halley's) from the cast to `end()`, so the land loads over the 16 s fall instead of when the moon
    lands. Halley already held its crater and trench from the cast (`HalleyStrike.holdChunks`). Later, with RimuLib
    1.2.2 public: `Fresh.hold` for chunks not generated yet, so the fall generates them already carved.
-3. Possible now (RimuLib 1.2.1 has `SectionSink`): move `MoonBuild`/`MoonLand`'s per-chunk `paint` calls to one
-   `SectionSink` per cell (copy on the server thread, build on helpers, swap and `relightAll` once). Not started;
-   only `Fresh` waits for RimuLib 1.2.2 to be public.
+3. **`MoonBuild` done (2026-11-03, main, not tested in game)**: per chunk `StarBridge.sink` (TssLink: a one-chunk
+   `SectionSink.snapshot`, no clear band) copies the moon's y range on the server thread; `fill` puts the moon into
+   the copy on the "Luna moon builder" pool (cores - 2, 1 to 4 threads; at most 3 jobs per thread in flight, at
+   most `chunks_per_tick` new copies a tick); the server thread swaps finished copies in oldest first (15 ms a tick,
+   a stale copy is made again) and relights the tick's chunks together (`StarBridge.relight` = `Carving.relightAll`).
+   Before swapping, the chunk's saved block entities are loaded (`getBlockEntity` on every `getBlockEntitiesPos`) so
+   the sink drops those the moon covers; columns a RimuLib ward spares are skipped (`StarBridge.spares` = `Bulwark
+   .spares`, as `paint` did). The fill uses only plan maths (`MoonPlan.hash` is pure). Not done: `MoonLand` (rim,
+   cracks) still paints per chunk; only `Fresh` waits for RimuLib 1.2.2 to be public.
 4. `buildAhead`: skip. 1.2.2's parallel cutting covers most of it, and its builder threads would call our floors and
    surfaces: Halley's are plan maths (safe), but Luna's `MoonStrike.crater` reads the live world (`hasChunk`,
    `MoonLand.groundAt`) and `MoonVeins` caches in a plain map, neither safe off the server thread.
