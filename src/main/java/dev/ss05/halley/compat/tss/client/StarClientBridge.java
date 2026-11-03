@@ -8,7 +8,7 @@ import cyou.rimuru.rimulib.mc1211.net.RimuNet;
 import cyou.rimuru.rimulib.mc1211.skill.Skill;
 import cyou.rimuru.rimulib.mc1211.skill.SkillSet;
 import cyou.rimuru.shootingstardemo.mc1211.client.fx.FxManager;
-import cyou.rimuru.shootingstardemo.mc1211.l1l1i1lii1;
+import cyou.rimuru.shootingstardemo.mc1211.ll1lil1iill;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
@@ -56,10 +56,11 @@ public final class StarClientBridge {
 
     /**
      * The Shooting Star's own effect packet for a strike, which its effects are built from: (skill, caster, origin,
-     * target, yaw, seed, targets, flags, power, speed, width). Its class name is obfuscated since 1.5.0 and unmapped.
+     * target, yaw, seed, targets, flags, power, speed, width). Its class name is obfuscated since 1.5.0 and unmapped
+     * (1.5.0: {@code l1l1i1lii1}; 1.5.1: {@code ll1lil1iill}, same fields).
      */
-    static l1l1i1lii1 payload(StrikeFx s) {
-        return new l1l1i1lii1(s.skill(), s.casterId(), s.origin().x, s.origin().y, s.origin().z, s.target().x, s.target().y,
+    static ll1lil1iill payload(StrikeFx s) {
+        return new ll1lil1iill(s.skill(), s.casterId(), s.origin().x, s.origin().y, s.origin().z, s.target().x, s.target().y,
             s.target().z, s.yaw(), s.seed(), s.targets(), s.flags(), s.power(), s.speed(), 1.0F);
     }
 

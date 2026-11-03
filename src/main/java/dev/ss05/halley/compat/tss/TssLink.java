@@ -8,7 +8,7 @@ import cyou.rimuru.rimulib.mc1211.skill.SkillSet;
 import cyou.rimuru.rimulib.mc1211.skill.Tuning;
 import cyou.rimuru.rimulib.mc1211.terrain.Carving;
 import cyou.rimuru.shootingstardemo.mc1211.magic.Casting;
-import cyou.rimuru.shootingstardemo.mc1211.spell.SpellEngine;
+import cyou.rimuru.shootingstardemo.mc1211.l111i1lil1;
 import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.HalleyParams;
@@ -238,7 +238,8 @@ public final class TssLink implements StarLink {
 
     @Override
     public Vec3 aimGround(ServerPlayer player, double reach, double fallback) {
-        return SpellEngine.aimGround(player, reach, fallback);
+        // SpellEngine.aimGround, unmapped since 1.5.1
+        return l111i1lil1.liiillli1l(player, reach, fallback);
     }
 
     @Override
