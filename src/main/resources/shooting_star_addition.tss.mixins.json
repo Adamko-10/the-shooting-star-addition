@@ -5,7 +5,9 @@
   "plugin": "dev.ss05.halley.compat.TssMixins",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "CastingMixin"
+    "CastingMixin",
+    "SpellsMixin",
+    "StarCastMixin"
   ],
   "client": [
     "FxManagerMixin",
