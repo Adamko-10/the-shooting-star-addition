@@ -6,7 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 the end of the 1.4.0 work, updated 2026-10-17 for 1.5.0 (§12) and 2026-10-18 for the user's 1.5.0 test round (§13; status in §9),
 and 2026-10-29 with the agreed plan for the next updates and SA-03 Proxima (§14, §15). Nothing in §14/§15 is built yet.
 **2026-10-31: 1.6.0 = The Shooting Star 1.5.0 + RimuLib support (§16); read §16 before §5, which describes 1.4.x.**
-2026-11-03: how RimuLib 1.2.2 makes huge carvings fast and how we'd use it (§17).
+2026-11-03: how RimuLib 1.2.2 makes huge carvings fast and how we'd use it (§17); Stellar Convergence, fire every
+weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
@@ -46,6 +47,9 @@ are on **Hamza's PC**; anywhere else, you are on **Adam's PC**. Adam is the one 
   - idea #16 (§10), for the Mrityu mod: "later", e.g. at the end of a work session;
   - Proxima's other film ideas (§15, "Extra content") once Proxima's film is built and again when it ships;
   - the SA-04 candidates (§10) once Proxima is under way; the Solar Residue economy (§14) when Proxima is built.
+- **Update this file at the end of every turn** (user, 2026-11-03): decisions, answers, new ideas, what changed and
+  what's open, in the section it belongs to, then commit it on its own (push only when the user says so, as always).
+- **Keep every project file in the project folder** (§2), not in Downloads or elsewhere.
 - *(Adam's PC only)* If finishing a task past 2 AM their time, shut down their PC (unless told not to). If running low on tokens, schedule
   a continuation.
 - The user is budget-conscious: don't over-test; one CI round per change set is normally enough, and they test in game.
@@ -73,8 +77,13 @@ All branches live in **one** git repository, one worktree per branch. On the use
 `origin/fabric-1.21.1`: push it with `git push origin fabric-1.21.1-next:fabric-1.21.1`), `tssa-fabric1201`. Leave
 `tssa-fabric1211` alone: it holds the user's old uncommitted 1.3.0-era edits on the local `fabric-1.21.1` branch.
 **Never use `git stash` with worktrees**: the stash stack is shared by all of them and pops land on the wrong branch.
-On **Adam's PC** there is one plain clone on `main`, no worktrees: `C:\Users\adam_\Documents\the-shooting-star-addition`
-(made 2026-11-03). Its `libs/` is empty: TSS/RimuLib jars and the mapping chain (§4) come before its first build.
+On **Adam's PC** everything lives in the project folder `C:\Users\adam_\Documents\Shooting Star Addition\` (made
+2026-11-03): `the-shooting-star-addition\` (one plain clone on `main`, no worktrees), `early access\` (TSS 1.5.0
+early build, TSS 1.5.2's locked launcher, RimuLib 1.1.4 and 1.2.2: never commit, never share), `old versions\` (older
+release jars and the 1.1.0 handoff), `old notes\` (older CLAUDE.md copies, superseded by this file). Release jars go in
+`releases\<ver>\`. An older clone at `C:\Users\adam_\Documents\the-shooting-star-addition` is superseded (delete only
+with the user's OK). The clone's `libs/` is empty: TSS/RimuLib jars and the mapping chain (§4) come before its first
+build.
 
 | Branch | Loader / MC | TSS package prefix | Release tag | Jar label |
 |---|---|---|---|---|
@@ -277,6 +286,11 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
 
 ## 9. Status (2026-11-03)
 
+- **2026-11-03, evening** (Adam's PC): the project folder is made (§2). Its clone's `libs/` has TSS 1.3.3-1.5.0
+  (NeoForge) and RimuLib 1.1.5 from cursemaven, the mapping chain is made, and `main` builds (pack check clean).
+  Luna now holds the land round the mark from the cast (§17, item 2): built, **not tested in game**, not pushed; test
+  jar in `test builds\2026-11-03 Luna preload\` (needs TSS 1.5.0 + RimuLib 1.1.5). New idea: Stellar Convergence (§18).
+  Commands: TSS's skills too, and a no-limits warning (§14). Still unknown: the server finale date.
 - **2026-11-03** (Adam's PC):
   - **TSS 1.5.1 is out** (CurseForge 2026-11-01, after our 1.6.0). `tssVersionRange` (gradle/tss.gradle) allows each
     supported version up to its next patch, so 1.6.0 should declare TSS `[1.5.0,1.5.1)` and refuse to load next to
@@ -479,7 +493,8 @@ Findings and fixes:
 - **Moon look** (`MoonSphere`): rugged outline while falling, terminator shading, the leading face heating up (additive
   `eyes(glow.png)` shell), seams brighter as it nears (`eyes(seams)`), adaptive mesh; with a shader pack the base is
   `beaconBeam(surface, false)` (solid, full-bright); the culled types get both windings.
-- **World** (Luna): no region ticket. The crater round the moon (out past the slabs) is streamed; the rest of the floor
+- **World** (Luna): no region ticket (since 2026-11-03 one again, for the crater round the moon only, §17). The crater
+  round the moon (out past the slabs) is streamed; the rest of the floor
   is a lazy carving, then `Excavation.linger()` (TSS `Carving.linger`). `world/MoonLand` (replaces MoonRim/MoonCracks):
   rim (its inner wall cut to the floor), slabs, cracks, debris, per chunk; loaded chunks animated, the others done when
   they load (`MoonStrike.tickLingering` from the server tick; cleared on server stop). `world/MoonVeins`: the floor's
@@ -552,6 +567,12 @@ the config instead of a second addon, which would double the mapping/branch/CI/C
   exists). Reuse the cast path (`HalleyCasting`/`MoonCasting`) with a `CastTuning`; decide what "caster" means for
   the film (the command's source player if any, else no film, or the nearest player). Commands ignore the server
   slider limits (§6): operators set them (user, 2026-11-03). Needed for the user's server finale (below).
+  **The commands cover TSS's own skills too** (user, 2026-11-03): any remote skill, cast through RimuLib's
+  `SkillSet.of(skill).cast(player, skill, tuning)` (every mod's skill set has a caster), which also gives other
+  addons' skills for free. Check how a TSS skill can be aimed at a given position (its casts aim at the player's
+  crosshair). **Warn about the missing limits**: the command's usage/help text, a warning line in chat each time it
+  runs with values beyond the remote's normal range ("no limits: huge values can freeze or crash the server"), the
+  README and the changelog.
 - **Epic mode** (user, 2026-10-19): the plate's **M** switch becomes "Epic mode": Luna's music **and** a slower, more
   ominous fall. Decided: **the slow fall applies to everyone watching** (server-side timing); the music stays each
   player's own choice. So the caster's switch must travel with the cast (like the no-cooldown choice via
@@ -766,11 +787,47 @@ idea behind all of it: **the server thread only copies and swaps; the rest runs 
   (`Bulwark.cut`), and carvings and `paint` skip the columns a ward spares (`Bulwark.spares`); the eraser spares
   sheltered entities. So our strikes already respect other mods' RimuLib shields.
 
-**What it means for us** (when work starts, on `main` first, §0):
+**What it means for us** (on `main` first, §0):
 1. Updating to RimuLib 1.2.2 alone gives the crater floors (`TssLink.excavate`, `Carving.flatten`) parallel cutting,
-   the shared budget and batched sends, and `paint` batched relight/send. No code change.
-2. Hold the land ahead from the cast, as Gungnir does (one ticket, radius <= 32), plus `Fresh.hold` for chunks not
-   generated yet, so the wind-up generates them already carved.
-3. Move `MoonBuild`/`MoonLand`'s per-chunk `paint` calls to one `SectionSink` per cell: copy on the server thread, build
-   on helpers, swap and `relightAll` once.
-4. `buildAhead` for the crater's streamed part.
+   the shared budget and batched sends, and `paint` batched relight/send. No code change: our range
+   `[1.1.5,2.0)` already takes it, so players get it the day they install it.
+2. Hold the land ahead from the cast, as Gungnir does. **Done for Luna (2026-11-03, not tested in game yet)**:
+   `MoonStrike` holds one region ticket round the mark (the crater round the moon, `coreRadius()`, capped at 12
+   chunks like Halley's) from the cast to `end()`, so the land loads over the 16 s fall instead of when the moon
+   lands. Halley already held its crater and trench from the cast (`HalleyStrike.holdChunks`). Later, with RimuLib
+   1.2.2 public: `Fresh.hold` for chunks not generated yet, so the fall generates them already carved.
+3. Needs RimuLib 1.2.2 public: move `MoonBuild`/`MoonLand`'s per-chunk `paint` calls to one `SectionSink` per cell
+   (copy on the server thread, build on helpers, swap and `relightAll` once). Don't write it against the early jar:
+   the API may change and players can't have it yet.
+4. `buildAhead`: skip. 1.2.2's parallel cutting covers most of it, and its builder threads would call our floors and
+   surfaces: Halley's are plan maths (safe), but Luna's `MoonStrike.crater` reads the live world (`hasChunk`,
+   `MoonLand.groundAt`) and `MoonVeins` caches in a plain map, neither safe off the server thread.
+
+## 18. Stellar Convergence (idea agreed 2026-11-03, not started)
+
+The user's idea, inspired by **The Shooting Star - Stellar Quartet** (星际四重奏) by ikun520
+(https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-stellar-quartet). **Credit it** in the README, the
+CurseForge description, the changelog and the feature's own H-menu text. What Stellar Quartet does (its page,
+2026-11-03): P splits the screen into small screens and fires every TSS hit at once, one per screen; AUTO mode spreads
+the strikes round the player, AIM mode puts them on one point; its settings page is in the H menu. Ours must be its
+own thing, not a copy of it.
+
+- **What**: one key (or remote skill) that fires every weapon the player ticked, at once, at the crosshair: TSS's own
+  skills and ours, later other addons'. The ticks live on the addon's plate in the H menu. Each is cast with its own
+  slider values through RimuLib's `SkillSet.of(skill).cast(player, skill, tuning)` (§14).
+- **Name**: **Stellar Convergence** (user's pick). Others offered: Stellar Symphony, Syzygy, Grand Conjunction.
+- **Film: panel montage** (user's pick): quick cuts to each ticked weapon's signature moment; each shot freezes into a
+  comic-style panel (a captured frame, so no second camera has to render) that slides aside until the screen is a
+  grid; the grid shatters as everything hits. RimuLib's film tools (§15). The weapons' own films don't play meanwhile.
+- **Outside the film (the user definitely wants this)**: a mixed effect of the ticked weapons on top of each one's own,
+  e.g. one sigil ring over the mark with a coloured segment per weapon (Halley ice blue, Luna molten orange, Proxima
+  crimson, others from `Skill.color()`), streaks spiralling in, one shared shockwave ring blending their colours.
+  Screen shake, flashes and particles must not simply add up: one shared, capped shake.
+- **Timing**: ideally every impact on one tick (hold back the quicker ones). Ours are known (`HalleyPlan`, `MoonPlan`);
+  TSS's and other addons' aren't exposed (only `Skill.duration()`): measure them, or fire as a timed barrage.
+- **Other addons** (the user wants Quasar, Miku Star etc.): makes sense and costs little: `SkillSet.all()` lists every
+  mod's skills with their casters, so the list fills itself. Their films and effects stay theirs.
+- **Risks**: several huge strikes on one spot (RimuLib 1.2.2's shared 30 ms carving budget keeps the tick in check,
+  §17, but loading and effects stack); clashes with Stellar Quartet when both are installed (its key is P, its page is
+  in the H menu: check both).
+- **No limits**: like the commands (§14), warn on the plate that firing everything at high power can freeze a server.
