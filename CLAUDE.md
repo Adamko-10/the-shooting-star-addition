@@ -67,6 +67,8 @@ project 1719195, All Rights Reserved). It adds two skills to TSS's Stellar Remot
 Mod id `shooting_star_addition`, Java package `dev.ss05.halley` (the "SS-05/SS-06" names in code are the old
 codenames; players see SA-01/SA-02). GitHub `Adamko-10/the-shooting-star-addition`; CurseForge project **1725916**
 (author `adamko_10`). Current version **1.6.0** (in `gradle.properties` on every branch; TSS 1.5.0 only, §16).
+Since 2026-11-03 `main` (not released) targets **TSS 1.5.1 only** with RimuLib 1.2.1 (§16, "TSS 1.5.1"); the other six
+branches are still on 1.5.0.
 
 ## 2. Branches
 
@@ -82,8 +84,8 @@ On **Adam's PC** everything lives in the project folder `C:\Users\adam_\Document
 early build, TSS 1.5.2's locked launcher, RimuLib 1.1.4 and 1.2.2: never commit, never share), `old versions\` (older
 release jars and the 1.1.0 handoff), `old notes\` (older CLAUDE.md copies, superseded by this file). Release jars go in
 `releases\<ver>\`, test jars in `test builds\<date> <what>\`. The first clone, `C:\Users\adam_\Documents\the-shooting-star-addition`,
-went to the Recycle Bin (user's OK, 2026-11-03; nothing unpushed). The clone's `libs/` has TSS 1.3.3-1.5.0 (NeoForge)
-and RimuLib 1.1.5, mapped (§4).
+went to the Recycle Bin (user's OK, 2026-11-03; nothing unpushed). The clone's `libs/` has TSS 1.3.3-1.5.1 (NeoForge)
+and RimuLib 1.2.1, mapped (§4, §16).
 
 | Branch | Loader / MC | TSS package prefix | Release tag | Jar label |
 |---|---|---|---|---|
@@ -288,13 +290,16 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
 
 - **2026-11-03, evening** (Adam's PC): the project folder is made (§2). Its clone's `libs/` has TSS 1.3.3-1.5.0
   (NeoForge) and RimuLib 1.1.5 from cursemaven, the mapping chain is made, and `main` builds (pack check clean).
-  Luna now holds the land round the mark from the cast (§17, item 2): built, **not tested in game**, not pushed; test
-  jar in `test builds\2026-11-03 Luna preload\` (needs TSS 1.5.0 + RimuLib 1.1.5). New idea: Stellar Convergence (§18).
-  Commands: TSS's skills too, and a no-limits warning (§14). Still unknown: the server finale date.
+  Luna now holds the land round the mark from the cast (§17, item 2): built, **not tested in game**, not pushed.
+  Then (the user's OK) `main` moved to TSS 1.5.1 + RimuLib 1.2.1 (§16): test jar in
+  `test builds\2026-11-03 Luna preload, TSS 1.5.1\` (the folder marked "TSS 1.5.0 (older)" is the first build).
+  New idea: Stellar Convergence (§18). Commands: TSS's skills too, and a no-limits warning (§14). The user reset the
+  API key and bot token that were in their Discord export. Still unknown: the server finale date.
 - **2026-11-03** (Adam's PC):
   - **TSS 1.5.1 is out** (CurseForge 2026-11-01, after our 1.6.0). `tssVersionRange` (gradle/tss.gradle) allows each
-    supported version up to its next patch, so 1.6.0 should declare TSS `[1.5.0,1.5.1)` and refuse to load next to
-    1.5.1. Not yet checked against the released jar, nor 1.5.1's obfuscated names (§16).
+    supported version up to its next patch, so 1.6.0 declares TSS `[1.5.0,1.5.1)` and refuses to load next to 1.5.1
+    (checked in a local build of the same code; that's why the Luna test jar first needed TSS 1.5.0). Main now
+    supports 1.5.1 (§16).
   - **Why TSS's big carvings feel instant** (read from an unobfuscated early TSS 1.5.0 build for Fabric 1.21.11 and
     RimuLib 1.1.4, decompiled in the scratchpad): Gungnir (`RADIUS` 400) holds one chunk ticket (radius <= 32) from
     the cast to its impact, so the 16 s wind-up loads the land; `Carving.buildAhead(front)` builds each chunk's carved
@@ -741,11 +746,25 @@ bundle with nested jars per MC like TSS's). Everything below is true of 1.6.0; �
   Fabric 1.21.1 (harmless: our film overlays draw only while a film plays). forge-1.20.1's `TssRemap` renames clashing
   field names (its SRG tool crashed on them); Fabric's `TssMatch` copies compare `flat()` against the prefix.
 - Changelog: `dev/publish/changelog_160.py`. Players on TSS 1.4.4 or older keep 1.5.1.
+- **TSS 1.5.1** (CurseForge 2026-11-01; NeoForge file 9400029) needs RimuLib >= 1.1.6; RimuLib **1.2.1** came out the
+  same day (NeoForge 9399927, Forge 9399933, Fabric 9399905). On `main` (2026-11-03, built, not tested in game): the
+  1.5.1 mapping is made from 1.5.0's (`tssMappings -PtssJar=1.5.1`, 119/169 classes), and two classes `compat/tss`
+  uses unmapped got new obfuscated names: the payload record `l1l1i1lii1` is now `ll1lil1iill` (same 15 fields; 1.5.1
+  has an unrelated class called `l1l1i1lii1`), and `SpellEngine` didn't match: `aimGround` is
+  `l111i1lil1.liiillli1l(ServerPlayer, double, double)`. Because those names differ, one jar can't pack 1.5.0 and
+  1.5.1: `tss_min_version=1.5.1`, `rimulib_version_range=[1.2.1,2.0)`; players on TSS 1.5.0 keep 1.6.0. libs/ holds
+  RimuLib 1.2.1 (1.1.5 moved to the project folder's `old versions\rimulib\`). `dev/ci/branches/main.sh` has 1.5.1 and
+  RimuLib 1.2.1; the other branches' scripts don't yet. 1.5.1 also flattens its control flow (`switch` on a static
+  int), so decompiled bodies are harder to read. The other six branches need the same per-loader check (their raw
+  names differ per build, see above).
 
-## 17. How RimuLib 1.2.2 makes big carvings fast (read 2026-11-03, nothing used yet)
+## 17. How RimuLib 1.2.x makes big carvings fast (read 2026-11-03)
 
-Read from RimuLib 1.2.2's Fabric 1.21.11 jar (early access, decompiled in the scratchpad). Check the NeoForge 1.21.1
-build has the same once it's public: `Fresh` hooks `ChunkStatusTasks` (1.20.5+), so 1.20.1 builds may lack it. The
+Read from RimuLib 1.2.2's Fabric 1.21.11 jar (early access, decompiled in the scratchpad). **The public RimuLib 1.2.1**
+(NeoForge, checked with javap 2026-11-03) already has the parallel cutting (`cutTogether`, `inParallel`,
+`TICK_BUDGET_NS`, `HELPED_BATCH`), `relightAll`, `primeHeightmaps`, `buildAhead`, `Bulwark` and `SectionSink`
+(`take(level, deadline)` only); only `Fresh` (and `SectionSink`'s Fresh-aware `take`) is 1.2.2's. `Fresh` hooks
+`ChunkStatusTasks` (1.20.5+), so 1.20.1 builds may lack it. The
 idea behind all of it: **the server thread only copies and swaps; the rest runs on helper threads or never happens.**
 
 - **One shared budget**: `Carving.tick(front)` cuts until 30 ms of the server tick are used (`TICK_BUDGET_NS`), shared
@@ -788,17 +807,16 @@ idea behind all of it: **the server thread only copies and swaps; the rest runs 
   sheltered entities. So our strikes already respect other mods' RimuLib shields.
 
 **What it means for us** (on `main` first, §0):
-1. Updating to RimuLib 1.2.2 alone gives the crater floors (`TssLink.excavate`, `Carving.flatten`) parallel cutting,
-   the shared budget and batched sends, and `paint` batched relight/send. No code change: our range
-   `[1.1.5,2.0)` already takes it, so players get it the day they install it.
+1. RimuLib 1.2.1 (public) alone gives the crater floors (`TssLink.excavate`, `Carving.flatten`) parallel cutting,
+   the shared budget and batched sends, and `paint` batched relight/send. No code change; main requires 1.2.1 now.
 2. Hold the land ahead from the cast, as Gungnir does. **Done for Luna (2026-11-03, not tested in game yet)**:
    `MoonStrike` holds one region ticket round the mark (the crater round the moon, `coreRadius()`, capped at 12
    chunks like Halley's) from the cast to `end()`, so the land loads over the 16 s fall instead of when the moon
    lands. Halley already held its crater and trench from the cast (`HalleyStrike.holdChunks`). Later, with RimuLib
    1.2.2 public: `Fresh.hold` for chunks not generated yet, so the fall generates them already carved.
-3. Needs RimuLib 1.2.2 public: move `MoonBuild`/`MoonLand`'s per-chunk `paint` calls to one `SectionSink` per cell
-   (copy on the server thread, build on helpers, swap and `relightAll` once). Don't write it against the early jar:
-   the API may change and players can't have it yet.
+3. Possible now (RimuLib 1.2.1 has `SectionSink`): move `MoonBuild`/`MoonLand`'s per-chunk `paint` calls to one
+   `SectionSink` per cell (copy on the server thread, build on helpers, swap and `relightAll` once). Not started;
+   only `Fresh` waits for RimuLib 1.2.2 to be public.
 4. `buildAhead`: skip. 1.2.2's parallel cutting covers most of it, and its builder threads would call our floors and
    surfaces: Halley's are plan maths (safe), but Luna's `MoonStrike.crater` reads the live world (`hasChunk`,
    `MoonLand.groundAt`) and `MoonVeins` caches in a plain map, neither safe off the server thread.
