@@ -45,12 +45,11 @@ public final class MoonBuild {
         thread.setDaemon(true);
         return thread;
     });
-    /** Chunks copied and being filled at once, at most. */
-    private static final int IN_FLIGHT = BUILDERS * 3;
+    /** Chunks copied and being filled at once, at most: enough that the server thread never waits on the builders. */
+    private static final int IN_FLIGHT = 32;
 
     private final ServerLevel level;
     private final MoonPlan plan;
-    private final int chunksPerTick;
     private final Excavation.Loader loader;
     private final int fromY;
     private final int toY;
@@ -59,14 +58,16 @@ public final class MoonBuild {
     private int next;
     /** Chunks copied and being filled, oldest first: swapped in in that order. */
     private final ArrayDeque<Job> jobs = new ArrayDeque<>();
+    /** For the log line once it is done: when it began and its longest tick. */
+    private long begun = -1L;
+    private long worstTick;
 
     private record Job(ChunkPos pos, Excavation.Sink sink, CompletableFuture<Void> fill) {
     }
 
-    public MoonBuild(ServerLevel level, MoonPlan plan, int chunksPerTick, Excavation.Loader loader) {
+    public MoonBuild(ServerLevel level, MoonPlan plan, Excavation.Loader loader) {
         this.level = level;
         this.plan = plan;
-        this.chunksPerTick = Math.max(1, chunksPerTick);
         this.loader = loader;
         this.order = footprint(plan);
         double r = plan.params.moonRadius();
@@ -119,7 +120,6 @@ public final class MoonBuild {
     private void build(boolean now) {
         long start = System.nanoTime();
         List<ChunkPos> built = new ArrayList<>();
-        int started = 0;
         while (!this.done()) {
             Job job = this.jobs.peek();
             if (job != null && (now || job.fill().isDone())) {
@@ -143,7 +143,7 @@ public final class MoonBuild {
                 built.add(job.pos());
             } else {
                 if (this.next >= this.order.size()
-                        || !now && (this.jobs.size() >= IN_FLIGHT || started >= this.chunksPerTick)) {
+                        || !now && this.jobs.size() >= IN_FLIGHT) {
                     break;
                 }
                 ChunkPos pos = this.order.get(this.next);
@@ -154,7 +154,6 @@ public final class MoonBuild {
                 }
                 this.jobs.add(this.start(pos, now));
                 this.next++;
-                started++;
             }
             if (!now && System.nanoTime() - start > BUDGET_NANOS) {
                 break;
@@ -162,6 +161,13 @@ public final class MoonBuild {
         }
         if (!built.isEmpty()) {
             StarBridge.relight(this.level, built);
+        }
+        long end = System.nanoTime();
+        this.begun = this.begun < 0L ? start : this.begun;
+        this.worstTick = Math.max(this.worstTick, end - start);
+        if (this.done() && !built.isEmpty()) {
+            HalleyAddon.LOG.info("Luna: the moon is built: {} chunks in {} s (worst tick {} ms)", this.order.size(),
+                Math.round((end - this.begun) / 1.0E8) / 10.0, this.worstTick / 1_000_000L);
         }
     }
 

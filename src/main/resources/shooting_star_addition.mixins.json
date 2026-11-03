@@ -3,6 +3,9 @@
   "minVersion": "0.8",
   "package": "dev.ss05.halley.compat.mixin",
   "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ChunkAccessMixin"
+  ],
   "client": [
     "ClientLevelMixin",
     "ClientLevelTimeMixin",

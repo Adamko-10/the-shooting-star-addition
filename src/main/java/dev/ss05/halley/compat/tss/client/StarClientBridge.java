@@ -16,6 +16,12 @@ import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.MoonHud;
 import dev.ss05.halley.compat.tss.StrikeFx;
 import dev.ss05.halley.compat.tss.TssLink;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.GuiGraphics;
 
@@ -86,16 +92,16 @@ public final class StarClientBridge {
         }
     }
 
-    /** From compat/mixin: SS-05's and SS-06's overlays on the caster's film (the remote draws its own skills' there). */
+    /**
+     * From compat/mixin: SS-05's and SS-06's overlays on the caster's film (the remote draws its own skills' there):
+     * the newest strike's only, as for the remote's own (see {@link #newestHudsOnly}).
+     */
     public static void renderFilmHud(GuiGraphics graphics, float partial) {
         if (!HalleyFx.active().isEmpty()) {
             Overlay.begin(graphics);
             try {
-                int w = Overlay.width(graphics);
-                int h = Overlay.height(graphics);
-                for (HalleyFx fx : HalleyFx.active()) {
-                    HalleyHud.film(graphics, fx, partial, w, h, world -> FxManager.project(world, graphics));
-                }
+                HalleyHud.film(graphics, HalleyFx.active().getLast(), partial, Overlay.width(graphics), Overlay.height(graphics),
+                    world -> FxManager.project(world, graphics));
             } finally {
                 Overlay.end(graphics);
             }
@@ -103,15 +109,72 @@ public final class StarClientBridge {
         if (!MoonFx.active().isEmpty()) {
             Overlay.begin(graphics);
             try {
-                int w = Overlay.width(graphics);
-                int h = Overlay.height(graphics);
-                for (MoonFx fx : MoonFx.active()) {
-                    MoonHud.film(graphics, fx, partial, w, h, world -> FxManager.project(world, graphics));
-                }
+                MoonHud.film(graphics, MoonFx.active().getLast(), partial, Overlay.width(graphics), Overlay.height(graphics),
+                    world -> FxManager.project(world, graphics));
             } finally {
                 Overlay.end(graphics);
             }
         }
+    }
+
+    /** The remote's running effects, oldest first: FxManager's one static list, found by type (its name is obfuscated). */
+    private static List<Object> running;
+    private static boolean looked;
+    /** The whole list while the older effects are taken out of it, else null. */
+    private static List<Object> hidden;
+
+    /**
+     * From compat/mixin, before the remote draws its effects' overlays: only the newest effect of each kind keeps its
+     * overlay (two Gungnirs at once, with no cooldown, drew two over each other; the user picked "newest only",
+     * 2026-11-03). The older ones are taken out of the list while it draws and put back right after
+     * ({@link #allHuds}); they go on running as before.
+     */
+    public static void newestHudsOnly() {
+        allHuds();
+        List<Object> list = running();
+        if (list == null || list.size() < 2) {
+            return;
+        }
+        Set<Class<?>> seen = new HashSet<>();
+        List<Object> newest = new ArrayList<>(list.size());
+        for (int i = list.size() - 1; i >= 0; i--) {
+            if (seen.add(list.get(i).getClass())) {
+                newest.add(0, list.get(i));
+            }
+        }
+        if (newest.size() < list.size()) {
+            hidden = new ArrayList<>(list);
+            list.clear();
+            list.addAll(newest);
+        }
+    }
+
+    /** From compat/mixin, after the remote drew its overlays: the older effects go back into its list. */
+    public static void allHuds() {
+        if (hidden != null) {
+            running.clear();
+            running.addAll(hidden);
+            hidden = null;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Object> running() {
+        if (!looked) {
+            looked = true;
+            for (Field field : FxManager.class.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers()) && field.getType() == List.class) {
+                    try {
+                        field.setAccessible(true);
+                        running = (List<Object>) field.get(null);
+                    } catch (ReflectiveOperationException | RuntimeException failed) {
+                        HalleyAddon.LOG.warn("Couldn't find the remote's running effects; every overlay is drawn", failed);
+                    }
+                    break;
+                }
+            }
+        }
+        return running;
     }
 
     /**

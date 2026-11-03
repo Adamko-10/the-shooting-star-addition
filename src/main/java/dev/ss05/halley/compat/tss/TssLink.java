@@ -17,6 +17,7 @@ import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.compat.StarLink;
 import dev.ss05.halley.compat.TssVersion;
+import dev.ss05.halley.compat.mixin.ChunkAccessMixin;
 import dev.ss05.halley.compat.tss.client.StarClientBridge;
 import dev.ss05.halley.world.Excavation;
 import dev.ss05.halley.world.HalleyCasting;
@@ -336,15 +337,13 @@ public final class TssLink implements StarLink {
 
             @Override
             public void apply() {
-                LevelChunk chunk = level.getChunkSource().getChunkNow(pos.x, pos.z);
-                if (chunk != null) {
-                    // saved block entities not loaded yet are loaded now, while their blocks are still there, so the
-                    // sink drops the ones it covers (else they stay behind: "Tried to load a DUMMY block entity")
-                    for (BlockPos at : List.copyOf(chunk.getBlockEntitiesPos())) {
-                        chunk.getBlockEntity(at);
-                    }
-                }
                 sink.apply(level);
+                // saved block entities not loaded yet whose block is gone (cut by the crater, covered by the moon) are
+                // dropped quietly; loading them fails with a warning or a stack trace each
+                if (level.getChunkSource().getChunkNow(pos.x, pos.z) instanceof ChunkAccessMixin chunk) {
+                    LevelChunk live = (LevelChunk) chunk;
+                    chunk.ss05halley$pendingBlockEntities().keySet().removeIf(at -> !live.getBlockState(at).hasBlockEntity());
+                }
             }
 
             @Override

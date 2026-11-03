@@ -69,8 +69,11 @@ import net.minecraft.world.phys.Vec3;
 public final class MoonStrike {
     private static final TicketType<ChunkPos> TICKET = TicketType.create(HalleyAddon.MOD_ID + ":luna", Comparator.comparingLong(ChunkPos::toLong));
     private static final int EVAC_COLOR = 0x6FE8FF;
-    /** The most chunks round the mark held loaded from the cast (Halley's cap too); a bigger moonfall streams the rest. */
-    private static final int MAX_TICKET_RADIUS = 12;
+    /**
+     * The most chunks round the mark held loaded from the cast: RimuLib's cap, as The Shooting Star's Gungnir holds (12 was
+     * too few: a 10x moonfall then streamed ~4000 chunks in 64 at a time, 2026-11-03); a bigger one streams the rest.
+     */
+    private static final int MAX_TICKET_RADIUS = 32;
 
     /**
      * Ticks after everything is cut and built at which the crater's chunks are sent to players again. The fast carver
@@ -134,6 +137,8 @@ public final class MoonStrike {
     private boolean ended;
     /** When the crater round the moon and the moon were done, and the loaded land with them (the tick), or -1. */
     private int carvedAt = -1;
+    /** When the crater round the moon was cut (the tick), or -1: logged, it decides when the moon can be built. */
+    private int dugAt = -1;
 
     /** {@code cast} is the remote's sliders for this cast (the sizes in the plan are already scaled by its power). */
     public MoonStrike(ServerLevel level, MoonPlan plan, ServerPlayer caster, CastTuning cast) {
@@ -210,7 +215,7 @@ public final class MoonStrike {
         if (t == MoonPlan.SETTLE && this.params.carve() && this.moonBuild == null) {
             // The client plays the moon ploughing down into the crater until SETTLE; only from there does the
             // block moon actually sit at rest, so there is nothing to build before this.
-            this.moonBuild = new MoonBuild(this.level, this.plan, this.tuning.chunksPerTick(), this.loader);
+            this.moonBuild = new MoonBuild(this.level, this.plan, this.loader);
         }
 
         if (this.crater != null && !this.crater.done()) {
@@ -222,6 +227,10 @@ public final class MoonStrike {
         // the rim, the slabs and the cracks rise and are cut round the crater: they wait for the crater round the moon
         // to be dug (it takes a second or two), or the excavator would cut the slabs away again
         boolean dug = this.crater == null || this.crater.done();
+        if (dug && this.crater != null && this.dugAt < 0) {
+            this.dugAt = t;
+            HalleyAddon.LOG.info("Luna: the crater round the moon is cut, {} s after the impact", (t - MoonPlan.CONTACT) / 20.0);
+        }
         if (this.land != null && dug) {
             this.land.tick(t);
         }
@@ -252,7 +261,7 @@ public final class MoonStrike {
             this.crater.finish();
         }
         if (this.moonBuild == null && this.params.carve()) {
-            this.moonBuild = new MoonBuild(this.level, this.plan, this.tuning.chunksPerTick(), this.loader);
+            this.moonBuild = new MoonBuild(this.level, this.plan, this.loader);
         }
         if (this.moonBuild != null) {
             this.moonBuild.finish();
