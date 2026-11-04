@@ -327,6 +327,11 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
   there renamed `.disabled`). For the user's server: pre-generating the map (Chunky is installed) makes big strikes
   fast without any code. Then both speed-ups (§14) on main, built, not tested in game: test jar
   `test builds\2026-11-04 only where land is loaded\`, also in the Modrinth profile.
+- **2026-11-04** (Adam's PC): the "only where land is loaded" build is **not tested yet** (the game's last log is from
+  before it). Meanwhile, on the user's pick: the Gravitia keybind and the keep-the-moon switch (§14), built, not
+  tested; test jar `test builds\2026-11-04 Gravitia key, keep the moon\`, in the Modrinth profile (it includes the
+  untested speed-ups; the older jar is renamed `.disabled`). Sound-overhaul scope and finale date answered (§14).
+  15+ commits on main, none pushed.
 - **2026-11-03** (Adam's PC):
   - **TSS 1.5.1 is out** (CurseForge 2026-11-01, after our 1.6.0). `tssVersionRange` (gradle/tss.gradle) allows each
     supported version up to its next patch, so 1.6.0 declares TSS `[1.5.0,1.5.1)` and refuses to load next to 1.5.1
@@ -436,8 +441,7 @@ From the user's own notes (notebook and Discord self-DMs, 2026-10-23..11-03; non
 From the CurseForge comments (reviewed 2026-11-03):
 
 - **Gravitia keybind** (TSS's own SS-06, which has no key): a toggle to give it one. The user promised it for "the next
-  major update". The remote's keys are RimuLib's (`client.magic.SkillKeys`, readable); why Gravitia has none is not
-  checked yet.
+  major update". Done on main 2026-11-04 (§14).
 - **Title cards** like TSS 1.5.0's for our films (Proxima's are planned, §15).
 - **The sounds sound AI-made** (they are): replace the main ones with real or licensed sounds.
 - **Films "exactly like the original"**: the style, not TSS's assets (§9).
@@ -609,11 +613,23 @@ Findings and fixes (main `449de31`, `f64b0c3`, `e72839c`; cherry-picked to every
 - **operator commands + Epic mode + protected-blocks tag** (below);
 - **SA-03 Proxima** (§15);
 - **Stellar Convergence** (§18);
-- smaller: the **Gravitia keybind** (promised to players), the **keep-the-moon switch** (H menu, §10), **less shake
-  after Halley + a setting to reduce or remove impact frames** (§10), the H-menu note that Luna's music follows the
-  Music slider (§9), title cards (§10);
+- done on main 2026-11-04, to test: the **Gravitia keybind** (`compat/tss/mixin/SkillKeysMixin`: RimuLib's
+  `SkillKeys.register` skips any skill whose `selectWarning()` isn't null, which is why Gravitia, "it can only be
+  chosen from the menu", had none; at its TAIL we register a KeyMapping for each such skill, **unbound**, under the
+  set's key name (TSS's lang already has `key.shooting_star_demo.stellar_remote.gravitia`) and category, and put it in
+  `KEYS`/`SKILLS`, so the menu shows it and can rebind it. A skill key only *selects* the skill
+  (`ClientSkills.select`), it never fires it, and the menu's warning page is skipped for a key press); the
+  **keep-the-moon switch** (L on the plate, client config `keep_moon`, default off: `MoonFx.kept()` keeps the sphere
+  at full visibility after SETTLE (no crumble or crumble particles) and `finished()` false past DURATION;
+  `MoonFxAdapter.duration()` returns `Integer.MAX_VALUE` while on (TSS reads it every tick); `realTime()` stops at
+  DURATION so every other effect stays faded; switching off removes kept moons at once);
+- smaller, still to do: **less shake after Halley + a setting to reduce or remove impact frames** (§10), title cards
+  (§10). The plate's Music-volume note is done;
 - **sounds: overhaul the existing ones** (the user: "dont replace ai sounds lets just overhaul them"; rework,
-  layer and process what we have rather than swapping in licensed packs). Ask what "overhaul" should cover first.
+  layer and process what we have rather than swapping in licensed packs). Scope (the user, 2026-11-04, all four):
+  punchier impacts (layered bass, a crack on top, a rolling tail), better mixing (against each other and TSS's),
+  less repetition (pitch/variation for debris and rumbles), and Luna's build-up (a rising rumble before the fall, a
+  near-silence just before impact; see §10 "Luna's build-up").
 
 **No cooldown for TSS's own skills** (fixed 2026-11-03, main): TSS 1.5.1's cast of its own skills (`il1i1li1l11
 .liiillli1l(ServerPlayer, liiliiii1, Tuning)`, unmapped) refuses one while the same player's last of that skill runs
@@ -658,7 +674,7 @@ The user runs a modded server (Montauk County partnership) where this addon will
   - residue stamped with an event tag (data component/NBT) so creative-spawned copies don't count;
   - getting it to the bot: simplest is in-game hand-over and manual payout; smoother is a sell command that removes
     the residue and writes `player, amount` to a log file the bot reads (or a webhook). Decide once the bot is known.
-- **The finale date is unknown**: ask; it decides how soon the strike commands must ship.
+- **The finale date**: "later / don't know" (the user, 2026-11-04): no rush on the strike commands.
 - Other event ideas from the user's notes (not discussed in detail): an operator-only block that spawns through a
   portal animation and opens like a case to give the Stellar Remote (ties into §10 #3); keep one skill unused in the
   finale and point players to download the addon to try it; mention in the community that updates may be slower.
