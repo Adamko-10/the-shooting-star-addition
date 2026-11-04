@@ -346,6 +346,13 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
   impact frames are off (the white flash fills those frames), and Gravitia's key (unbound shows no label; the hook is
   packed, target `SkillKeys.register()V`). The harness waited forever for a kept moon to end before its final views:
   it now goes on when `MoonFx.kept()`. Test jar `test builds\2026-11-04 kept moon cools\`, in the Modrinth profile.
+  **No push until the update is done** (the user: "lets push it all into one big push"): everything stays on local
+  `main` until the release. Then (user's pick) **operator commands and the protected-blocks tag** (§14), both built
+  and game-tested (`test builds\2026-11-04 auto test 2\`): `/ssa strike halley at 160 ~ 30 2 inf 1.5` struck at
+  exactly (160.5, 41, 30.5); `/ssa strike the_shooting_star at 140 ~ 0` fired TSS's Railgun (RimuLib logged its cut of
+  544 chunks; its aim not checked, the harness has no effect of its own to film it by and waited until killed); a
+  command block placed in Luna's crater was still there after the strike. Test jar
+  `test builds\2026-11-04 commands, protected blocks\`, in the Modrinth profile.
 - **2026-11-03** (Adam's PC):
   - **TSS 1.5.1 is out** (CurseForge 2026-11-01, after our 1.6.0). `tssVersionRange` (gradle/tss.gradle) allows each
     supported version up to its next patch, so 1.6.0 declares TSS `[1.5.0,1.5.1)` and refuses to load next to 1.5.1
@@ -624,7 +631,9 @@ Findings and fixes (main `449de31`, `f64b0c3`, `e72839c`; cherry-picked to every
   rim and cracks' 846 ms tick at 10x: `MoonLand.end()` finished every loaded chunk at once; now it queues them and
   `lingerTick` works 15 ms a tick (loaded and ready chunks), and a chunk waits for `MoonBuild.ready`. MoonLand itself
   still paints per chunk (not through the sink): port it only if it still shows up in the timings;
-- **operator commands + Epic mode + protected-blocks tag** (below);
+- done on main 2026-11-04, game-tested: the **operator command** and the **protected-blocks tag** (below); still to do:
+  **Epic mode** (needs `Video-Project-48.mp3` from Hamza's PC for its music), and saying both in the README, the
+  changelog and the CurseForge description at release (with the command's no-limits warning);
 - **SA-03 Proxima** (§15);
 - **Stellar Convergence** (§18);
 - done on main 2026-11-04, to test: the **Gravitia keybind** (`compat/tss/mixin/SkillKeysMixin`: RimuLib's
@@ -679,6 +688,24 @@ update).
   stretched, to the 16 s from ALARM to CONTACT, §13; recipe in `docs/SS-06-LUNA.md`). The normal fall keeps
   1.5.1's (CONTACT 330, with Halley's impact, which the user asked for in §13; confirmed 2026-11-03).
 - **Protected-blocks tag** (§10 #6): `shooting_star_addition:unbreakable`; matters even more for Proxima's wide area.
+  **Done 2026-11-04** (`world/Protected`, `data/shooting_star_addition/tags/block/unbreakable.json`: bedrock, barrier,
+  command/structure blocks, jigsaw, end portal and frame, reinforced deepslate; servers add more by data pack). Its
+  blocks are registered as RimuLib carving cores (`Carving.keepCores` in `TssLink.install`) and our carvings
+  `keepsCores()`, so RimuLib keeps them block by block (one of TSS's own skills, `il1li1111` in 1.5.1, keeps cores
+  too, so it spares them as well; TSS's other skills don't); `TssLink.paint` drops writes onto them (palette check
+  per chunk, `Protected.scan`); `MoonBuild` puts them back after cutting and building a chunk (and never starts a
+  section empty there). A protected block whose column is cut can be left floating, as RimuLib's cores are.
+- **The operator command, as built (2026-11-04)**: `compat/tss/StrikeCommand` (registered through
+  `StarBridge.registerCommands` from NeoForge's `RegisterCommandsEvent`): `/ssa` (help + the no-limits warning),
+  `/ssa strike <skill> [at <x y z>] [power] [damage|inf] [speed]`, permission 2, run by a player (console: `/execute
+  as <player> run ssa ...`). `<skill>` is any non-hidden skill's id (suggested: `the_shooting_star`, `gungnir`,
+  `seven_stars`, `tesseract`, `gravitia`, `halley`, `moon`, other addons'); unset values are `Tuning.initial`. It casts
+  through `SkillSet.of(skill).cast` (TSS's cast router, so no cooldown, no server slider limits), with
+  `NoCooldown.forced` on (no "already on its way": `NoCooldown.casting()`); `at` is answered by the aim hook in
+  `SpellsMixin` on `l111i1lil1.liiillli1l(ServerPlayer, double, double)` (every skill's ground aim, ours through
+  `TssLink.aimGround`) via `StrikeAim`. A red warning line when power or speed is past `Tuning.power/speed(skill)`.
+  The film plays for the player who ran it. Luna still refuses by day and where there's no moon. Not done: a caster
+  other than the player running it, and the harness filming non-addon skills.
 
 ### The user's server (personal, not a mod feature as such)
 
