@@ -541,7 +541,8 @@ final class Harness {
         // the final views: once the strike is over, each from its own spot once everything in view is drawn again
         if (finalView < HarnessParams.FINAL_VIEWS.length) {
             if (finalView < 0) {
-                if (MoonFx.active().isEmpty() && HalleyFx.active().isEmpty()) {
+                // (a kept moon never ends: keep_moon on)
+                if (MoonFx.active().isEmpty() && HalleyFx.active().isEmpty() || MoonFx.kept()) {
                     finalView = 0;
                     finalSince = System.currentTimeMillis();
                     finalFrames = 0;
