@@ -372,7 +372,7 @@ public final class HalleyFx {
             this.play(HalleyContent.FROST.get(), near(camera, p.target, p.params.craterRadius() * 1.2), 1.4F, 1.0F, film);
         }
         if (this.visuals.hasHeart() && t >= p.impact + 40 && t < p.duration - 60 && (t - p.impact - 40) % HUM_EVERY == 0) {
-            this.play(HalleyContent.HUM.get(), this.visuals.heart(), 0.8F, 1.0F, film);
+            this.play(HalleyContent.HUM.get(), this.visuals.heart(), 0.8F, 0.94F + this.random.nextFloat() * 0.12F, film);
         }
     }
 

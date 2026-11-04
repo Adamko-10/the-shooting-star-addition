@@ -76,6 +76,12 @@
     "sounds": [
       {
         "name": "shooting_star_addition:halley_hum"
+      },
+      {
+        "name": "shooting_star_addition:halley_hum_2"
+      },
+      {
+        "name": "shooting_star_addition:halley_hum_3"
       }
     ]
   },
@@ -100,6 +106,12 @@
     "sounds": [
       {
         "name": "shooting_star_addition:halley_burst"
+      },
+      {
+        "name": "shooting_star_addition:halley_burst_2"
+      },
+      {
+        "name": "shooting_star_addition:halley_burst_3"
       }
     ]
   },
@@ -188,6 +200,9 @@
     "sounds": [
       {
         "name": "shooting_star_addition:luna_aftershock"
+      },
+      {
+        "name": "shooting_star_addition:luna_aftershock_2"
       }
     ]
   },
@@ -204,6 +219,28 @@
     "sounds": [
       {
         "name": "shooting_star_addition:luna_debris"
+      },
+      {
+        "name": "shooting_star_addition:luna_debris_2"
+      },
+      {
+        "name": "shooting_star_addition:luna_debris_3"
+      }
+    ]
+  },
+  "luna_buildup": {
+    "subtitle": "subtitles.shooting_star_addition.luna_buildup",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_buildup"
+      }
+    ]
+  },
+  "luna_inhale": {
+    "subtitle": "subtitles.shooting_star_addition.luna_inhale",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_inhale"
       }
     ]
   },

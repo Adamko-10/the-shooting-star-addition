@@ -53,6 +53,8 @@ public final class MoonFx {
     private static final double SOUND_SPEED = 17.0;
     /** ...but never more than this late. */
     private static final int MAX_SOUND_DELAY = 30;
+    /** How long luna_inhale.ogg is (0.65 s), so it ends on the impact. */
+    private static final int INHALE = 13;
     /**
      * When Luna's music starts: with the alarm, sixteen seconds before the impact - {@code luna_music.ogg} is the track
      * cut so that its drop comes sixteen seconds in (the original's drop is at 24.45 s, so it starts 8.45 s in).
@@ -450,6 +452,8 @@ public final class MoonFx {
         }
         if (t == MoonPlan.ALARM) {
             this.play(HalleyContent.MOON_ALARM.get(), film ? p.target : caster, 1.5F, 1.0F, film);
+            // the build-up: rising in the sky from the alarm until the moon tears loose (FALL)
+            this.play(HalleyContent.MOON_BUILDUP.get(), sky(camera, p.centre(t)), 1.6F, 1.0F, film);
         }
         // the approach: the moon cracking, tearing loose, the long roar down, the scream of entry, the ground rumbling
         if (t == MoonPlan.BREAK) {
@@ -470,7 +474,19 @@ public final class MoonFx {
             this.boom(HalleyContent.MOON_ENTRY.get(), at, sky(camera, at), 2.2F, film, 0.35F, Double.MAX_VALUE);
         }
         if (t == MoonPlan.CONTACT - 60) {
+            // swelling, then near-silence for its last half second (the file is cut so): the hush before the impact
             this.play(HalleyContent.MOON_RUMBLE.get(), near(camera, p.target, p.params.craterRadius() * 1.5), 2.4F, 1.0F, film);
+        }
+        if (t == MoonPlan.CONTACT - INHALE) {
+            // out of the hush, the air rushing in: it ends as the impact is heard, so it is as late as the impact's sound
+            int delay = film ? 0 : (int) Math.min(MAX_SOUND_DELAY, camera.distanceTo(p.target) / SOUND_SPEED);
+            Runnable inhale = () -> this.play(HalleyContent.MOON_INHALE.get(), near(camera(), p.target, p.params.craterRadius() * 1.5),
+                2.0F, 1.0F, film && this.inFilm());
+            if (delay <= 0) {
+                inhale.run();
+            } else {
+                this.later.add(new Later(t + delay, inhale));
+            }
         }
         if (t > MoonPlan.FALL && t < MoonPlan.CONTACT && t % 4 == 0) {
             this.host.shake(p.centre(t), 0.1F * (float) MoonPlan.fall(t), 650.0);

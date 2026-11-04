@@ -61,14 +61,21 @@ final class FilmTitle {
         float tracking = 1.5F;
         float[] xs = new float[word.length()];
         float width = layout(g, word, scale, tracking, xs);
+        Line line = new Line(g, Codenames.HALLEY, scale, cap, width, cx);
 
         float shown = fade * clamp((ct - HALLEY_IN) / 4.0F) * (1.0F - clamp((ct - HALLEY_OUT) / 10.0F));
-        TessType.veil(g, cx, base - cap * 0.5F, width * 0.8F, cap * 1.4F, 0.4F * shown);
-        TessType.draw(g, TessType.Face.LABEL, Codenames.HALLEY + "  ·  1P/HALLEY", cx, base - cap - h * 0.035F, 0.5F, scale * 0.3F, 2.5F,
+        TessType.veil(g, cx, base - cap * 0.5F, line.total * 0.8F, cap * 1.4F, 0.4F * shown);
+        TessType.draw(g, TessType.Face.LABEL, "1P/HALLEY  ·  PERIODIC COMET", cx, base - cap - h * 0.035F, 0.5F, scale * 0.3F, 2.5F,
             TessType.Paint.flat(0xFF000000 | PALE), 0.85F * shown, 1.0F);
+        // the code name first, flickering on like a readout, then sublimating with the word
+        float codeLeave = clamp((ct - HALLEY_OUT) / 6.0F);
+        float codeIn = clamp((ct - HALLEY_IN) / 3.0F) * (ct < HALLEY_IN + 4.0F && (int) (ct * 3.0F) % 3 == 0 ? 0.35F : 1.0F);
+        TessType.draw(g, TessType.Face.DISPLAY, Codenames.HALLEY, line.codeLeft, base - codeLeave * codeLeave * cap * 0.5F, 0.0F,
+            line.codeScale, Line.CODE_TRACKING, TessType.Paint.flat(0xFF000000 | ICE), fade * codeIn * (1.0F - codeLeave), 1.2F);
+        cx = line.wordCentre;
         float grow = clamp((ct - HALLEY_IN - 4.0F) / 10.0F);
-        float half = width * 0.56F * grow * (2.0F - grow);
-        TessType.rule(g, cx - half, cx + half, base + h * 0.018F, Math.max(1.0F, h * 0.003F),
+        float half = line.total * 0.56F * grow * (2.0F - grow);
+        TessType.rule(g, line.centre - half, line.centre + half, base + h * 0.018F, Math.max(1.0F, h * 0.003F),
             (u, v) -> 0xFF000000 | mix(ICE, PALE, 1.0F - Math.abs(u - 0.5F) * 2.0F), shown);
 
         // the way the letters come in from (screen y runs down), and how far they start out
@@ -130,15 +137,29 @@ final class FilmTitle {
         float tracking = 2.0F;
         float[] xs = new float[word.length()];
         float width = layout(g, word, scale, tracking, xs);
+        Line line = new Line(g, Codenames.LUNA, scale, cap, width, cx);
 
         float shown = fade * clamp((ct - LUNA_IN) / 4.0F) * (1.0F - clamp((ct - LUNA_OUT) / 8.0F));
-        TessType.veil(g, cx, base - cap * 0.5F, width * 0.85F, cap * 1.4F, 0.4F * shown);
-        TessType.draw(g, TessType.Face.LABEL, Codenames.LUNA + "  ·  THE MOONFALL", cx, base - cap - h * 0.035F, 0.5F, scale * 0.3F, 2.5F,
+        TessType.veil(g, cx, base - cap * 0.5F, line.total * 0.85F, cap * 1.4F, 0.4F * shown);
+        TessType.draw(g, TessType.Face.LABEL, "THE MOONFALL", cx, base - cap - h * 0.035F, 0.5F, scale * 0.3F, 2.5F,
             TessType.Paint.flat(0xFF000000 | 0xFFE2C8), 0.85F * shown, 1.0F);
         float grow = clamp((ct - LUNA_IN - 3.0F) / 12.0F);
-        float half = width * 0.6F * grow * (2.0F - grow);
-        TessType.rule(g, cx - half, cx + half, base + h * 0.018F, Math.max(1.0F, h * 0.003F),
+        float half = line.total * 0.6F * grow * (2.0F - grow);
+        TessType.rule(g, line.centre - half, line.centre + half, base + h * 0.018F, Math.max(1.0F, h * 0.003F),
             (u, v) -> 0xFF000000 | mix(HOT_FOOT, GOLD, 1.0F - Math.abs(u - 0.5F) * 2.0F), shown);
+        // the code name glows in with the first letters, cools with them, and is the first thing to break away
+        float codeSince = ct - LUNA_IN;
+        float codeFall = clamp((ct - LUNA_OUT) / 7.0F);
+        float codeDrop = codeFall * codeFall;
+        float codeHeat = Math.max(1.0F - clamp((codeSince - 4.0F) / 14.0F), codeFall * 0.8F);
+        PoseStack pose = g.pose();
+        pose.pushPose();
+        pose.translate(line.codeLeft, base + codeDrop * cap * 1.8F, 0.0F);
+        pose.mulPose(Axis.ZP.rotationDegrees(-codeDrop * 18.0F));
+        TessType.draw(g, TessType.Face.DISPLAY, Codenames.LUNA, -codeDrop * cap * 0.3F, 0.0F, 0.0F, line.codeScale, Line.CODE_TRACKING,
+            molten(codeHeat), fade * clamp(codeSince / 3.0F) * (1.0F - codeFall), 1.2F);
+        pose.popPose();
+        cx = line.wordCentre;
 
         float mid = (word.length() - 1) * 0.5F;
         for (int i = 0; i < word.length(); i++) {
@@ -171,6 +192,26 @@ final class FilmTitle {
     }
 
     // ---- Helpers. ---------------------------------------------------------------------------------------------------
+
+    /** The title's line: the code name (smaller, on the same baseline), a gap, then the word, centred together. */
+    private static final class Line {
+        static final float CODE_TRACKING = 1.0F;
+        final float codeScale;
+        final float total;
+        final float centre;
+        final float codeLeft;
+        final float wordCentre;
+
+        Line(GuiGraphics g, String code, float scale, float cap, float wordWidth, float centre) {
+            this.codeScale = scale * 0.42F;
+            float codeWidth = TessType.width(g, TessType.Face.DISPLAY, code, this.codeScale, CODE_TRACKING);
+            float gap = cap * 0.4F;
+            this.total = codeWidth + gap + wordWidth;
+            this.centre = centre;
+            this.codeLeft = centre - this.total * 0.5F;
+            this.wordCentre = this.codeLeft + codeWidth + gap + wordWidth * 0.5F;
+        }
+    }
 
     /** Each letter's centre, from the word's centre, into {@code xs}; returns the word's width. */
     private static float layout(GuiGraphics g, String word, float scale, float tracking, float[] xs) {

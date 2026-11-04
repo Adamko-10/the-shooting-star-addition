@@ -162,6 +162,10 @@ public final class HalleyContent {
     public static final DeferredHolder<SoundEvent, SoundEvent> MOON_SIZZLE = sound("luna_sizzle");
     /** Debris and rubble raining down afterwards. */
     public static final DeferredHolder<SoundEvent, SoundEvent> MOON_DEBRIS = sound("luna_debris");
+    /** From the alarm to the fall: a roar rising in the sky as the moon shudders and its crust grinds. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> MOON_BUILDUP = sound("luna_buildup");
+    /** The air drawn in, after the hush and just before the impact. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> MOON_INHALE = sound("luna_inhale");
 
     /** Damage from the shock wave outside the crater (inside it, things are erased the way the other skills erase). */
     public static final ResourceKey<DamageType> WAKE = ResourceKey.create(Registries.DAMAGE_TYPE, HalleyAddon.id("halley_wake"));
