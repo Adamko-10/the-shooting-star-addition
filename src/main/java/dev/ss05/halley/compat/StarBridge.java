@@ -5,8 +5,10 @@ import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.world.Excavation;
+import com.mojang.brigadier.CommandDispatcher;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -91,6 +93,13 @@ public final class StarBridge {
     public static void tick(MinecraftServer server) {
         if (link != null) {
             link.tick(server);
+        }
+    }
+
+    /** The operators' /ssa command; does nothing if the addon didn't attach. */
+    public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
+        if (link != null) {
+            link.registerCommands(dispatcher);
         }
     }
 

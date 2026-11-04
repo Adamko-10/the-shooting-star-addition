@@ -296,6 +296,21 @@ final class Harness {
             if (Boolean.getBoolean("ss05.clienttest.eat")) {
                 eatCheck(level, player);
             }
+            // -Dss05.clienttest.protect=true: a protected block (a command block) on the ground near the mark, which the
+            // strike must leave where it is (checked at the end, probeLand)
+            if (Boolean.getBoolean("ss05.clienttest.protect")) {
+                level.setBlockAndUpdate(protectedPos(), net.minecraft.world.level.block.Blocks.COMMAND_BLOCK.defaultBlockState());
+                log("placed a protected block at " + protectedPos());
+            }
+            // -Dss05.clienttest.command=...: cast through a chat command (the operators' /ssa strike) instead of the remote
+            String command = System.getProperty("ss05.clienttest.command", "");
+            if (!command.isBlank()) {
+                player.getServer().getPlayerList().op(player.getGameProfile());
+                server.getCommands().performPrefixedCommand(player.createCommandSourceStack(), command);
+                log("ran \"" + command + "\"");
+                maintainCamera(level, player);
+                return;
+            }
             // the remote's sliders for this cast: their defaults, or -Dss05.clienttest.power / .damage / .speed
             Tuning initial = Tuning.initial(skill);
             Tuning tuning = new Tuning(slider("power", initial.power()), slider("damage", initial.damage()),
@@ -450,6 +465,10 @@ final class Harness {
     private static long lastAgeAt;
 
     /** What the strike left in the world, as the server has it: the land's height along two lines out from the mark. */
+    private static net.minecraft.core.BlockPos protectedPos() {
+        return net.minecraft.core.BlockPos.containing(SPAWN_X + HarnessParams.DISTANCE + 6.0, groundY, SPAWN_Z + 6.0);
+    }
+
     private static void probeLand(Minecraft mc) {
         IntegratedServer server = mc.getSingleplayerServer();
         if (server == null) {
@@ -468,6 +487,10 @@ final class Harness {
             log("land east of the mark (height over the old ground): " + east);
             log("land south of the mark (height over the old ground): " + south);
             log("block at the mark's core: " + level.getBlockState(new net.minecraft.core.BlockPos(mx, (int) groundY - 5, mz)));
+            log("the strike's mark: " + lastMark);
+            if (Boolean.getBoolean("ss05.clienttest.protect")) {
+                log("protected block at " + protectedPos() + ": " + level.getBlockState(protectedPos()));
+            }
         });
     }
 

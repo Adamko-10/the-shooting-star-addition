@@ -19,6 +19,7 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -80,6 +81,7 @@ public final class HalleyAddon {
             StarBridge.tick(event.getServer());
             MoonStrike.tickLingering();
         });
+        NeoForge.EVENT_BUS.addListener(RegisterCommandsEvent.class, event -> StarBridge.registerCommands(event.getDispatcher()));
         NeoForge.EVENT_BUS.addListener(ServerStoppedEvent.class, event -> {
             StarBridge.clear();
             MoonStrike.clearLingering();

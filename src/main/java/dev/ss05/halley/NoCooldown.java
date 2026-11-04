@@ -19,6 +19,8 @@ public final class NoCooldown {
     private static final Map<UUID, Boolean> CHOICE = new ConcurrentHashMap<>();
     /** Set while The Shooting Star casts one of its own skills for a player this applies to (the server thread). */
     private static boolean casting;
+    /** Set while an operator's /ssa strike casts: no cooldown and no "already on its way" for it, whoever runs it. */
+    private static boolean forced;
 
     private NoCooldown() {
     }
@@ -41,8 +43,13 @@ public final class NoCooldown {
         casting = on;
     }
 
+    public static void forced(boolean on) {
+        forced = on;
+    }
+
+    /** Whether "already on its way" is skipped for the cast being made: no cooldown applies, or a command casts. */
     public static boolean casting() {
-        return casting;
+        return casting || forced;
     }
 
     /** The player's switch in the remote's menu. */

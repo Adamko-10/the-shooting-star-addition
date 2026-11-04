@@ -4,8 +4,10 @@ import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.world.Excavation;
+import com.mojang.brigadier.CommandDispatcher;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -81,6 +83,9 @@ public interface StarLink {
 
     /** Places blocks fast (straight into the chunk sections), relights and resends the chunks. */
     void paint(ServerLevel level, Map<BlockPos, BlockState> blocks);
+
+    /** The operators' /ssa command (cast any remote skill without the remote). */
+    void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher);
 
     /**
      * Copies a loaded chunk's sections from {@code fromY} to {@code toY} to build into off the server thread; whole

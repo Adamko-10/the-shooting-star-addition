@@ -22,7 +22,7 @@ public final class MoonCasting {
      */
     public static boolean cast(ServerPlayer player, CastTuning cast) {
         // (with no cooldown, another may be called down while one is still falling)
-        if (!NoCooldown.appliesTo(player) && StarBridge.moonAlreadyFalling(player)) {
+        if (!NoCooldown.appliesTo(player) && !NoCooldown.casting() && StarBridge.moonAlreadyFalling(player)) {
             StarBridge.deny(player, MoonInfo.title() + ": the moon is already falling");
             return false;
         }
