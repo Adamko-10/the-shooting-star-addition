@@ -97,10 +97,17 @@ public final class StarClientBridge {
      * the newest strike's only, as for the remote's own (see {@link #newestHudsOnly}).
      */
     public static void renderFilmHud(GuiGraphics graphics, float partial) {
+        // called from both of FxManager's overlay passes (see FxManagerMixin); a frame has one GuiGraphics
+        if (graphics == lastFilmHud) {
+            return;
+        }
+        lastFilmHud = graphics;
         if (!HalleyFx.active().isEmpty()) {
             Overlay.begin(graphics);
             try {
                 HalleyHud.film(graphics, HalleyFx.active().getLast(), partial, Overlay.width(graphics), Overlay.height(graphics),
+                    world -> FxManager.project(world, graphics));
+                FilmTitle.halley(graphics, HalleyFx.active().getLast(), partial, Overlay.width(graphics), Overlay.height(graphics),
                     world -> FxManager.project(world, graphics));
             } finally {
                 Overlay.end(graphics);
@@ -111,11 +118,15 @@ public final class StarClientBridge {
             try {
                 MoonHud.film(graphics, MoonFx.active().getLast(), partial, Overlay.width(graphics), Overlay.height(graphics),
                     world -> FxManager.project(world, graphics));
+                FilmTitle.luna(graphics, MoonFx.active().getLast(), partial, Overlay.width(graphics), Overlay.height(graphics),
+                    world -> FxManager.project(world, graphics));
             } finally {
                 Overlay.end(graphics);
             }
         }
     }
+
+    private static GuiGraphics lastFilmHud;
 
     /** The remote's running effects, oldest first: FxManager's one static list, found by type (its name is obfuscated). */
     private static List<Object> running;
