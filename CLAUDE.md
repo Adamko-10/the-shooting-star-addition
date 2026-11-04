@@ -331,7 +331,9 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
   before it). Meanwhile, on the user's pick: the Gravitia keybind and the keep-the-moon switch (§14), built, not
   tested; test jar `test builds\2026-11-04 Gravitia key, keep the moon\`, in the Modrinth profile (it includes the
   untested speed-ups; the older jar is renamed `.disabled`). Sound-overhaul scope and finale date answered (§14).
-  15+ commits on main, none pushed.
+  Then (user's pick) Halley's shake and the impact-frames setting (§14); test jar
+  `test builds\2026-11-04 shake, impact frames\`, in the Modrinth profile (holds everything above, untested).
+  20 commits on main, none pushed. The user asked again to be reminded of idea #16 (§10) later.
 - **2026-11-03** (Adam's PC):
   - **TSS 1.5.1 is out** (CurseForge 2026-11-01, after our 1.6.0). `tssVersionRange` (gradle/tss.gradle) allows each
     supported version up to its next patch, so 1.6.0 declares TSS `[1.5.0,1.5.1)` and refuses to load next to 1.5.1
@@ -623,8 +625,12 @@ Findings and fixes (main `449de31`, `f64b0c3`, `e72839c`; cherry-picked to every
   at full visibility after SETTLE (no crumble or crumble particles) and `finished()` false past DURATION;
   `MoonFxAdapter.duration()` returns `Integer.MAX_VALUE` while on (TSS reads it every tick); `realTime()` stops at
   DURATION so every other effect stays faded; switching off removes kept moons at once);
-- smaller, still to do: **less shake after Halley + a setting to reduce or remove impact frames** (§10), title cards
-  (§10). The plate's Music-volume note is done;
+- done on main 2026-11-04, to test: **less shake after Halley** (`HalleyFx` detonation `screen.shake` window: full
+  until 0.8 s, gone by 3.5 s; was 2.0 / 5.0; the TSS trauma kick at the impact unchanged) and **impact frames FULL /
+  SOFT (0.35) / OFF** (client config `impact_frames`, F on the plate cycles it; scales `impactSequence` in `HalleyFx`
+  and `MoonFx`; only our skills' frames, not TSS's). The plate now has five rows: M, L, F, E, C. The client config's
+  `get`/`set` are generic and fall back to each setting's own default before the config loads;
+- smaller, still to do: title cards (§10). The plate's Music-volume note is done;
 - **sounds: overhaul the existing ones** (the user: "dont replace ai sounds lets just overhaul them"; rework,
   layer and process what we have rather than swapping in licensed packs). Scope (the user, 2026-11-04, all four):
   punchier impacts (layered bass, a crack on top, a rolling tail), better mixing (against each other and TSS's),
