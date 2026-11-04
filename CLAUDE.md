@@ -77,7 +77,7 @@ project 1719195, All Rights Reserved). It adds two skills to TSS's Stellar Remot
 
 - **SA-01 · Halley** (skill id `halley`): a comet comes in over the horizon, ploughs a frozen trench and detonates on the
   crosshair, leaving an icy crater with a Comet Heart block.
-- **SA-02 · Luna** (skill id `moon`): the moon cracks, tears loose and falls onto the crosshair, leaving a crater with
+- **SA-02 · Luna** (skill id `luna`, `MoonInfo.ID`; the code calls it "moon" everywhere else): the moon cracks, tears loose and falls onto the crosshair, leaving a crater with
   the moon (made of moon cheese) buried in it.
 
 Mod id `shooting_star_addition`, Java package `dev.ss05.halley` (the "SS-05/SS-06" names in code are the old
@@ -728,11 +728,14 @@ update).
   `StarBridge.registerCommands` from NeoForge's `RegisterCommandsEvent`): `/ssa` (help + the no-limits warning),
   `/ssa strike <skill> [at <x y z>] [power] [damage|inf] [speed]`, permission 2, run by a player (console: `/execute
   as <player> run ssa ...`). `<skill>` is any non-hidden skill's id (suggested: `the_shooting_star`, `gungnir`,
-  `seven_stars`, `tesseract`, `gravitia`, `halley`, `moon`, other addons'); unset values are `Tuning.initial`. It casts
+  `seven_stars`, `tesseract`, `gravitia`, `halley`, `luna`, other addons'); unset values are `Tuning.initial`. It casts
   through `SkillSet.of(skill).cast` (TSS's cast router, so no cooldown, no server slider limits), with
   `NoCooldown.forced` on (no "already on its way": `NoCooldown.casting()`); `at` is answered by the aim hook in
   `SpellsMixin` on `l111i1lil1.liiillli1l(ServerPlayer, double, double)` (every skill's ground aim, ours through
-  `TssLink.aimGround`) via `StrikeAim`. A red warning line when power or speed is past `Tuning.power/speed(skill)`.
+  `TssLink.aimGround`) via `StrikeAim`, **per player for the skill's whole run** (`ceil(duration / speed) + 200`
+  ticks; TSS's beams follow the caster's crosshair while they fire: aiming only the cast sent the Railgun to
+  (0.5, 300) and then off to where the player looked, 2026-11-04), cleared when that player casts from the remote
+  (`CastingMixin`) or runs a command without `at`. A red warning line when power or speed is past `Tuning.power/speed(skill)`.
   The film plays for the player who ran it. Luna still refuses where there's no moon (and by day if the server's
   `night_only` is on). Not done: a caster
   other than the player running it, and the harness filming non-addon skills.
