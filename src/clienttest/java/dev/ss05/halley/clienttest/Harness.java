@@ -481,6 +481,21 @@ final class Harness {
         return net.minecraft.core.BlockPos.containing(SPAWN_X + HarnessParams.DISTANCE + 6.0, groundY, SPAWN_Z + 6.0);
     }
 
+    /** The land's height over the old ground, or "unloaded" (an unloaded chunk reads as the bottom of the world: once
+     * mistaken for a crater, 2026-11-04). */
+    private static String height(ServerLevel level, int x, int z) {
+        if (!level.hasChunk(x >> 4, z >> 4)) {
+            return "unloaded";
+        }
+        // the blocks, not the heightmap: RimuLib leaves heightmaps as they were where it cuts to the bottom of the world
+        int y = level.getMaxBuildHeight();
+        net.minecraft.core.BlockPos.MutableBlockPos at = new net.minecraft.core.BlockPos.MutableBlockPos();
+        while (y > level.getMinBuildHeight() && level.getBlockState(at.set(x, y - 1, z)).isAir()) {
+            y--;
+        }
+        return String.valueOf(y - (int) groundY);
+    }
+
     private static void probeLand(Minecraft mc) {
         IntegratedServer server = mc.getSingleplayerServer();
         if (server == null) {
@@ -493,8 +508,8 @@ final class Harness {
             StringBuilder east = new StringBuilder();
             StringBuilder south = new StringBuilder();
             for (int d = 0; d <= 140; d += 4) {
-                east.append(d).append('=').append(level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, mx + d, mz) - (int) groundY).append(' ');
-                south.append(d).append('=').append(level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, mx, mz + d) - (int) groundY).append(' ');
+                east.append(d).append('=').append(height(level, mx + d, mz)).append(' ');
+                south.append(d).append('=').append(height(level, mx, mz + d)).append(' ');
             }
             log("land east of the mark (height over the old ground): " + east);
             log("land south of the mark (height over the old ground): " + south);
@@ -505,7 +520,7 @@ final class Harness {
             if (probe.length == 2) {
                 int px = (int) Math.floor(Double.parseDouble(probe[0].trim()));
                 int pz = (int) Math.floor(Double.parseDouble(probe[1].trim()));
-                log("land at " + px + "," + pz + ": " + (level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, px, pz) - (int) groundY)
+                log("land at " + px + "," + pz + ": " + height(level, px, pz)
                     + " over the old ground");
             }
             if (Boolean.getBoolean("ss05.clienttest.protect")) {
