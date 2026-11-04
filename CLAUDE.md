@@ -334,6 +334,18 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
   Then (user's pick) Halley's shake and the impact-frames setting (§14); test jar
   `test builds\2026-11-04 shake, impact frames\`, in the Modrinth profile (holds everything above, untested).
   20 commits on main, none pushed. The user asked again to be reminded of idea #16 (§10) later.
+  **Then tested by Claude** (the user asked; production-style runs, `runProdClientTest` with TSS 1.5.1 + RimuLib
+  1.2.1 on this PC's GPU, client settings written to `run/prodclient/config/shooting_star_addition-client.toml` before
+  each run; screenshots and logs in the project folder's `test builds\2026-11-04 auto test\`): no errors, no "Can't
+  keep up", no DUMMY warnings in any run. Luna at 10x (world=normal): the crater round the moon and the moon done where
+  land is loaded, 841 chunks in 4.6 s, worst tick 22 ms, 5177 waiting for their land (the rim, ~1100 out, had 0 loaded
+  chunks: right). Luna at 1x: 87 chunks in 3.6 s, rim 747 writes in 265 ms (worst 29 ms). The plate's five rows fit.
+  The kept moon stayed past the end, but with its seams glowing orange for good (`crack` and `approach` are 1 at
+  rest): the user picked "cool down", so a kept moon's seam glow fades and its seam lines darken over DURATION-300 to
+  DURATION (`MoonSphere`: `embers`, `soot`), re-tested (B3). Not checkable by screenshot: Halley's shake, whether the
+  impact frames are off (the white flash fills those frames), and Gravitia's key (unbound shows no label; the hook is
+  packed, target `SkillKeys.register()V`). The harness waited forever for a kept moon to end before its final views:
+  it now goes on when `MoonFx.kept()`. Test jar `test builds\2026-11-04 kept moon cools\`, in the Modrinth profile.
 - **2026-11-03** (Adam's PC):
   - **TSS 1.5.1 is out** (CurseForge 2026-11-01, after our 1.6.0). `tssVersionRange` (gradle/tss.gradle) allows each
     supported version up to its next patch, so 1.6.0 declares TSS `[1.5.0,1.5.1)` and refuses to load next to 1.5.1
