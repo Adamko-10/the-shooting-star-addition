@@ -283,6 +283,12 @@ final class Harness {
     private static void castAndMaybeRepositionCamera(Minecraft mc) {
         IntegratedServer server = mc.getSingleplayerServer();
         log("casting " + HarnessParams.SKILL);
+        // Gravitia's key: there (unbound) since the addon gives the remote's menu-only skills one (SkillKeysMixin)
+        for (net.minecraft.client.KeyMapping key : mc.options.keyMappings) {
+            if (key.getName().contains("gravitia")) {
+                log("key " + key.getName() + " in " + key.getCategory() + ": " + key.saveString());
+            }
+        }
         server.execute(() -> {
             ServerLevel level = server.overworld();
             ServerPlayer player = level.getServer().getPlayerList().getPlayers().get(0);
@@ -306,7 +312,9 @@ final class Harness {
             String command = System.getProperty("ss05.clienttest.command", "");
             if (!command.isBlank()) {
                 player.getServer().getPlayerList().op(player.getGameProfile());
-                server.getCommands().performPrefixedCommand(player.createCommandSourceStack(), command);
+                for (String one : command.split(";")) {
+                    server.getCommands().performPrefixedCommand(player.createCommandSourceStack(), one.trim());
+                }
                 log("ran \"" + command + "\"");
                 maintainCamera(level, player);
                 return;
@@ -439,6 +447,10 @@ final class Harness {
             lastAgeAt = now;
             return age;
         }
+        // skill=other: a skill that isn't ours (cast by command=), timed from the cast itself
+        if (HarnessParams.SKILL.equals("other")) {
+            return castGameTime < 0 ? -1 : now - castGameTime;
+        }
         // once the strike is over its effects are gone: carry on counting from where they left off
         return lastAge < 0 ? -1 : lastAge + (now - lastAgeAt);
     }
@@ -488,6 +500,14 @@ final class Harness {
             log("land south of the mark (height over the old ground): " + south);
             log("block at the mark's core: " + level.getBlockState(new net.minecraft.core.BlockPos(mx, (int) groundY - 5, mz)));
             log("the strike's mark: " + lastMark);
+            // -Dss05.clienttest.probe=x,z: the land's height there over the old ground (e.g. where a command aimed)
+            String[] probe = System.getProperty("ss05.clienttest.probe", "").split(",");
+            if (probe.length == 2) {
+                int px = (int) Math.floor(Double.parseDouble(probe[0].trim()));
+                int pz = (int) Math.floor(Double.parseDouble(probe[1].trim()));
+                log("land at " + px + "," + pz + ": " + (level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, px, pz) - (int) groundY)
+                    + " over the old ground");
+            }
             if (Boolean.getBoolean("ss05.clienttest.protect")) {
                 log("protected block at " + protectedPos() + ": " + level.getBlockState(protectedPos()));
             }

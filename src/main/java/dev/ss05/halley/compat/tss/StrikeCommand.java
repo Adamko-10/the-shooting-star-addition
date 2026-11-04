@@ -89,15 +89,20 @@ final class StrikeCommand {
         }
 
         boolean cast;
-        StrikeAim.set(at ? Vec3Argument.getVec3(c, "pos") : null);
+        if (at) {
+            // for the skill's whole run at this speed, and a margin (its clock runs at the speed slider)
+            StrikeAim.set(player, Vec3Argument.getVec3(c, "pos"), (int) Math.ceil(skill.duration() / Math.max(0.3F, speed)) + 200);
+        } else {
+            StrikeAim.clear(player);
+        }
         NoCooldown.forced(true);
         try {
             cast = SkillSet.of(skill).cast(player, skill, tuning);
         } finally {
             NoCooldown.forced(false);
-            StrikeAim.set(null);
         }
         if (!cast) {
+            StrikeAim.clear(player);
             throw FAILED.create();
         }
         String where = at ? String.format(Locale.ROOT, " at %.1f %.1f %.1f", Vec3Argument.getVec3(c, "pos").x,

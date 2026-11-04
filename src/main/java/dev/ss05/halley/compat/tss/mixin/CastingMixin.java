@@ -7,6 +7,7 @@ import cyou.rimuru.shootingstardemo.mc1211.magic.Casting;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.NoCooldown;
 import dev.ss05.halley.compat.TssVersion;
+import dev.ss05.halley.compat.tss.StrikeAim;
 import dev.ss05.halley.compat.tss.TssLink;
 import net.minecraft.server.level.ServerPlayer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -41,6 +42,10 @@ abstract class CastingMixin {
     @Inject(method = "liiillli1l(Lnet/minecraft/server/level/ServerPlayer;IFFFFZ)V", at = @At("HEAD"), cancellable = true, require = 0, remap = false)
     private static void ss05halley$limit(ServerPlayer player, int index, float power, float damage, float speed, float width,
                                          boolean everyone, CallbackInfo ci) {
+        // a cast from the remote aims where the player looks again, not where an earlier /ssa strike ... at said
+        if (player != null) {
+            StrikeAim.clear(player);
+        }
         if (player != null && NoCooldown.appliesTo(player)) {
             TssLink.clearCooldowns(player);
         }

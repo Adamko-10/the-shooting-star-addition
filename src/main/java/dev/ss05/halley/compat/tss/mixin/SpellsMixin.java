@@ -33,7 +33,7 @@ abstract class SpellsMixin {
     @Inject(method = "liiillli1l(Lnet/minecraft/server/level/ServerPlayer;DD)Lnet/minecraft/world/phys/Vec3;",
         at = @At("HEAD"), cancellable = true, require = 0, remap = false)
     private static void ss05halley$aim(ServerPlayer player, double reach, double fallback, CallbackInfoReturnable<Vec3> cir) {
-        Vec3 at = StrikeAim.at();
+        Vec3 at = player == null ? null : StrikeAim.at(player);
         if (at != null) {
             cir.setReturnValue(at);
         }
