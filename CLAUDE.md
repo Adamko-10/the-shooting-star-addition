@@ -27,6 +27,9 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   Gravitia key when bound, the user's own test of the latest jar.
 - **Stellar Convergence (SA-00) is built** (§18): the user's to test in game; its film's panels only show with our own
   weapons (open, §18). Then switch to RimuLib's public API (§17a, recommended before porting).
+- **Next prompt (the user, 2026-11-05)**: the Convergence plate is "overwhelming": make it smaller, **and** make it
+  toggleable (a key) **and** show it only while SA-00 is the selected skill in the menu ("probably do both"). Also open:
+  the master power slider (explained to the user 2026-11-05, §18; not decided).
 - **Next, the update's remaining list** (§14): Epic mode (needs `Video-Project-48.mp3` from Hamza's PC; not on Adam's
   PC, searched 2026-11-04), SA-03 Proxima (§15, needs the user's track), then
   port to the six other branches (§3), CI, one Forge test, README/changelog/CurseForge text, release.
@@ -1144,7 +1147,12 @@ own thing, not a copy of it.
     (all on the crosshair; the caster's own risk, as with the weapons alone).
   - **Sliders** (the user asked how power works, 2026-11-04): each weapon fires with its own sliders from the remote's
     menu; the plate says so ("Each uses its own sliders, set under it in this menu (shown on the right)") and shows
-    them per weapon; so does the skill's description. A master power slider on SA-00 was offered, not decided.
+    them per weapon; so does the skill's description. A master power slider on SA-00 was offered, not decided: SA-00
+    would get a power slider of its own in the menu (0.1-10×, default 1×; today `powerSliders()` is false) and
+    `Convergence.cast` would multiply every ticked weapon's own power by it (then the server limits, as now), so the
+    whole barrage scales at once without touching each weapon's slider.
+  - **UI too big (the user, 2026-11-05)**: shrink the Convergence plate, add a key to show/hide it, and show it only
+    while SA-00 is selected in the menu (`ClientSkills.selected(set)`); to do in the next prompt.
   - **Open: the film's panels don't show while TSS's weapons' effects run.** `FilmPanels` freezes the frames and
     draws them at the end of every frame (`RenderFrameEvent.Post`, LOWEST, after the frame is finished; the harness
     screenshots after it), and with Halley and Luna alone that works (screenshot `film-debug2\other_00320.png`). With
