@@ -11,6 +11,22 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
+### Resume here (2026-11-04, Adam's PC)
+
+- **Working on**: the next major update, on `main` only (§0: one branch until the user approves), **not pushed**: the
+  user wants **one big push** when the whole update is done (§9). ~25 local commits ahead of `origin/main`.
+- **Done on main** (§14 has the details): TSS 1.5.1 + RimuLib 1.2.1 (§16); Luna only where land is loaded, its moon
+  and crater through RimuLib's section sink (§17); no cooldown for TSS's skills; newest overlay only; evac switch (E);
+  Gravitia key (unbound); keep-the-moon (L, cools down); Halley's shake eased; impact frames FULL/SOFT/OFF (F);
+  protected-blocks tag; `/ssa strike` for operators. Game-tested by Claude with `runProdClientTest` (§4, "Testing on
+  Adam's PC"); the user tests the jar in their Modrinth profile (§9).
+- **Not yet checked in game**: Halley's shake (feel), impact frames OFF (the white flash covers those frames), the
+  Gravitia key when bound, the user's own test of the latest jar.
+- **Next, the update's remaining list** (§14): Epic mode (needs `Video-Project-48.mp3` from Hamza's PC), title cards,
+  the sound overhaul (scope in §14), Stellar Convergence (§18), SA-03 Proxima (§15, needs the user's track), then
+  port to the six other branches (§3), CI, one Forge test, README/changelog/CurseForge text, release.
+- **Remind the user** (§0): idea #16 for the Mrityu mod (asked again 2026-11-04).
+
 ## 0. The user's rules (follow these exactly)
 
 **Two people work on this, on two PCs. Check which one you are on first:** if the project sits in a folder called
@@ -159,6 +175,19 @@ run again. The `dev/tools/*.sh` scripts are the old container's (`/home/claude/.
 -Dss05.clienttest.film=true -Dss05.clienttest.hud=true -Dss05.clienttest.time=6000 -Dss05.clienttest.shots=70,250,395`;
 screenshots land in `run/clienttest/screenshots/` (`run/clienttest/options.txt` sets game options, e.g.
 `renderClouds:"false"`). About 5 minutes; worth it for rendering bugs CI screenshots can't explain.
+
+**Testing on Adam's PC** (since TSS 1.5.0 the readable dev run can't run TSS, §16): `./gradlew --no-daemon
+runProdClientTest -Dss05.clienttest....` (JDK 21 at `C:\Program Files\Eclipse Adoptium\jdk-21.0.11.10-hotspot`)
+loads the release jar with TSS's real jar from `libs/` in `run/prodclient`. The addon's client switches are set by
+writing `run/prodclient/config/shooting_star_addition-client.toml` before the run (e.g. `[stellar_remote]`,
+`keep_moon = true`, `impact_frames = "OFF"`; NeoForge fills in the rest). Harness options beyond §4's CI list:
+`world=normal` (real land), `command=<chat command>` (cast through a command, e.g. `ssa strike halley at 160 ~ 30`,
+instead of the remote; the player is made operator; several separated by `;`), `protect=true` (a command block near
+the mark, checked at the end), `probe=x,z` (logs the land's height there at the end), `final=menu` (the H menu and
+the plate). The harness's own lines (`[SS05CLIENTTEST] ...`: the strike's real mark, the probes, the Gravitia key) go to
+the Gradle output, not `latest.log`. Screenshots in `run/prodclient/screenshots`. The batch scripts used are in the
+project folder's `test scripts\` (results in `test builds\2026-11-04 auto test*\`). About 5 minutes a run; a game
+window opens on the user's screen.
 
 How the build works: it makes per-version mappings (`./gradlew tssMappings`), compiles
 against a readable copy of the newest jar and packs one mapped copy of `compat/tss/` per version into the release jar
