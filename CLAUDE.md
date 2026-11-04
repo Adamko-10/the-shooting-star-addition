@@ -325,7 +325,8 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
   switch (§14), the newest-only filter on `renderFilmHud` too, and `TssLink.paint` drops those block entities first.
   Test jar `test builds\2026-11-04 evac switch, countdown fix\`, also in the Modrinth profile (four older test jars
   there renamed `.disabled`). For the user's server: pre-generating the map (Chunky is installed) makes big strikes
-  fast without any code. Next: the two speed-ups in §14.
+  fast without any code. Then both speed-ups (§14) on main, built, not tested in game: test jar
+  `test builds\2026-11-04 only where land is loaded\`, also in the Modrinth profile.
 - **2026-11-03** (Adam's PC):
   - **TSS 1.5.1 is out** (CurseForge 2026-11-01, after our 1.6.0). `tssVersionRange` (gradle/tss.gradle) allows each
     supported version up to its next patch, so 1.6.0 declares TSS `[1.5.0,1.5.1)` and refuses to load next to 1.5.1
@@ -600,13 +601,11 @@ Findings and fixes (main `449de31`, `f64b0c3`, `e72839c`; cherry-picked to every
   kind; the **evac switch** (E on the plate: lifted straight up, or to the crater's edge when that land is loaded,
   else up; `Evac`, sent in `ChoicePayload`, network version 2; client config `evac_lift`, default up); the plate's
   note that Luna's music uses the Music volume;
-- **next (the user picked both, 2026-11-04)**: (a) **only where land is loaded**: Luna's crater round the moon and the
-  moon itself only in loaded land (no 32-chunk preload, a lazy carving + `linger()` like the outer crater, and the
-  moon finished per chunk as its land loads, like `MoonLand.tickLingering`), so a 10x strike generates nothing.
-  Mind: the crater's moon columns are cut down to the moon's top (`MoonStrike.crater`), but the code waits for the
-  whole crater before building the moon ("a chunk painted ahead of it would be cut away"): check per chunk; films
-  need the land loaded where the camera looks (`FilmLand`). (b) **MoonLand (rim, cracks, debris) through the
-  section sink** too: at 10x it wrote 1461 chunks in 2 s but one tick took 846 ms;
+- done on main 2026-11-04, to test (the user picked both): (a) **Luna only where land is loaded** (§17 item 3: the
+  moon's builder cuts the crater round the moon too, per chunk; nothing is loaded or generated for a strike); (b) the
+  rim and cracks' 846 ms tick at 10x: `MoonLand.end()` finished every loaded chunk at once; now it queues them and
+  `lingerTick` works 15 ms a tick (loaded and ready chunks), and a chunk waits for `MoonBuild.ready`. MoonLand itself
+  still paints per chunk (not through the sink): port it only if it still shows up in the timings;
 - **operator commands + Epic mode + protected-blocks tag** (below);
 - **SA-03 Proxima** (§15);
 - **Stellar Convergence** (§18);
@@ -870,26 +869,29 @@ idea behind all of it: **the server thread only copies and swaps; the rest runs 
 **What it means for us** (on `main` first, §0):
 1. RimuLib 1.2.1 (public) alone gives the crater floors (`TssLink.excavate`, `Carving.flatten`) parallel cutting,
    the shared budget and batched sends, and `paint` batched relight/send. No code change; main requires 1.2.1 now.
-2. Hold the land ahead from the cast, as Gungnir does. **Done for Luna (2026-11-03, not tested in game yet)**:
-   `MoonStrike` holds one region ticket round the mark (the crater round the moon, `coreRadius()`) from the cast to
-   `end()`, so the land loads over the 16 s fall instead of when the moon lands. Capped at **32** chunks (RimuLib's
-   cap, Gungnir's), not 12: at 10x (moon radius 480, crater 1100) the crater round the moon is ~4000 chunks, and past
-   the ticket RimuLib's streaming carving loads only 64 at a time, and the moon waits for that crater (`dug`). The
-   cost: up to 65x65 chunks loaded, most of them ticking, during a big strike (as Gungnir). Halley still caps at 12
-   (`HalleyStrike.holdChunks`). Later, with RimuLib 1.2.2 public: `Fresh.hold` for chunks not generated yet.
-3. **`MoonBuild` done (2026-11-03, main, not tested in game)**: per chunk `StarBridge.sink` (TssLink: a one-chunk
-   `SectionSink.snapshot`, no clear band) copies the moon's y range on the server thread; `fill` puts the moon into
-   the copy on the "Luna moon builder" pool (cores - 2, 1 to 4 threads; up to 32 chunks in flight; no per-tick
-   start cap, `chunks_per_tick` no longer applies to it); the server thread swaps finished copies in oldest first
-   (15 ms a tick, a stale copy is made again) and relights the tick's chunks together (`StarBridge.relight` =
-   `Carving.relightAll`). After swapping, the chunk's saved block entities still unloaded whose block has no block
-   entity any more are dropped (`compat/mixin/ChunkAccessMixin`, an accessor for `ChunkAccess.pendingBlockEntities`;
-   loading them instead, the first try, logged ~1000 warnings and 27 stack traces). Columns a RimuLib ward spares
-   are skipped (`StarBridge.spares` = `Bulwark.spares`, as `paint` did). The fill uses only plan maths. Log lines:
-   "Luna: the crater round the moon is cut, N s after the impact" and "Luna: the moon is built: N chunks in N s
-   (worst tick N ms)". The first version (start cap 8 a tick, 12-chunk ticket) wasn't noticeably faster at 10x (the
-   user, 2026-11-03). Not done: `MoonLand` (rim, cracks) still paints per chunk; the crater outside the moon still
-   leaves saved block entities behind (RimuLib's carving); only `Fresh` waits for RimuLib 1.2.2 to be public.
+2. Hold the land ahead from the cast, as Gungnir does: tried 2026-11-03 (a 12-, then 32-chunk region ticket from the
+   cast) and **dropped 2026-11-04** for item 3's "only where land is loaded": at 10x the ticket made the server
+   generate ~4000 new chunks (a minute), and the evac's teleport into that queue froze the tick for 40-58 s. Halley
+   still holds its crater and trench from the cast, capped at 12 (`HalleyStrike.holdChunks`). With RimuLib 1.2.2
+   public, `Fresh.hold` could carve chunks as they generate, if loading land ever comes back.
+3. **`MoonBuild` owns the crater round the moon and the moon, only where land is loaded (2026-11-04, main, not tested
+   in game)**. Made at CONTACT for every chunk touching the crater round the moon (`coreRadius() + 2` from the mark,
+   floor `MoonStrike.crater(x, z, true)`, top blocks `craterSurface`) or the moon's footprint; `moon()` at SETTLE.
+   Each tick (15 ms) it swaps in finished copies oldest first (a stale copy is dropped and made again; a failed one is
+   logged and the chunk left), then starts loaded chunks with work left, nearest the mark first, up to 32 in flight:
+   on the server thread the floors and new top blocks (they read the land; the caster's 5x5 footing and RimuLib wards
+   spared), then `StarBridge.sink(level, pos, fromY, toY, clearFrom)` (whole sections above the highest floor start
+   empty when all 256 columns are cut); on the "Luna moon builder" pool (cores - 2, 1 to 4 threads) each column
+   cleared above its floor, its top block set, and the moon put in from SETTLE (cut and moon in one job when a chunk
+   loads late). Chunks swapped in a tick are relit and sent together (`StarBridge.relight`). Unloaded chunks wait; after
+   the spell `end()` joins `MoonBuild.tickLingering` (from `MoonStrike.tickLingering`) and finishes them as they
+   load. Doing the cut and the moon in the same chunks keeps them in order (a cut after the moon would take its bulge
+   over the floor). `ready(pos)` tells MoonLand a chunk's crater is cut. `worldDone()` = settled and every loaded chunk
+   done. RimuLib's core carving, the preload ticket and Luna's chunk loader are gone; the outer crater (coreRadius to
+   rimInner) is still RimuLib's lazy carving + `linger()`. After swapping, saved block entities whose block is gone are
+   dropped (`compat/mixin/ChunkAccessMixin`), and `TssLink.paint` does the same first. Log line: "Luna: the crater round
+   the moon and the moon are done where land is loaded: N chunks in N s (worst tick N ms); N wait for their land to
+   load". Earlier on 2026-11-03: the moon alone through the sink (6.5 s for 2940 chunks at 10x).
 4. `buildAhead`: skip. 1.2.2's parallel cutting covers most of it, and its builder threads would call our floors and
    surfaces: Halley's are plan maths (safe), but Luna's `MoonStrike.crater` reads the live world (`hasChunk`,
    `MoonLand.groundAt`) and `MoonVeins` caches in a plain map, neither safe off the server thread.
