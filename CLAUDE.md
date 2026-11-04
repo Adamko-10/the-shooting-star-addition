@@ -18,13 +18,14 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
 - **Done on main** (§14 has the details): TSS 1.5.1 + RimuLib 1.2.1 (§16); Luna only where land is loaded, its moon
   and crater through RimuLib's section sink (§17); no cooldown for TSS's skills; newest overlay only; evac switch (E);
   Gravitia key (unbound); keep-the-moon (L, cools down); Halley's shake eased; impact frames FULL/SOFT/OFF (F);
-  protected-blocks tag; `/ssa strike` for operators. Game-tested by Claude with `runProdClientTest` (§4, "Testing on
+  protected-blocks tag; `/ssa strike` for operators; title cards in both films (§14). Game-tested by Claude with `runProdClientTest` (§4, "Testing on
   Adam's PC"); the user tests the jar in their Modrinth profile (§9).
-- **Commands checked**: `/ssa strike <any skill> at ...` aims right, the Railgun included (§14). **Not yet checked in game**:
+- **Commands checked**: `/ssa strike <any skill> at ...` aims right, the Railgun included (§14). Title cards and the
+  film overlays (broken since 1.6.0, fixed 2026-11-04) checked by screenshots (§14). **Not yet checked in game**:
   Halley's shake (feel), impact frames OFF (the white flash covers those frames), the
   Gravitia key when bound, the user's own test of the latest jar.
-- **Next, the update's remaining list** (§14): Epic mode (needs `Video-Project-48.mp3` from Hamza's PC), title cards,
-  the sound overhaul (scope in §14), Stellar Convergence (§18), SA-03 Proxima (§15, needs the user's track), then
+- **Next, the update's remaining list** (§14): Epic mode (needs `Video-Project-48.mp3` from Hamza's PC; not on Adam's
+  PC, searched 2026-11-04), the sound overhaul (scope in §14), Stellar Convergence (§18), SA-03 Proxima (§15, needs the user's track), then
   port to the six other branches (§3), CI, one Forge test, README/changelog/CurseForge text, release.
 - **Remind the user** (§0): idea #16 for the Mrityu mod (asked again 2026-11-04).
 
@@ -515,8 +516,9 @@ Visual/sound polish the user asked for but that was cut for budget:
 
 - `git stash` across worktrees (shared stack) - don't.
 - Mixin descriptors in auto-merged hunks keep the wrong TSS package prefix - grep after every cherry-pick.
-- The TSS mapping chain can swap names of look-alike members (e.g. `SkillTuning.speed/power`); verify with
-  `skill-api.txt` (javap per version) before using a new TSS member.
+- The TSS mapping chain can swap names of look-alike members (e.g. `SkillTuning.speed/power`, and since 1.5
+  `FxManager.renderHud/renderFilmHud`); verify with `skill-api.txt` (javap per version) before using a new TSS member,
+  and look at a film test's screenshots with `hud=true` after every TSS update (the film overlays vanished silently).
 - Big Luna strikes stalled the server for ~29 s when loading their whole area; fixed by streaming chunks with capped
   tickets. Keep world edits incremental.
 - Halley's trench must be cut after the crater is finished, or the server test's `crater_carved` check fails.
@@ -681,7 +683,27 @@ Findings and fixes (main `449de31`, `f64b0c3`, `e72839c`; cherry-picked to every
   SOFT (0.35) / OFF** (client config `impact_frames`, F on the plate cycles it; scales `impactSequence` in `HalleyFx`
   and `MoonFx`; only our skills' frames, not TSS's). The plate now has five rows: M, L, F, E, C. The client config's
   `get`/`set` are generic and fall back to each setting's own default before the config loads;
-- smaller, still to do: title cards (§10). The plate's Music-volume note is done;
+- done on main 2026-11-04 (the user's pick), to test: **title cards** (§10, a CurseForge request), the skill's name
+  across its film at its reveal, like TSS 1.5's own (TSS draws its titles as 3D stroke letters with its own shader,
+  `client/fx/SkillTitle`, ~1.5 s, each skill with its own entrance; we can't use its shader or lettering, §9).
+  `compat/tss/client/FilmTitle`, drawn after our film HUDs (`StarClientBridge.renderFilmHud`) in RimuLib's public
+  display type (`TessType.draw`, Face.DISPLAY = Poppins SemiBold; `veil`, `rule`), letter by letter, anchored to the
+  projected subject: **HALLEY** in shot 4 (ticks 74-114, under the comet), letters streaking in from high right like
+  small comets, a flash as each locks, then sublimating upward; **LUNA** in shot 2 (BREAK + 4 to FALL + 12, over the
+  moon), letters cracking in from the middle outward, molten and shuddering, cooling to the moon's grey, then the outer
+  ones first dropping away and reheating as the moon tears loose. A small label above (`SA-01 · 1P/HALLEY`,
+  `SA-02 · THE MOONFALL`) and a growing rule under. Off in RimuLib's legacy film style (`CutsceneDirector.legacy()`),
+  as TSS's are. No sound yet (the sound overhaul can add one). Game-tested (`test builds\2026-11-04 auto test 8
+  titles, film overlay\`); afterwards HALLEY moved further under the comet (its small label touched the comet's range
+  readout) and its streaks made stronger, not re-tested. Test jar `test builds\2026-11-04 title cards, film overlay\`,
+  in the Modrinth profile (the commands build there renamed `.disabled`).
+  **Found on the way: our film overlays (UPLINK, Luna's letterbox, phase captions, descent bar, the target boxes)
+  never drew in TSS 1.5.x films**: FxManager's two overlay passes have the same shape and the mapping names them the
+  wrong way round: by their bodies (javap of 1.5.1's `llli1l1ll` against readable 1.3.4) `i1Ii11l` ("renderFilmHud")
+  calls each effect's `hud` and the big `liiillli1l` ("renderHud") draws the skills' film overlays. `FxManagerMixin`
+  now calls `StarClientBridge.renderFilmHud` from the TAIL of both, and that draws once per frame (same
+  `GuiGraphics` = same frame), which holds whichever way a loader build names them. Port this to every branch. The
+  plate's Music-volume note is done;
 - **sounds: overhaul the existing ones** (the user: "dont replace ai sounds lets just overhaul them"; rework,
   layer and process what we have rather than swapping in licensed packs). Scope (the user, 2026-11-04, all four):
   punchier impacts (layered bass, a crack on top, a rolling tail), better mixing (against each other and TSS's),
@@ -906,7 +928,8 @@ bundle with nested jars per MC like TSS's). Everything below is true of 1.6.0; �
 - Per-branch name differences in 1.5.0's readable copy (javap them after every TSS update): the payload record is
   `l1l1i1lii1` on NeoForge, readable `net.SpellFxPayload` on Forge/Fabric; FxManager's film-HUD hook maps to
   `renderFilmHud` on NeoForge/Forge 1.21.1, an obfuscated name on Forge 1.20.1/Fabric 1.20.1/26.3, `renderHud` on
-  Fabric 1.21.1 (harmless: our film overlays draw only while a film plays). forge-1.20.1's `TssRemap` renames clashing
+  Fabric 1.21.1 (and on NeoForge 1.5.x the two names are swapped: our film overlays didn't draw in films until
+  2026-11-04, §14 title cards; the mixin now hooks both passes). forge-1.20.1's `TssRemap` renames clashing
   field names (its SRG tool crashed on them); Fabric's `TssMatch` copies compare `flat()` against the prefix.
 - Changelog: `dev/publish/changelog_160.py`. Players on TSS 1.4.4 or older keep 1.5.1.
 - **TSS 1.5.1** (CurseForge 2026-11-01; NeoForge file 9400029) needs RimuLib >= 1.1.6; RimuLib **1.2.1** came out the
