@@ -10,6 +10,7 @@
     "StarCastMixin"
   ],
   "client": [
+    "CutsceneDirectorMixin",
     "FxManagerMixin",
     "SkillKeysMixin",
     "WhiteSpaceMixin"

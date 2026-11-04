@@ -14,7 +14,9 @@ import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.MoonHud;
+import dev.ss05.halley.compat.tss.ConvergenceFx;
 import dev.ss05.halley.compat.tss.StrikeFx;
+import dev.ss05.halley.net.ServerSettings;
 import dev.ss05.halley.compat.tss.TssLink;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -53,6 +55,13 @@ public final class StarClientBridge {
                     startMoon(strike);
                 }
             });
+            RimuNet.clientHandler(ConvergenceFx.PACKET, packet -> ConvergenceClient.start((ConvergenceFx) packet));
+            // once the server has said hello, tell it this player's Stellar Convergence picks
+            Runnable before = ServerSettings.onReceived;
+            ServerSettings.onReceived = () -> {
+                before.run();
+                ConvergencePlate.sync(true);
+            };
             installed = true;
         } catch (Throwable failed) {
             HalleyAddon.LOG.error("Halley and Luna couldn't hook their effects into The Shooting Star; strikes will "

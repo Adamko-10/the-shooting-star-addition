@@ -18,6 +18,7 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.neoforge.client.event.RenderFrameEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.ViewportEvent;
@@ -35,11 +36,14 @@ public final class HalleyClient {
         NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, MoonRenderer::render);
         NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, MoonSphere::renderSolid);
         NeoForge.EVENT_BUS.addListener(RenderFrameEvent.Pre.class, HalleyClient::frameStart);
+        // a film's panels over the finished picture: last, after The Shooting Star's own end-of-frame drawing
+        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, RenderFrameEvent.Post.class, event -> FilmPanels.endOfFrame());
         NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, HalleySky::render);
         NeoForge.EVENT_BUS.addListener(ViewportEvent.ComputeFogColor.class, HalleySky::fog);
         NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingOut.class, event -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
+            ConvergenceView.clearAll();
             ServerSettings.forget();
         });
         // once the server has said what it allows, tell it this player's own no-cooldown switch
@@ -54,7 +58,7 @@ public final class HalleyClient {
         ShaderPacks.update();
         HalleySky.update(event);
         if (ShaderPacks.active() && Minecraft.getInstance().level != null
-            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty())) {
+            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty() || ConvergenceView.any())) {
             GlowAtlas.paint(HalleyRenderTypes.shader());
             HalleySky.paint(event.getPartialTick().getGameTimeDeltaPartialTick(true));
         }

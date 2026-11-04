@@ -1,5 +1,6 @@
 package dev.ss05.halley.client;
 
+import java.util.List;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 /**
@@ -30,6 +31,10 @@ public final class HalleyClientConfig {
     private static final ModConfigSpec.BooleanValue EVAC_LIFT;
     private static final ModConfigSpec.BooleanValue KEEP_MOON;
     private static final ModConfigSpec.EnumValue<ImpactFrames> IMPACT_FRAMES;
+    private static final ModConfigSpec.ConfigValue<List<? extends String>> CONVERGENCE;
+    private static final ModConfigSpec.BooleanValue CONVERGENCE_RING;
+    /** What Stellar Convergence fires out of the box: every weapon but Gravitia (which only the menu chooses). */
+    private static final List<String> CONVERGENCE_DEFAULT = List.of("the_shooting_star", "gungnir", "seven_stars", "tesseract", "halley", "luna");
 
     /** How strong Halley's and Luna's impact frames are (F on the addon's plate cycles them). */
     public enum ImpactFrames {
@@ -84,6 +89,12 @@ public final class HalleyClientConfig {
         IMPACT_FRAMES = b.comment("Halley's and Luna's impact frames (the screen flashing to negative at an impact): FULL, SOFT",
                 "(fainter) or OFF. F in the remote's menu.")
             .defineEnum("impact_frames", ImpactFrames.FULL);
+        CONVERGENCE = b.comment("SA-00 Stellar Convergence: the remote's skills it fires, by id (ticked with 1-9 on its plate in the",
+                "remote's menu). Each fires with its own sliders.")
+            .defineListAllowEmpty("convergence", CONVERGENCE_DEFAULT, () -> "", entry -> entry instanceof String);
+        CONVERGENCE_RING = b.comment("Stellar Convergence: true spreads its weapons in a ring round the crosshair, false puts them all on",
+                "it. R in the remote's menu.")
+            .define("convergence_ring", false);
         b.pop();
         SPEC = b.build();
     }
@@ -152,6 +163,24 @@ public final class HalleyClientConfig {
 
     public static void setImpactFrames(ImpactFrames frames) {
         set(IMPACT_FRAMES, frames);
+    }
+
+    /** Stellar Convergence's ticked weapons, by skill id. */
+    public static List<String> convergence() {
+        return List.copyOf(get(CONVERGENCE));
+    }
+
+    public static void setConvergence(List<String> ids) {
+        set(CONVERGENCE, List.copyOf(ids));
+    }
+
+    /** Stellar Convergence: in a ring round the crosshair (true) or all on it. */
+    public static boolean convergenceRing() {
+        return get(CONVERGENCE_RING);
+    }
+
+    public static void setConvergenceRing(boolean on) {
+        set(CONVERGENCE_RING, on);
     }
 
     /** Sets and saves a switch (kept for this session if the config isn't loaded). */

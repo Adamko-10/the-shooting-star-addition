@@ -80,6 +80,8 @@ public final class TssLink implements StarLink {
     public static final HalleySkill SKILL = new HalleySkill();
     /** Luna as The Shooting Star sees it. */
     public static final MoonSkill MOON = new MoonSkill();
+    /** Stellar Convergence (every ticked weapon at once) as The Shooting Star sees it. */
+    public static final ConvergenceSkill CONVERGENCE = new ConvergenceSkill();
 
     /**
      * Adds Halley and Luna to the Stellar Remote: after the built-in skills, each with its own index, key binding,
@@ -112,14 +114,16 @@ public final class TssLink implements StarLink {
         }
 
         List<Skill> after = new ArrayList<>(before);
-        after.add(SKILL);
-        after.add(MOON);
+        List<Skill> ours = List.of(SKILL, MOON, CONVERGENCE);
+        after.addAll(ours);
         // The remote hands every cast a Tuning: the sliders under the skill in its menu (power, damage, speed), clamped
         // to the skill's range. Halley and Luna get theirs as the addon's own CastTuning; the built-in skills unchanged.
+        // Stellar Convergence has none of its own: each weapon it fires uses its own.
         SkillSet.Caster<Skill> caster = (player, skill, tuning) -> skill == SKILL ? HalleyCasting.cast(player, tune(tuning))
-            : skill == MOON ? MoonCasting.cast(player, tune(tuning)) : builtIn.cast(player, skill, tuning);
+            : skill == MOON ? MoonCasting.cast(player, tune(tuning)) : skill == CONVERGENCE ? Convergence.cast(player)
+            : builtIn.cast(player, skill, tuning);
 
-        for (Skill added : List.<Skill>of(SKILL, MOON)) {
+        for (Skill added : ours) {
             index.put(added, all.size());
             all.add(added);
             owner.put(added, remote);
@@ -128,7 +132,7 @@ public final class TssLink implements StarLink {
             skillsField.set(remote, List.copyOf(after));
             casterField.set(remote, caster);
         } catch (ReflectiveOperationException | RuntimeException failed) {
-            for (Skill added : List.<Skill>of(SKILL, MOON)) {
+            for (Skill added : ours) {
                 all.remove(added);
                 owner.remove(added);
                 index.remove(added);
@@ -139,9 +143,19 @@ public final class TssLink implements StarLink {
         }
         // the strikes' effect packet: declared now, before RimuLib registers its packets with the loader
         RimuNet.s2c(StrikeFx.PACKET);
+        // Stellar Convergence: each player's picks (their game to the server), and a convergence on its way (back)
+        RimuNet.c2s(Convergence.Picks.PACKET);
+        RimuNet.s2c(ConvergenceFx.PACKET);
+        RimuNet.receive(Convergence.Picks.PACKET, (picks, context) -> context.server().execute(() -> {
+            if (context.player() != null) {
+                Convergence.received(context.player(), picks);
+            }
+        }));
 
         HalleyAddon.LOG.info("{} (Halley) joined the Stellar Remote as skill #{} (key slot {}).", HalleyInfo.title(), after.indexOf(SKILL) + 1, SkillSet.indexOf(SKILL));
         HalleyAddon.LOG.info("{} (Luna) joined the Stellar Remote as skill #{} (key slot {}).", MoonInfo.title(), after.indexOf(MOON) + 1, SkillSet.indexOf(MOON));
+        HalleyAddon.LOG.info("{} joined the Stellar Remote as skill #{} (key slot {}).", CONVERGENCE.title(), after.indexOf(CONVERGENCE) + 1,
+            SkillSet.indexOf(CONVERGENCE));
     }
 
     /** The Stellar Remote's skill set: The Shooting Star's set that holds its own skills (an enum of them). */
@@ -179,11 +193,13 @@ public final class TssLink implements StarLink {
     @Override
     public void tick(MinecraftServer server) {
         Spell.tickAll();
+        Convergence.tick(server);
     }
 
     @Override
     public void clear() {
         Spell.clear();
+        Convergence.clear();
     }
 
     /**

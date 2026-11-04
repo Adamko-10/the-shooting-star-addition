@@ -2,6 +2,7 @@ package dev.ss05.halley.compat.tss.mixin;
 
 import cyou.rimuru.rimulib.mc1211.client.magic.WhiteSpace;
 import dev.ss05.halley.client.AdditionPanel;
+import dev.ss05.halley.compat.tss.client.ConvergencePlate;
 import dev.ss05.halley.compat.tss.client.StarClientBridge;
 import net.minecraft.client.gui.GuiGraphics;
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,6 +23,7 @@ abstract class WhiteSpaceMixin {
     private static void ss05halley$panel(GuiGraphics graphics, float partial, CallbackInfo ci) {
         if (WhiteSpace.capturesInput()) {
             AdditionPanel.draw(graphics);
+            ConvergencePlate.draw(graphics);
         }
     }
 
@@ -30,7 +32,7 @@ abstract class WhiteSpaceMixin {
         // The Shooting Star calls this for presses only, and its third argument is the modifier keys held (not the
         // press/release action: reading it as one made M and C work only with Shift held). Not while a skill's key is
         // being rebound, and not one of the remote's own.
-        if (WhiteSpace.capturesInput() && !StarClientBridge.menuUses(key, scancode) && AdditionPanel.key(key)) {
+        if (WhiteSpace.capturesInput() && !StarClientBridge.menuUses(key, scancode) && (AdditionPanel.key(key) || ConvergencePlate.key(key))) {
             ci.cancel();
         }
     }

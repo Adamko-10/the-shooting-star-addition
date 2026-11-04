@@ -1,5 +1,6 @@
 package dev.ss05.halley.clienttest;
 
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -27,7 +28,15 @@ public final class Ss05ClientTestMod {
         }
         NeoForge.EVENT_BUS.addListener(ClientTickEvent.Post.class, Harness::onClientTick);
         NeoForge.EVENT_BUS.addListener(RenderFrameEvent.Pre.class, Harness::onRenderFramePre);
-        NeoForge.EVENT_BUS.addListener(RenderFrameEvent.Post.class, Harness::onRenderFrame);
+        // the screenshots are the last thing a frame does (after everything else's end-of-frame drawing, the addon's
+        // film panels included): registered at the lowest priority once the game runs, so after every mod's own
+        boolean[] armed = {false};
+        NeoForge.EVENT_BUS.addListener(ClientTickEvent.Post.class, event -> {
+            if (!armed[0]) {
+                armed[0] = true;
+                NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, RenderFrameEvent.Post.class, Harness::onRenderFrame);
+            }
+        });
         NeoForge.EVENT_BUS.addListener(ServerTickEvent.Post.class, Harness::onServerTick);
         Harness.log("harness armed: " + HarnessParams.describe());
     }

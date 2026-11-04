@@ -28,15 +28,15 @@ import net.neoforged.neoforge.network.PacketDistributor;
  */
 public final class AdditionPanel {
     /** The menu's own plate white, ink, grey text and gold. */
-    private static final int PLATE = 0xFBFAFC;
-    private static final int INK = 0x3B4048;
-    private static final int GREY = 0x8A8F99;
-    private static final int RULE = 0xE4E6EB;
-    private static final int GOLD = 0xF4B73F;
-    private static final int WARN = 0xC0392B;
+    public static final int PLATE = 0xFBFAFC;
+    public static final int INK = 0x3B4048;
+    public static final int GREY = 0x8A8F99;
+    public static final int RULE = 0xE4E6EB;
+    public static final int GOLD = 0xF4B73F;
+    public static final int WARN = 0xC0392B;
     /** Its size: smaller on a small screen, where the menu itself takes up more of it (0.75 on a screen 645 or more wide, in GUI pixels). */
-    private static final float MIN_SCALE = 0.5F;
-    private static final float MAX_SCALE = 0.75F;
+    public static final float MIN_SCALE = 0.5F;
+    public static final float MAX_SCALE = 0.75F;
     private static final int WIDTH = 236;
     /** GLFW key codes. */
     public static final int KEY_MUSIC = 77;
@@ -110,7 +110,7 @@ public final class AdditionPanel {
         }
     }
 
-    private static void click(boolean ok) {
+    public static void click(boolean ok) {
         Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), ok ? 1.0F : 0.6F, 0.5F));
     }
 
@@ -204,11 +204,7 @@ public final class AdditionPanel {
         g.drawString(font, label.copy().withStyle(ChatFormatting.BOLD), 11, y + 1, 0xFF000000 | (enabled ? INK : GREY), false);
         int sw = 26;
         int sx = w - 12 - sw;
-        // the key cap
-        int kx = sx - 18;
-        plate(g, kx, y - 1, kx + 12, y + 11, 0xFF000000 | (enabled ? INK : GREY));
-        plate(g, kx + 1, y, kx + 11, y + 10, 0xFF000000 | PLATE);
-        g.drawString(font, key, kx + 6 - font.width(key) / 2, y + 2, 0xFF000000 | (enabled ? INK : GREY), false);
+        keyCap(g, font, sx - 18, y, key, enabled);
         // the switch: its knob slides across as it is flipped
         float k = Mth.clamp((Util.getMillis() - flippedAt) / SLIDE_MILLIS, 0.0F, 1.0F);
         k = k * k * (3.0F - 2.0F * k);
@@ -221,8 +217,15 @@ public final class AdditionPanel {
         g.drawString(font, state, sx - 22 - font.width(state), y + 1, 0xFF000000 | (on ? GOLD : GREY), false);
     }
 
+    /** A key's cap, 12 wide, its top at {@code y - 1}. */
+    public static void keyCap(GuiGraphics g, Font font, int x, int y, String key, boolean enabled) {
+        plate(g, x, y - 1, x + 12, y + 11, 0xFF000000 | (enabled ? INK : GREY));
+        plate(g, x + 1, y, x + 11, y + 10, 0xFF000000 | PLATE);
+        g.drawString(font, key, x + 6 - font.width(key) / 2, y + 2, 0xFF000000 | (enabled ? INK : GREY), false);
+    }
+
     /** A rectangle with its corners cut by a pixel (the menu's own plates are rounded). */
-    private static void plate(GuiGraphics g, int x0, int y0, int x1, int y1, int argb) {
+    public static void plate(GuiGraphics g, int x0, int y0, int x1, int y1, int argb) {
         g.fill(x0 + 1, y0, x1 - 1, y1, argb);
         g.fill(x0, y0 + 1, x0 + 1, y1 - 1, argb);
         g.fill(x1 - 1, y0 + 1, x1, y1 - 1, argb);
