@@ -4,6 +4,7 @@ import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.content.HalleyContent;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 
 /**
  * The crater round SS-06's fallen moon, and the moon itself out of moon cheese (holey here and there, the one molten
@@ -311,10 +313,14 @@ public final class MoonBuild {
         }
         int toY = cut ? this.maxY : this.moonTo;
         fromY = Math.max(this.level.getMinBuildHeight(), Math.min(fromY, toY));
-        Excavation.Sink sink = StarBridge.sink(this.level, c.pos, fromY, toY, clearFrom);
+        // protected blocks are put back where they were, after the cut and the moon (so no section may start empty)
+        LevelChunk live = this.level.getChunkSource().getChunkNow(c.pos.x, c.pos.z);
+        Long2ObjectMap<BlockState> kept = live == null ? null : Protected.scan(live);
+        Excavation.Sink sink = StarBridge.sink(this.level, c.pos, fromY, toY, kept == null ? clearFrom : Integer.MAX_VALUE);
         c.busy = true;
         int[] f = floors;
         BlockState[] t = tops;
+        int lo = fromY;
         return new Job(c, cut, moon, sink, CompletableFuture.runAsync(() -> {
             sink.prepare();
             if (cut) {
@@ -322,6 +328,14 @@ public final class MoonBuild {
             }
             if (moon) {
                 this.fillMoon(c.pos, sink);
+            }
+            if (kept != null) {
+                for (Long2ObjectMap.Entry<BlockState> e : kept.long2ObjectEntrySet()) {
+                    int y = BlockPos.getY(e.getLongKey());
+                    if (y >= lo && y <= toY) {
+                        sink.put(BlockPos.getX(e.getLongKey()), y, BlockPos.getZ(e.getLongKey()), e.getValue());
+                    }
+                }
             }
         }, BUILD));
     }

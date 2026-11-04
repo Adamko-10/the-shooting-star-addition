@@ -24,6 +24,7 @@ import dev.ss05.halley.world.HalleyCasting;
 import dev.ss05.halley.world.HalleyInfo;
 import dev.ss05.halley.world.MoonCasting;
 import dev.ss05.halley.world.MoonInfo;
+import dev.ss05.halley.world.Protected;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -92,6 +93,9 @@ public final class TssLink implements StarLink {
         if (SkillSet.of(SKILL) != null) {
             return;
         }
+        // the protected blocks are "cores" every carving that keeps cores leaves where they are: ours, and The Shooting
+        // Star's that do (one of its skills, in 1.5.1)
+        Carving.keepCores(Protected::is);
         SkillSet remote = remote();
         Map<String, List<Skill>> byNamespace = (Map<String, List<Skill>>) field("BY_NAMESPACE").get(null);
         Map<Skill, SkillSet> owner = (Map<Skill, SkillSet>) field("OWNER").get(null);
@@ -326,12 +330,21 @@ public final class TssLink implements StarLink {
     @Override
     public void paint(ServerLevel level, Map<BlockPos, BlockState> blocks) {
         // paint looks at each block's block entity first, which loads saved ones the crater left behind (MoonLand's rim
-        // and cracks: 244 warnings at 10x, 2026-11-03)
+        // and cracks: 244 warnings at 10x, 2026-11-03); and it would write over protected blocks
         LongSet chunks = new LongOpenHashSet();
+        LongSet kept = new LongOpenHashSet();
         for (BlockPos at : blocks.keySet()) {
             if (chunks.add(ChunkPos.asLong(at))) {
                 dropStaleBlockEntities(level, at.getX() >> 4, at.getZ() >> 4);
+                LevelChunk chunk = level.getChunkSource().getChunkNow(at.getX() >> 4, at.getZ() >> 4);
+                var found = chunk == null ? null : Protected.scan(chunk);
+                if (found != null) {
+                    kept.addAll(found.keySet());
+                }
             }
+        }
+        if (!kept.isEmpty()) {
+            blocks.keySet().removeIf(at -> kept.contains(at.asLong()));
         }
         Carving.paint(level, blocks);
     }
@@ -409,8 +422,10 @@ public final class TssLink implements StarLink {
     public Excavation excavate(ServerLevel level, Vec3 centre, double radius, Excavation.Floor floor,
                                Excavation.Surface surface, BlockPos spared, String name, int chunksPerTick,
                                Excavation.Loader loader) {
+        // keepsCores: the protected blocks (a "core", see install) stay where they are
         Carving base = Carving.flatten(level, centre, radius, floor::floor, surface::at, spared)
             .perTick(chunksPerTick)
+            .keepsCores()
             .named(name);
         // with a loader it streams the chunks it is waiting for in (as the built-in skills' carvings do), else it cuts
         // the ones that are loaded and waits for the rest to be
