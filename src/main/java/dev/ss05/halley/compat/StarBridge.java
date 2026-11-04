@@ -181,8 +181,8 @@ public final class StarBridge {
         link().paint(level, blocks);
     }
 
-    public static Excavation.Sink sink(ServerLevel level, ChunkPos pos, int fromY, int toY) {
-        return link().sink(level, pos, fromY, toY);
+    public static Excavation.Sink sink(ServerLevel level, ChunkPos pos, int fromY, int toY, int clearFrom) {
+        return link().sink(level, pos, fromY, toY, clearFrom);
     }
 
     public static void relight(ServerLevel level, List<ChunkPos> chunks) {

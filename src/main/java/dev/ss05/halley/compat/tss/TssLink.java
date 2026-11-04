@@ -348,12 +348,12 @@ public final class TssLink implements StarLink {
     }
 
     @Override
-    public Excavation.Sink sink(ServerLevel level, ChunkPos pos, int fromY, int toY) {
+    public Excavation.Sink sink(ServerLevel level, ChunkPos pos, int fromY, int toY, int clearFrom) {
         Long2ObjectMap<int[]> range = new Long2ObjectOpenHashMap<>();
         range.put(pos.toLong(), new int[]{fromY, toY});
-        // no band of whole sections to empty (its bottom above its top): only blocks are put
+        // the cell is the chunk itself, so whole sections from clearFrom up (to the top) start empty
         SectionSink sink = SectionSink.snapshot(level, range, pos.getMinBlockX(), pos.getMinBlockZ(), 16,
-            Integer.MAX_VALUE, Integer.MIN_VALUE);
+            clearFrom, Integer.MAX_VALUE);
         return new Excavation.Sink() {
             @Override
             public void prepare() {
@@ -363,6 +363,11 @@ public final class TssLink implements StarLink {
             @Override
             public void put(int x, int y, int z, BlockState state) {
                 sink.put(x, y, z, state);
+            }
+
+            @Override
+            public void clear(int x, int z, int y0, int y1) {
+                sink.clear(x, z, y0, y1);
             }
 
             @Override

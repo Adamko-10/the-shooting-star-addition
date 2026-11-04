@@ -82,8 +82,11 @@ public interface StarLink {
     /** Places blocks fast (straight into the chunk sections), relights and resends the chunks. */
     void paint(ServerLevel level, Map<BlockPos, BlockState> blocks);
 
-    /** Copies a loaded chunk's sections from {@code fromY} to {@code toY} to build into off the server thread. */
-    Excavation.Sink sink(ServerLevel level, ChunkPos pos, int fromY, int toY);
+    /**
+     * Copies a loaded chunk's sections from {@code fromY} to {@code toY} to build into off the server thread; whole
+     * sections from {@code clearFrom} up start empty (a section-aligned y; {@link Integer#MAX_VALUE}: none).
+     */
+    Excavation.Sink sink(ServerLevel level, ChunkPos pos, int fromY, int toY, int clearFrom);
 
     /** Relights chunks written through a {@link Excavation.Sink} and sends each to its players once. */
     void relight(ServerLevel level, List<ChunkPos> chunks);

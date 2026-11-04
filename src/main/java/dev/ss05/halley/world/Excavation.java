@@ -44,6 +44,9 @@ public interface Excavation {
         /** Sets a block in the copy (one thread at a time). */
         void put(int x, int y, int z, BlockState state);
 
+        /** Empties a column of the copy from {@code y0} to {@code y1} (the sections that start empty are skipped). */
+        void clear(int x, int z, int y0, int y1);
+
         /** Whether the chunk was written since it was copied, so the copy is out of date (server thread). */
         boolean stale();
 
