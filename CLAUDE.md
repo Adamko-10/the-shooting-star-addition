@@ -314,6 +314,18 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
   while it draws (`StarClientBridge.newestHudsOnly/allHuds`), and our film HUDs draw the newest strike's only. Luna at
   1x looks the same; at 10x "not noticeably faster, it takes forever": second version (§17 items 2, 3), test jar
   `test builds\2026-11-03 Luna fast build 2, newest overlay\`, also in the Modrinth profile. Not tested in game.
+- **2026-11-04, past midnight** (Adam's PC): the user's test: 10x "significantly faster", but (1) the evac put them
+  in bedrock and the strike seemed slow to start: the evac's teleport to unloaded land read its height as the bottom
+  and blocked the server tick on loading it, behind the 65x65 preload (40-58 s, ModernFix's watchdog dump showed
+  `ServerPlayer.teleportTo` -> `getChunkBlocking` from `TssLink.liftClear`); (2) the countdown ("KINETIC STRIKE
+  INBOUND") still drew twice: TSS calls each effect's `hud` from `FxManager.renderFilmHud`, not `renderHud`. Timing
+  lines: crater round the moon cut 57.85 s (of spell clock) after the impact (generating ~4000 new chunks), the moon
+  built in 6.5 s (2940 chunks, worst tick 58 ms), rim and cracks 2 s (worst tick 846 ms); 244 DUMMY warnings left
+  (MoonLand's `paint` loading saved block entities the crater left). Fixed on main (built, not tested): the evac
+  switch (§14), the newest-only filter on `renderFilmHud` too, and `TssLink.paint` drops those block entities first.
+  Test jar `test builds\2026-11-04 evac switch, countdown fix\`, also in the Modrinth profile (four older test jars
+  there renamed `.disabled`). For the user's server: pre-generating the map (Chunky is installed) makes big strikes
+  fast without any code. Next: the two speed-ups in §14.
 - **2026-11-03** (Adam's PC):
   - **TSS 1.5.1 is out** (CurseForge 2026-11-01, after our 1.6.0). `tssVersionRange` (gradle/tss.gradle) allows each
     supported version up to its next patch, so 1.6.0 declares TSS `[1.5.0,1.5.1)` and refuses to load next to 1.5.1
@@ -584,8 +596,17 @@ Findings and fixes (main `449de31`, `f64b0c3`, `e72839c`; cherry-picked to every
 
 **The next major update** (the user, 2026-11-03), on `main` first (§0), then ported:
 - done on main, to test: TSS 1.5.1 + RimuLib 1.2.1 (§16); Luna holds its land from the cast and builds its moon
-  through RimuLib's section sink (§17); no cooldown for TSS's own skills (below);
-- **Luna fast build** for MoonLand too (rim, cracks: still per-chunk `paint`), if the moon alone isn't enough;
+  through RimuLib's section sink (§17); no cooldown for TSS's own skills (below); only the newest overlay of each
+  kind; the **evac switch** (E on the plate: lifted straight up, or to the crater's edge when that land is loaded,
+  else up; `Evac`, sent in `ChoicePayload`, network version 2; client config `evac_lift`, default up); the plate's
+  note that Luna's music uses the Music volume;
+- **next (the user picked both, 2026-11-04)**: (a) **only where land is loaded**: Luna's crater round the moon and the
+  moon itself only in loaded land (no 32-chunk preload, a lazy carving + `linger()` like the outer crater, and the
+  moon finished per chunk as its land loads, like `MoonLand.tickLingering`), so a 10x strike generates nothing.
+  Mind: the crater's moon columns are cut down to the moon's top (`MoonStrike.crater`), but the code waits for the
+  whole crater before building the moon ("a chunk painted ahead of it would be cut away"): check per chunk; films
+  need the land loaded where the camera looks (`FilmLand`). (b) **MoonLand (rim, cracks, debris) through the
+  section sink** too: at 10x it wrote 1461 chunks in 2 s but one tick took 846 ms;
 - **operator commands + Epic mode + protected-blocks tag** (below);
 - **SA-03 Proxima** (§15);
 - **Stellar Convergence** (§18);
