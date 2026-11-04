@@ -20,7 +20,7 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   Gravitia key (unbound); keep-the-moon (L, cools down); Halley's shake eased; impact frames FULL/SOFT/OFF (F);
   protected-blocks tag; `/ssa strike` for operators. Game-tested by Claude with `runProdClientTest` (§4, "Testing on
   Adam's PC"); the user tests the jar in their Modrinth profile (§9).
-- **Open**: `/ssa strike the_shooting_star at ...` also hits where the player looks (§14). **Not yet checked in game**:
+- **Commands checked**: `/ssa strike <any skill> at ...` aims right, the Railgun included (§14). **Not yet checked in game**:
   Halley's shake (feel), impact frames OFF (the white flash covers those frames), the
   Gravitia key when bound, the user's own test of the latest jar.
 - **Next, the update's remaining list** (§14): Epic mode (needs `Video-Project-48.mp3` from Hamza's PC), title cards,
@@ -739,12 +739,14 @@ update).
   **Tested 2026-11-04** (`test builds\2026-11-04 auto test 3\` and `4\`): `/ssa` prints the help and the warning;
   `/ssa strike luna 1 inf 5` warns (speed past 3) and casts (Luna's id is `luna`: `moon` answers "No remote skill
   called moon"); the Gravitia key is registered (`key.shooting_star_demo.stellar_remote.gravitia`, the remote's
-  category, `key.keyboard.unknown`). **Open: TSS's Railgun with `at`** (`/ssa strike the_shooting_star at 0.5 ~ 300
-  50`) carved at (0.5, 300) but **also** round where the player was looking (x 240+ on the probe line, z 0.5). Holding
-  the aim hook for the skill's whole run (tried, reverted) changed nothing, so the Railgun takes a second aim some
-  other way (its cast's indy `iIIli11 (ServerPlayer;DD)Vec3` may resolve to another method; its `onTick`'s
-  `IliI1lI(ServerPlayer)` every N ticks looks like the caster's ward, not aim). Halley (`at 160 ~ 30` landed at
-  160.5, 41, 30.5) and Luna aim right. Not done: a caster other than the player running it, and the harness filming
+  category, `key.keyboard.unknown`). **The Railgun with `at` aims right** (`test builds\2026-11-04 auto test 5
+  railgun debug\` and `6 railgun aim\`): with temporary debug mixins, one aim call (answered `at`), one spell
+  (`THE_SHOOTING_STAR` from the caster to (0.5, 41, 300.5)) and one RimuLib column carving at (0.5, 41, 300.5),
+  radius 50; the land there cut to the bottom (-105), the land where the player looked untouched. It **looked** as if
+  it struck twice only because the harness probed (a) unloaded chunks, which read as the world's bottom, and (b)
+  heightmaps, which RimuLib leaves as they were where it cuts to the bottom (`primeHeightmaps` skips a chunk whose
+  floors are all below the world, `unread`); the probes now read blocks and say "unloaded". The Railgun fires ~18 s
+  after the cast. Halley (`at 160 ~ 30` landed at 160.5, 41, 30.5) and Luna aim right too. Not done: a caster other than the player running it, and the harness filming
   non-addon skills (`skill=other` times them from the cast, but its camera stays on the default mark).
 
 ### The user's server (personal, not a mod feature as such)
