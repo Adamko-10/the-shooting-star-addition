@@ -25,8 +25,10 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   film overlays (broken since 1.6.0, fixed 2026-11-04) checked by screenshots (§14). **Not yet checked in game**:
   Halley's shake (feel), impact frames OFF (the white flash covers those frames), the
   Gravitia key when bound, the user's own test of the latest jar.
+- **Stellar Convergence (SA-00) is built** (§18): the user's to test in game; its film's panels only show with our own
+  weapons (open, §18). Then switch to RimuLib's public API (§17a, recommended before porting).
 - **Next, the update's remaining list** (§14): Epic mode (needs `Video-Project-48.mp3` from Hamza's PC; not on Adam's
-  PC, searched 2026-11-04), Stellar Convergence (§18), SA-03 Proxima (§15, needs the user's track), then
+  PC, searched 2026-11-04), SA-03 Proxima (§15, needs the user's track), then
   port to the six other branches (§3), CI, one Forge test, README/changelog/CurseForge text, release.
 - **Remind the user** (§0): idea #16 for the Mrityu mod (asked again 2026-11-04).
 
@@ -966,6 +968,29 @@ bundle with nested jars per MC like TSS's). Everything below is true of 1.6.0; �
   int), so decompiled bodies are harder to read. The other six branches need the same per-loader check (their raw
   names differ per build, see above).
 
+## 17a. RimuLib's public API (announced 2026-11-04; not used yet)
+
+RimuLib **1.2.2 is public on CurseForge** and is the first with a **public API**: only `cyou.rimuru.rimulib.api` and
+`cyou.rimuru.rimulib.client.api` (plus the types they use) are supported; "everything else is internal and can change in
+any release". Docs: https://docs.rimuru.cyou/rimulib/ (pages: getting-started, carving, ui, films, fx, skills,
+erase-wards, networking, reference, versions). Classes: `RimulibApi` (connect + version/loader checks:
+`RimulibApi.connect(modId, Main.class, "1.2.2")`), `CarveApi` (column/flatten/slit/wedge/line/lens, Floor/Surface,
+`lazy()`, `streaming(...)`, `keepBlocks`, `paint`; no section sink, no Fresh), `SkillApi` (`register`,
+`whenRegistered(modId, set -> extend(set, skills, handler))` = **the official way to add skills to TSS's remote**,
+`gate(set, ...)` sees every cast first, `deny`, `clamp`, `limit(s)`, `tuning`, `setOf`/`byIndex`/`sets`, `forceKill`,
+`CastState` cooldowns), `EraseApi`, `WardApi`, `AimApi`, `NetApi`/`NetClientApi`, `UiApi` (fixed-size text,
+`onMenuDraw`), `FilmApi`, `FxApi`, `MenuApi` (`source`, `onKey`, `capturesInput`, `binding`, `key`). Loaders: Fabric
+1.20.1/1.21.1/1.21.11/26.3, Forge 1.20.1/1.21.1, NeoForge 1.20.1/1.21.1 (26.3's `UiApi` takes `GuiGraphicsExtractor`;
+on Forge/NeoForge the package carries a version tag).
+
+**What it would replace** (the user asked 2026-11-04; the recommendation: switch as its own step after Stellar
+Convergence is approved and before porting to the six branches, so the cleaner code is ported once; needs
+`rimulib_version_range` from 1.2.2): `TssLink.install`'s reflection into SkillSet's private tables -> `SkillApi.extend`;
+`CastingMixin`'s slider limits -> maybe `SkillApi.gate`; `WhiteSpaceMixin` (plates, keys) -> `UiApi.onMenuDraw` +
+`MenuApi.onKey`; `Carving`/`Bulwark`/`RimuNet`/`CutsceneDirector`/`ScreenFx` -> their API classes. **Not** replaced:
+everything inside TSS (cast request, running-spell lookup, its aim for `/ssa strike at`, FxManager's passes, the
+payload record) still needs the mappings; `SectionSink` (MoonBuild) isn't public. No speed change from the API itself.
+
 ## 17. How RimuLib 1.2.x makes big carvings fast (read 2026-11-03)
 
 Read from RimuLib 1.2.2's Fabric 1.21.11 jar (early access, decompiled in the scratchpad). **The public RimuLib 1.2.1**
@@ -1072,3 +1097,72 @@ own thing, not a copy of it.
   §17, but loading and effects stack); clashes with Stellar Quartet when both are installed (its key is P, its page is
   in the H menu: check both).
 - **No limits**: like the commands (§14), warn on the plate that firing everything at high power can freeze a server.
+- **Decided 2026-11-04 (the user's picks)**: it is **its own remote skill** (in the remote's list as SA-00 · Stellar
+  Convergence; selected and fired like any skill, with its own key slot); **every impact lands on the same tick** (the
+  quicker weapons are cast later); where they land is **a switch on the plate**: all on the crosshair, or spread in a
+  ring round it. Built in stages on main: (1) ticking the weapons on the plate and firing them together, (2) the mixed
+  effect outside the film, (3) the panel-montage film (TSS's films are RimuLib `Cutscene`s with `pose(t)`, so the
+  montage can borrow each weapon's own camera instead of copying anything).
+- **Built on main 2026-11-04** (all three stages; not pushed). Code map:
+  - `compat/tss/ConvergenceSkill` (SA-00 · Stellar Convergence, id `stellar_convergence`, `Codenames.CONVERGENCE`,
+    colour 0xE6DCFF, default key **B** (66; not P, Stellar Quartet's), cooldown 1200, `powerSliders()` false: each
+    weapon uses its own sliders), joined to the remote after Luna in `TssLink.install` (routed to `Convergence.cast`).
+    Icon: `assets/shooting_star_demo/textures/gui/sprites/skill/stellar_remote/stellar_convergence.png`, made by
+    `art/make_convergence_icon.sh` (ffmpeg).
+  - `compat/tss/Convergence` (server): each player's picks arrive as `Convergence.Picks` (RimuLib packet c2s: the ring
+    switch, and per ticked weapon its id and the sliders the client has, `SkillTuning.of`), held to the server's slider
+    limits (`compat/tss/Limits`, shared with `CastingMixin`). The cast aims once (`aimGround`, so `/ssa strike
+    stellar_convergence at ...` works too), works out each weapon's ticks to impact at its speed (`TSS_IMPACT`
+    table, Halley from `HalleyPlan`, Luna `MoonPlan.CONTACT`; unknown ones, other addons' and Tesseract/Gravitia, fire
+    at once with the slowest), and queues the casts so all hit together; `Convergence.tick` (server tick) casts each
+    through `SkillSet.cast` with `StrikeAim` (its point: the mark, or a ring of radius 64 round it in the caster's facing
+    order) and `NoCooldown.forced`. It sends `ConvergenceFx` (s2c: caster, mark, hit game time, ring, each weapon's
+    colour and point) to players within 1500 blocks. Both packets go through RimuLib's network (no per-loader code).
+  - **Impact times (TSS 1.5.1, speed 1, power 1, measured: `test builds\2026-11-04 auto test 11 convergence\point`)**:
+    Railgun 353 ticks, Gungnir 323, Seven Stars 339 (its seven stars land one every 16 ticks from 291, the middle one on
+    the mark, then its constellation lines from ~400), Halley 331 (its plan's 330 + the cast tick), Luna 330. Tesseract
+    carves no land (no moment to time); Gravitia turns the whole overworld into its space stage (`gravitia_space`) and
+    stopped the other weapons' impacts in a measuring run: it is off in the default picks. Remeasure after every TSS
+    update (a temporary `[TIMING]` mixin on RimuLib `Carving`'s private constructor, which logs each carving's name).
+  - Client: `compat/tss/client/ConvergencePlate` (top right of the H menu, beside the skill list: weapons 1-9 with tick
+    boxes in their colours and their slider values, R = on the crosshair / in a ring, the credit line "Inspired by
+    Stellar Quartet, by ikun520" and the red no-limits warning; sends the picks when they change while the menu is open
+    and as the game joins, via `ServerSettings.onReceived`); client config `convergence` (list of ids; default all but
+    Gravitia) and `convergence_ring`. `ConvergenceClient` keeps the convergences told; while the player's own is on its
+    way, `CutsceneDirectorMixin` holds every weapon's film back (and steps their clocks each tick, so their cameras keep
+    running). `client/ConvergenceView` is the shared effect (sigil, segments, ring marks, spiral, flash, one colour-
+    blended shock ring), drawn by `CometRenderer` with the comet's glow shapes. `ConvergenceFilm` is the montage
+    (shoulder shot, a high turn round the mark, then ~14 ticks per weapon through its held film's `pose()`, frozen into
+    `client/FilmPanels` (a half-size copy of the screen per panel, blitted from the main framebuffer in the film overlay
+    pass) sliding into a grid, which shatters at the hit onto a wide rising shot).
+  - **Ring layout (the user, 2026-11-04: "keep in mind the distance", or Halley and Luna vanish under the giants)**:
+    `Convergence.ring` gives each weapon a stretch of the circle as wide as its own reach (`reach`: Halley's/Luna's
+    crater radius from their params, TSS's from `TSS_REACH` (Railgun 200, Gungnir 412, Seven Stars 160 per star,
+    Tesseract 96) times its power over its default, since some TSS power sliders count blocks: the Railgun's shows
+    "200×"), smallest facing the caster, biggest round the back, and moves the ring out along the aim until the caster
+    is 24+ blocks outside every reach (tested: the centre moved from 121 to 341 blocks out). Point mode is unchanged
+    (all on the crosshair; the caster's own risk, as with the weapons alone).
+  - **Sliders** (the user asked how power works, 2026-11-04): each weapon fires with its own sliders from the remote's
+    menu; the plate says so ("Each uses its own sliders, set under it in this menu (shown on the right)") and shows
+    them per weapon; so does the skill's description. A master power slider on SA-00 was offered, not decided.
+  - **Open: the film's panels don't show while TSS's weapons' effects run.** `FilmPanels` freezes the frames and
+    draws them at the end of every frame (`RenderFrameEvent.Post`, LOWEST, after the frame is finished; the harness
+    screenshots after it), and with Halley and Luna alone that works (screenshot `film-debug2\other_00320.png`). With
+    any TSS weapon ticked, the panels are frozen and drawn on time, but a pixel read back right after drawing is just
+    the live frame: the draws do nothing. Ruled out by logging GL state at that point: framebuffer (main), blend
+    equation, stencil, logic op, depth mask, scissor, viewport, depth clear value, shader colour all normal; face
+    culling was ON while GlStateManager's cache likely thought it off (fixed by flipping it through the cache: no
+    change); resetting the cached shader program (`ShaderInstance.clear()`) and vertex arrays
+    (`BufferUploader.invalidate`, `VertexBuffer.unbind`): no change. Not yet tried: drawing the panels inside the GUI
+    pass (Gui.render TAIL mixin) instead, or rendering them into the world as camera-facing quads; or reading
+    RimuLib's `PostFx` (it may keep its own copy of the frame and present that). The first try, drawing them from
+    TSS's film-HUD pass, also failed: that pass doesn't run for a film whose subject isn't a TSS effect.
+  - Test runs: `test builds\2026-11-04 auto test 11 convergence\` (point, film-*, film-ring*); test jar
+    `test builds\2026-11-05 Stellar Convergence\`, in the Modrinth profile (the code-names/sounds build renamed
+    `.disabled`). The client-test harness now takes its screenshots at the lowest priority, registered at the first
+    client tick (after every mod's own end-of-frame drawing).
+  - **Found in testing**: the caster must aim far: the danger zone is the biggest weapon's (Gungnir 412 at 1×, the
+    Railgun's column 200 to the bottom of the world, Seven Stars' pattern ~600 round the mark); the test player 116
+    blocks off fell into the void, as with those weapons alone. At the hit every weapon's own screen effects (TSS's
+    impact frames, glitches) stack and fill the screen for seconds; the §18 idea of one shared, capped shake/flash is
+    not built (it would mean holding back RimuLib's ScreenFx for the weapons).
