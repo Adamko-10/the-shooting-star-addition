@@ -704,7 +704,8 @@ update).
   `NoCooldown.forced` on (no "already on its way": `NoCooldown.casting()`); `at` is answered by the aim hook in
   `SpellsMixin` on `l111i1lil1.liiillli1l(ServerPlayer, double, double)` (every skill's ground aim, ours through
   `TssLink.aimGround`) via `StrikeAim`. A red warning line when power or speed is past `Tuning.power/speed(skill)`.
-  The film plays for the player who ran it. Luna still refuses by day and where there's no moon. Not done: a caster
+  The film plays for the player who ran it. Luna still refuses where there's no moon (and by day if the server's
+  `night_only` is on). Not done: a caster
   other than the player running it, and the harness filming non-addon skills.
 
 ### The user's server (personal, not a mod feature as such)
