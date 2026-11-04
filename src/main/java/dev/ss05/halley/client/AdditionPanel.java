@@ -17,8 +17,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * The addon's own plate in the Stellar Remote's menu (H, The Shooting Star's "White Space"), in the menu's colours, in
- * its top left corner: four switches - Luna's music (M), keeping Luna's moon model after it lands (L), where the evac
- * takes you (E: up, or to the edge) and no-cooldown (C) - and what the server allows. The menu holds
+ * its top left corner: five switches - Luna's music (M), keeping Luna's moon model after it lands (L), the impact
+ * frames (F: full, soft, off), where the evac takes you (E: up, or to the edge) and no-cooldown (C) - and what the
+ * server allows. The menu holds
  * the mouse (you pick things in it by looking at them), so these are flipped with their keys, shown on the plate.
  *
  * <p>No-cooldown is the server's to allow ({@code no_cooldown}, and {@code no_cooldown_survival} for survival players);
@@ -42,10 +43,12 @@ public final class AdditionPanel {
     public static final int KEY_COOLDOWN = 67;
     public static final int KEY_EVAC = 69;
     public static final int KEY_KEEP_MOON = 76;
+    public static final int KEY_FRAMES = 70;
     private static final float SLIDE_MILLIS = 160.0F;
 
     private static long musicFlippedAt;
     private static long keepMoonFlippedAt;
+    private static long framesFlippedAt;
     private static long cooldownFlippedAt;
     private static long evacFlippedAt;
 
@@ -65,6 +68,16 @@ public final class AdditionPanel {
         if (key == KEY_KEEP_MOON) {
             HalleyClientConfig.setKeepMoon(!HalleyClientConfig.keepMoon());
             keepMoonFlippedAt = Util.getMillis();
+            click(true);
+            return true;
+        }
+        if (key == KEY_FRAMES) {
+            HalleyClientConfig.ImpactFrames was = HalleyClientConfig.impactFrames();
+            HalleyClientConfig.setImpactFrames(was.next());
+            // the switch only slides between on and off (FULL -> SOFT stays on)
+            if (was == HalleyClientConfig.ImpactFrames.SOFT || was == HalleyClientConfig.ImpactFrames.OFF) {
+                framesFlippedAt = Util.getMillis();
+            }
             click(true);
             return true;
         }
@@ -133,7 +146,7 @@ public final class AdditionPanel {
         }
 
         int w = Math.max(WIDTH, Math.max(font.width(status), font.width(Component.translatable("gui.shooting_star_addition.no_cooldown.disabled"))) + 22);
-        int h = cooldownOff ? 168 : 156;
+        int h = cooldownOff ? 200 : 188;
         g.pose().pushPose();
         // over the menu, in its top left corner
         g.pose().translate(8.0F, 8.0F, 400.0F);
@@ -157,18 +170,26 @@ public final class AdditionPanel {
         g.drawString(font, Component.translatable("gui.shooting_star_addition.keep_moon.hint"), 11, 70, 0xFF000000 | GREY, false);
         g.fill(11, 83, w - 10, 84, 0xFF000000 | RULE);
 
-        // where the evac takes you: up (the switch on) or to the edge
-        row(g, font, 90, Component.translatable("gui.shooting_star_addition.evac"), "E", HalleyClientConfig.evacLift(), true,
-            evacFlippedAt, w, "gui.shooting_star_addition.evac.up", "gui.shooting_star_addition.evac.edge");
-        g.drawString(font, Component.translatable("gui.shooting_star_addition.evac.hint"), 11, 102, 0xFF000000 | GREY, false);
+        // the impact frames: full or soft (on), or off
+        HalleyClientConfig.ImpactFrames frames = HalleyClientConfig.impactFrames();
+        row(g, font, 90, Component.translatable("gui.shooting_star_addition.frames"), "F", frames != HalleyClientConfig.ImpactFrames.OFF,
+            true, framesFlippedAt, w, frames == HalleyClientConfig.ImpactFrames.SOFT ? "gui.shooting_star_addition.frames.soft"
+                : "gui.shooting_star_addition.frames.full", "gui.shooting_star_addition.off");
+        g.drawString(font, Component.translatable("gui.shooting_star_addition.frames.hint"), 11, 102, 0xFF000000 | GREY, false);
         g.fill(11, 115, w - 10, 116, 0xFF000000 | RULE);
 
+        // where the evac takes you: up (the switch on) or to the edge
+        row(g, font, 122, Component.translatable("gui.shooting_star_addition.evac"), "E", HalleyClientConfig.evacLift(), true,
+            evacFlippedAt, w, "gui.shooting_star_addition.evac.up", "gui.shooting_star_addition.evac.edge");
+        g.drawString(font, Component.translatable("gui.shooting_star_addition.evac.hint"), 11, 134, 0xFF000000 | GREY, false);
+        g.fill(11, 147, w - 10, 148, 0xFF000000 | RULE);
+
         // no cooldown, and what the server allows
-        row(g, font, 122, Component.translatable("gui.shooting_star_addition.no_cooldown"), "C", cooldownOff, allowed, cooldownFlippedAt, w);
-        g.drawString(font, Component.translatable("gui.shooting_star_addition.no_cooldown.hint"), 11, 134, 0xFF000000 | GREY, false);
-        g.drawString(font, status, 11, 145, 0xFF000000 | statusColor, false);
+        row(g, font, 154, Component.translatable("gui.shooting_star_addition.no_cooldown"), "C", cooldownOff, allowed, cooldownFlippedAt, w);
+        g.drawString(font, Component.translatable("gui.shooting_star_addition.no_cooldown.hint"), 11, 166, 0xFF000000 | GREY, false);
+        g.drawString(font, status, 11, 177, 0xFF000000 | statusColor, false);
         if (cooldownOff) {
-            g.drawString(font, Component.translatable("gui.shooting_star_addition.no_cooldown.careful"), 11, 156, 0xFF000000 | WARN, false);
+            g.drawString(font, Component.translatable("gui.shooting_star_addition.no_cooldown.careful"), 11, 188, 0xFF000000 | WARN, false);
         }
         g.pose().popPose();
     }

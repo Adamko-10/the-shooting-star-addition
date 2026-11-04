@@ -989,6 +989,8 @@ public final class MoonFx {
     }
 
     private static void impactSequence(Screen screen, float since, Vec3 focus, float strength, float frameSeconds, int... modes) {
+        // the impact-frames switch (F on the addon's plate): full, fainter, or none
+        strength *= HalleyClientConfig.impactFrames().strength;
         if (since < 0.0F || strength <= 0.0F) {
             return;
         }

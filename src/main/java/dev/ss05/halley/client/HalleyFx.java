@@ -796,7 +796,8 @@ public final class HalleyFx {
             impactSequence(screen, since, focus, near, 0.05F, 3, 1, 3, 1, 0, 3);
             screen.flash(CometVisuals.WHITE, 1.3F * near * (since < 0.05F ? 1.0F : (float) Math.exp(-(since - 0.05F) * 6.0F)));
             screen.zoomBlur(window(since, 0.0F, 0.03F, 0.35F, 1.4F) * 0.6F * near);
-            screen.shake(window(since, 0.0F, 0.05F, 2.0F, 5.0F) * 0.9F * near);
+            // the hit at full strength, then easing off sooner (it held for 2 s and lasted 5: the user, 2026-10-29)
+            screen.shake(window(since, 0.0F, 0.05F, 0.8F, 3.5F) * 0.9F * near);
             screen.aberration(window(since, 0.0F, 0.05F, 0.6F, 3.0F) * near);
             float hold = window(t, p.impact, p.impact + 6.0F, p.impact + 90.0F, p.impact + 140.0F);
             screen.bloom(1.0F * hold, 1.0F + 1.0F * hold);
@@ -807,6 +808,8 @@ public final class HalleyFx {
     }
 
     private static void impactSequence(Screen screen, float since, Vec3 focus, float strength, float frameSeconds, int... modes) {
+        // the impact-frames switch (F on the addon's plate): full, fainter, or none
+        strength *= HalleyClientConfig.impactFrames().strength;
         if (since < 0.0F || strength <= 0.0F) {
             return;
         }

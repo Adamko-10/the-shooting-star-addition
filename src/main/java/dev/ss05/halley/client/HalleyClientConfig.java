@@ -29,6 +29,22 @@ public final class HalleyClientConfig {
     private static final ModConfigSpec.BooleanValue NO_COOLDOWN;
     private static final ModConfigSpec.BooleanValue EVAC_LIFT;
     private static final ModConfigSpec.BooleanValue KEEP_MOON;
+    private static final ModConfigSpec.EnumValue<ImpactFrames> IMPACT_FRAMES;
+
+    /** How strong Halley's and Luna's impact frames are (F on the addon's plate cycles them). */
+    public enum ImpactFrames {
+        FULL(1.0F), SOFT(0.35F), OFF(0.0F);
+
+        public final float strength;
+
+        ImpactFrames(float strength) {
+            this.strength = strength;
+        }
+
+        public ImpactFrames next() {
+            return values()[(this.ordinal() + 1) % values().length];
+        }
+    }
 
     static {
         ModConfigSpec.Builder b = new ModConfigSpec.Builder();
@@ -65,6 +81,9 @@ public final class HalleyClientConfig {
         KEEP_MOON = b.comment("Luna's moon model stays where it landed instead of crumbling into the block moon, until you switch",
                 "this off or leave the world (for filming). L in the remote's menu.")
             .define("keep_moon", false);
+        IMPACT_FRAMES = b.comment("Halley's and Luna's impact frames (the screen flashing to negative at an impact): FULL, SOFT",
+                "(fainter) or OFF. F in the remote's menu.")
+            .defineEnum("impact_frames", ImpactFrames.FULL);
         b.pop();
         SPEC = b.build();
     }
@@ -127,8 +146,16 @@ public final class HalleyClientConfig {
         set(KEEP_MOON, on);
     }
 
+    public static ImpactFrames impactFrames() {
+        return get(IMPACT_FRAMES);
+    }
+
+    public static void setImpactFrames(ImpactFrames frames) {
+        set(IMPACT_FRAMES, frames);
+    }
+
     /** Sets and saves a switch (kept for this session if the config isn't loaded). */
-    private static void set(ModConfigSpec.BooleanValue value, boolean on) {
+    private static <T> void set(ModConfigSpec.ConfigValue<T> value, T on) {
         if (!SPEC.isLoaded()) {
             return;
         }
@@ -151,15 +178,15 @@ public final class HalleyClientConfig {
         }
     }
 
-    /** The default (true) until the config has loaded. */
-    private static boolean get(ModConfigSpec.BooleanValue value) {
+    /** The setting's default until the config has loaded (keep_moon's is off). */
+    private static <T> T get(ModConfigSpec.ConfigValue<T> value) {
         if (!SPEC.isLoaded()) {
-            return true;
+            return value.getDefault();
         }
         try {
             return value.get();
         } catch (IllegalStateException notLoadedYet) {
-            return true;
+            return value.getDefault();
         }
     }
 }
