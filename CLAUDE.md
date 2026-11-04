@@ -18,14 +18,15 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
 - **Done on main** (§14 has the details): TSS 1.5.1 + RimuLib 1.2.1 (§16); Luna only where land is loaded, its moon
   and crater through RimuLib's section sink (§17); no cooldown for TSS's skills; newest overlay only; evac switch (E);
   Gravitia key (unbound); keep-the-moon (L, cools down); Halley's shake eased; impact frames FULL/SOFT/OFF (F);
-  protected-blocks tag; `/ssa strike` for operators; title cards in both films (§14). Game-tested by Claude with `runProdClientTest` (§4, "Testing on
+  protected-blocks tag; `/ssa strike` for operators; title cards in both films, with the code name (§14); the sound
+  overhaul (§14, needs the user's ears). Game-tested by Claude with `runProdClientTest` (§4, "Testing on
   Adam's PC"); the user tests the jar in their Modrinth profile (§9).
 - **Commands checked**: `/ssa strike <any skill> at ...` aims right, the Railgun included (§14). Title cards and the
   film overlays (broken since 1.6.0, fixed 2026-11-04) checked by screenshots (§14). **Not yet checked in game**:
   Halley's shake (feel), impact frames OFF (the white flash covers those frames), the
   Gravitia key when bound, the user's own test of the latest jar.
 - **Next, the update's remaining list** (§14): Epic mode (needs `Video-Project-48.mp3` from Hamza's PC; not on Adam's
-  PC, searched 2026-11-04), the sound overhaul (scope in §14), Stellar Convergence (§18), SA-03 Proxima (§15, needs the user's track), then
+  PC, searched 2026-11-04), Stellar Convergence (§18), SA-03 Proxima (§15, needs the user's track), then
   port to the six other branches (§3), CI, one Forge test, README/changelog/CurseForge text, release.
 - **Remind the user** (§0): idea #16 for the Mrityu mod (asked again 2026-11-04).
 
@@ -691,8 +692,10 @@ Findings and fixes (main `449de31`, `f64b0c3`, `e72839c`; cherry-picked to every
   projected subject: **HALLEY** in shot 4 (ticks 74-114, under the comet), letters streaking in from high right like
   small comets, a flash as each locks, then sublimating upward; **LUNA** in shot 2 (BREAK + 4 to FALL + 12, over the
   moon), letters cracking in from the middle outward, molten and shuddering, cooling to the moon's grey, then the outer
-  ones first dropping away and reheating as the moon tears loose. A small label above (`SA-01 · 1P/HALLEY`,
-  `SA-02 · THE MOONFALL`) and a growing rule under. Off in RimuLib's legacy film style (`CutsceneDirector.legacy()`),
+  ones first dropping away and reheating as the moon tears loose. The code name (`SA-01`, `SA-02`, the user's idea)
+  sits before the word on its baseline at 0.42 its size (`FilmTitle.Line`), flickering on (Halley) or glowing in and
+  breaking away first (Luna); a small label above (`1P/HALLEY · PERIODIC COMET`, `THE MOONFALL`) and a growing rule
+  under. Off in RimuLib's legacy film style (`CutsceneDirector.legacy()`),
   as TSS's are. No sound yet (the sound overhaul can add one). Game-tested (`test builds\2026-11-04 auto test 8
   titles, film overlay\`); afterwards HALLEY moved further under the comet (its small label touched the comet's range
   readout) and its streaks made stronger, not re-tested. Test jar `test builds\2026-11-04 title cards, film overlay\`,
@@ -709,6 +712,25 @@ Findings and fixes (main `449de31`, `f64b0c3`, `e72839c`; cherry-picked to every
   punchier impacts (layered bass, a crack on top, a rolling tail), better mixing (against each other and TSS's),
   less repetition (pitch/variation for debris and rumbles), and Luna's build-up (a rising rumble before the fall, a
   near-silence just before impact; see §10 "Luna's build-up").
+  **Done on main 2026-11-04, to test (by ear: a screenshot test can't)**: the sounds were synthesised by
+  `art/make_sounds.py` (Python, not installed on Adam's PC); the originals moved to `art/raw/` and
+  `art/overhaul_sounds.sh` (ffmpeg 9 from winget is on Adam's PC) makes the shipped ones: every sound de-harshed (3.6 kHz
+  and the top end down, below 25 Hz cut); the hits (`halley_impact`, `luna_impact`, `halley_touchdown`, `halley_boom`,
+  `luna_entry`, `luna_tear`, `luna_shockwave`) get a falling sub-bass thump, a noise crack and an echoing low tail
+  (1.2-3.5 s longer), compressed; levels by role against TSS's (measured, never copied: its hits ~-11 LUFS, hums ~-17,
+  cues ~-18): our impacts went from -14/-16 to -12.5/-13 LUFS (the limiter holds them ~2 dB under the -11 aimed at),
+  cues -15/-16, beds -16/-18, hums -19; variants (sounds.json picks at random): `halley_hum` x3 (plus a random pitch in
+  `HalleyFx`), `halley_burst` x3, `luna_debris` x3, `luna_aftershock` x2. Luna's build-up: `luna_buildup` (new, 2 s,
+  played at ALARM from the moon's place in the sky: a brown-noise roar rising and brightening, a shuddering 30-40 Hz
+  drone, the crack's grinding pitched down) ends on FALL; `luna_rumble` (CONTACT - 60) now swells and then drops to
+  near-silence for its last half second; `luna_inhale` (new, 0.65 s, at CONTACT - 13, as late as the impact for far
+  listeners) is the shock wave's start reversed with a rising rush, ending on the impact. Luna's music is not ducked
+  (its drop is on CONTACT; the user's track). New subtitles in `en_us.json`; new events `MOON_BUILDUP`/`MOON_INHALE`.
+  Possible next steps if the user wants more: a hush and inhale before Halley's impact too, a sound for the title cards.
+  Game run (`test builds\2026-11-04 auto test 9 code names, sounds\`): no missing-sound warnings of ours, no errors;
+  the title cards with their code names screenshotted (a run whose game window was minimised saves 1x1 shots: re-run).
+  Test jar `test builds\2026-11-04 code names, sound overhaul\`, in the Modrinth profile (the title-cards build there
+  renamed `.disabled`).
 
 **No cooldown for TSS's own skills** (fixed 2026-11-03, main): TSS 1.5.1's cast of its own skills (`il1i1li1l11
 .liiillli1l(ServerPlayer, liiliiii1, Tuning)`, unmapped) refuses one while the same player's last of that skill runs
