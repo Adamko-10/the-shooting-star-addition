@@ -28,6 +28,7 @@ public final class HalleyClientConfig {
     private static final ModConfigSpec.BooleanValue LUNA_MUSIC;
     private static final ModConfigSpec.BooleanValue NO_COOLDOWN;
     private static final ModConfigSpec.BooleanValue EVAC_LIFT;
+    private static final ModConfigSpec.BooleanValue KEEP_MOON;
 
     static {
         ModConfigSpec.Builder b = new ModConfigSpec.Builder();
@@ -61,6 +62,9 @@ public final class HalleyClientConfig {
         EVAC_LIFT = b.comment("In creative, standing where your own strike lands: true lifts you straight up above it, false",
                 "takes you out to the crater's edge (onto land that is loaded, else up). E in the remote's menu.")
             .define("evac_lift", true);
+        KEEP_MOON = b.comment("Luna's moon model stays where it landed instead of crumbling into the block moon, until you switch",
+                "this off or leave the world (for filming). L in the remote's menu.")
+            .define("keep_moon", false);
         b.pop();
         SPEC = b.build();
     }
@@ -112,6 +116,15 @@ public final class HalleyClientConfig {
 
     public static void setEvacLift(boolean on) {
         set(EVAC_LIFT, on);
+    }
+
+    /** Your keep-the-moon switch: Luna's moon model stays after it lands. */
+    public static boolean keepMoon() {
+        return get(KEEP_MOON);
+    }
+
+    public static void setKeepMoon(boolean on) {
+        set(KEEP_MOON, on);
     }
 
     /** Sets and saves a switch (kept for this session if the config isn't loaded). */

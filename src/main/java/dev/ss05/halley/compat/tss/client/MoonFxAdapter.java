@@ -88,7 +88,8 @@ final class MoonFxAdapter extends SpellFx {
 
     @Override
     public int duration() {
-        return MoonPlan.DURATION;
+        // read every tick by The Shooting Star: a kept moon stays until the switch goes off
+        return MoonFx.kept() ? Integer.MAX_VALUE : MoonPlan.DURATION;
     }
 
     @Override

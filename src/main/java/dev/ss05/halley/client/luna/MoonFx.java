@@ -214,14 +214,17 @@ public final class MoonFx {
      * showing, so leaving it never jumps).
      */
     public float time(float partial) {
-        float t = this.host.clock(partial);
+        float t = this.realTime(partial);
         float film = this.host.filmWeight();
         return film <= 0.0F || t <= MoonPlan.CONTACT ? t : (float) (t - slowLag(t - MoonPlan.CONTACT) * film);
     }
 
-    /** The strike's own clock, never slowed (what the server, the sounds and the music follow). */
+    /**
+     * The strike's own clock, never slowed (what the server, the sounds and the music follow). A kept moon's stops at the
+     * strike's end, so everything else of it stays as it was then (faded out), only the moon left.
+     */
     public float realTime(float partial) {
-        return this.host.clock(partial);
+        return Math.min(this.host.clock(partial), MoonPlan.DURATION);
     }
 
     // ---- The impact in slow motion (the film only). ------------------------------------------------------------------
@@ -288,7 +291,15 @@ public final class MoonFx {
     }
 
     public boolean finished() {
-        return this.age > MoonPlan.DURATION;
+        return this.age > MoonPlan.DURATION && !kept();
+    }
+
+    /**
+     * The keep-the-moon switch (L on the addon's plate): the moon model stays where it landed instead of crumbling, past
+     * the strike's end (everything else of it has long faded by then), until the switch goes off or the world is left.
+     */
+    public static boolean kept() {
+        return HalleyClientConfig.keepMoon();
     }
 
     // ---- Each tick. -----------------------------------------------------------------------------------------------
@@ -360,7 +371,7 @@ public final class MoonFx {
      * so the sphere giving way to blocks reads as the moon's crust breaking up as it cools, not a swap.
      */
     private void crumbleParticles(ClientLevel level, int t) {
-        if (this.handoverAt < 0 || t < this.handoverAt || t > this.handoverAt + HANDOVER_FADE) {
+        if (this.handoverAt < 0 || t < this.handoverAt || t > this.handoverAt + HANDOVER_FADE || kept()) {
             return;
         }
         MoonPlan p = this.plan;
@@ -391,7 +402,7 @@ public final class MoonFx {
 
     /** As {@link #sphereVisibility}, for an absolute time (age + partial) rather than a partial tick. */
     public float sphereVisibilityAt(double t) {
-        if (t < MoonPlan.SETTLE) {
+        if (t < MoonPlan.SETTLE || kept()) {
             return 1.0F;
         }
         int handover = this.handoverAt;
