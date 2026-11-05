@@ -3,14 +3,16 @@ package dev.ss05.halley.compat.tss;
 import cyou.rimuru.rimulib.mc1211.bulwark.Bulwark;
 import cyou.rimuru.rimulib.mc1211.erase.ErasePolicy;
 import cyou.rimuru.rimulib.mc1211.erase.Erasure;
-import cyou.rimuru.rimulib.mc1211.net.RimuNet;
+import cyou.rimuru.rimulib.mc1211.api.NetApi;
+import cyou.rimuru.rimulib.mc1211.api.RimulibApi;
+import cyou.rimuru.rimulib.mc1211.api.SkillApi;
 import cyou.rimuru.rimulib.mc1211.skill.Skill;
 import cyou.rimuru.rimulib.mc1211.skill.SkillSet;
 import cyou.rimuru.rimulib.mc1211.skill.Tuning;
 import cyou.rimuru.rimulib.mc1211.terrain.Carving;
 import cyou.rimuru.rimulib.mc1211.terrain.SectionSink;
 import cyou.rimuru.shootingstardemo.mc1211.magic.Casting;
-import cyou.rimuru.shootingstardemo.mc1211.l111i1lil1;
+import cyou.rimuru.shootingstardemo.mc1211.spell.SpellEngine;
 import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.HalleyParams;
@@ -21,9 +23,7 @@ import dev.ss05.halley.compat.mixin.ChunkAccessMixin;
 import dev.ss05.halley.compat.tss.client.StarClientBridge;
 import dev.ss05.halley.world.Excavation;
 import dev.ss05.halley.world.HalleyCasting;
-import dev.ss05.halley.world.HalleyInfo;
 import dev.ss05.halley.world.MoonCasting;
-import dev.ss05.halley.world.MoonInfo;
 import dev.ss05.halley.world.Protected;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -83,101 +83,49 @@ public final class TssLink implements StarLink {
     /** Stellar Convergence (every ticked weapon at once) as The Shooting Star sees it. */
     public static final ConvergenceSkill CONVERGENCE = new ConvergenceSkill();
 
+    private static boolean installed;
+
     /**
-     * Adds Halley and Luna to the Stellar Remote: after the built-in skills, each with its own index, key binding,
-     * menu row, tooltip line and cooldown, exactly as if they had been among them. Safe to call more than once.
-     *
-     * <p>Since The Shooting Star 1.5.0 the remote's skill list is RimuLib's {@code SkillSet} (not obfuscated). It is
-     * still built once with no "add a skill" hook, so Halley and Luna are written into its tables the way
-     * {@code SkillSet.register} puts a set's skills there; RimuLib then shows them as an addon's skills.
+     * Adds Halley, Luna and Stellar Convergence to the Stellar Remote, after its own skills, each with its own index, key
+     * binding, menu row and cooldown, through RimuLib's public API (since RimuLib 1.2.2: {@code SkillApi.extend}, once
+     * The Shooting Star has registered the remote; before that we wrote into RimuLib's private tables). Safe to call
+     * more than once.
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public void install() throws ReflectiveOperationException {
-        if (SkillSet.of(SKILL) != null) {
+    public void install() {
+        if (installed) {
             return;
         }
+        installed = true;
+        RimulibApi.connect(HalleyAddon.MOD_ID, HalleyAddon.class, "1.2.2");
         // the protected blocks are "cores" every carving that keeps cores leaves where they are: ours, and The Shooting
         // Star's that do (one of its skills, in 1.5.1)
         Carving.keepCores(Protected::is);
-        SkillSet remote = remote();
-        Map<String, List<Skill>> byNamespace = (Map<String, List<Skill>>) field("BY_NAMESPACE").get(null);
-        Map<Skill, SkillSet> owner = (Map<Skill, SkillSet>) field("OWNER").get(null);
-        Map<Skill, Integer> index = (Map<Skill, Integer>) field("INDEX").get(null);
-        Field skillsField = field("skills");
-        Field casterField = field("caster");
-        SkillSet.Caster<Skill> builtIn = (SkillSet.Caster<Skill>) casterField.get(remote);
-        List<Skill> all = byNamespace.get(remote.namespace());
-        List<Skill> before = remote.skills;
-        if (builtIn == null || all == null || before == null || before.isEmpty()) {
-            throw new IllegalStateException("the Stellar Remote has no skills to join");
-        }
-
-        List<Skill> after = new ArrayList<>(before);
-        List<Skill> ours = List.of(SKILL, MOON, CONVERGENCE);
-        after.addAll(ours);
-        // The remote hands every cast a Tuning: the sliders under the skill in its menu (power, damage, speed), clamped
-        // to the skill's range. Halley and Luna get theirs as the addon's own CastTuning; the built-in skills unchanged.
-        // Stellar Convergence has none of its own: each weapon it fires uses its own.
-        SkillSet.Caster<Skill> caster = (player, skill, tuning) -> skill == SKILL ? HalleyCasting.cast(player, tune(tuning))
-            : skill == MOON ? MoonCasting.cast(player, tune(tuning)) : skill == CONVERGENCE ? Convergence.cast(player)
-            : builtIn.cast(player, skill, tuning);
-
-        for (Skill added : ours) {
-            index.put(added, all.size());
-            all.add(added);
-            owner.put(added, remote);
-        }
-        try {
-            skillsField.set(remote, List.copyOf(after));
-            casterField.set(remote, caster);
-        } catch (ReflectiveOperationException | RuntimeException failed) {
-            for (Skill added : ours) {
-                all.remove(added);
-                owner.remove(added);
-                index.remove(added);
-            }
-            skillsField.set(remote, before);
-            casterField.set(remote, builtIn);
-            throw failed;
-        }
-        // the strikes' effect packet: declared now, before RimuLib registers its packets with the loader
-        RimuNet.s2c(StrikeFx.PACKET);
-        // Stellar Convergence: each player's picks (their game to the server), and a convergence on its way (back)
-        RimuNet.c2s(Convergence.Picks.PACKET);
-        RimuNet.s2c(ConvergenceFx.PACKET);
-        RimuNet.receive(Convergence.Picks.PACKET, (picks, context) -> context.server().execute(() -> {
+        // the packets: declared now, before RimuLib registers its packets with the loader. The strikes' effects, and for
+        // Stellar Convergence each player's picks (their game to the server) and a convergence on its way (back)
+        NetApi.toClient(StrikeFx.PACKET);
+        NetApi.toServer(Convergence.Picks.PACKET);
+        NetApi.toClient(ConvergenceFx.PACKET);
+        NetApi.receive(Convergence.Picks.PACKET, (picks, context) -> context.server().execute(() -> {
             if (context.player() != null) {
                 Convergence.received(context.player(), picks);
             }
         }));
-
-        HalleyAddon.LOG.info("{} (Halley) joined the Stellar Remote as skill #{} (key slot {}).", HalleyInfo.title(), after.indexOf(SKILL) + 1, SkillSet.indexOf(SKILL));
-        HalleyAddon.LOG.info("{} (Luna) joined the Stellar Remote as skill #{} (key slot {}).", MoonInfo.title(), after.indexOf(MOON) + 1, SkillSet.indexOf(MOON));
-        HalleyAddon.LOG.info("{} joined the Stellar Remote as skill #{} (key slot {}).", CONVERGENCE.title(), after.indexOf(CONVERGENCE) + 1,
-            SkillSet.indexOf(CONVERGENCE));
-    }
-
-    /** The Stellar Remote's skill set: The Shooting Star's set that holds its own skills (an enum of them). */
-    private static SkillSet remote() {
-        SkillSet found = null;
-        for (SkillSet set : SkillSet.all(TssVersion.MOD_ID)) {
-            if (!set.hidden && set.skills.stream().anyMatch(skill -> skill instanceof Enum<?>)
-                && (found == null || set.skills.size() > found.skills.size())) {
-                found = set;
+        SkillApi.whenRegistered(TssVersion.MOD_ID, set -> {
+            // the remote is The Shooting Star's set that holds its own skills (an enum of them)
+            if (set.hidden || set.skills.stream().noneMatch(skill -> skill instanceof Enum<?>) || SkillApi.setOf(SKILL) != null) {
+                return;
             }
-        }
-        if (found == null) {
-            throw new IllegalStateException("The Shooting Star registered no Stellar Remote skills");
-        }
-        return found;
-    }
-
-    /** One of SkillSet's fields, by name (RimuLib isn't obfuscated). */
-    private static Field field(String name) throws NoSuchFieldException {
-        Field field = SkillSet.class.getDeclaredField(name);
-        field.setAccessible(true);
-        return field;
+            // The remote hands every cast a Tuning: the sliders under the skill in its menu (power, damage, speed),
+            // clamped to the skill's range. Halley and Luna get theirs as the addon's own CastTuning; Stellar
+            // Convergence has none of its own: each weapon it fires uses its own.
+            SkillApi.extend(set, new Skill[]{SKILL, MOON, CONVERGENCE}, (player, skill, tuning) -> skill == SKILL
+                ? HalleyCasting.cast(player, tune(tuning)) : skill == MOON ? MoonCasting.cast(player, tune(tuning)) : Convergence.cast(player));
+            for (Skill ours : List.<Skill>of(SKILL, MOON, CONVERGENCE)) {
+                HalleyAddon.LOG.info("{} joined the Stellar Remote as skill #{} (key slot {}).", ours.title(), set.skills.indexOf(ours) + 1,
+                    SkillApi.index(ours));
+            }
+        });
     }
 
     /** The remote's sliders for one cast, as the addon's own type (the defaults if there are none). */
@@ -236,12 +184,12 @@ public final class TssLink implements StarLink {
 
     @Override
     public int skillIndex() {
-        return SkillSet.indexOf(SKILL);
+        return SkillApi.index(SKILL);
     }
 
     @Override
     public int moonIndex() {
-        return SkillSet.indexOf(MOON);
+        return SkillApi.index(MOON);
     }
 
     @Override
@@ -268,8 +216,8 @@ public final class TssLink implements StarLink {
 
     @Override
     public Vec3 aimGround(ServerPlayer player, double reach, double fallback) {
-        // SpellEngine.aimGround, unmapped since 1.5.1
-        return l111i1lil1.liiillli1l(player, reach, fallback);
+        // SpellEngine.aimGround (unmapped in 1.5.1, mapped again since 1.5.2)
+        return SpellEngine.aimGround(player, reach, fallback);
     }
 
     @Override

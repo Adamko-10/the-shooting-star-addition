@@ -1,15 +1,16 @@
 package dev.ss05.halley.compat.tss.client;
 
 import cyou.rimuru.rimulib.mc1211.client.cinematic.CutsceneDirector;
-import cyou.rimuru.rimulib.mc1211.client.magic.SkillKeys;
-import cyou.rimuru.rimulib.mc1211.client.magic.WhiteSpace;
-import cyou.rimuru.rimulib.mc1211.client.text.Overlay;
-import cyou.rimuru.rimulib.mc1211.net.RimuNet;
+import cyou.rimuru.rimulib.mc1211.api.SkillApi;
+import cyou.rimuru.rimulib.mc1211.client.api.MenuApi;
+import cyou.rimuru.rimulib.mc1211.client.api.NetClientApi;
+import cyou.rimuru.rimulib.mc1211.client.api.UiApi;
 import cyou.rimuru.rimulib.mc1211.skill.Skill;
 import cyou.rimuru.rimulib.mc1211.skill.SkillSet;
 import cyou.rimuru.shootingstardemo.mc1211.client.fx.FxManager;
-import cyou.rimuru.shootingstardemo.mc1211.ll1lil1iill;
+import cyou.rimuru.shootingstardemo.mc1211.ll1i111l11;
 import dev.ss05.halley.HalleyAddon;
+import dev.ss05.halley.client.AdditionPanel;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
 import dev.ss05.halley.client.luna.MoonFx;
@@ -25,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 
 /**
@@ -47,15 +49,23 @@ public final class StarClientBridge {
             return;
         }
         try {
-            RimuNet.clientHandler(StrikeFx.PACKET, packet -> {
-                StrikeFx strike = (StrikeFx) packet;
-                if (strike.skill() == SkillSet.indexOf(TssLink.SKILL)) {
+            NetClientApi.receive(StrikeFx.PACKET, (strike, context) -> Minecraft.getInstance().execute(() -> {
+                if (strike.skill() == SkillApi.index(TssLink.SKILL)) {
                     start(strike);
-                } else if (strike.skill() == SkillSet.indexOf(TssLink.MOON)) {
+                } else if (strike.skill() == SkillApi.index(TssLink.MOON)) {
                     startMoon(strike);
                 }
+            }));
+            NetClientApi.receive(ConvergenceFx.PACKET, (fx, context) -> Minecraft.getInstance().execute(() -> ConvergenceClient.start(fx)));
+            // the addon's plates in the remote's menu (H) and their keys (the menu holds the mouse: things in it are picked
+            // by looking at them), through RimuLib's public API; never a key the remote uses or one being rebound
+            UiApi.onMenuDraw((graphics, partial) -> {
+                if (MenuApi.capturesInput()) {
+                    AdditionPanel.draw(graphics);
+                    ConvergencePlate.draw(graphics);
+                }
             });
-            RimuNet.clientHandler(ConvergenceFx.PACKET, packet -> ConvergenceClient.start((ConvergenceFx) packet));
+            MenuApi.onKey(key -> MenuApi.capturesInput() && !menuUses(key, 0) && (AdditionPanel.key(key) || ConvergencePlate.key(key)));
             // once the server has said hello, tell it this player's Stellar Convergence picks
             Runnable before = ServerSettings.onReceived;
             ServerSettings.onReceived = () -> {
@@ -72,10 +82,10 @@ public final class StarClientBridge {
     /**
      * The Shooting Star's own effect packet for a strike, which its effects are built from: (skill, caster, origin,
      * target, yaw, seed, targets, flags, power, speed, width). Its class name is obfuscated since 1.5.0 and unmapped
-     * (1.5.0: {@code l1l1i1lii1}; 1.5.1: {@code ll1lil1iill}, same fields).
+     * (1.5.0: {@code l1l1i1lii1}; 1.5.1: {@code ll1lil1iill}; 1.5.2: {@code ll1i111l11}, same fields).
      */
-    static ll1lil1iill payload(StrikeFx s) {
-        return new ll1lil1iill(s.skill(), s.casterId(), s.origin().x, s.origin().y, s.origin().z, s.target().x, s.target().y,
+    static ll1i111l11 payload(StrikeFx s) {
+        return new ll1i111l11(s.skill(), s.casterId(), s.origin().x, s.origin().y, s.origin().z, s.target().x, s.target().y,
             s.target().z, s.yaw(), s.seed(), s.targets(), s.flags(), s.power(), s.speed(), 1.0F);
     }
 
@@ -111,27 +121,20 @@ public final class StarClientBridge {
             return;
         }
         lastFilmHud = graphics;
+        // in RimuLib's overlay units (UiApi.overlay: one size at any GUI scale)
         if (!HalleyFx.active().isEmpty()) {
-            Overlay.begin(graphics);
-            try {
-                HalleyHud.film(graphics, HalleyFx.active().getLast(), partial, Overlay.width(graphics), Overlay.height(graphics),
-                    world -> FxManager.project(world, graphics));
-                FilmTitle.halley(graphics, HalleyFx.active().getLast(), partial, Overlay.width(graphics), Overlay.height(graphics),
-                    world -> FxManager.project(world, graphics));
-            } finally {
-                Overlay.end(graphics);
-            }
+            UiApi.overlay(graphics, () -> {
+                HalleyFx fx = HalleyFx.active().getLast();
+                HalleyHud.film(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics), world -> FxManager.project(world, graphics));
+                FilmTitle.halley(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics), world -> FxManager.project(world, graphics));
+            });
         }
         if (!MoonFx.active().isEmpty()) {
-            Overlay.begin(graphics);
-            try {
-                MoonHud.film(graphics, MoonFx.active().getLast(), partial, Overlay.width(graphics), Overlay.height(graphics),
-                    world -> FxManager.project(world, graphics));
-                FilmTitle.luna(graphics, MoonFx.active().getLast(), partial, Overlay.width(graphics), Overlay.height(graphics),
-                    world -> FxManager.project(world, graphics));
-            } finally {
-                Overlay.end(graphics);
-            }
+            UiApi.overlay(graphics, () -> {
+                MoonFx fx = MoonFx.active().getLast();
+                MoonHud.film(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics), world -> FxManager.project(world, graphics));
+                FilmTitle.luna(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics), world -> FxManager.project(world, graphics));
+            });
         }
     }
 
@@ -198,20 +201,20 @@ public final class StarClientBridge {
     }
 
     /**
-     * Whether the remote's menu has a use for this key right now (from compat/mixin, before the addon's plate takes M
-     * or C): a skill's key is being rebound, or it is the menu's, the films' or a skill's own key. When unsure, yes.
+     * Whether the remote's menu has a use for this key right now (before the addon's plates take theirs): a skill's key
+     * is being rebound, or it is the menu's, the films' or a skill's own key. When unsure, yes.
      */
     public static boolean menuUses(int key, int scancode) {
         try {
-            if (WhiteSpace.binding() != null) {
+            if (MenuApi.binding() != null) {
                 return true;
             }
-            if (matches(SkillKeys.menu, key, scancode) || matches(SkillKeys.cutscenes, key, scancode)) {
+            if (matches(MenuApi.menuKey(), key, scancode) || matches(MenuApi.filmKey(), key, scancode)) {
                 return true;
             }
-            SkillSet remote = SkillSet.of(TssLink.SKILL);
+            SkillSet remote = SkillApi.setOf(TssLink.SKILL);
             for (Skill skill : remote != null ? remote.skills : java.util.List.<Skill>of()) {
-                if (matches(SkillKeys.of(skill), key, scancode)) {
+                if (matches(MenuApi.key(skill), key, scancode)) {
                     return true;
                 }
             }

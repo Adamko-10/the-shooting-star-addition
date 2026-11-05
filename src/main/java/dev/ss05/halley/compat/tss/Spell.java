@@ -1,6 +1,6 @@
 package dev.ss05.halley.compat.tss;
 
-import cyou.rimuru.rimulib.mc1211.net.RimuNet;
+import cyou.rimuru.rimulib.mc1211.api.NetApi;
 import cyou.rimuru.rimulib.mc1211.skill.Skill;
 import cyou.rimuru.rimulib.mc1211.skill.SkillSet;
 import cyou.rimuru.shootingstardemo.mc1211.magic.Casting;
@@ -76,8 +76,8 @@ abstract class Spell {
         // as far as the built-in skills' effects reach
         double range = 512.0;
         for (ServerPlayer player : spell.level.players()) {
-            if (player.distanceToSqr(spell.target) <= range * range && RimuNet.canSend(player, StrikeFx.PACKET)) {
-                RimuNet.send(player, fx);
+            if (player.distanceToSqr(spell.target) <= range * range && NetApi.canSend(player, StrikeFx.PACKET)) {
+                NetApi.send(player, fx);
             }
         }
     }

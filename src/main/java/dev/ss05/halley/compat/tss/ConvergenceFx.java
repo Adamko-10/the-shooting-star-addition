@@ -1,6 +1,6 @@
 package dev.ss05.halley.compat.tss;
 
-import cyou.rimuru.rimulib.mc1211.net.RimuNet;
+import cyou.rimuru.rimulib.mc1211.api.NetApi;
 import cyou.rimuru.rimulib.mc1211.net.RimuPacket;
 import dev.ss05.halley.HalleyAddon;
 import net.minecraft.network.FriendlyByteBuf;
@@ -13,7 +13,7 @@ import net.minecraft.world.phys.Vec3;
  * cast; this is what the caster's game holds their films back by and what the shared effect is drawn from.
  */
 public record ConvergenceFx(int casterId, Vec3 target, long hitAt, boolean ring, int[] colors, Vec3[] points) {
-    public static final RimuPacket<ConvergenceFx> PACKET = RimuPacket.of(HalleyAddon.id("convergence_fx"), ConvergenceFx.class,
+    public static final RimuPacket<ConvergenceFx> PACKET = NetApi.packet(HalleyAddon.id("convergence_fx"), ConvergenceFx.class,
         ConvergenceFx::write, ConvergenceFx::read);
     /** Players this far from the mark are told (they can see the weapons coming). */
     private static final double REACH = 1500.0;
@@ -45,8 +45,8 @@ public record ConvergenceFx(int casterId, Vec3 target, long hitAt, boolean ring,
 
     static void send(ServerPlayer caster, ConvergenceFx fx) {
         for (ServerPlayer player : caster.serverLevel().players()) {
-            if ((player == caster || player.position().distanceTo(fx.target()) < REACH) && RimuNet.canSend(player, PACKET)) {
-                RimuNet.send(player, fx);
+            if ((player == caster || player.position().distanceTo(fx.target()) < REACH) && NetApi.canSend(player, PACKET)) {
+                NetApi.send(player, fx);
             }
         }
     }

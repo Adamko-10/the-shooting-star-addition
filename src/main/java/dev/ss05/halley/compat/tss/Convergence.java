@@ -1,5 +1,6 @@
 package dev.ss05.halley.compat.tss;
 
+import cyou.rimuru.rimulib.mc1211.api.NetApi;
 import cyou.rimuru.rimulib.mc1211.net.RimuPacket;
 import cyou.rimuru.rimulib.mc1211.skill.Skill;
 import cyou.rimuru.rimulib.mc1211.skill.SkillSet;
@@ -78,7 +79,7 @@ public final class Convergence {
 
     /** The player's picks: the ring switch and the ticked weapons. Sent by their game (client to server). */
     public record Picks(boolean ring, List<Pick> picks) {
-        public static final RimuPacket<Picks> PACKET = RimuPacket.of(HalleyAddon.id("convergence_picks"), Picks.class,
+        public static final RimuPacket<Picks> PACKET = NetApi.packet(HalleyAddon.id("convergence_picks"), Picks.class,
             Picks::write, Picks::read);
 
         private void write(FriendlyByteBuf buf) {

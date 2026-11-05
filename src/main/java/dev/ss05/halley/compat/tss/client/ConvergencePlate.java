@@ -2,7 +2,7 @@ package dev.ss05.halley.compat.tss.client;
 
 import cyou.rimuru.rimulib.mc1211.client.magic.ClientSkills;
 import cyou.rimuru.rimulib.mc1211.client.magic.SkillTuning;
-import cyou.rimuru.rimulib.mc1211.client.net.RimuNetClient;
+import cyou.rimuru.rimulib.mc1211.client.api.NetClientApi;
 import cyou.rimuru.rimulib.mc1211.skill.Skill;
 import cyou.rimuru.rimulib.mc1211.skill.SkillSet;
 import cyou.rimuru.rimulib.mc1211.skill.Tuning;
@@ -114,8 +114,8 @@ public final class ConvergencePlate {
         }
         Convergence.Picks now = new Convergence.Picks(HalleyClientConfig.convergenceRing(), List.copyOf(picks));
         if ((always || !now.equals(sent)) && Minecraft.getInstance().getConnection() != null
-            && RimuNetClient.canSend(Convergence.Picks.PACKET)) {
-            RimuNetClient.sendToServer(now);
+            && NetClientApi.canSend(Convergence.Picks.PACKET)) {
+            NetClientApi.send(now);
             sent = now;
         }
     }
