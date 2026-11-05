@@ -48,8 +48,24 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   stage 2 complete\`. Then stage 4's first half, game-tested: Solar Residue (a new block, left in the bowl) and the
   radiation zone (docs stage 4). Then the rest of stage 4: Flare Ash and the auroras, game-tested (the radio blackout waits for
   Proxima's HUD, stage 3). Jar `test builds\2026-11-05 Proxima aftermath\`, in the Modrinth profile.
-  **Next: stage 3 (the film), then 5 (sounds, music, config).** Remind
-  the user of the Solar Residue economy (§14) now that the residue exists.
+  (Reminded the user of the Solar Residue economy, §14, on 2026-11-05.)
+- **WORKING ON NOW (2026-11-05, late): Proxima's film, stage 3** (the user picked it; nothing of it written yet).
+  Agreed with the user in three parts: **(1) the in-world film first** (shots following the strike: the caster's
+  remote, the flash, the CME front coming down the sky, the wall rolling past, a pull-back over the scorched land;
+  a title card "SA-04 PROXIMA" like Halley's/Luna's (`compat/tss/client/FilmTitle`); a film HUD (like `MoonHud.film`)
+  carrying the "radio blackout": garble the skill's OWN HUD text only); **(2) the space intro** (the red star in its
+  Dyson sphere, infinity-sign loops, the lens beam, title cards "DYSON SPHERE" / "CORONAL MASS EJECTION"), faked high
+  above the world with our sky shader (night + stars) and the glow pipeline; **(3) Earth**: TSS-style needs NASA
+  Blue Marble imagery (public domain): **downloading needs the user's OK first** (state file, source, size), ask then.
+  How Luna's film is built (copy it for Proxima): `client/film/MoonStoryboard` (`Take.cut/sweep(start, end, [blend],
+  Path)`, `Path.pose(Stage, partial, k)` -> `Pose(position, look, fov, roll)`, k 0..1 over the take; `Stage` gives
+  `feet`, `forward`, `time` (the fx clock), `keep(pos, home)` = `FilmLand.keep`, never over unloaded land or in the
+  ground); `compat/tss/client/MoonCutscene.of(adapter)` turns the takes into RimuLib `Shot`s in a `Cutscene(subject,
+  tier, title, color, 0, shots).hardCut().fullFrame().priority(2).speed(adapter.filmSpeed())`, played from
+  `StarClientBridge.startMoon` when `films(mine, strike)`; `ProximaFxAdapter` needs a `subject()` (`this.liiillli1l()`)
+  and `filmSpeed()` like `MoonFxAdapter`, and `StarClientBridge` routes PROXIMA without a film today. Film overlays
+  draw from `StarClientBridge.renderFilmHud` (both FxManager passes, once a frame); add Proxima's there.
+  Then stage 5: sounds, the user's music track (cut so its drop lands on IMPACT), config (§15 list), random flares.
   The user's feedback on stage 1: the sky with shaders "changes but not much" (now painted over the pack's sky too);
   radius "decently larger" (doubled: bowl 36, char 100, scorch 220); the CME "on a massive scale, many chunks and much
   more vfx, like a proper big wave" (the coronal front shell and ground zero's shock wave, which the scorch and the hits
