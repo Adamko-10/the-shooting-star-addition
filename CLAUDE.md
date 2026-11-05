@@ -60,6 +60,14 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   (ffmpeg, like `art/make_proxima_sounds.sh`: space drone, iris grind, beam, flash, impact, wave) and a `[proxima]`
   config section (model: `MoonConfig.define`, sections in the common config; §15's list: enable switch, sizes,
   shelter blocks, knockback, radiation minutes/damage, terrain on/off, residue on/off).
+  **The user's draft track** (2026-11-05, "not quite done"): `Video Project 49.m4a`, copied to the project folder's
+  `music\` (77.4 s, AAC 48 kHz). Measured (not heard): pulsing intro with a hit every ~2 s to 16.4 s, a 0.25 s gap
+  and a cut in at 16.85 s, a calmer middle, the main section swelling in from 28.2 s to full at **28.85 s** (~5 dB up,
+  top end opens; no gap or hit before it), main section to 62.7 s, quiet outro, a rise at the very end. Mastered
+  quiet: -26 LUFS integrated, true peak -11 dBFS (raise it when cutting, as Luna's +13 dB). Suggested to the user: a
+  ~0.5 s gap or riser and a hit right at the main section's start (it would sit on HUSH 320 -> IMPACT 330). Cut plan
+  if 28.85 s lands on IMPACT and the music starts at tick 10: start the track at 12.85 s; its 16.85 s cut then falls
+  at tick 90, near LOOPS (100).
 - **Film lengths** (the user asked): Proxima's film is 520 ticks = **26 s** at speed 1 (`ProximaStoryboard.END` =
   IMPACT + 190); Halley's ~23 s, Luna's ~25 s; the speed slider scales them. The user then asked **how long TSS's own
   films are** (answered 2026-11-05): each skill's `duration()` in TSS 1.5.2 (whole skill, film included; its film
