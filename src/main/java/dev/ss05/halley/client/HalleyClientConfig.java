@@ -33,6 +33,7 @@ public final class HalleyClientConfig {
     private static final ModConfigSpec.EnumValue<ImpactFrames> IMPACT_FRAMES;
     private static final ModConfigSpec.ConfigValue<List<? extends String>> CONVERGENCE;
     private static final ModConfigSpec.BooleanValue CONVERGENCE_RING;
+    private static final ModConfigSpec.BooleanValue CONVERGENCE_PLATE;
     /** What Stellar Convergence fires out of the box: every weapon but Gravitia (which only the menu chooses). */
     private static final List<String> CONVERGENCE_DEFAULT = List.of("the_shooting_star", "gungnir", "seven_stars", "tesseract", "halley", "luna");
 
@@ -95,6 +96,9 @@ public final class HalleyClientConfig {
         CONVERGENCE_RING = b.comment("Stellar Convergence: true spreads its weapons in a ring round the crosshair, false puts them all on",
                 "it. R in the remote's menu.")
             .define("convergence_ring", false);
+        CONVERGENCE_PLATE = b.comment("Stellar Convergence's plate in the remote's menu, shown while it is the selected skill (false: just its",
+                "name). V in the remote's menu.")
+            .define("convergence_plate", true);
         b.pop();
         SPEC = b.build();
     }
@@ -181,6 +185,15 @@ public final class HalleyClientConfig {
 
     public static void setConvergenceRing(boolean on) {
         set(CONVERGENCE_RING, on);
+    }
+
+    /** Stellar Convergence's plate shown in full (true) or folded to its name. */
+    public static boolean convergencePlate() {
+        return get(CONVERGENCE_PLATE);
+    }
+
+    public static void setConvergencePlate(boolean on) {
+        set(CONVERGENCE_PLATE, on);
     }
 
     /** Sets and saves a switch (kept for this session if the config isn't loaded). */

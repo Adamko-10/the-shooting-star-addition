@@ -614,6 +614,13 @@ final class Harness {
                 // "skills" scrolls its list to the end first, where Halley and Luna are (with their sliders)
                 if (finalFrames == 1) {
                     mc.setCameraEntity(mc.player);
+                    // -Dss05.clienttest.select=<skill id>: that skill selected first (e.g. Stellar Convergence's plate)
+                    String select = System.getProperty("ss05.clienttest.select");
+                    if (select != null) {
+                        cyou.rimuru.rimulib.mc1211.skill.SkillSet.all().stream().flatMap(set -> set.skills.stream())
+                            .filter(skill -> skill.id().equals(select)).findFirst()
+                            .ifPresent(cyou.rimuru.rimulib.mc1211.client.magic.ClientSkills::select);
+                    }
                     if (!WhiteSpace.capturesInput()) {
                         WhiteSpace.open(mc);
                     }
