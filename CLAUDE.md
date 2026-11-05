@@ -54,7 +54,12 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   (docs stage 3; the timeline moved 60 ticks later for it: IMPACT 330; jar `test builds\2026-11-05 Proxima space
   intro\`, in the Modrinth profile). **Next: part 3 (Earth: ask before downloading imagery), or stage 5 (sounds,
   music, config)**.
-- **Stage 5: the music is built (below); the rest (own sounds, config, random flares) not started.** Earlier:
+- **Stage 5: the music (below), the `[proxima]` config and Proxima's own sounds are BUILT (2026-11-05, late; the
+  user: "rebuild and continue work"; details: docs/SS-07-PROXIMA.md stage 5). Left: random flares (off by default),
+  and Earth (stage 3 part 3, ask before downloading imagery).** Also done then: Luna's full track rebuilt for Epic
+  mode (`music\Luna full (rebuilt).flac` in the project folder: 29.09 s, drop at 24.45 s = up to 24.45 s of lead; Video
+  Project 48 up to 10.03 s, +13.03 dB, crossfaded 60 ms onto luna_music.ogg from 1.52498 s; offset 8.44502 s, checked
+  sample-exact, no click). Epic mode itself not started. Earlier:
   **stage 5 was started late 2026-11-05 and then PAUSED by the user** ("dont proceed, i will
   do it rn": they are getting Proxima's music file). Nothing of stage 5 is written; the tree was clean. When they send
   the file: cut it so its drop lands on IMPACT (330), like Luna's (§6, docs/SS-06-LUNA.md), then Proxima's own sounds

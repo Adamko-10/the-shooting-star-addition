@@ -231,10 +231,13 @@ public final class ProximaFx {
         if (t == MUSIC_AT && HalleyClientConfig.lunaMusic() && (this.mine || camera.distanceTo(target) <= MUSIC_RANGE)) {
             this.music = StrikeMusic.play("proxima_music", this.host, MUSIC_AT, () -> this.time(0.0F), () -> !ACTIVE.contains(this));
         }
+        // in the film's space intro, the lens firing: its charge whines up from LENS, the discharge is on BEAM
+        if (t == ProximaPlan.LENS && this.host.filmWeight() > 0.5F) {
+            this.play(HalleyContent.PROXIMA_BEAM.get(), camera, 0.06F, 1.0F);
+        }
         // the flare's light arrives: a searing burst, and everything under the open sky starts to smoke
         if (t == ProximaPlan.FLASH) {
-            this.play(HalleyContent.BURST.get(), camera, 0.1F, 0.55F);
-            this.play(SoundEvents.FIRECHARGE_USE, camera, 0.08F, 0.5F);
+            this.play(HalleyContent.PROXIMA_FLASH.get(), camera, 0.06F, 1.0F);
         }
         boolean underIt = this.plan.horizontal(camera.x, camera.z) < scorch * 1.25;
         if (t > ProximaPlan.FLASH && t < ProximaPlan.FLASH + 70 && underIt) {
@@ -257,12 +260,13 @@ public final class ProximaFx {
             long now = level.getGameTime();
             AURORAS.add(new Aurora(level, target, now, now + AURORA_TICKS, this.plan.seed));
             int radiation = this.plan.params.radiationTicks();
+            // shortcut: only clients that saw the strike know its zone (no shimmer after a relog, though the server's
+            // zone still hurts); send the saved zones on join if players miss it
             if (radiation != 0) {
                 ZONES.add(new Zone(level, target, this.plan.params.bowlRadius() * 1.3, now,
                     radiation == ProximaParams.PERMANENT ? Long.MAX_VALUE : now + radiation));
             }
-            this.play(HalleyContent.MOON_IMPACT.get(), target, 1.0F, 1.2F);
-            this.play(HalleyContent.MOON_SHOCKWAVE.get(), target, 1.0F, 1.35F);
+            this.play(HalleyContent.PROXIMA_IMPACT.get(), target, 1.0F, 1.0F);
             this.host.shake(target, 0.6F, scorch * 3.0);
             level.addParticle(ParticleTypes.EXPLOSION_EMITTER, true, target.x, target.y + 1.0, target.z, 0.0, 0.0, 0.0);
             // a ring of fire running out from the bowl
@@ -279,7 +283,7 @@ public final class ProximaFx {
         if (t >= ProximaPlan.FRONT && t <= ProximaPlan.IMPACT) {
             double side = camera.distanceTo(this.plan.frontCentre(t)) - ProximaPlan.FRONT_RADIUS;
             if (this.frontSide > 0.0 && side <= 0.0) {
-                this.play(HalleyContent.MOON_SHOCKWAVE.get(), camera, 0.07F, 0.7F);
+                this.play(HalleyContent.PROXIMA_WAVE.get(), camera, 0.07F, 0.8F);
                 this.host.shake(camera, 0.35F, 80.0);
             }
             this.frontSide = side;
@@ -295,7 +299,7 @@ public final class ProximaFx {
         double wave = this.plan.waveRadius(t);
         double away = this.plan.horizontal(camera.x, camera.z);
         if (t > ProximaPlan.IMPACT && this.lastWave < away && wave >= away && away < this.plan.waveReach()) {
-            this.play(HalleyContent.MOON_SHOCKWAVE.get(), camera, 0.08F, 1.0F);
+            this.play(HalleyContent.PROXIMA_WAVE.get(), camera, 0.08F, 1.0F);
             this.host.shake(camera, 0.5F, 60.0);
         }
         this.lastWave = wave;

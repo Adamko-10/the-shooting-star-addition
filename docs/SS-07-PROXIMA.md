@@ -115,6 +115,22 @@ config); this file is the build's own record: what exists, where it lives, and w
      the strike's clock; heard by the caster and within 1500 blocks; the plate's M switch is now "Music" (Luna's and
      Proxima's; config key still `luna_music`). For the finished track: find ENTRY and DROP again, set them in the
      script, re-run it.
+   - **Config, built 2026-11-05** (`ProximaConfig`, common config): `[proxima]` `enabled`, `cooldown_seconds` (60);
+     `[proxima_size]` `bowl_radius` 36, `char_radius` 100, `scorch_radius` 220, `bowl_depth` 6 (at power 1; the slider
+     scales them; also the menu's hint and Stellar Convergence's reach); `[proxima_world]` `carve_terrain` (false:
+     looks and damage only), `solar_residue`, `shelter_blocks` 3, `player_knockback` 0.6 (the most a player is pushed),
+     `mob_knockback` 1.0 (a multiple), `radiation_minutes` 10 (0: none), `permanent_radiation`, `radiation_damage` 3.0
+     per second. The radiation's length rides in `ProximaParams` (version 2, `radiationTicks`, -1 = for good), so
+     clients fade their shimmer with the server; the zones are saved with each world (`ProximaStrike.Zones`, SavedData
+     `shooting_star_addition_proxima_zones`) and outlast restarts. shortcut: a player who joins after the strike feels
+     the zone but sees no shimmer (the shimmer starts from the effect packet); sync the zones on join if it matters.
+   - **Own sounds, built 2026-11-05** (`art/make_proxima_sounds.sh`, synthesised like proxima_radio):
+     `proxima_beam` (at LENS, only while the caster's film shows: a 0.5 s charge whining up, the discharge on BEAM, a
+     zap and a buzzing hum), `proxima_flash` (at FLASH: a searing white rush, crackle, a low thump; replaces Halley's
+     burst and the fire charge), `proxima_impact` (at IMPACT: a falling sub thump, a crack, a roaring echoing tail, the
+     plasma's sizzle; replaces Luna's impact and shock wave), `proxima_wave` (the coronal front and ground zero's wave
+     passing the camera: a roar coming on high and leaving low, a thud). Still borrowed: Luna's rumble under the front
+     and her inhale before the impact. Not heard by anyone yet.
 
 ## Timeline (`ProximaPlan`, ticks at speed 1)
 
