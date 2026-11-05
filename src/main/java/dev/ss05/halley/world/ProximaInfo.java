@@ -16,8 +16,6 @@ public final class ProximaInfo {
      * not P (The Shooting Star - Stellar Quartet's). Players can rebind it in Controls or from the remote's menu.
      */
     public static final int DEFAULT_KEY = 90;
-    /** A minute, like the remote's biggest skills. */
-    public static final int COOLDOWN = 1200;
 
     /** "SA-04 · Proxima" (see {@link Codenames}). */
     public static String title() {

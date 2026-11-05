@@ -4,6 +4,8 @@ import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.HalleyPlan;
+import dev.ss05.halley.ProximaConfig;
+import dev.ss05.halley.ProximaParams;
 import dev.ss05.halley.ProximaPlan;
 import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.content.HalleyContent;
@@ -11,6 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -26,6 +33,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -33,7 +41,7 @@ import net.minecraft.world.phys.Vec3;
  * SA-04 Proxima on the server: what the flare does to the world and to the living (docs/SS-07-PROXIMA.md).
  * <ul>
  *   <li>{@link ProximaPlan#FLASH}, the flash burn: everything living out past the scorch, under the open sky, catches
- *   fire and is hurt a little. Shelter is {@link #SHELTER} solid blocks overhead (glass doesn't count).</li>
+ *   fire and is hurt a little. Shelter is {@code shelter_blocks} (ProximaConfig) solid blocks overhead (glass doesn't count).</li>
  *   <li>{@link ProximaPlan#IMPACT}, ground zero: in the bowl things are erased (or take the damage slider's hit); in the
  *   charred ring they are hurt badly, set alight and thrown; in the scorch, hurt and pushed. Players are only nudged
  *   (creative, spectators and the caster never), mobs are thrown. Then the bowl is cut (a glassy floor of tinted glass,
@@ -44,22 +52,13 @@ import net.minecraft.world.phys.Vec3;
 public final class ProximaStrike {
     public static final ResourceKey<DamageType> FLARE = ResourceKey.create(Registries.DAMAGE_TYPE, HalleyAddon.id("proxima_flare"));
     public static final ResourceKey<DamageType> RADIATION = ResourceKey.create(Registries.DAMAGE_TYPE, HalleyAddon.id("proxima_radiation"));
-    /** How long the bowl stays dangerous at power 1 (ten minutes; longer at higher power): it fades out over that time. */
-    public static final int RADIATION_TICKS = 12000;
-    /** The radiation zones still glowing, after their strikes. */
-    private static final List<Zone> ZONES = new ArrayList<>();
-
-    /** A bowl still hot: hurts what lingers in it, less and less until {@code until}. */
-    private record Zone(ServerLevel level, Vec3 centre, double radius, long from, long until) {
-    }
-    /** Solid blocks over a creature's head that shelter it from the flash and the blast. */
-    private static final int SHELTER = 3;
     /** Lands still waiting for chunks to load, after their strike. */
     private static final List<ProximaLand> LINGERING = new ArrayList<>();
 
     private final ServerLevel level;
     private final ProximaPlan plan;
     private final CastTuning cast;
+    private final ProximaConfig.Tuning config = ProximaConfig.tuning();
     private final BlockPos spared;
     @Nullable
     private Excavation bowl;
@@ -105,7 +104,7 @@ public final class ProximaStrike {
 
     /** Whether the world work that can be done now is done (unloaded land waits, after the spell, for its chunks). */
     public boolean worldDone() {
-        return this.land != null && this.waveHit >= this.plan.waveReach() && this.land.loadedDone();
+        return this.waveHit >= this.plan.waveReach() && (this.land == null || this.land.loadedDone());
     }
 
     /** The spell is over: what is left is done as its land loads. */
@@ -118,9 +117,13 @@ public final class ProximaStrike {
         }
     }
 
-    /** From the server tick: scorches what loaded since its strike ended. */
-    public static void tickLingering() {
-        tickZones();
+    /** From the server tick: scorches what loaded since its strike ended; once a second the radiation zones hurt. */
+    public static void tickLingering(MinecraftServer server) {
+        if (server.getTickCount() % 20 == 0) {
+            for (ServerLevel level : server.getAllLevels()) {
+                Zones.of(level).tick(level);
+            }
+        }
         LINGERING.removeIf(land -> {
             land.tick(Double.MAX_VALUE);
             return land.finished();
@@ -129,29 +132,82 @@ public final class ProximaStrike {
 
     public static void clearLingering() {
         LINGERING.clear();
-        ZONES.clear();
     }
 
-    /** Once a second: what lingers in a radiation zone is hurt and weakened, less as the zone fades. */
-    private static void tickZones() {
-        ZONES.removeIf(zone -> zone.level().getGameTime() > zone.until());
-        for (Zone zone : ZONES) {
-            long now = zone.level().getGameTime();
-            if (now % 20 != 0) {
-                continue;
+    /**
+     * A world's radiation zones (the bowls still hot), saved with it so they outlast a restart: what lingers in one is
+     * hurt and weakened once a second, less toward its edge and as it fades out at {@code until} ({@link Long#MAX_VALUE}:
+     * never, with {@code permanent_radiation}).
+     */
+    private static final class Zones extends SavedData {
+        private static final String NAME = "shooting_star_addition_proxima_zones";
+
+        private record Zone(Vec3 centre, double radius, long from, long until) {
+        }
+
+        private final List<Zone> zones = new ArrayList<>();
+
+        static Zones of(ServerLevel level) {
+            return level.getDataStorage().computeIfAbsent(new SavedData.Factory<>(Zones::new, Zones::load, null), NAME);
+        }
+
+        void add(Vec3 centre, double radius, long from, long until) {
+            this.zones.add(new Zone(centre, radius, from, until));
+            this.setDirty();
+        }
+
+        void tick(ServerLevel level) {
+            if (this.zones.isEmpty()) {
+                return;
             }
-            double left = 1.0 - (now - zone.from()) / (double) Math.max(1L, zone.until() - zone.from());
-            Vec3 c = zone.centre();
-            AABB box = new AABB(c.x - zone.radius(), c.y - 16.0, c.z - zone.radius(), c.x + zone.radius(), c.y + 24.0, c.z + zone.radius());
-            for (LivingEntity living : zone.level().getEntitiesOfClass(LivingEntity.class, box)) {
-                double d = Math.hypot(living.getX() - c.x, living.getZ() - c.z);
-                if (d > zone.radius() || living instanceof Player player && (player.isCreative() || player.isSpectator())) {
-                    continue;
+            long now = level.getGameTime();
+            if (this.zones.removeIf(zone -> now > zone.until())) {
+                this.setDirty();
+            }
+            double damage = ProximaConfig.tuning().radiationDamage();
+            for (Zone zone : this.zones) {
+                double left = 1.0 - (now - zone.from()) / (double) Math.max(1L, zone.until() - zone.from());
+                Vec3 c = zone.centre();
+                AABB box = new AABB(c.x - zone.radius(), c.y - 16.0, c.z - zone.radius(), c.x + zone.radius(), c.y + 24.0, c.z + zone.radius());
+                for (LivingEntity living : level.getEntitiesOfClass(LivingEntity.class, box)) {
+                    double d = Math.hypot(living.getX() - c.x, living.getZ() - c.z);
+                    if (d > zone.radius() || living instanceof Player player && (player.isCreative() || player.isSpectator())) {
+                        continue;
+                    }
+                    float hurt = (float) (damage * (0.17 + 0.83 * left * (1.0 - d / zone.radius())));
+                    if (hurt > 0.0F) {
+                        living.hurt(new DamageSource(level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(RADIATION)), hurt);
+                    }
+                    living.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 0));
                 }
-                float hurt = (float) (0.5 + 2.5 * left * (1.0 - d / zone.radius()));
-                living.hurt(new DamageSource(zone.level().registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(RADIATION)), hurt);
-                living.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 0));
             }
+        }
+
+        private static Zones load(CompoundTag tag, HolderLookup.Provider registries) {
+            Zones zones = new Zones();
+            for (Tag entry : tag.getList("zones", Tag.TAG_COMPOUND)) {
+                CompoundTag z = (CompoundTag) entry;
+                zones.zones.add(new Zone(new Vec3(z.getDouble("x"), z.getDouble("y"), z.getDouble("z")), z.getDouble("radius"),
+                    z.getLong("from"), z.getLong("until")));
+            }
+            return zones;
+        }
+
+        @Override
+        public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+            ListTag list = new ListTag();
+            for (Zone zone : this.zones) {
+                CompoundTag z = new CompoundTag();
+                z.putDouble("x", zone.centre().x);
+                z.putDouble("y", zone.centre().y);
+                z.putDouble("z", zone.centre().z);
+                z.putDouble("radius", zone.radius());
+                z.putLong("from", zone.from());
+                z.putLong("until", zone.until());
+                list.add(z);
+            }
+            tag.put("zones", list);
+            return tag;
         }
     }
 
@@ -182,8 +238,13 @@ public final class ProximaStrike {
         }
         this.waveHit = 0.0;
         long now = this.level.getGameTime();
-        ZONES.add(new Zone(this.level, this.plan.target, bowl * 1.3, now,
-            now + (long) (RADIATION_TICKS * Math.max(0.5, Math.sqrt(this.plan.params.power())))));
+        int radiation = this.plan.params.radiationTicks();
+        if (radiation != 0) {
+            Zones.of(this.level).add(this.plan.target, bowl * 1.3, now, radiation == ProximaParams.PERMANENT ? Long.MAX_VALUE : now + radiation);
+        }
+        if (!this.config.carveTerrain()) {
+            return;
+        }
         int minY = this.level.getMinBuildHeight();
         this.bowl = StarBridge.excavate(this.level, this.plan.target, bowl + 3.0, (x, z) -> this.bowlFloor(x, z, minY),
             (x, y, z, was) -> this.bowlSurface(x, y, z), this.spared, "SA-04 Proxima bowl", HalleyConfig.chunksPerTick(), null);
@@ -241,10 +302,15 @@ public final class ProximaStrike {
         if (sheltered || entity == caster || entity instanceof Player player && (player.isCreative() || player.isSpectator())) {
             return;
         }
+        // the config scales both: players up to player_knockback (0.6 by default), mobs by mob_knockback
+        double scale = entity instanceof Player ? this.config.playerKnockback() / 0.6 : this.config.mobKnockback();
+        if (scale <= 0.0) {
+            return;
+        }
         Vec3 away = new Vec3(entity.getX() - this.plan.target.x, 0.0, entity.getZ() - this.plan.target.z);
         away = away.lengthSqr() < 1.0E-6 ? new Vec3(1.0, 0.0, 0.0) : away.normalize();
-        double push = entity instanceof Player ? Math.min(0.6, 0.2 + 0.6 * k) : 1.0 + 3.0 * k;
-        double lift = entity instanceof Player ? 0.25 : 0.4 + 0.8 * k;
+        double push = scale * (entity instanceof Player ? Math.min(0.6, 0.2 + 0.6 * k) : 1.0 + 3.0 * k);
+        double lift = scale * (entity instanceof Player ? 0.25 : 0.4 + 0.8 * k);
         entity.setDeltaMovement(entity.getDeltaMovement().add(away.scale(push)).add(0.0, lift, 0.0));
         entity.hurtMarked = true;
     }
@@ -256,19 +322,20 @@ public final class ProximaStrike {
         return living != caster && caster != null && !StarBridge.affects(living, caster);
     }
 
-    /** {@link #SHELTER} solid blocks overhead (a glass roof is no bunker). */
+    /** {@code shelter_blocks} solid blocks overhead (a glass roof is no bunker). */
     private boolean sheltered(LivingEntity living) {
         BlockPos head = BlockPos.containing(living.getEyePosition());
         int top = this.level.getHeight(Heightmap.Types.WORLD_SURFACE, head.getX(), head.getZ());
+        int shelter = this.config.shelterBlocks();
         int solid = 0;
         BlockPos.MutableBlockPos at = head.mutable();
-        for (int y = head.getY() + 1; y < top && solid < SHELTER; y++) {
+        for (int y = head.getY() + 1; y < top && solid < shelter; y++) {
             at.setY(y);
             if (this.level.getBlockState(at).isSolidRender(this.level, at)) {
                 solid++;
             }
         }
-        return solid >= SHELTER;
+        return solid >= shelter;
     }
 
     private AABB around(double reach) {
@@ -300,7 +367,7 @@ public final class ProximaStrike {
             return Blocks.MAGMA_BLOCK.defaultBlockState();
         }
         // the plasma's residue, here and there in the glassy floor (the user's server trades it)
-        if (n < 0.145F && k < 0.85) {
+        if (n < 0.145F && k < 0.85 && this.config.solarResidue()) {
             return HalleyContent.SOLAR_RESIDUE.get().defaultBlockState();
         }
         if (k < 0.55) {

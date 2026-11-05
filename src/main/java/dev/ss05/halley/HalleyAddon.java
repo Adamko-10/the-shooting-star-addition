@@ -80,7 +80,7 @@ public final class HalleyAddon {
         NeoForge.EVENT_BUS.addListener(ServerTickEvent.Post.class, event -> {
             StarBridge.tick(event.getServer());
             MoonStrike.tickLingering();
-            dev.ss05.halley.world.ProximaStrike.tickLingering();
+            dev.ss05.halley.world.ProximaStrike.tickLingering(event.getServer());
         });
         NeoForge.EVENT_BUS.addListener(RegisterCommandsEvent.class, event -> StarBridge.registerCommands(event.getDispatcher()));
         NeoForge.EVENT_BUS.addListener(ServerStoppedEvent.class, event -> {

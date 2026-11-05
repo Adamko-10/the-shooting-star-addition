@@ -9,7 +9,6 @@ import dev.ss05.halley.client.render.GlowBatch;
 import dev.ss05.halley.client.render.Shapes;
 import dev.ss05.halley.client.sky.SkyLook;
 import dev.ss05.halley.world.ProximaInfo;
-import dev.ss05.halley.world.ProximaStrike;
 import dev.ss05.halley.content.HalleyContent;
 import java.util.ArrayList;
 import java.util.List;
@@ -257,8 +256,11 @@ public final class ProximaFx {
         if (t == ProximaPlan.IMPACT) {
             long now = level.getGameTime();
             AURORAS.add(new Aurora(level, target, now, now + AURORA_TICKS, this.plan.seed));
-            ZONES.add(new Zone(level, target, this.plan.params.bowlRadius() * 1.3, now,
-                now + (long) (ProximaStrike.RADIATION_TICKS * Math.max(0.5, Math.sqrt(this.plan.params.power())))));
+            int radiation = this.plan.params.radiationTicks();
+            if (radiation != 0) {
+                ZONES.add(new Zone(level, target, this.plan.params.bowlRadius() * 1.3, now,
+                    radiation == ProximaParams.PERMANENT ? Long.MAX_VALUE : now + radiation));
+            }
             this.play(HalleyContent.MOON_IMPACT.get(), target, 1.0F, 1.2F);
             this.play(HalleyContent.MOON_SHOCKWAVE.get(), target, 1.0F, 1.35F);
             this.host.shake(target, 0.6F, scorch * 3.0);
