@@ -1158,12 +1158,17 @@ own thing, not a copy of it.
     through `SkillSet.cast` with `StrikeAim` (its point: the mark, or a ring of radius 64 round it in the caster's facing
     order) and `NoCooldown.forced`. It sends `ConvergenceFx` (s2c: caster, mark, hit game time, ring, each weapon's
     colour and point) to players within 1500 blocks. Both packets go through RimuLib's network (no per-loader code).
-  - **Impact times (TSS 1.5.1, speed 1, power 1, measured: `test builds\2026-11-04 auto test 11 convergence\point`)**:
+  - **Impact times (TSS 1.5.1 and 1.5.2 alike, speed 1, power 1; measured `test builds\2026-11-04 auto test 11
+    convergence\point`, re-measured on 1.5.2 in `test builds\2026-11-05 auto test 15 impact timing TSS 1.5.2\` with
+    `test scripts\autotest10.sh`)**:
     Railgun 353 ticks, Gungnir 323, Seven Stars 339 (its seven stars land one every 16 ticks from 291, the middle one on
     the mark, then its constellation lines from ~400), Halley 331 (its plan's 330 + the cast tick), Luna 330. Tesseract
     carves no land (no moment to time); Gravitia turns the whole overworld into its space stage (`gravitia_space`) and
     stopped the other weapons' impacts in a measuring run: it is off in the default picks. Remeasure after every TSS
-    update (a temporary `[TIMING]` mixin on RimuLib `Carving`'s private constructor, which logs each carving's name).
+    update: a temporary `compat/mixin/DebugCarvingMixin` (in `shooting_star_addition.mixins.json`) injecting at the
+    RETURN of RimuLib `Carving`'s private named constructor `(ServerLevel, String, Carving$Floor, BlockPos, Vec3, double)`
+    to log `[TIMING] carving '<name>' gametime=... centre=... radius=...`, plus a `[TIMING] cast` log line in
+    `StrikeCommand` before `StrikeAim.set`; impact = carving tick - cast tick. Remove both afterwards.
   - Client: `compat/tss/client/ConvergencePlate` (top right of the H menu, beside the skill list: weapons 1-9 with tick
     boxes in their colours and their slider values, R = on the crosshair / in a ring, the credit line "Inspired by
     Stellar Quartet, by ikun520" and the red no-limits warning; sends the picks when they change while the menu is open
