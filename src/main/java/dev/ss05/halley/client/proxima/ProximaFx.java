@@ -3,6 +3,7 @@ package dev.ss05.halley.client.proxima;
 import dev.ss05.halley.ProximaParams;
 import dev.ss05.halley.ProximaPlan;
 import dev.ss05.halley.client.HalleyClientConfig;
+import dev.ss05.halley.client.StrikeMusic;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.render.GlowBatch;
 import dev.ss05.halley.client.render.Shapes;
@@ -45,6 +46,14 @@ public final class ProximaFx {
     /** The flare's light: white with a red edge. */
     private static final int FLASH = 0xFFD8C8;
     private static final int CRIMSON = 0xB3122E;
+    /**
+     * When Proxima's music starts: proxima_music.ogg is the user's track cut to this timeline from here
+     * (art/make_proxima_music.sh): its pulses under the space intro, its entry on the flash, silent through the hush, its
+     * main section on the impact.
+     */
+    private static final int MUSIC_AT = 10;
+    /** How far from the mark (in blocks) a player outside the film still hears it. */
+    private static final double MUSIC_RANGE = 1500.0;
 
     public final ProximaPlan plan;
     public final boolean mine;
@@ -58,6 +67,7 @@ public final class ProximaFx {
     /** Where the camera was against the coronal front last tick (above 0: still ahead of it), and how far out the shock wave had run. */
     private double frontSide = Double.NaN;
     private double lastWave;
+    private StrikeMusic music;
 
     public ProximaFx(MoonFx.Host host, int casterId, Vec3 target, long seed, int[] data) {
         this.host = host;
@@ -186,6 +196,10 @@ public final class ProximaFx {
 
     public void removed() {
         ACTIVE.remove(this);
+        if (this.music != null) {
+            Minecraft.getInstance().getSoundManager().stop(this.music);
+            this.music = null;
+        }
     }
 
     /** The strike's clock (ticks since the cast, at the remote's speed slider). */
@@ -214,6 +228,9 @@ public final class ProximaFx {
             if (press != null) {
                 this.play(press, camera, 0.06F, 1.0F);
             }
+        }
+        if (t == MUSIC_AT && HalleyClientConfig.lunaMusic() && (this.mine || camera.distanceTo(target) <= MUSIC_RANGE)) {
+            this.music = StrikeMusic.play("proxima_music", this.host, MUSIC_AT, () -> this.time(0.0F), () -> !ACTIVE.contains(this));
         }
         // the flare's light arrives: a searing burst, and everything under the open sky starts to smoke
         if (t == ProximaPlan.FLASH) {

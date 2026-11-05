@@ -54,20 +54,27 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   (docs stage 3; the timeline moved 60 ticks later for it: IMPACT 330; jar `test builds\2026-11-05 Proxima space
   intro\`, in the Modrinth profile). **Next: part 3 (Earth: ask before downloading imagery), or stage 5 (sounds,
   music, config)**.
-- **Stage 5 (sounds, music, config) was started late 2026-11-05 and then PAUSED by the user** ("dont proceed, i will
+- **Stage 5: the music is built (below); the rest (own sounds, config, random flares) not started.** Earlier:
+  **stage 5 was started late 2026-11-05 and then PAUSED by the user** ("dont proceed, i will
   do it rn": they are getting Proxima's music file). Nothing of stage 5 is written; the tree was clean. When they send
   the file: cut it so its drop lands on IMPACT (330), like Luna's (§6, docs/SS-06-LUNA.md), then Proxima's own sounds
   (ffmpeg, like `art/make_proxima_sounds.sh`: space drone, iris grind, beam, flash, impact, wave) and a `[proxima]`
   config section (model: `MoonConfig.define`, sections in the common config; §15's list: enable switch, sizes,
   shelter blocks, knockback, radiation minutes/damage, terrain on/off, residue on/off).
-  **The user's draft track** (2026-11-05, "not quite done"): `Video Project 49.m4a`, copied to the project folder's
-  `music\` (77.4 s, AAC 48 kHz). Measured (not heard): pulsing intro with a hit every ~2 s to 16.4 s, a 0.25 s gap
-  and a cut in at 16.85 s, a calmer middle, the main section swelling in from 28.2 s to full at **28.85 s** (~5 dB up,
-  top end opens; no gap or hit before it), main section to 62.7 s, quiet outro, a rise at the very end. Mastered
-  quiet: -26 LUFS integrated, true peak -11 dBFS (raise it when cutting, as Luna's +13 dB). Suggested to the user: a
-  ~0.5 s gap or riser and a hit right at the main section's start (it would sit on HUSH 320 -> IMPACT 330). Cut plan
-  if 28.85 s lands on IMPACT and the music starts at tick 10: start the track at 12.85 s; its 16.85 s cut then falls
-  at tick 90, near LOOPS (100).
+  **Proxima's music is BUILT from the user's draft** (2026-11-05; the user: "take this and tweak it to fit beat wise"):
+  `Video Project 49.m4a` (in the project folder's music folder), cut by `art/make_proxima_music.sh` into `proxima_music.ogg`:
+  the track's gap-and-entry on FLASH, silent through the hush, its main section hard on IMPACT (details and what lands
+  where: docs/SS-07-PROXIMA.md stage 5). Played by `client/StrikeMusic` (Luna's music player moved out of MoonFx and
+  shared); the plate's M is now "Music" for both. When the finished track comes: set ENTRY/DROP in the script, re-run.
+  Rated by measurement only (Claude can't hear): 7/10 as a draft; its main section swells in instead of hitting
+  (suggested a short gap or riser and a hit there); mastered quiet (-26 LUFS, raised in the cut).
+  **Luna's original** (the user, 2026-11-05: "what I think the original file for the luna one is"): `Video Project
+  48.m4a` (29.1 s, in the project folder's music folder) is the same project and cut point (luna_music.ogg = it from 8.445 s, +13 dB; the first
+  ~7 s match, r 0.95), **but a different version**: it lacks the riser layer (a sweep at 2-4 kHz and a noise riser,
+  ~20.5-25.7 s) that builds into the drop in the shipped file, which is 5-9 dB louder at the drop (24.45 s). For Epic
+  mode (a longer lead before the drop) it still helps: its 0-8.45 s are what the shipped cut lacks, so the full
+  track = this file up to ~10 s (+13 dB) joined onto luna_music.ogg from 1.555 s (sample-aligned there, short
+  crossfade). Epic mode no longer needs Hamza's PC for that, unless the real original turns up.
 - **Film lengths** (the user asked): Proxima's film is 520 ticks = **26 s** at speed 1 (`ProximaStoryboard.END` =
   IMPACT + 190); Halley's ~23 s, Luna's ~25 s; the speed slider scales them. The user then asked **how long TSS's own
   films are** (answered 2026-11-05): each skill's `duration()` in TSS 1.5.2 (whole skill, film included; its film

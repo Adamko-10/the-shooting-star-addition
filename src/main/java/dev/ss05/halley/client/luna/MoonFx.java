@@ -4,6 +4,7 @@ import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.client.HalleyClientConfig;
+import dev.ss05.halley.client.StrikeMusic;
 import dev.ss05.halley.client.render.CometVisuals;
 import dev.ss05.halley.client.sky.SkyLook;
 import dev.ss05.halley.content.HalleyContent;
@@ -125,7 +126,7 @@ public final class MoonFx {
     private final float pitch;
     private final RandomSource random;
     private final List<SoundInstance> filmSounds = new ArrayList<>();
-    private Music music;
+    private StrikeMusic music;
     private final List<Later> later = new ArrayList<>();
     private final float particles;
     /** How fast this tick's particles move, as a share of their usual speed (slower in the film's slow motion). */
@@ -534,64 +535,7 @@ public final class MoonFx {
         if (this.music != null || !HalleyClientConfig.lunaMusic() || !film && camera.distanceTo(this.plan.target) > MUSIC_RANGE) {
             return;
         }
-        Minecraft minecraft = Minecraft.getInstance();
-        minecraft.getMusicManager().stopPlaying();
-        this.music = new Music();
-        minecraft.getSoundManager().play(this.music);
-    }
-
-    /**
-     * Luna's music as it plays, kept in step with the strike: the game's clock and the sound card's drift apart
-     * (a slow frame, a stutter while land loads), so every tick it compares how much of the track has played with how
-     * far the moon has fallen and nudges its speed by up to 5% until they agree again - the drop always lands on the
-     * impact.
-     */
-    private final class Music extends AbstractTickableSoundInstance {
-        /** The track's own pitch: the remote's speed slider, as far as the game lets a sound go. */
-        private final float base;
-        private long last;
-        /** Seconds of the track played so far. */
-        private double played;
-        private boolean started;
-
-        Music() {
-            super(SoundEvent.createVariableRangeEvent(HalleyAddon.id("luna_music")), SoundSource.MUSIC, SoundInstance.createUnseededRandom());
-            this.base = MoonFx.this.pitch;
-            this.volume = 0.85F;
-            this.pitch = this.base;
-            this.relative = true;
-            this.attenuation = SoundInstance.Attenuation.NONE;
-            this.looping = false;
-        }
-
-        @Override
-        public void tick() {
-            if (MoonFx.this.removed || !HalleyClientConfig.lunaMusic()) {
-                this.stop();
-                return;
-            }
-            long now = System.nanoTime();
-            if (!this.started) {
-                // the track starts from its beginning once its stream is open (a tick or so after it is asked for):
-                // the time that took is caught up like any other drift
-                if (Minecraft.getInstance().getSoundManager().isActive(this)) {
-                    this.started = true;
-                    this.last = now;
-                    this.played = 0.0;
-                }
-                return;
-            }
-            double dt = (now - this.last) / 1.0E9;
-            this.last = now;
-            // a long gap: the game was paused, and the music with it
-            this.played += (dt > 1.0 ? 0.05 : dt) * this.pitch;
-            double want = (MoonFx.this.realTime(0.0F) - MUSIC_AT) / 20.0;
-            // at the speed slider's ends the game can't play it fast or slow enough anyway: leave it be
-            if (Math.abs(this.base - MoonFx.this.host.speed()) < 0.01F) {
-                double drift = this.played - want;
-                this.pitch = this.base * (float) (1.0 - Mth.clamp(drift * 0.6, -0.05, 0.05));
-            }
-        }
+        this.music = StrikeMusic.play("luna_music", this.host, MUSIC_AT, () -> this.realTime(0.0F), () -> this.removed);
     }
 
     /** The point of the molten seam nearest the camera (on the ground). */

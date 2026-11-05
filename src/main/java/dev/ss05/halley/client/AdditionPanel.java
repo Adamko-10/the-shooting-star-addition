@@ -17,7 +17,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * The addon's own plate in the Stellar Remote's menu (H, The Shooting Star's "White Space"), in the menu's colours, in
- * its top left corner: five switches - Luna's music (M), keeping Luna's moon model after it lands (L), the impact
+ * its top left corner: five switches - the skills' music (M, Luna's and Proxima's), keeping Luna's moon model after it lands (L), the impact
  * frames (F: full, soft, off), where the evac takes you (E: up, or to the edge) and no-cooldown (C) - and what the
  * server allows. The menu holds
  * the mouse (you pick things in it by looking at them), so these are flipped with their keys, shown on the plate.
@@ -159,7 +159,7 @@ public final class AdditionPanel {
         g.drawString(font, Component.translatable("gui.shooting_star_addition.panel").withStyle(ChatFormatting.BOLD), 11, 7, 0xFF000000 | INK, false);
         g.fill(11, 19, w - 10, 20, 0xFF000000 | RULE);
 
-        // Luna's music
+        // the skills' music
         row(g, font, 26, Component.translatable("gui.shooting_star_addition.music"), "M", music, true, musicFlippedAt, w);
         g.drawString(font, Component.translatable("gui.shooting_star_addition.music.hint"), 11, 38, 0xFF000000 | GREY, false);
         g.fill(11, 51, w - 10, 52, 0xFF000000 | RULE);

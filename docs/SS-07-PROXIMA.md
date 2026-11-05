@@ -102,20 +102,36 @@ config); this file is the build's own record: what exists, where it lives, and w
    Still to do: the "radio blackout" on the skill's own HUD (Proxima has no HUD until its film, stage 3), permanent
    zones and the rest of the config (stage 5).
 5. Sounds (the sound overhaul's way: `art/overhaul_sounds.sh`) and the user's music track, cut so its drop lands on
-   `IMPACT`; then config (the §15 list), random flares (off by default), and the title card.
+   `IMPACT`; then config (the §15 list), random flares (off by default).
+   - **Music, built 2026-11-05 from the user's draft** (`Video Project 49.m4a`, "not quite done"; in the project
+     folder's music folder): `proxima_music.ogg` (27.5 s, -18 LUFS like Luna's), made by `art/make_proxima_music.sh`. The
+     draft's moments (measured: a spectrogram and a 50 ms loudness curve): pulses every 2.1 s (~114 BPM) to 16.4 s,
+     a 0.25 s gap and an entry at 16.85 s, a calmer middle without a steady beat, the main section full at 28.85 s. Cut:
+     the track from 9.85 s plays from tick 10 (`ProximaFx.MUSIC_AT`), so its pulses fall near SPACE (tick 27), IRIS
+     (68) and the loops (111), its gap on the gate (141-146) and its entry on FLASH (150); it fades out into the hush
+     (silent 320-329); the main section from 28.85 s comes in hard on IMPACT (330) and fades out by tick 560. Checked
+     in the file: the entry rises at 149-151, silence 320-329, full at 330. Played by `client/StrikeMusic` (Luna's
+     music player, moved out of MoonFx and shared): the Music volume, pitched with the speed slider, kept in step with
+     the strike's clock; heard by the caster and within 1500 blocks; the plate's M switch is now "Music" (Luna's and
+     Proxima's; config key still `luna_music`). For the finished track: find ENTRY and DROP again, set them in the
+     script, re-run it.
 
 ## Timeline (`ProximaPlan`, ticks at speed 1)
 
 | | tick | |
 |---|---|---|
 | PRESS | 7 | the remote's button |
-| FLASH | 90 | phase 1: the flare's light arrives; exposed things burn |
-| FRONT | 100 | phase 2: the coronal front crosses the sky (looks only) |
-| HUSH | 260 | near-silence: everyone thinks it's over |
-| IMPACT | 270 | phase 3: ground zero |
-| DURATION | 600 | the effects end |
+| MUSIC_AT | 10 | the music starts (`ProximaFx`) |
+| SPACE | 30 | the film leaves for space: the star in its Dyson sphere |
+| IRIS, LOOPS, COLLAPSE | 60, 100, 118 | the iris opens; the infinity loops; they collapse to a point |
+| LENS, BEAM, GATE | 125, 135, 145 | the lens folds, fires; the gate near Earth |
+| FLASH | 150 | phase 1: the flare's light arrives; exposed things burn (the music's entry) |
+| FRONT | 160 | phase 2: the coronal front crosses the sky |
+| HUSH | 320 | near-silence: everyone thinks it's over (the music too) |
+| IMPACT | 330 | phase 3: ground zero (the music's main section) |
+| DURATION | 660 | the effects end; the film ends at 520 |
 
-The intro film (stage 3) will run in the first 90 ticks. Stellar Convergence uses `IMPACT` to land it with the others.
+The space intro (stage 3) runs from SPACE to FLASH. Stellar Convergence uses `IMPACT` to land it with the others.
 
 ## Sizes (`ProximaParams`, at power 1; the power slider scales the radii, the depth by its square root)
 

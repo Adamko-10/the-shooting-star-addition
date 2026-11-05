@@ -259,5 +259,13 @@
         "stream": true
       }
     ]
+  },
+  "proxima_music": {
+    "sounds": [
+      {
+        "name": "shooting_star_addition:proxima_music",
+        "stream": true
+      }
+    ]
   }
 }

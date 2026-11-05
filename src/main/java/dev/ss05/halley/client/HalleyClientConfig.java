@@ -87,7 +87,7 @@ public final class HalleyClientConfig {
         b.pop();
 
         b.comment("Your switches in the Stellar Remote's menu (H). They are saved here when you flip them there.").push("stellar_remote");
-        LUNA_MUSIC = b.comment("Play Luna's music while the moon comes down (M in the remote's menu).")
+        LUNA_MUSIC = b.comment("Play the skills' music: Luna's as the moon comes down, Proxima's as the flare comes in (M in the remote's menu).")
             .define("luna_music", true);
         NO_COOLDOWN = b.comment("Cast without cooldowns where the server allows it (its no_cooldown setting; C in the remote's",
                 "menu). Has no effect on a server that doesn't allow it.")
