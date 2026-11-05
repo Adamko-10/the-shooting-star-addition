@@ -49,9 +49,21 @@ public final class ProximaHud {
 
         String caption;
         String detail;
-        if (ct < ProximaPlan.FLASH) {
-            caption = "UPLINK  ·  PROXIMA CENTAURI";
-            detail = "4.24 LY";
+        if (ct < ProximaPlan.SPACE) {
+            caption = "UPLINK";
+            detail = "PROXIMA CENTAURI";
+        } else if (ct < ProximaPlan.IRIS) {
+            caption = "PROXIMA CENTAURI";
+            detail = "4.24 LIGHT YEARS";
+        } else if (ct < ProximaPlan.LOOPS) {
+            caption = "DYSON SPHERE";
+            detail = "APERTURE OPENING";
+        } else if (ct < ProximaPlan.LENS) {
+            caption = "MAGNETIC RECONNECTION";
+            detail = "CLASS " + flareClass(p.params.power());
+        } else if (ct < ProximaPlan.FLASH) {
+            caption = "LENS ARRAY";
+            detail = ct < ProximaPlan.GATE ? "BEAM FOCUSED" : "GATE OPEN";
         } else if (ct < ProximaPlan.FRONT) {
             caption = "FLARE DETECTED";
             detail = "CLASS " + flareClass(p.params.power());

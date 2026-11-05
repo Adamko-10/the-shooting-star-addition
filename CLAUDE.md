@@ -50,8 +50,10 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   Proxima's HUD, stage 3). Jar `test builds\2026-11-05 Proxima aftermath\`, in the Modrinth profile.
   (Reminded the user of the Solar Residue economy, §14, on 2026-11-05.)
 - **Proxima's film, stage 3: part 1 (in the world) BUILT and game-tested 2026-11-05** (docs stage 3; jar
-  `test builds\2026-11-05 Proxima film\`, in the Modrinth profile). **Next: part 2, the space intro**, then part 3
-  (Earth: ask before downloading imagery). The plan as agreed:
+  `test builds\2026-11-05 Proxima film\`). **Part 2, the space intro, BUILT and game-tested** the same night
+  (docs stage 3; the timeline moved 60 ticks later for it: IMPACT 330; jar `test builds\2026-11-05 Proxima space
+  intro\`, in the Modrinth profile). **Next: part 3 (Earth: ask before downloading imagery), or stage 5 (sounds,
+  music, config)**. The plan as agreed:
   Agreed with the user in three parts: **(1) the in-world film first** (shots following the strike: the caster's
   remote, the flash, the CME front coming down the sky, the wall rolling past, a pull-back over the scorched land;
   a title card "SA-04 PROXIMA" like Halley's/Luna's (`compat/tss/client/FilmTitle`); a film HUD (like `MoonHud.film`)

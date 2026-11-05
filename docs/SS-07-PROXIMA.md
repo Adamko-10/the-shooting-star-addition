@@ -58,7 +58,23 @@ config); this file is the build's own record: what exists, where it lives, and w
    class from the power slider, logarithmic: 0.1x ~C1, 1x M5, 3x X3, 10x X25; the front's distance in km; the hush;
    impact; the shock wave's reach); **the radio blackout**: from FRONT to IMPACT+30 the captions are garbled (letters
    swapped for noise) and drop out now and then; only the skill's own text.
-   Part 2, the space intro, and part 3, Earth, below.
+   **Part 2, the space intro** (2026-11-05, game-tested: `auto test 20 proxima film\intro\`). The timeline moved 60 ticks
+   later for it (FLASH 150, FRONT 160, HUSH 320, IMPACT 330 with Halley's and Luna's, DURATION 660); its beats in
+   `ProximaPlan`: SPACE 30, IRIS 60, LOOPS 100, COLLAPSE 118, LENS 125, BEAM 135, GATE 145. `client/proxima/ProximaSpace`
+   (from `ProximaFx.render`, glow pipeline): the star (`starCentre`: 20000 out, 50° up on the front's side, radius
+   1400) dim behind a lattice ring of struts and eight iris blades that twist open, then blazing; two plasma loops
+   drawn as a lemniscate in front of it, a white flare at the crossing, collapsing; the lens (ring + faint disc), a
+   beam fired out of it across the frame toward the camera; the gate (`plan.gate()`, where the front's nose starts)
+   catching a beam from the star's side of the sky and bursting at the flash. The glow only adds light, so the closed
+   panels are shown by holding the star dim. The sky goes to deep starry night for it (`ProximaFx.sky`, Halley's
+   palette; with a shader pack the clock is wound on to midnight, then to sunset at the flash, hidden by the flash).
+   Everyone looking at that sky sees it, not only the caster's film. Shots: rising 300 blocks off the land turning up
+   to the star (FOV 70 -> 26), the Dyson sphere (24 -> 16), the loops (16 -> 12), the lens and beam (14 -> 26), back
+   on the land looking up at the gate for the flash. Cards: `FilmTitle.dyson` (steel letters sliding in from both
+   sides, "PROXIMA CENTAURI · 4.24 LIGHT YEARS"), `FilmTitle.cme` (flickering half-formed plasma letters torn apart at
+   BEAM+6). Captions per beat (uplink, 4.24 light years, aperture opening, magnetic reconnection and the class, beam
+   focused, gate open).
+   Part 3, Earth, still to do (ask before downloading NASA imagery).
    The intro to space (title card "DYSON SPHERE", the lattice opening like an iris, the infinity-sign loops,
    "CORONAL MASS EJECTION" in plasma filaments), the lens beam and the gate near Earth, the pullback afterwards.
    RimuLib's film tools (`CameraRig`, `Shot`, `Subject`, `CutsceneDirector`), our own Earth shader (free imagery only).

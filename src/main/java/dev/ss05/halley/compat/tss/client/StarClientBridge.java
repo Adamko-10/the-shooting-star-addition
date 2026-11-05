@@ -155,6 +155,8 @@ public final class StarClientBridge {
                 ProximaFx fx = ProximaFx.active().getLast();
                 ProximaHud.film(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics));
                 FilmTitle.proxima(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics));
+                FilmTitle.dyson(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics));
+                FilmTitle.cme(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics));
             });
         }
     }

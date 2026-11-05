@@ -30,20 +30,44 @@ public final class ProximaStoryboard {
         double bowl = plan.params.bowlRadius();
         double scorch = plan.params.scorchRadius();
 
+        Vec3 star = plan.starCentre();
+        Vec3 gate = plan.gate();
         // 1. Uplink: over the caster's shoulder, the remote's cover and button.
-        takes.add(Take.cut(0, 60, (x, p, k) -> {
+        takes.add(Take.cut(0, ProximaPlan.SPACE, (x, p, k) -> {
             Vec3 feet = x.feet(p);
             Vec3 hand = frame(x, feet, 0.36, 1.38, 0.62);
             Vec3 pos = frame(x, feet, l(k, 1.3, 1.08), l(k, 1.72, 1.56), l(k, 2.0, 1.75));
             return new Pose(pos, hand, (float) l(k, 42.0, 48.0), 0.0F);
         }));
 
-        // 2. The caster looks up: the sky over the mark, the flare's light arriving and burning it white-red.
-        takes.add(Take.cut(60, ProximaPlan.FLASH + 30, (x, p, k) -> {
+        // The space intro (stage 3 part 2): 2. rising off the land into a sky gone to space, turning up to the star;
+        takes.add(Take.cut(ProximaPlan.SPACE, ProximaPlan.IRIS, (x, p, k) -> {
+            Vec3 feet = x.feet(p);
+            double e = k * k * (3.0 - 2.0 * k);
+            Vec3 pos = feet.add(0.0, l((float) e, 2.0, 300.0), 0.0);
+            Vec3 horizon = feet.add(x.forward().scale(60.0)).add(0.0, 20.0, 0.0);
+            return new Pose(x.keep(pos, feet), horizon.lerp(star, e), (float) l((float) e, 70.0, 26.0), 0.0F);
+        }));
+        // 3. the Dyson sphere: the iris opening on the red star, pushing in;
+        takes.add(Take.cut(ProximaPlan.IRIS, ProximaPlan.LOOPS, (x, p, k) -> {
+            Vec3 pos = x.feet(p).add(0.0, 300.0, 0.0);
+            return new Pose(x.keep(pos, x.feet(p)), star, (float) l(k, 24.0, 16.0), (float) l(k, 0.0, 2.0));
+        }));
+        // 4. the loops twisting into an infinity sign, flaring and collapsing, closer still;
+        takes.add(Take.cut(ProximaPlan.LOOPS, ProximaPlan.LENS, (x, p, k) -> {
+            Vec3 pos = x.feet(p).add(0.0, 300.0, 0.0);
+            return new Pose(x.keep(pos, x.feet(p)), star, (float) l(k, 16.0, 12.0), 2.0F);
+        }));
+        // 5. the lens and the beam fired across the sky, pulling back;
+        takes.add(Take.cut(ProximaPlan.LENS, ProximaPlan.GATE + 3, (x, p, k) -> {
+            Vec3 pos = x.feet(p).add(0.0, 300.0, 0.0);
+            return new Pose(x.keep(pos, x.feet(p)), star, (float) l(k, 14.0, 26.0), (float) l(k, 2.0, 0.0));
+        }));
+        // 6. back on the land, looking up at the gate in the sky as it catches the beam: the flash.
+        takes.add(Take.cut(ProximaPlan.GATE + 3, ProximaPlan.FLASH + 30, (x, p, k) -> {
             Vec3 feet = x.feet(p);
             Vec3 pos = frame(x, feet, 0.6, 1.7, -1.2);
-            Vec3 look = mark.add(from.scale(scorch * 0.6)).add(0.0, l(k, 40.0, 140.0), 0.0);
-            return new Pose(pos, look, (float) l(k, 60.0, 70.0), 0.0F);
+            return new Pose(x.keep(pos, feet), gate, (float) l(k, 58.0, 68.0), 0.0F);
         }));
 
         // 3. Low beside the mark, looking out the way the front will come: the coronal mass ejection rising over the

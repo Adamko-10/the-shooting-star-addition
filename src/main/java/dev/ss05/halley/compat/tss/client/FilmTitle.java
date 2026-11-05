@@ -193,6 +193,76 @@ final class FilmTitle {
         }
     }
 
+    /**
+     * The space intro's cards (Proxima, stage 3 part 2), low on the screen under the star: DYSON SPHERE in steel, its
+     * letters sliding in from either side like panels as the iris opens; CORONAL MASS EJECTION in flickering plasma,
+     * half-formed, torn apart as the beam fires.
+     */
+    static void dyson(GuiGraphics g, ProximaFx fx, float partial, int w, int h) {
+        float ct = fx.filmTime(partial);
+        float fade = fade(fx.filmWeight());
+        float in = ProximaPlan.IRIS + 2;
+        float out = ProximaPlan.LOOPS - 4;
+        if (Float.isNaN(ct) || ct < in || ct > out + 9 || fade <= 0.01F || CutsceneDirector.legacy()) {
+            return;
+        }
+        float cap = h * 0.075F;
+        float scale = cap / CAP;
+        float cx = w * 0.5F;
+        float base = h * 0.8F;
+        String word = "DYSON SPHERE";
+        float[] xs = new float[word.length()];
+        float width = layout(g, word, scale, 2.0F, xs);
+        float shown = fade * clamp((ct - in) / 4.0F) * (1.0F - clamp((ct - out) / 8.0F));
+        TessType.veil(g, cx, base - cap * 0.5F, width * 0.9F, cap * 1.5F, 0.35F * shown);
+        TessType.draw(g, TessType.Face.LABEL, "PROXIMA CENTAURI \u00B7 4.24 LIGHT YEARS", cx, base - cap - h * 0.03F, 0.5F, scale * 0.32F, 2.5F,
+            TessType.Paint.flat(0xFF000000 | 0xC8D0DC), 0.85F * shown, 1.0F);
+        TessType.Paint steel = (u, v) -> 0xFF000000 | mix(0xE6EAF2, 0x6A7080, v);
+        for (int i = 0; i < word.length(); i++) {
+            float since = ct - in - 0.7F * i;
+            if (since < 0.0F) {
+                continue;
+            }
+            float slide = 1.0F - cube(1.0F - clamp(since / 6.0F));
+            float side = i % 2 == 0 ? -1.0F : 1.0F;
+            letter(g, word.substring(i, i + 1), cx + xs[i] + side * (1.0F - slide) * cap * 2.5F, base, scale, 0.0F, steel,
+                shown * slide, 1.0F);
+        }
+    }
+
+    static void cme(GuiGraphics g, ProximaFx fx, float partial, int w, int h) {
+        float ct = fx.filmTime(partial);
+        float fade = fade(fx.filmWeight());
+        float in = ProximaPlan.LENS + 3;
+        float tearAt = ProximaPlan.BEAM + 6;
+        if (Float.isNaN(ct) || ct < in || ct > tearAt + 14 || fade <= 0.01F || CutsceneDirector.legacy()) {
+            return;
+        }
+        float cap = h * 0.07F;
+        float scale = cap / CAP;
+        float cx = w * 0.5F;
+        float base = h * 0.8F;
+        String word = "CORONAL MASS EJECTION";
+        float[] xs = new float[word.length()];
+        layout(g, word, scale, 1.6F, xs);
+        float tear = clamp((ct - tearAt) / 12.0F);
+        float mid = (word.length() - 1) * 0.5F;
+        for (int i = 0; i < word.length(); i++) {
+            float since = ct - in - 0.35F * i;
+            if (since < 0.0F || word.charAt(i) == ' ') {
+                continue;
+            }
+            // half-formed: each letter flickers in and out of its filaments
+            float flicker = 0.55F + 0.45F * Mth.sin(ct * 5.0F + i * 1.7F);
+            float side = i < mid ? -1.0F : 1.0F;
+            float x = cx + xs[i] + (i - mid) * tear * tear * cap * 0.9F;
+            float y = base + Mth.sin(i * 2.1F) * tear * cap * 0.8F;
+            float alpha = fade * clamp(since / 2.0F) * flicker * (1.0F - tear);
+            TessType.Paint plasma = (u, v) -> 0xFF000000 | mix(0xFFFFFF, 0xFF4A80, v * 0.8F + 0.2F * tear);
+            letter(g, word.substring(i, i + 1), x, y, scale, side * tear * 22.0F, plasma, alpha, 1.6F);
+        }
+    }
+
     /** SA-04's title, as the front comes on: when it starts, when it starts to go, when it is gone. */
     private static final float PROXIMA_IN = ProximaPlan.FRONT + 30;
     private static final float PROXIMA_OUT = ProximaPlan.FRONT + 78;

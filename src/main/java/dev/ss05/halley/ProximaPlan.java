@@ -11,16 +11,32 @@ import net.minecraft.world.phys.Vec3;
 public final class ProximaPlan {
     /** The remote's button (as for the other skills). */
     public static final int PRESS = 7;
+    /**
+     * The film's space intro (2026-11-05: the timeline moved 60 ticks later for it, so the impact lands with Halley's and
+     * Luna's at 330): the camera rises into a sky gone to space; the Dyson sphere's iris opens on the star; two plasma
+     * loops twist into an infinity sign, flare and collapse; the panels fold into a lens and focus the flare into a beam;
+     * a gate in the sky catches it. Everything is seen by anyone looking at that part of the sky, not only in the film.
+     */
+    public static final int SPACE = 30;
+    public static final int IRIS = 60;
+    public static final int LOOPS = 100;
+    public static final int COLLAPSE = 118;
+    public static final int LENS = 125;
+    public static final int BEAM = 135;
+    public static final int GATE = 145;
     /** Phase 1, the flash burn: the flare's light arrives first, the sky goes white-red, exposed things burn. */
-    public static final int FLASH = 90;
+    public static final int FLASH = 150;
     /** Phase 2, the coronal front sweeping across the sky (looks only: no damage). */
-    public static final int FRONT = 100;
+    public static final int FRONT = 160;
     /** Near-silence: everyone thinks it's over. */
-    public static final int HUSH = 260;
+    public static final int HUSH = 320;
     /** Phase 3, ground zero: the bowl, the scorch, the blast. */
-    public static final int IMPACT = 270;
+    public static final int IMPACT = 330;
     /** The effects' end (the aftermath fades out by then). */
-    public static final int DURATION = 600;
+    public static final int DURATION = 660;
+    /** The star in the intro: its radius and how far off it is drawn (far parts are pulled in, so only the angle matters). */
+    public static final double STAR_RADIUS = 1400.0;
+    public static final double STAR_DISTANCE = 20000.0;
     /** Ground zero's shock wave runs out over the land, burning and throwing as it goes: at the scorch's edge this long after the impact. */
     public static final int WAVE_TICKS = 70;
     /** The coronal front: a shell of plasma this big (radius, blocks), its nose this far from the mark when it appears. */
@@ -84,6 +100,23 @@ public final class ProximaPlan {
     public double frontDistance(double t) {
         double k = Mth.clamp((t - FRONT) / (double) (IMPACT - FRONT), 0.0, 1.0);
         return FRONT_START * (1.0 - k) * (1.0 + 0.4 * k);
+    }
+
+    /** Where the star hangs in the intro: high in the sky on the side the front will come from. */
+    public Vec3 starDirection() {
+        Vec3 front = this.frontDirection();
+        Vec3 from = new Vec3(-front.x, 0.0, -front.z).normalize();
+        double up = Math.toRadians(50.0);
+        return from.scale(Math.cos(up)).add(0.0, Math.sin(up), 0.0);
+    }
+
+    public Vec3 starCentre() {
+        return this.target.add(this.starDirection().scale(STAR_DISTANCE));
+    }
+
+    /** The gate that catches the beam and spreads it into the front: where the front's nose starts. */
+    public Vec3 gate() {
+        return this.target.subtract(this.frontDirection().scale(FRONT_START));
     }
 
     /** The centre of the front's shell at {@code t} (its nose is {@link #FRONT_RADIUS} from it, toward the mark). */

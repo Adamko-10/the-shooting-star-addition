@@ -53,6 +53,8 @@ public final class ProximaFx {
     private final float particles;
     /** Ticks to wind the sky's clock on to sunset: with a shader pack on, the red sky is the pack's own sunset (as Halley and Luna wind it on to night). */
     private final long toSunset;
+    /** Ticks to wind the sky's clock on to the middle of the night, for the space intro under a shader pack. */
+    private final long toNight;
     /** Where the camera was against the coronal front last tick (above 0: still ahead of it), and how far out the shock wave had run. */
     private double frontSide = Double.NaN;
     private double lastWave;
@@ -67,6 +69,7 @@ public final class ProximaFx {
         this.particles = status == ParticleStatus.ALL ? 1.0F : status == ParticleStatus.DECREASED ? 0.45F : 0.12F;
         long day = minecraft.level == null ? 6000L : Math.floorMod(minecraft.level.getDayTime(), 24000L);
         this.toSunset = day >= 12200L && day < 13200L ? 0L : Math.floorMod(12700L - day, 24000L);
+        this.toNight = day >= 13000L && day < 23000L ? 0L : Math.floorMod(18000L - day, 24000L);
         ACTIVE.add(this);
     }
 
@@ -357,6 +360,12 @@ public final class ProximaFx {
     public SkyLook sky(float partial, Vec3 camera) {
         float t = Math.min(this.host.clock(partial), ProximaPlan.DURATION);
         float w = 1.0F - smooth((this.plan.horizontal(camera.x, camera.z) - 1400.0) / 1600.0);
+        // the space intro: a deep starry night (a shader pack's own, wound on to), gone again for the flash
+        float space = smooth((t - ProximaPlan.SPACE) / 15.0) * (1.0F - smooth((t - (ProximaPlan.FLASH - 3.0)) / 3.0));
+        if (space > 0.003F && t < ProximaPlan.FLASH) {
+            return new SkyLook(space * w, space * w, 0.0F, 0.0F, 0.0F, 0.0F, new Vec3(0.0, 1.0, 0.0), 0.0F, 0.0F, Vec3.ZERO,
+                space * w * 0.7F, (float) (this.plan.seed & 1023L), (float) (this.toNight * space * w), SkyLook.PALETTE_HALLEY);
+        }
         float cover = smooth((t - ProximaPlan.FLASH) / 8.0) * (1.0F - smooth((t - (ProximaPlan.DURATION - 120.0)) / 120.0));
         float flash = 1.6F * pulse(t, ProximaPlan.FLASH, 10.0) + 1.5F * pulse(t, ProximaPlan.IMPACT, 6.0);
         float veil = smooth((t - (ProximaPlan.IMPACT + 10.0)) / 40.0) * (1.0F - smooth((t - (ProximaPlan.DURATION - 60.0)) / 60.0));
@@ -393,6 +402,7 @@ public final class ProximaFx {
     public void render(GlowBatch world, GlowBatch glare, float partial, ClientLevel level) {
         float t = Math.min(this.host.clock(partial), ProximaPlan.DURATION);
         Vec3 camera = world.camera();
+        ProximaSpace.render(world, glare, this.plan, t);
         if (t >= ProximaPlan.FRONT && t < ProximaPlan.IMPACT + 8) {
             float fade = smooth((t - ProximaPlan.FRONT) / 25.0) * (1.0F - smooth((t - ProximaPlan.IMPACT) / 8.0));
             this.front(world, t, fade, camera, 0.0, 1.0F, 0.0);
