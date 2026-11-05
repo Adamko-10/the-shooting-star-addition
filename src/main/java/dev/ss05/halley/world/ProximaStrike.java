@@ -29,7 +29,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * SA-03 Proxima on the server: what the flare does to the world and to the living (docs/SS-07-PROXIMA.md).
+ * SA-04 Proxima on the server: what the flare does to the world and to the living (docs/SS-07-PROXIMA.md).
  * <ul>
  *   <li>{@link ProximaPlan#FLASH}, the flash burn: everything living out past the scorch, under the open sky, catches
  *   fire and is hurt a little. Shelter is {@link #SHELTER} solid blocks overhead (glass doesn't count).</li>
@@ -158,7 +158,7 @@ public final class ProximaStrike {
         }
         int minY = this.level.getMinBuildHeight();
         this.bowl = StarBridge.excavate(this.level, this.plan.target, bowl + 3.0, (x, z) -> this.bowlFloor(x, z, minY),
-            (x, y, z, was) -> this.bowlSurface(x, y, z), this.spared, "SA-03 Proxima bowl", HalleyConfig.chunksPerTick(), null);
+            (x, y, z, was) -> this.bowlSurface(x, y, z), this.spared, "SA-04 Proxima bowl", HalleyConfig.chunksPerTick(), null);
         this.land = new ProximaLand(this.level, this.plan);
     }
 

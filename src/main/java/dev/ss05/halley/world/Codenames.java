@@ -11,8 +11,8 @@ public final class Codenames {
     public static final String HALLEY = "SA-01";
     /** Luna, the moonfall. */
     public static final String LUNA = "SA-02";
-    /** Proxima, the flare star's coronal mass ejection. */
-    public static final String PROXIMA = "SA-03";
+    /** Proxima, the flare star's coronal mass ejection (SA-03 is kept for a skill between the moon and a star, the user, 2026-11-05). */
+    public static final String PROXIMA = "SA-04";
     /** Stellar Convergence: every ticked weapon at once (not a weapon of its own, so before the others). */
     public static final String CONVERGENCE = "SA-00";
 

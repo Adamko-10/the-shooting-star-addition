@@ -4,6 +4,7 @@ import dev.ss05.halley.ProximaParams;
 import dev.ss05.halley.ProximaPlan;
 import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.client.luna.MoonFx;
+import dev.ss05.halley.client.sky.SkyLook;
 import dev.ss05.halley.content.HalleyContent;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * SA-03 Proxima on a client: what is seen and heard (docs/SS-07-PROXIMA.md). Stage 1 of its build: the flash's white-red
+ * SA-04 Proxima on a client: what is seen and heard (docs/SS-07-PROXIMA.md). Stage 1 of its build: the flash's white-red
  * light and the embers it raises, the red sky while the coronal front passes (only felt for now: the ring itself comes
  * in stage 2), the hush, and ground zero (the white flash, impact frames, a ring of fire, smoke and ash). Its sounds are
  * the addon's others, pitched, until Proxima has its own. It talks to the remote through Luna's {@link MoonFx.Host} and
@@ -39,6 +40,8 @@ public final class ProximaFx {
     private final MoonFx.Host host;
     private final RandomSource random;
     private final float particles;
+    /** Ticks to wind the sky's clock on to sunset: with a shader pack on, the red sky is the pack's own sunset (as Halley and Luna wind it on to night). */
+    private final long toSunset;
 
     public ProximaFx(MoonFx.Host host, int casterId, Vec3 target, long seed, int[] data) {
         this.host = host;
@@ -48,6 +51,8 @@ public final class ProximaFx {
         this.random = RandomSource.create(seed);
         ParticleStatus status = minecraft.options.particles().get();
         this.particles = status == ParticleStatus.ALL ? 1.0F : status == ParticleStatus.DECREASED ? 0.45F : 0.12F;
+        long day = minecraft.level == null ? 6000L : Math.floorMod(minecraft.level.getDayTime(), 24000L);
+        this.toSunset = day >= 12200L && day < 13200L ? 0L : Math.floorMod(12700L - day, 24000L);
         ACTIVE.add(this);
     }
 
@@ -124,6 +129,44 @@ public final class ProximaFx {
                 }
             }
         }
+    }
+
+    // ---- The sky (drawn by client/sky/HalleySky). -------------------------------------------------------------------
+
+    public boolean finished(float partial) {
+        return this.host.clock(partial) > ProximaPlan.DURATION;
+    }
+
+    /**
+     * The sky under the flare: it burns crimson at the flash (with a shader pack on, the pack's own sunset: the clock is
+     * wound on to it), the plasma glowing high over the mark, brighter and lower as the front comes on, white at the
+     * impact, an ashen red haze after it, all clearing over the aftermath.
+     */
+    public SkyLook sky(float partial, Vec3 camera) {
+        float t = Math.min(this.host.clock(partial), ProximaPlan.DURATION);
+        float w = 1.0F - smooth((this.plan.horizontal(camera.x, camera.z) - 1400.0) / 1600.0);
+        float cover = smooth((t - ProximaPlan.FLASH) / 8.0) * (1.0F - smooth((t - (ProximaPlan.DURATION - 120.0)) / 120.0));
+        float flash = 1.6F * pulse(t, ProximaPlan.FLASH, 10.0) + 1.5F * pulse(t, ProximaPlan.IMPACT, 6.0);
+        float veil = smooth((t - (ProximaPlan.IMPACT + 10.0)) / 40.0) * (1.0F - smooth((t - (ProximaPlan.DURATION - 60.0)) / 60.0));
+        float front = smooth((t - ProximaPlan.FRONT) / (double) (ProximaPlan.IMPACT - ProximaPlan.FRONT));
+        Vec3 at = this.plan.target.add(0.0, t <= ProximaPlan.IMPACT ? Mth.lerp(front, 260.0, 40.0) : 20.0, 0.0);
+        Vec3 toward = at.subtract(camera);
+        toward = toward.lengthSqr() < 1.0E-6 ? new Vec3(0.0, 1.0, 0.0) : toward.normalize();
+        float glow = t <= ProximaPlan.IMPACT ? cover * (0.3F + 1.6F * front) : 1.8F * (float) Math.exp(-(t - ProximaPlan.IMPACT) / 30.0);
+        double wound = this.toSunset * cover * w;
+        float rise = smooth((t - (ProximaPlan.DURATION - 120.0)) / 120.0);
+        double shift = wound >= 12000.0 ? wound + (24000.0 - wound) * rise : wound * (1.0 - rise);
+        return new SkyLook(cover * w * 0.85F, 0.0F, 0.0F, veil * w * 0.6F, 0.0F, flash * w, toward, glow * w, 1.0F, Vec3.ZERO,
+            cover * w * 0.25F, (float) (this.plan.seed & 1023L), (float) shift, SkyLook.PALETTE_PROXIMA);
+    }
+
+    private static float smooth(double x) {
+        double k = Mth.clamp(x, 0.0, 1.0);
+        return (float) (k * k * (3.0 - 2.0 * k));
+    }
+
+    private static float pulse(double t, double at, double decay) {
+        return t < at ? 0.0F : (float) Math.exp(-(t - at) / decay);
     }
 
     // ---- The screen, frame by frame. ------------------------------------------------------------------------------

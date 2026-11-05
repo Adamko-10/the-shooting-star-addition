@@ -1,5 +1,6 @@
-# SA-03 · Proxima
+# SA-04 · Proxima
 
+(Renamed from SA-03 on 2026-11-05: comet, moon, then a star made no sense; SA-03 is kept for a skill between them.)
 A red-dwarf flare star inside a Dyson sphere fires a solar flare, then a coronal mass ejection (CME), at the crosshair.
 Skill id `proxima`, colour crimson `0xE8294C`, default key **Z**. The agreed design is in CLAUDE.md §15 (look, intro,
 the lens beam, the three phases, crater, shelter, knockback, sliders, nerd details, aftermath, random flares, music,
@@ -9,6 +10,11 @@ config); this file is the build's own record: what exists, where it lives, and w
 
 1. **Playable strike** (2026-11-05): on the remote, the timeline, the flash burn, the bowl and the scorch, ground-zero
    damage and knockback, shelter, basic effects (screen, particles, borrowed sounds), Stellar Convergence knows it.
+   The sky (the user: "with shaders the sky doesn't change at all"): `ProximaFx.sky` gives `client/sky/HalleySky` a
+   `SkyLook` in its own palette (`SkyLook.PALETTE_PROXIMA`, crimson zenith to a burning orange horizon, an ashen red
+   haze after ground zero, red clouds): without a shader pack the addon's sky shader paints it; with one, the sky's
+   clock is wound on to **sunset** (`toSunset`, the pack's own red sky) at the flash and back over the aftermath, as
+   Halley and Luna wind it to night.
 2. The coronal front: the 3D ring sweeping across the sky (thin bright shock + translucent sheath with filaments), the
    Type II radio burst whine drifting down, compasses spinning, redstone sparks; ground zero's look (white point,
    cracks of light, shock ring, heat shimmer); steam off exposed water.

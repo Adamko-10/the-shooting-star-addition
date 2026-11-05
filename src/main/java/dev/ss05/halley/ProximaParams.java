@@ -3,7 +3,7 @@ package dev.ss05.halley;
 import net.minecraft.util.Mth;
 
 /**
- * SA-03 Proxima's sizes for one cast (docs/SS-07-PROXIMA.md): a wide, shallow scorch with a glassy bowl in the middle
+ * SA-04 Proxima's sizes for one cast (docs/SS-07-PROXIMA.md): a wide, shallow scorch with a glassy bowl in the middle
  * ("a large radius but small block damage depth-wise"). The power slider scales every radius, and the bowl's depth more
  * gently. They ride along in the effect packet, so every client draws the same strike.
  *

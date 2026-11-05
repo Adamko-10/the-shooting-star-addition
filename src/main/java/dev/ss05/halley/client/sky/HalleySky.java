@@ -13,6 +13,7 @@ import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.luna.MoonFx;
+import dev.ss05.halley.client.proxima.ProximaFx;
 import dev.ss05.halley.client.render.BakedTexture;
 import dev.ss05.halley.client.render.HalleyRenderTypes;
 import dev.ss05.halley.client.render.ShaderPacks;
@@ -50,15 +51,15 @@ import org.joml.Matrix4fStack;
  */
 public final class HalleySky {
     /** The dark sky's colours, zenith/middle/horizon, by {@link SkyLook#palette()} (matches halley_sky.fsh's defaults). */
-    private static final Vec3[] NIGHT_ZENITH = {new Vec3(0.010, 0.017, 0.055), new Vec3(0.050, 0.010, 0.006)};
-    private static final Vec3[] NIGHT_MIDDLE = {new Vec3(0.022, 0.045, 0.125), new Vec3(0.150, 0.035, 0.012)};
-    private static final Vec3[] NIGHT_HORIZON = {new Vec3(0.055, 0.110, 0.215), new Vec3(0.360, 0.090, 0.020)};
+    private static final Vec3[] NIGHT_ZENITH = {new Vec3(0.010, 0.017, 0.055), new Vec3(0.050, 0.010, 0.006), new Vec3(0.200, 0.020, 0.045)};
+    private static final Vec3[] NIGHT_MIDDLE = {new Vec3(0.022, 0.045, 0.125), new Vec3(0.150, 0.035, 0.012), new Vec3(0.520, 0.070, 0.085)};
+    private static final Vec3[] NIGHT_HORIZON = {new Vec3(0.055, 0.110, 0.215), new Vec3(0.360, 0.090, 0.020), new Vec3(0.950, 0.330, 0.190)};
     /**
      * The haze's colours by palette (veilSky in halley_sky.fsh): at the horizon ({@code h = 0}) and overhead
      * ({@code h >= 0.85}). SS-06's is a warm dusty haze instead of SS-05's pale ice.
      */
-    private static final Vec3[] VEIL_HORIZON_BY_PALETTE = {new Vec3(0.56, 0.76, 0.90), new Vec3(0.62, 0.38, 0.20)};
-    private static final Vec3[] VEIL_TOP = {new Vec3(0.30, 0.50, 0.76), new Vec3(0.42, 0.22, 0.10)};
+    private static final Vec3[] VEIL_HORIZON_BY_PALETTE = {new Vec3(0.56, 0.76, 0.90), new Vec3(0.62, 0.38, 0.20), new Vec3(0.60, 0.36, 0.32)};
+    private static final Vec3[] VEIL_TOP = {new Vec3(0.30, 0.50, 0.76), new Vec3(0.42, 0.22, 0.10), new Vec3(0.36, 0.18, 0.17)};
     /** Half the size of the cube drawn round the camera (well inside the far plane at any render distance). */
     private static final float SIZE = 50.0F;
 
@@ -84,7 +85,8 @@ public final class HalleySky {
     public static void update(RenderFrameEvent.Pre event) {
         current = null;
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level == null || (HalleyFx.active().isEmpty() && MoonFx.active().isEmpty()) || !HalleyClientConfig.sky()) {
+        if (minecraft.level == null || (HalleyFx.active().isEmpty() && MoonFx.active().isEmpty() && ProximaFx.active().isEmpty())
+            || !HalleyClientConfig.sky()) {
             return;
         }
         float partial = event.getPartialTick().getGameTimeDeltaPartialTick(true);
@@ -108,6 +110,17 @@ public final class HalleySky {
             }
             SkyLook look = fx.sky(partial, camera);
             float strength = look.cover() + look.flash() + look.aurora() * 0.2F + look.cometGlow() * 0.1F;
+            if (look.visible() && strength >= bestStrength) {
+                best = look;
+                bestStrength = strength;
+            }
+        }
+        for (ProximaFx fx : ProximaFx.active()) {
+            if (fx.finished(partial)) {
+                continue;
+            }
+            SkyLook look = fx.sky(partial, camera);
+            float strength = look.cover() + look.flash() + look.cometGlow() * 0.1F;
             if (look.visible() && strength >= bestStrength) {
                 best = look;
                 bestStrength = strength;
@@ -433,7 +446,7 @@ public final class HalleySky {
             return vanilla;
         }
         // faint, starlit blue: a little lighter than the dark sky behind them, so they don't read as holes in it
-        Vec3 c = vanilla.lerp(new Vec3(0.085, 0.13, 0.24), look.night());
+        Vec3 c = vanilla.lerp(look.palette() == SkyLook.PALETTE_PROXIMA ? new Vec3(0.75, 0.28, 0.22) : new Vec3(0.085, 0.13, 0.24), look.night());
         return c.lerp(new Vec3(0.88, 0.95, 1.0), look.veil() * 0.4);
     }
 

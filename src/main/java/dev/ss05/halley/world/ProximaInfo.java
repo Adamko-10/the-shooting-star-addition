@@ -19,7 +19,7 @@ public final class ProximaInfo {
     /** A minute, like the remote's biggest skills. */
     public static final int COOLDOWN = 1200;
 
-    /** "SA-03 · Proxima" (see {@link Codenames}). */
+    /** "SA-04 · Proxima" (see {@link Codenames}). */
     public static String title() {
         return Codenames.PROXIMA + " · Proxima";
     }

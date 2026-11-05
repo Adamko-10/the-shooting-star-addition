@@ -8,7 +8,7 @@ import dev.ss05.halley.compat.StarBridge;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
 
-/** What happens when SA-03's button is pressed (server side). The cooldown is handled by the remote itself (see NoCooldown). */
+/** What happens when SA-04's button is pressed (server side). The cooldown is handled by the remote itself (see NoCooldown). */
 public final class ProximaCasting {
     private ProximaCasting() {
     }

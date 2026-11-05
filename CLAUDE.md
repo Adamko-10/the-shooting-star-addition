@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **The Shooting Star Addition** - handoff notes for whoever (human or Claude) works on this next. Written 2026-10-14 at
 the end of the 1.4.0 work, updated 2026-10-17 for 1.5.0 (§12) and 2026-10-18 for the user's 1.5.0 test round (§13; status in §9),
-and 2026-10-29 with the agreed plan for the next updates and SA-03 Proxima (§14, §15). Nothing in §14/§15 is built yet.
+and 2026-10-29 with the agreed plan for the next updates and Proxima (§14, §15; SA-04 since 2026-11-05).
 **2026-10-31: 1.6.0 = The Shooting Star 1.5.0 + RimuLib support (§16); read §16 before §5, which describes 1.4.x.**
 2026-11-03: how RimuLib 1.2.2 makes huge carvings fast and how we'd use it (§17); Stellar Convergence, fire every
 weapon at once (§18).
@@ -31,7 +31,9 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   (§18). Master sliders on SA-00, Gravitia last, and the Convergence shake setting built 2026-11-05 (§18).
 - **2026-11-05: main moved to TSS 1.5.2 + RimuLib 1.2.2 and partly to RimuLib's public API** (§16a, §17a; the user
   picked the API switch, TSS 1.5.2 dropped meanwhile). The mapping tool's long-standing anchor bug is fixed (§16a).
-- **SA-03 Proxima: stage 1 of 5 built 2026-11-05** (the playable strike: on the remote as skill #8, key Z; flash burn,
+- **SA-04 Proxima: stage 1 of 5 built 2026-11-05** (renamed from SA-03 the same day, the user: comet, moon, then a
+  star skipped a step; **SA-03 is kept free** for a skill between the moon and a star, to fill later). The playable
+  strike: on the remote as skill #8, key Z; flash burn,
   glassy bowl, scorch, damage tiers, basic effects with borrowed sounds). Its build record, stages and code map:
   `docs/SS-07-PROXIMA.md`; the agreed design: §15. Game-tested on the flat test world (`test builds6-11-05 auto
   test 18 proximalat`: the bowl 6 deep tapering to 0 at 24 blocks, cut in 14 ms; the scorch round a village whose
@@ -77,7 +79,8 @@ are on **Hamza's PC**; anywhere else, you are on **Adam's PC**. Adam is the one 
 - **Reminders to give the user** (bring each up at its moment, unasked; the user wants none forgotten):
   - idea #16 (§10), for the Mrityu mod: "later", e.g. at the end of a work session;
   - Proxima's other film ideas (§15, "Extra content") once Proxima's film is built and again when it ships;
-  - the SA-04 candidates (§10) once Proxima is under way; the Solar Residue economy (§14) when Proxima is built.
+  - the SA-05+ candidates (§10; reminded 2026-11-05) and the free SA-03 slot; the Solar Residue economy (§14) when
+    Proxima is built.
 - **Update this file at the end of every turn** (user, 2026-11-03): decisions, answers, new ideas, what changed and
   what's open, in the section it belongs to, then commit it on its own (push only when the user says so, as always).
 - **Keep every project file in the project folder** (§2), not in Downloads or elsewhere.
@@ -475,9 +478,9 @@ From the community list the user forwarded (they picked 1, 2 and 4 for 1.4.0):
 8. **Typing a number into the sliders** (text box): TSS's menu; a mixin into `WhiteSpace` would be fragile.
 9. **Fonts**: TSS's menu font; not ours to change.
 10. **Harder recipe**: for the remote; goes with 3.
-11. **Yog-Sothoth** skill, 12. **supernova / black hole / TON-618** skills, 14. **planets**: new skills (SA-04...).
-   Each is a project like Luna (plan, params, strike, fx, storyboard, sounds, config, docs). SA-03 is Proxima (§15).
-   **SA-04 candidates the user wants to discuss later (remind them once Proxima is under way):**
+11. **Yog-Sothoth** skill, 12. **supernova / black hole / TON-618** skills, 14. **planets**: new skills (SA-03, the free slot between moon and star, or SA-05...).
+   Each is a project like Luna (plan, params, strike, fx, storyboard, sounds, config, docs). SA-04 is Proxima (§15; SA-03 until 2026-11-05).
+   **SA-05+ candidates the user wants to discuss later (reminded 2026-11-05, when Proxima got under way):**
    - **Neutron star**: gravity waves causing earthquakes, volcanoes, tsunamis and cracks "in the entire world". Must be
      scaled to a region (whole-map edits would freeze the server): pulses of gravity waves, cracks rippling out from a
      centre, a few magma vents, the sea pulling back and surging in.
@@ -511,7 +514,7 @@ From the CurseForge comments (reviewed 2026-11-03):
 - **The sounds sound AI-made** (they are): replace the main ones with real or licensed sounds.
 - **Films "exactly like the original"**: the style, not TSS's assets (§9).
 - **Incursion** (gomez_96): two Earths colliding. Could reuse Luna's machinery.
-- **Pulsar** (sound_dream): a gamma-ray beam sweeping a line, leaving radiation. Fits the SA-04 neutron star.
+- **Pulsar** (sound_dream): a gamma-ray beam sweeping a line, leaving radiation. Fits the neutron-star candidate.
 - Forge: players found it buggy, and since 1.6.0 Forge gets no in-game test (§16): test it once before a release.
 
 Visual/sound polish the user asked for but that was cut for budget:
@@ -679,7 +682,7 @@ Findings and fixes (main `449de31`, `f64b0c3`, `e72839c`; cherry-picked to every
 - done on main 2026-11-04, game-tested: the **operator command** and the **protected-blocks tag** (below); still to do:
   **Epic mode** (needs `Video-Project-48.mp3` from Hamza's PC for its music), and saying both in the README, the
   changelog and the CurseForge description at release (with the command's no-limits warning);
-- **SA-03 Proxima** (§15);
+- **SA-04 Proxima** (§15);
 - **Stellar Convergence** (§18);
 - done on main 2026-11-04, to test: the **Gravitia keybind** (`compat/tss/mixin/SkillKeysMixin`: RimuLib's
   `SkillKeys.register` skips any skill whose `selectWarning()` isn't null, which is why Gravitia, "it can only be
@@ -752,7 +755,7 @@ applies to; `SpellsMixin` makes the lookup return null meanwhile. Clearing the c
 never covered that check. Both names change with every TSS update (§16).
 
 Order before that (2026-10-22): **(1)** NeoForge music check (§9) → **(2)** operator commands, Epic mode,
-protected-blocks tag → **(3)** SA-03 Proxima (§15). **One addon** for everything (the user decided; per-skill on/off
+protected-blocks tag → **(3)** Proxima (§15). **One addon** for everything (the user decided; per-skill on/off
 switches in the config instead of a second addon, which would double the mapping/branch/CI/CurseForge work every TSS
 update).
 
@@ -822,10 +825,10 @@ The user runs a modded server (Montauk County partnership) where this addon will
   portal animation and opens like a case to give the Stellar Remote (ties into §10 #3); keep one skill unused in the
   finale and point players to download the addon to try it; mention in the community that updates may be slower.
 
-## 15. SA-03 · Proxima (design agreed 2026-10-22/23; stage 1 built 2026-11-05, see docs/SS-07-PROXIMA.md)
+## 15. SA-04 · Proxima (design agreed 2026-10-22/23; stage 1 built 2026-11-05, see docs/SS-07-PROXIMA.md)
 
 A red-dwarf flare star inside a Dyson sphere fires a solar flare and then a coronal mass ejection (CME) at the
-crosshair. Name: **Proxima** (Proxima Centauri, a real flare star; the user loves it), skill id `proxima`, SA-03.
+crosshair. Name: **Proxima** (Proxima Centauri, a real flare star; the user loves it), skill id `proxima`, SA-04 (SA-03 until 2026-11-05; SA-03 is kept free).
 Sources: the user's notes, a Gemini chat, another AI's design brief (`solar_flare_chat.txt`) and a CurseForge thread
 (conaialator: "an artificial red dwarf with a Dyson sphere ... or more likely a CME, which brings the plasma"; the
 user: "a large radius but small block damage depth-wise"). The user approved all of the ideas below; numbers are
@@ -1237,11 +1240,22 @@ own thing, not a copy of it.
     blocks off fell into the void, as with those weapons alone. At the hit every weapon's own screen effects (TSS's
     impact frames, glitches) run at once; flashes and impact frames don't add up (RimuLib's `ScreenFx.addFlash`/
     `addImpact` keep the strongest), the camera shake did (below).
-  - **Gravitia fires last (the user's pick, 2026-11-05)**: `Convergence.finale(skill)` (TSS's `gravitia`) is cast
-    `FINALE_AFTER` = 600 ticks (30 s) after the others hit, at the mark (not in the ring), once their craters are cut
-    (TSS 1.5.2's last carving ended ~25 s after the hit); alone, it fires at once. Its own film plays then (Convergence
-    holds films only until 20 ticks after the hit). The plate shows "last, 30 s on" on its row. Still unticked by
-    default. Tested (`test builds\2026-11-05 auto test 16 gravitia last, shake cap\capped\`): the hits at 353, the
+  - **Gravitia fires last, once the others are done (the user, 2026-11-05; first a fixed 30 s: "super delayed")**:
+    `Convergence.finale(skill)` (TSS's `gravitia`) waits at least `FINALE_MIN` = 100 ticks after the hit (Seven Stars
+    starts its constellation lines ~2.5 s after it), then fires as soon as `othersDone`: none of the caster's addon
+    strikes still working on the land (`Spell.busy`: the spell's `worldDone()`; not `Spell.running`, which held it to
+    Luna's whole aftermath, 341 ticks; tested: Halley + Luna + Gravitia fired it 100 ticks after the hit, `test builds\2026-11-05
+    auto test 18 proxima\finale2\`) and no RimuLib carving in that world still cutting (reflection on
+    `Carving.LIVE`, a weak set of every carving, each `done()`; the ones in `Carving.LINGERING`, waiting for unloaded
+    land, don't count); at the latest `FINALE_MAX` = 1200 ticks after the hit. Logged: "Stellar Convergence fires its
+    finale, gravitia, N ticks after the hit". At the mark (not in the ring); alone, it fires at once; its own film plays
+    then (Convergence holds films only until 20 ticks after the hit). The plate shows "last ·" on its row. Still
+    unticked by default.
+  - **The plate's old look (the user, 2026-11-05)**: T on the plate switches old/new, client config
+    `convergence_plate_old` (default false = new). Old = as before the 2026-11-05 tweak: always shown whatever skill is
+    selected, the addon plate's size, 236 wide, 13-pixel rows, a two-line hint, no V fold, its keys work whatever is
+    selected. New = 0.8 of that, only while SA-00 is selected, V folds it.
+  - First Gravitia version tested (`test builds\2026-11-05 auto test 16 gravitia last, shake cap\capped\`): the hits at 353, the
     world in Imaginary Space at 1000, Gravitia's film at the end.
   - **Convergence shake: CAPPED / FULL / OFF (the user, 2026-11-05)**, X on the plate, client config
     `convergence_shake` (default CAPPED), from the cast until 20 s after the hit (`ConvergenceClient.active()`). TSS's

@@ -46,6 +46,11 @@ final class MoonSpell extends Spell {
     }
 
     @Override
+    protected boolean worldDone() {
+        return this.strike.worldDone();
+    }
+
+    @Override
     protected void onEnd() {
         this.strike.end();
     }

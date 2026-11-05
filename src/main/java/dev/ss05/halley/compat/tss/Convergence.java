@@ -5,6 +5,7 @@ import cyou.rimuru.rimulib.mc1211.net.RimuPacket;
 import cyou.rimuru.rimulib.mc1211.skill.Skill;
 import cyou.rimuru.rimulib.mc1211.skill.SkillSet;
 import cyou.rimuru.rimulib.mc1211.skill.Tuning;
+import cyou.rimuru.rimulib.mc1211.terrain.Carving;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.HalleyParams;
@@ -58,10 +59,13 @@ public final class Convergence {
     static final int LONGEST = 353;
     /**
      * Gravitia sends the whole world into its space stage for good, which stopped the other weapons' impacts in a test
-     * run: it fires last, this long after the others hit, once their craters are cut (the user's pick, 2026-11-05; the
-     * last TSS carving ended ~25 s after the hit on TSS 1.5.2). Its own film plays then.
+     * run: it fires last, once the others are done (the user, 2026-11-05: a fixed 30 s felt too long): no carving still
+     * cutting in that world and none of the addon's strikes still working ({@link #othersDone}), but not before this long
+     * after the hit (Seven Stars starts its constellation lines ~2.5 s after it)...
      */
-    private static final int FINALE_AFTER = 600;
+    private static final int FINALE_MIN = 100;
+    /** ...and at the latest this long after it (a carving waiting for land that never loads). Its own film plays then. */
+    private static final int FINALE_MAX = 1200;
 
     /**
      * Ticks from the cast to the impact at speed 1, power 1, for The Shooting Star 1.5.1's weapons: measured in a game
@@ -114,7 +118,7 @@ public final class Convergence {
     }
 
     /** One weapon waiting for its tick. */
-    private record Pending(UUID caster, Skill skill, Tuning tuning, Vec3 at, long tick) {
+    private record Pending(UUID caster, Skill skill, Tuning tuning, Vec3 at, long tick, long latest) {
     }
 
     static void received(ServerPlayer player, Picks picks) {
@@ -167,16 +171,16 @@ public final class Convergence {
             Vec3 at = spots != null ? ground(level, spots[i], target.y) : target;
             // unknown (another addon's): with the slowest, at once
             long delay = weapon.impact() < 0 ? 0 : last - weapon.impact();
-            PENDING.add(new Pending(player.getUUID(), weapon.skill(), weapon.tuning(), at, now + delay));
+            PENDING.add(new Pending(player.getUUID(), weapon.skill(), weapon.tuning(), at, now + delay, -1L));
             colors[i] = weapon.skill().color();
             points[i] = at;
         }
         for (Weapon weapon : finale) {
-            PENDING.add(new Pending(player.getUUID(), weapon.skill(), weapon.tuning(), target, now + last + FINALE_AFTER));
+            PENDING.add(new Pending(player.getUUID(), weapon.skill(), weapon.tuning(), target, now + last + FINALE_MIN, now + last + FINALE_MAX));
         }
         HalleyAddon.LOG.info("{} cast Stellar Convergence: {} at {} (all hit in {} ticks{})", player.getGameProfile().getName(),
             weapons.stream().map(w -> w.skill().id() + "+" + (w.impact() < 0 ? 0 : last - w.impact())).toList(), target, last,
-            finale.isEmpty() ? "" : ", then " + finale.stream().map(w -> w.skill().id()).toList() + " " + FINALE_AFTER + " ticks later");
+            finale.isEmpty() ? "" : ", then " + finale.stream().map(w -> w.skill().id()).toList() + " once the rest are done");
         ConvergenceFx.send(player, new ConvergenceFx(player.getId(), target, now + last, picks.ring(), colors, points));
         return true;
     }
@@ -192,7 +196,8 @@ public final class Convergence {
             ServerPlayer player = server.getPlayerList().getPlayer(pending.caster());
             if (player == null) {
                 it.remove();
-            } else if (player.serverLevel().getGameTime() >= pending.tick()) {
+            } else if (player.serverLevel().getGameTime() >= pending.tick() && (pending.latest() < 0
+                    || player.serverLevel().getGameTime() >= pending.latest() || othersDone(player.serverLevel(), pending.caster()))) {
                 it.remove();
                 due.add(pending);
             }
@@ -202,6 +207,10 @@ public final class Convergence {
             SkillSet set = SkillSet.of(pending.skill());
             if (player == null || set == null) {
                 continue;
+            }
+            if (pending.latest() >= 0) {
+                HalleyAddon.LOG.info("Stellar Convergence fires its finale, {}, {} ticks after the hit", pending.skill().id(),
+                    player.serverLevel().getGameTime() - (pending.latest() - FINALE_MAX));
             }
             StrikeAim.set(pending.at());
             NoCooldown.forced(true);
@@ -333,10 +342,49 @@ public final class Convergence {
         return Mth.ceil(base / Math.max(0.05F, tuning.speed()));
     }
 
-    /** Whether this weapon fires last, after the others' destruction ({@link #FINALE_AFTER}): The Shooting Star's Gravitia. */
+    /** Whether this weapon fires last, once the others are done ({@link #FINALE_MIN}): The Shooting Star's Gravitia. */
     public static boolean finale(Skill skill) {
         return skill.id().equals("gravitia") && SkillSet.of(skill) == SkillSet.of(TssLink.SKILL);
     }
+
+    /**
+     * Whether the weapons before the finale are done: none of the addon's strikes of this caster still working on the land
+     * (their effects may run on: Luna's aftermath lasts 17 s after the moon is down), and no
+     * carving in this world still cutting (RimuLib's, which every remote skill cuts through; the ones lingering for land
+     * that isn't loaded don't count). Read from RimuLib's internals; if they move, the finale waits {@link #FINALE_MIN}.
+     */
+    private static boolean othersDone(ServerLevel level, UUID caster) {
+        if (Spell.busy(TssLink.SKILL, caster) || Spell.busy(TssLink.MOON, caster) || Spell.busy(TssLink.PROXIMA, caster)) {
+            return false;
+        }
+        try {
+            if (live == null) {
+                live = Carving.class.getDeclaredField("LIVE");
+                waiting = Carving.class.getDeclaredField("LINGERING");
+                carvingLevel = Carving.class.getDeclaredField("level");
+                live.setAccessible(true);
+                waiting.setAccessible(true);
+                carvingLevel.setAccessible(true);
+            }
+            List<?> lingering = new ArrayList<>((java.util.Collection<?>) waiting.get(null));
+            for (Object each : new ArrayList<>((java.util.Collection<?>) live.get(null))) {
+                if (each instanceof Carving carving && carvingLevel.get(carving) == level && !carving.done() && !lingering.contains(carving)) {
+                    return false;
+                }
+            }
+        } catch (ReflectiveOperationException | RuntimeException moved) {
+            if (!warned) {
+                warned = true;
+                HalleyAddon.LOG.warn("Stellar Convergence can't see RimuLib's carvings; its finale fires {} ticks after the hit", FINALE_MIN, moved);
+            }
+        }
+        return true;
+    }
+
+    private static java.lang.reflect.Field live;
+    private static java.lang.reflect.Field waiting;
+    private static java.lang.reflect.Field carvingLevel;
+    private static boolean warned;
 
     /** A non-hidden remote skill by its id (any mod's). */
     static Skill find(String id) {

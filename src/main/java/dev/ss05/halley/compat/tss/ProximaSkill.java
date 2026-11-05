@@ -7,7 +7,7 @@ import dev.ss05.halley.ProximaParams;
 import dev.ss05.halley.ProximaPlan;
 import dev.ss05.halley.world.ProximaInfo;
 
-/** SA-03 Proxima as an entry on the Stellar Remote. The values themselves live in {@link ProximaInfo} and its plan. */
+/** SA-04 Proxima as an entry on the Stellar Remote. The values themselves live in {@link ProximaInfo} and its plan. */
 public final class ProximaSkill implements Skill {
     ProximaSkill() {
     }

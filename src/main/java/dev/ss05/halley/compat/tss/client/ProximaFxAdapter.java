@@ -18,7 +18,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.phys.Vec3;
 
-/** SA-03's effects as one of The Shooting Star's spell effects: it ticks and draws its post-processing there. */
+/** SA-04's effects as one of The Shooting Star's spell effects: it ticks and draws its post-processing there. */
 final class ProximaFxAdapter extends SpellFx {
     private final ProximaFx fx;
 

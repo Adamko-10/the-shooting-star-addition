@@ -7,7 +7,7 @@ import dev.ss05.halley.world.ProximaStrike;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
 
-/** SA-03 running as one of the addon's spells (see {@link Spell}). All the behaviour is in {@link ProximaStrike}. */
+/** SA-04 running as one of the addon's spells (see {@link Spell}). All the behaviour is in {@link ProximaStrike}. */
 final class ProximaSpell extends Spell {
     /** How long the spell may run on past its timeline to finish its work on loaded land: five minutes of it. */
     private static final int MAX_EXTRA = 6000;
@@ -34,6 +34,11 @@ final class ProximaSpell extends Spell {
     @Override
     protected int[] fxTargets() {
         return this.strike.plan().params.encode();
+    }
+
+    @Override
+    protected boolean worldDone() {
+        return this.strike.worldDone();
     }
 
     @Override

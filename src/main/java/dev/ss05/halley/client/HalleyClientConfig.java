@@ -34,6 +34,7 @@ public final class HalleyClientConfig {
     private static final ModConfigSpec.ConfigValue<List<? extends String>> CONVERGENCE;
     private static final ModConfigSpec.BooleanValue CONVERGENCE_RING;
     private static final ModConfigSpec.BooleanValue CONVERGENCE_PLATE;
+    private static final ModConfigSpec.BooleanValue CONVERGENCE_PLATE_OLD;
     private static final ModConfigSpec.EnumValue<ConvergenceShake> CONVERGENCE_SHAKE;
     /** What Stellar Convergence fires out of the box: every weapon but Gravitia (which only the menu chooses). */
     private static final List<String> CONVERGENCE_DEFAULT = List.of("the_shooting_star", "gungnir", "seven_stars", "tesseract", "halley", "luna", "proxima");
@@ -109,6 +110,9 @@ public final class HalleyClientConfig {
         CONVERGENCE_PLATE = b.comment("Stellar Convergence's plate in the remote's menu, shown while it is the selected skill (false: just its",
                 "name). V in the remote's menu.")
             .define("convergence_plate", true);
+        CONVERGENCE_PLATE_OLD = b.comment("Stellar Convergence's plate in its old look: always shown in the remote's menu, at the addon plate's",
+                "size (false: the smaller one, shown while it is the selected skill). T in the remote's menu.")
+            .define("convergence_plate_old", false);
         CONVERGENCE_SHAKE = b.comment("The screen shake while a Stellar Convergence is on its way and for 20 s after it hits: CAPPED (no",
                 "stronger than one big weapon's, though every weapon shakes), FULL (every weapon's added up) or OFF. X in the remote's menu.")
             .defineEnum("convergence_shake", ConvergenceShake.CAPPED);
@@ -207,6 +211,15 @@ public final class HalleyClientConfig {
 
     public static void setConvergencePlate(boolean on) {
         set(CONVERGENCE_PLATE, on);
+    }
+
+    /** Stellar Convergence's plate in its old look (always shown, bigger) instead of the new one. */
+    public static boolean convergencePlateOld() {
+        return get(CONVERGENCE_PLATE_OLD);
+    }
+
+    public static void setConvergencePlateOld(boolean on) {
+        set(CONVERGENCE_PLATE_OLD, on);
     }
 
     public static ConvergenceShake convergenceShake() {

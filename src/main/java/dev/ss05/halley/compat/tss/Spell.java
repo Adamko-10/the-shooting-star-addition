@@ -54,6 +54,9 @@ abstract class Spell {
 
     protected abstract void onEnd();
 
+    /** Whether the strike's work on the land that can be done now is done (its effects may run on after it). */
+    protected abstract boolean worldDone();
+
     private boolean tick() {
         this.caster = this.level.getServer().getPlayerList().getPlayer(this.casterId);
         if (this.caster != null && this.caster.level() != this.level) {
@@ -89,6 +92,16 @@ abstract class Spell {
         } catch (LinkageError | RuntimeException unknown) {
             return false;
         }
+    }
+
+    /** Whether a strike of this skill by this caster is still working on the land (Stellar Convergence's finale waits for it). */
+    static boolean busy(Skill skill, UUID caster) {
+        for (Spell spell : ACTIVE) {
+            if (spell.skill == skill && spell.casterId.equals(caster) && !spell.worldDone()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static boolean running(Skill skill, UUID caster) {

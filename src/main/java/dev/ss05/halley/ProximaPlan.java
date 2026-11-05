@@ -4,7 +4,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * SA-03 Proxima's timeline (ticks at speed 1, 20 a second) and the shape of its scorch, shared by the server (what
+ * SA-04 Proxima's timeline (ticks at speed 1, 20 a second) and the shape of its scorch, shared by the server (what
  * happens to the world) and every client (what is seen and heard), so both follow the same strike. Change a constant
  * here and everything moves with it. See docs/SS-07-PROXIMA.md.
  */
