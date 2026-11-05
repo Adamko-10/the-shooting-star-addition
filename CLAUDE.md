@@ -53,7 +53,17 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   `test builds\2026-11-05 Proxima film\`). **Part 2, the space intro, BUILT and game-tested** the same night
   (docs stage 3; the timeline moved 60 ticks later for it: IMPACT 330; jar `test builds\2026-11-05 Proxima space
   intro\`, in the Modrinth profile). **Next: part 3 (Earth: ask before downloading imagery), or stage 5 (sounds,
-  music, config)**. The plan as agreed:
+  music, config)**.
+- **Stage 5 (sounds, music, config) was started late 2026-11-05 and then PAUSED by the user** ("dont proceed, i will
+  do it rn": they are getting Proxima's music file). Nothing of stage 5 is written; the tree was clean. When they send
+  the file: cut it so its drop lands on IMPACT (330), like Luna's (§6, docs/SS-06-LUNA.md), then Proxima's own sounds
+  (ffmpeg, like `art/make_proxima_sounds.sh`: space drone, iris grind, beam, flash, impact, wave) and a `[proxima]`
+  config section (model: `MoonConfig.define`, sections in the common config; §15's list: enable switch, sizes,
+  shelter blocks, knockback, radiation minutes/damage, terrain on/off, residue on/off).
+- **Film lengths** (the user asked): Proxima's film is 520 ticks = **26 s** at speed 1 (`ProximaStoryboard.END` =
+  IMPACT + 190); Halley's ~23 s, Luna's ~25 s; the speed slider scales them. The user then asked **how long TSS's own
+  films are**: not answered yet (a javap of TSS 1.5.2's readable jar `build/shooting-star-named/` was cut off by the
+  compaction): read each skill's film/`duration()` there and answer. The plan as agreed:
   Agreed with the user in three parts: **(1) the in-world film first** (shots following the strike: the caster's
   remote, the flash, the CME front coming down the sky, the wall rolling past, a pull-back over the scorched land;
   a title card "SA-04 PROXIMA" like Halley's/Luna's (`compat/tss/client/FilmTitle`); a film HUD (like `MoonHud.film`)
