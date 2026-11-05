@@ -35,10 +35,12 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   star skipped a step; **SA-03 is kept free** for a skill between the moon and a star, to fill later). The playable
   strike: on the remote as skill #8, key Z; flash burn,
   glassy bowl, scorch, damage tiers, basic effects with borrowed sounds). Its build record, stages and code map:
-  `docs/SS-07-PROXIMA.md`; the agreed design: §15. Game-tested on the flat test world (`test builds6-11-05 auto
-  test 18 proximalat`: the bowl 6 deep tapering to 0 at 24 blocks, cut in 14 ms; the scorch round a village whose
+  `docs/SS-07-PROXIMA.md`; the agreed design: §15. Game-tested on the flat test world (`test builds\2026-11-05 auto
+  test 18 proxima\flat\`: the bowl 6 deep tapering to 0 at 24 blocks, cut in 14 ms; the scorch round a village whose
   houses stand). Not yet seen: trees burning and charring (the harness can't film real land: its camera follows its own
-  mark, which was water there). Test jar `test builds6-11-05 Proxima stage 1`, in the Modrinth profile.
+  mark, which was water there). Its red sky (docs/SS-07-PROXIMA.md stage 1) is seen without a shader pack; not yet
+  with one (the test client has none: the user's to check). Test jar
+  `test builds\2026-11-05 Proxima SA-04, sky, plate style, finale\`, in the Modrinth profile.
 - **Next, the update's remaining list** (§14): Proxima stages 2-5 (the user's track for stage 5), Epic mode (needs
   `Video-Project-48.mp3` from Hamza's PC; not on Adam's PC, searched 2026-11-04), then
   port to the six other branches (§3), CI, one Forge test, README/changelog/CurseForge text, release.
