@@ -29,6 +29,8 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   weapons (open, §18). Then switch to RimuLib's public API (§17a, recommended before porting).
 - **Done 2026-11-05**: the Convergence plate is smaller, shows only while SA-00 is selected, and V folds it to its name
   (§18). Still open: the master power slider (explained to the user 2026-11-05, §18; not decided).
+- **2026-11-05: main moved to TSS 1.5.2 + RimuLib 1.2.2 and partly to RimuLib's public API** (§16a, §17a; the user
+  picked the API switch, TSS 1.5.2 dropped meanwhile). The mapping tool's long-standing anchor bug is fixed (§16a).
 - **Next, the update's remaining list** (§14): Epic mode (needs `Video-Project-48.mp3` from Hamza's PC; not on Adam's
   PC, searched 2026-11-04), SA-03 Proxima (§15, needs the user's track), then
   port to the six other branches (§3), CI, one Forge test, README/changelog/CurseForge text, release.
@@ -970,7 +972,43 @@ bundle with nested jars per MC like TSS's). Everything below is true of 1.6.0; �
   int), so decompiled bodies are harder to read. The other six branches need the same per-loader check (their raw
   names differ per build, see above).
 
-## 17a. RimuLib's public API (announced 2026-11-04; not used yet)
+## 16a. TSS 1.5.2 and RimuLib 1.2.2 (public 2026-11-04; main switched 2026-11-05)
+
+- **Files**: TSS 1.5.2 NeoForge 9438871, Forge 9438881, Fabric 9438887; RimuLib 1.2.2 NeoForge 9438830, Forge
+  9438825, Fabric 9438845 (found with `https://api.cfwidget.com/minecraft/mc-mods/<slug>`, which lists file ids
+  without a key). TSS 1.5.2 requires RimuLib `[1.2.2,2.0)`. It is a normal jar (the early-access 1.5.2 was a locked
+  launcher). main: `tss_min_version=1.5.2`, `rimulib_version_range=[1.2.2,2.0)`, `dev/ci/branches/main.sh` has both;
+  libs/ holds RimuLib 1.2.2 (1.2.1 moved to the project folder's `old versions\rimulib\`).
+- **The mapping tool had been pairing classes wrongly since 1.5.0**: `TssMatch.isObfName` only knew the old 1-2
+  letter names, so TSS 1.5's long ones (`i1i1iii11`) counted as readable and any class whose obfuscated name came back
+  in the next version was anchored as "the same class" (TSS reuses names for unrelated classes). That glued 1.5.2's
+  `SpellFx` to 1.5.1's film-subject class and left `FxManager`/`ActiveSpell` unmatched, and it is why 1.5.1 needed raw
+  names (`ll1lil1iill`, `l111i1lil1`, `il1i1li1l11`, `liiliiii1`). Now `[liI1]{5,}` names are obfuscated too: 1.5.1
+  matches 141/169 classes (was 119), 1.5.2 161/180 (was 125), report 32 lines (was 1052). Also: the rule that keeps an
+  old obfuscated name off a method that another method in the class (or a supertype) keeps now knows 1.5-style names
+  and identity-matched methods (1.5.2: `lliii1lil.liiiIll(F)F` onto `liiillli1l(F)F`, an "unfixable conflict" in the
+  remapper). The old mappings are backed up in the project folder's `old versions\mappings-before-2026-11-05\`; the chain
+  1.5.0 -> 1.5.1 -> 1.5.2 was remade in order.
+- **What compat/tss names now (1.5.2, readable again)**: `star/StarEngine.cast(ServerPlayer, StarSkill, Tuning)Z`
+  (`StarCastMixin`), `spell/SpellEngine.aimGround(ServerPlayer, double, double)` (`TssLink.aimGround`, `SpellsMixin`)
+  and its running-spell lookup, still unmapped: `SpellEngine.liiillli1l(StarSkill, UUID)ActiveSpell` (`SpellsMixin`);
+  `Casting.liiillli1l(ServerPlayer, int, float x4, boolean)` (the cast request, `CastingMixin`), `FxManager`,
+  `SpellFx`, `Frame`. Still raw: the effect packet record `ll1i111l11` (same 15 fields; 1.5.0 `l1l1i1lii1`, 1.5.1
+  `ll1lil1iill`). New in 1.5.2: a readable `magic/CastBridge` (static `install()`; not used), and TSS's casting state
+  goes through RimuLib (`CastState$Source`), FxManager owns RimuLib's `PostFxRenderer`.
+- Game test: `test builds\2026-11-05 auto test 13 TSS 1.5.2\`.
+
+## 17a. RimuLib's public API (announced 2026-11-04; partly used since 2026-11-05)
+
+**Switched on main 2026-11-05**: `TssLink.install` joins the remote with `SkillApi.whenRegistered` + `SkillApi.extend`
+(no more writing into SkillSet's private tables) after `RimulibApi.connect(MOD_ID, HalleyAddon.class, "1.2.2")`;
+packets through `NetApi`/`NetClientApi` (`NetApi.packet`, `toClient`, `toServer`, `receive`, `send`, `canSend`; the
+client handlers hop to the game thread); the plates and their keys through `UiApi.onMenuDraw` + `MenuApi.onKey`
+(`WhiteSpaceMixin` deleted; `menuUses` reads `MenuApi.binding/menuKey/filmKey/key`); overlay units through
+`UiApi.overlay/width/height`. Still RimuLib internals (no public equivalent): `Carving` (our carvings tick themselves and
+Luna's outer crater needs `linger()`; `CarveApi.Cut` has neither), `SectionSink`, `relightAll`, `Bulwark.spares`,
+`Erasure`, `CutsceneDirector` (+ `CutsceneDirectorMixin`), `SkillKeys` (+ `SkillKeysMixin`), `SkillTuning`,
+`ClientSkills`, `TessType`, `ScreenFx`, film types.
 
 RimuLib **1.2.2 is public on CurseForge** and is the first with a **public API**: only `cyou.rimuru.rimulib.api` and
 `cyou.rimuru.rimulib.client.api` (plus the types they use) are supported; "everything else is internal and can change in
