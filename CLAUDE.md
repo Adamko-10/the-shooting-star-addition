@@ -75,6 +75,9 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   mode (a longer lead before the drop) it still helps: its 0-8.45 s are what the shipped cut lacks, so the full
   track = this file up to ~10 s (+13 dB) joined onto luna_music.ogg from 1.555 s (sample-aligned there, short
   crossfade). Epic mode no longer needs Hamza's PC for that, unless the real original turns up.
+  Game run (`test builds\2026-11-05 auto test 21 proxima music\`): no sound errors of ours. Test jar and the cut file:
+  `test builds\2026-11-05 Proxima music\`, in the Modrinth profile (the space-intro build there renamed `.disabled`).
+  Not heard yet: by the user, in game.
 - **Film lengths** (the user asked): Proxima's film is 520 ticks = **26 s** at speed 1 (`ProximaStoryboard.END` =
   IMPACT + 190); Halley's ~23 s, Luna's ~25 s; the speed slider scales them. The user then asked **how long TSS's own
   films are** (answered 2026-11-05): each skill's `duration()` in TSS 1.5.2 (whole skill, film included; its film
