@@ -46,7 +46,20 @@ config); this file is the build's own record: what exists, where it lives, and w
      tick: wire, lamps, torches, blocks); water under the open sky steams in the flash and as the wave passes; nine
      cracks of light race out from the bowl at the impact and cool over 4 s (`ProximaFx.cracks`). Not checked in game:
      the compass, sparks and steam (the flat test world has none of them).
-3. The film: the intro to space (title card "DYSON SPHERE", the lattice opening like an iris, the infinity-sign loops,
+3. **The film, part 1: in the world** (2026-11-05, game-tested: `test builds\2026-11-05 auto test 20 proxima film\film\`).
+   `client/film/ProximaStoryboard` (Luna's film types; `END` = IMPACT + 190): (1) the remote over the caster's shoulder;
+   (2) looking up as the flash burns the sky; (3) low beside the mark, the CME rising over the horizon; (4) a slow turn
+   high over the land as the front's edge sweeps down; (5) the hush, looking straight up into the nose; (6) ground zero
+   wide, three-quarters on; (7) low on the land as the wall rolls past; (8) rising over the scorched land (pulled in
+   after the test: it was lost in the fog). `compat/tss/client/ProximaCutscene`, played from
+   `StarClientBridge.startProxima`. Title card `FilmTitle.proxima`: SA-04 PROXIMA ("PROXIMA CENTAURI · FLARE STAR"),
+   from FRONT+30 to +96, letters flaring in white-hot and burning down to crimson, lifting away like embers.
+   `client/proxima/ProximaHud.film`: letterbox, brackets, a caption and readout per phase (uplink and 4.24 LY; flare
+   class from the power slider, logarithmic: 0.1x ~C1, 1x M5, 3x X3, 10x X25; the front's distance in km; the hush;
+   impact; the shock wave's reach); **the radio blackout**: from FRONT to IMPACT+30 the captions are garbled (letters
+   swapped for noise) and drop out now and then; only the skill's own text.
+   Part 2, the space intro, and part 3, Earth, below.
+   The intro to space (title card "DYSON SPHERE", the lattice opening like an iris, the infinity-sign loops,
    "CORONAL MASS EJECTION" in plasma filaments), the lens beam and the gate near Earth, the pullback afterwards.
    RimuLib's film tools (`CameraRig`, `Shot`, `Subject`, `CutsceneDirector`), our own Earth shader (free imagery only).
 4. **The aftermath, first half** (2026-11-05, game-tested: `auto test 19 proxima wave\residue-close\`):

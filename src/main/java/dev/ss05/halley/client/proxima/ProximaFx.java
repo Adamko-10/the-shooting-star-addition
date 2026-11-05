@@ -185,6 +185,21 @@ public final class ProximaFx {
         ACTIVE.remove(this);
     }
 
+    /** The strike's clock (ticks since the cast, at the remote's speed slider). */
+    public float time(float partial) {
+        return this.host.clock(partial);
+    }
+
+    /** How much of the screen the caster's film has (0: none). */
+    public float filmWeight() {
+        return this.host.filmWeight();
+    }
+
+    /** The film's clock, or NaN when no film plays. */
+    public float filmTime(float partial) {
+        return this.host.filmTime(partial);
+    }
+
     // ---- Sounds and particles, tick by tick. ----------------------------------------------------------------------
 
     public void tick(Minecraft minecraft, ClientLevel level, int t) {

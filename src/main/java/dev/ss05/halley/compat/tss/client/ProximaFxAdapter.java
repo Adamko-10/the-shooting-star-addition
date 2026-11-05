@@ -63,6 +63,16 @@ final class ProximaFxAdapter extends SpellFx {
         return this.fx;
     }
 
+    /** The film's subject: the caster, the strike's target and the way they faced. */
+    Subject subject() {
+        return this.liiillli1l();
+    }
+
+    /** The remote's speed slider for this cast: the film's clock runs at it too. */
+    float filmSpeed() {
+        return this.speed;
+    }
+
     @Override
     public void beamTick(ClientLevel level, int t) {
         this.fx.tick(Minecraft.getInstance(), level, t);
