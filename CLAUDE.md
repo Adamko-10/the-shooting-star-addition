@@ -27,9 +27,8 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   Gravitia key when bound, the user's own test of the latest jar.
 - **Stellar Convergence (SA-00) is built** (§18): the user's to test in game; its film's panels only show with our own
   weapons (open, §18). Then switch to RimuLib's public API (§17a, recommended before porting).
-- **Next prompt (the user, 2026-11-05)**: the Convergence plate is "overwhelming": make it smaller, **and** make it
-  toggleable (a key) **and** show it only while SA-00 is the selected skill in the menu ("probably do both"). Also open:
-  the master power slider (explained to the user 2026-11-05, §18; not decided).
+- **Done 2026-11-05**: the Convergence plate is smaller, shows only while SA-00 is selected, and V folds it to its name
+  (§18). Still open: the master power slider (explained to the user 2026-11-05, §18; not decided).
 - **Next, the update's remaining list** (§14): Epic mode (needs `Video-Project-48.mp3` from Hamza's PC; not on Adam's
   PC, searched 2026-11-04), SA-03 Proxima (§15, needs the user's track), then
   port to the six other branches (§3), CI, one Forge test, README/changelog/CurseForge text, release.
@@ -1151,8 +1150,15 @@ own thing, not a copy of it.
     would get a power slider of its own in the menu (0.1-10×, default 1×; today `powerSliders()` is false) and
     `Convergence.cast` would multiply every ticked weapon's own power by it (then the server limits, as now), so the
     whole barrage scales at once without touching each weapon's slider.
-  - **UI too big (the user, 2026-11-05)**: shrink the Convergence plate, add a key to show/hide it, and show it only
-    while SA-00 is selected in the menu (`ClientSkills.selected(set)`); to do in the next prompt.
+  - **UI too big (the user, 2026-11-05: "overwhelming", do both)**: done: `ConvergencePlate` draws only while SA-00 is
+    the remote's selected skill (`ClientSkills.selected(SkillSet.of(CONVERGENCE))`), at 0.8 of the addon plate's scale,
+    with one hint line ("Each fires with its own sliders. 1-9 tick, R where, V hide.") and 12-pixel rows; **V** folds it
+    to a small tag with its name and the V key (client config `convergence_plate`, default true); 1-9 and R only act
+    while it's shown. The picks still sync every menu frame whatever is shown (the other skills' sliders change while
+    they're selected). Its text never drops below one screen pixel per font pixel (scale >= 1 / GUI scale). Harness
+    option `select=<skill id>` selects a skill before the final menu shot (`test builds\2026-11-05 auto test 12
+    convergence plate\`). Test jar `test builds\2026-11-05 Convergence plate smaller\`, in the Modrinth profile (the
+    Stellar Convergence build renamed `.disabled`).
   - **Open: the film's panels don't show while TSS's weapons' effects run.** `FilmPanels` freezes the frames and
     draws them at the end of every frame (`RenderFrameEvent.Post`, LOWEST, after the frame is finished; the harness
     screenshots after it), and with Halley and Luna alone that works (screenshot `film-debug2\other_00320.png`). With
