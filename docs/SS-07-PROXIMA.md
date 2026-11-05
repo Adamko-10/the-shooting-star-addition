@@ -131,6 +131,22 @@ config); this file is the build's own record: what exists, where it lives, and w
      plasma's sizzle; replaces Luna's impact and shock wave), `proxima_wave` (the coronal front and ground zero's wave
      passing the camera: a roar coming on high and leaving low, a thud). Still borrowed: Luna's rumble under the front
      and her inhale before the impact. Not heard by anyone yet.
+   - **Random flares, built 2026-11-05** (`world/SolarFlares`; `[proxima_flares]`: `random_flares` false,
+     `average_minutes` 120, `min_minutes_between` 30, `max_tier` MAJOR, `warning_seconds` 60, `major_burns_plants`
+     true). Once a minute (overworld game time), with players in the overworld and none pending, a 1-in-
+     `average_minutes` chance: a tier (minor 70, major 25, cataclysm 5, up to `max_tier`), a non-spectator player, a
+     spot (minor 100-400 blocks off at power 0.2-0.5; major 20-80 off, power 0.5-1.2; cataclysm 150-270 off, power
+     1-2), the ground's height there only if loaded (else the player's). An alert goes to everyone in that world (yellow /
+     gold "get under N solid blocks" / red bold emergency, with the class and the x, z), logged too; after the warning
+     the strike runs as a Proxima spell with no caster (`Spell`'s second constructor: a random UUID, so nobody is warded
+     and no player's own Proxima counts it; the player only stands in as the caster in the effect packet), its clock
+     starting at FLASH (`ProximaParams.tier`, `startTick`; version 3), so there is no space intro, no film
+     (`StarClientBridge` checks `natural()`) and no music (it starts at tick 10). Tiers (`cme()`, `burns()`): minor =
+     the flash's light and sky only (softer), auroras; major = the flash burn (fire and damage under the open sky) and,
+     with `major_burns_plants` and `carve_terrain`, the plants burnt away in the scorch radius at once
+     (`ProximaLand` plants-only: leaves, grass, flowers, crops, vines, snow; no trunks, ground or ash), auroras; no
+     front, no crater, no radiation; cataclysm = the whole strike from the flash, hits held to 60 damage (no erasing).
+     Operators: `/ssa flare <minor|major|cataclysm> [seconds]` near themselves.
 
 ## Timeline (`ProximaPlan`, ticks at speed 1)
 

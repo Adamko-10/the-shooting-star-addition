@@ -19,6 +19,12 @@ final class ProximaSpell extends Spell {
         this.strike = new ProximaStrike(this.level, new ProximaPlan(this.target, seed, params), caster, tuning);
     }
 
+    /** A random solar flare near {@code near} (nobody cast it; it starts at the flash). */
+    ProximaSpell(ServerPlayer near, Vec3 target, long seed, ProximaParams params, CastTuning tuning, boolean natural) {
+        super(TssLink.PROXIMA, near, target, seed, tuning, params.startTick());
+        this.strike = new ProximaStrike(this.level, new ProximaPlan(this.target, seed, params), null, tuning);
+    }
+
     @Override
     protected void onTick(int t) {
         this.strike.tick(t, this.caster);

@@ -1,5 +1,6 @@
 package dev.ss05.halley.client.proxima;
 
+import dev.ss05.halley.ProximaParams;
 import dev.ss05.halley.ProximaPlan;
 import java.util.Locale;
 import net.minecraft.client.Minecraft;
@@ -60,13 +61,13 @@ public final class ProximaHud {
             detail = "APERTURE OPENING";
         } else if (ct < ProximaPlan.LENS) {
             caption = "MAGNETIC RECONNECTION";
-            detail = "CLASS " + flareClass(p.params.power());
+            detail = "CLASS " + ProximaParams.flareClass(p.params.power());
         } else if (ct < ProximaPlan.FLASH) {
             caption = "LENS ARRAY";
             detail = ct < ProximaPlan.GATE ? "BEAM FOCUSED" : "GATE OPEN";
         } else if (ct < ProximaPlan.FRONT) {
             caption = "FLARE DETECTED";
-            detail = "CLASS " + flareClass(p.params.power());
+            detail = "CLASS " + ProximaParams.flareClass(p.params.power());
         } else if (ct < ProximaPlan.HUSH) {
             caption = "CORONAL MASS EJECTION INBOUND";
             detail = String.format(Locale.ROOT, "FRONT  %.2f km", p.frontDistance(ct) / 1000.0);
@@ -91,18 +92,6 @@ public final class ProximaHud {
         int y = h - m - 26;
         g.drawString(font, caption, (w - font.width(caption)) / 2, y, ink, false);
         g.drawString(font, detail, (w - font.width(detail)) / 2, y + 12, dim, false);
-    }
-
-    /** The flare's class from the power slider, logarithmic like the real ones: 0.1x about C1, 1x M5, 3x X3, 10x X25. */
-    static String flareClass(float power) {
-        double flux = Math.pow(10.0, -4.3 + 1.7 * Math.log10(Math.max(0.01F, power)));
-        if (flux >= 1.0E-4) {
-            return String.format(Locale.ROOT, "X%.1f", flux / 1.0E-4);
-        }
-        if (flux >= 1.0E-5) {
-            return String.format(Locale.ROOT, "M%.1f", flux / 1.0E-5);
-        }
-        return String.format(Locale.ROOT, "C%.1f", flux / 1.0E-6);
     }
 
     /** {@code text} with about {@code amount} of its letters swapped for noise, the same way for a whole frame. */

@@ -56,6 +56,9 @@ public interface StarLink {
 
     boolean proximaRunning(ServerPlayer player);
 
+    /** A random solar flare near {@code near} (nobody cast it; see world/SolarFlares). */
+    void startFlare(ServerPlayer near, Vec3 target, long seed, dev.ss05.halley.ProximaParams params, CastTuning tuning);
+
     boolean alreadyFlying(boolean moon, ServerPlayer player);
 
     /** The point on the ground under the crosshair (or under a creature in it), the way the built-in skills aim. */

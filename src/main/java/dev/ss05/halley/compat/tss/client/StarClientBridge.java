@@ -111,7 +111,8 @@ public final class StarClientBridge {
     private static void startProxima(StrikeFx strike) {
         ProximaFxAdapter fx = new ProximaFxAdapter(strike);
         FxManager.add(fx);
-        if (films(fx.proxima().mine, strike)) {
+        // a random flare has no film (nobody cast it)
+        if (films(fx.proxima().mine, strike) && !fx.proxima().plan.params.natural()) {
             CutsceneDirector.play(ProximaCutscene.of(fx));
         }
     }

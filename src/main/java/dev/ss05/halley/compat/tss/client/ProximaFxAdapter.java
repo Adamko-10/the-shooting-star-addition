@@ -38,7 +38,7 @@ final class ProximaFxAdapter extends SpellFx {
 
             @Override
             public float clock(float partial) {
-                return ProximaFxAdapter.this.time(partial);
+                return ProximaFxAdapter.this.time(partial) + ProximaFxAdapter.this.start();
             }
 
             @Override
@@ -73,14 +73,19 @@ final class ProximaFxAdapter extends SpellFx {
         return this.speed;
     }
 
+    /** Where its clock starts: a random flare starts at the flash (as its spell does on the server). */
+    private int start() {
+        return this.fx == null ? 0 : this.fx.plan.params.startTick();
+    }
+
     @Override
     public void beamTick(ClientLevel level, int t) {
-        this.fx.tick(Minecraft.getInstance(), level, t);
+        this.fx.tick(Minecraft.getInstance(), level, t + this.start());
     }
 
     @Override
     public int duration() {
-        return ProximaPlan.DURATION;
+        return ProximaPlan.DURATION - this.start();
     }
 
     @Override

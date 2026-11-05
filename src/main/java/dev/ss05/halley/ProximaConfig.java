@@ -22,6 +22,22 @@ public final class ProximaConfig {
     private static ModConfigSpec.IntValue radiationMinutes;
     private static ModConfigSpec.BooleanValue permanentRadiation;
     private static ModConfigSpec.DoubleValue radiationDamage;
+    private static ModConfigSpec.BooleanValue randomFlares;
+    private static ModConfigSpec.IntValue averageMinutes;
+    private static ModConfigSpec.IntValue minMinutes;
+    private static ModConfigSpec.EnumValue<FlareTier> maxTier;
+    private static ModConfigSpec.IntValue warningSeconds;
+    private static ModConfigSpec.BooleanValue flaresBurnPlants;
+
+    /** How bad a random flare may get (see world/SolarFlares). */
+    public enum FlareTier {
+        /** Only the sky lights up. */
+        MINOR,
+        /** Its light burns: creatures under the open sky catch fire, plants burn away. No crater. */
+        MAJOR,
+        /** The whole strike: the flash, the coronal front, ground zero, the bowl and the scorch. */
+        CATACLYSM
+    }
 
     private ProximaConfig() {
     }
@@ -70,14 +86,36 @@ public final class ProximaConfig {
         radiationDamage = b.comment("Damage per second in the middle of a fresh bowl (less toward its edge and as it fades).")
             .defineInRange("radiation_damage", 3.0, 0.0, 100.0);
         b.pop();
+
+        b.comment("Random solar flares: now and then, with nobody casting it, Proxima flares near a player in the overworld.",
+                "Each is announced in chat first (a space weather alert), so players can take cover. Three tiers: minor (only",
+                "the sky lights up), major (its light burns creatures under the open sky and the plants round it) and",
+                "cataclysm (the whole strike, crater and all: only if max_tier allows it).").push("proxima_flares");
+        randomFlares = b.comment("Let random flares happen at all (off by default).")
+            .define("random_flares", false);
+        averageMinutes = b.comment("On average one flare every this many minutes (while players are in the overworld).")
+            .defineInRange("average_minutes", 120, 5, 10080);
+        minMinutes = b.comment("Never two flares less than this many minutes apart.")
+            .defineInRange("min_minutes_between", 30, 1, 10080);
+        maxTier = b.comment("The worst a random flare may be: MINOR, MAJOR or CATACLYSM. Most are minor, some major, few cataclysms.")
+            .defineEnum("max_tier", FlareTier.MAJOR);
+        warningSeconds = b.comment("Seconds between the alert in chat and the flare.")
+            .defineInRange("warning_seconds", 60, 5, 600);
+        flaresBurnPlants = b.comment("A major flare burns the plants away round where it falls (leaves, grass, flowers, crops). Off: it",
+                "only burns creatures. carve_terrain = false turns this off too.")
+            .define("major_burns_plants", true);
+        b.pop();
     }
 
     /** A snapshot of the config, taken once per cast. Defaults before the config loads. */
     public record Tuning(boolean enabled, int cooldownTicks, int bowlRadius, int charRadius, int scorchRadius, int bowlDepth,
                          boolean carveTerrain, boolean solarResidue, int shelterBlocks, double playerKnockback,
-                         double mobKnockback, int radiationMinutes, boolean permanentRadiation, double radiationDamage) {
+                         double mobKnockback, int radiationMinutes, boolean permanentRadiation, double radiationDamage,
+                         boolean randomFlares, int averageMinutes, int minMinutes, FlareTier maxTier, int warningSeconds,
+                         boolean flaresBurnPlants) {
         public static final Tuning DEFAULTS = new Tuning(true, 60 * 20, ProximaParams.BOWL, ProximaParams.CHAR,
-            ProximaParams.SCORCH, ProximaParams.DEPTH, true, true, 3, 0.6, 1.0, 10, false, 3.0);
+            ProximaParams.SCORCH, ProximaParams.DEPTH, true, true, 3, 0.6, 1.0, 10, false, 3.0, false, 120, 30, FlareTier.MAJOR,
+            60, true);
     }
 
     public static Tuning tuning() {
@@ -87,7 +125,8 @@ public final class ProximaConfig {
         try {
             return new Tuning(enabled.get(), cooldownSeconds.get() * 20, bowlRadius.get(), charRadius.get(), scorchRadius.get(),
                 bowlDepth.get(), carveTerrain.get(), solarResidue.get(), shelterBlocks.get(), playerKnockback.get(),
-                mobKnockback.get(), radiationMinutes.get(), permanentRadiation.get(), radiationDamage.get());
+                mobKnockback.get(), radiationMinutes.get(), permanentRadiation.get(), radiationDamage.get(), randomFlares.get(),
+                averageMinutes.get(), minMinutes.get(), maxTier.get(), warningSeconds.get(), flaresBurnPlants.get());
         } catch (IllegalStateException notLoadedYet) {
             return Tuning.DEFAULTS;
         }

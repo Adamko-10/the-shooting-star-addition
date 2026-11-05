@@ -55,8 +55,9 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   intro\`, in the Modrinth profile). **Next: part 3 (Earth: ask before downloading imagery), or stage 5 (sounds,
   music, config)**.
 - **Stage 5: the music (below), the `[proxima]` config and Proxima's own sounds are BUILT (2026-11-05, late; the
-  user: "rebuild and continue work"; details: docs/SS-07-PROXIMA.md stage 5). Left: random flares (off by default),
-  and Earth (stage 3 part 3, ask before downloading imagery).** Also done then: Luna's full track rebuilt for Epic
+  user: "rebuild and continue work"; details: docs/SS-07-PROXIMA.md stage 5). Random flares BUILT too (the user's
+  pick, 2026-11-05 night; docs stage 5; `/ssa flare <tier> [seconds]` for operators; off by default). Left: Earth
+  (stage 3 part 3, ask before downloading imagery).** Also done then: Luna's full track rebuilt for Epic
   mode (`music\Luna full (rebuilt).flac` in the project folder: 29.09 s, drop at 24.45 s = up to 24.45 s of lead; Video
   Project 48 up to 10.03 s, +13.03 dB, crossfaded 60 ms onto luna_music.ogg from 1.52498 s; offset 8.44502 s, checked
   sample-exact, no click). **Epic mode then BUILT** (§14 "Epic mode", docs/SS-06-LUNA.md). Game run (`test builds\2026-11-05 auto test 21 proxima

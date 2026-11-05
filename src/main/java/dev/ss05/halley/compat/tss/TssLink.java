@@ -220,6 +220,11 @@ public final class TssLink implements StarLink {
     }
 
     @Override
+    public void startFlare(ServerPlayer near, Vec3 target, long seed, ProximaParams params, CastTuning tuning) {
+        Spell.start(new ProximaSpell(near, target, seed, params, tuning, true));
+    }
+
+    @Override
     public boolean proximaRunning(ServerPlayer player) {
         return Spell.running(PROXIMA, player.getUUID());
     }

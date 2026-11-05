@@ -184,7 +184,7 @@ public final class ProximaFx {
         Vec3 camera = minecraft.gameRenderer.getMainCamera().getPosition();
         for (ProximaFx fx : ACTIVE) {
             float t = fx.host.clock(0.0F);
-            if (t >= ProximaPlan.FRONT && t <= ProximaPlan.IMPACT + 100 && fx.plan.horizontal(camera.x, camera.z) < 3000.0) {
+            if (fx.plan.params.cme() && t >= ProximaPlan.FRONT && t <= ProximaPlan.IMPACT + 100 && fx.plan.horizontal(camera.x, camera.z) < 3000.0) {
                 double s = System.nanoTime() / 1.0E9;
                 double wander = 1.7 * s + seed * 0.618 + 0.15 * Math.sin(s * 5.3 + seed);
                 return (float) (wander - Math.floor(wander));
@@ -222,6 +222,8 @@ public final class ProximaFx {
         Vec3 target = this.plan.target;
         Vec3 camera = minecraft.gameRenderer.getMainCamera().getPosition();
         double scorch = this.plan.params.scorchRadius();
+        // a random flare without its coronal mass ejection (minor, major) has only the flash (ProximaParams.cme)
+        boolean cme = this.plan.params.cme();
         if (t == ProximaPlan.PRESS && this.mine) {
             SoundEvent press = this.host.remoteSound(true);
             if (press != null) {
@@ -237,10 +239,15 @@ public final class ProximaFx {
         }
         // the flare's light arrives: a searing burst, and everything under the open sky starts to smoke
         if (t == ProximaPlan.FLASH) {
-            this.play(HalleyContent.PROXIMA_FLASH.get(), camera, 0.06F, 1.0F);
+            this.play(HalleyContent.PROXIMA_FLASH.get(), camera, this.plan.params.burns() ? 0.06F : 0.03F, 1.0F);
+            if (!cme) {
+                // a flare's magnetic storm, without a front: the auroras still come
+                long now = level.getGameTime();
+                AURORAS.add(new Aurora(level, target, now, now + AURORA_TICKS, this.plan.seed));
+            }
         }
         boolean underIt = this.plan.horizontal(camera.x, camera.z) < scorch * 1.25;
-        if (t > ProximaPlan.FLASH && t < ProximaPlan.FLASH + 70 && underIt) {
+        if (this.plan.params.burns() && t > ProximaPlan.FLASH && t < ProximaPlan.FLASH + 70 && underIt) {
             for (int i = 0; i < this.count(5); i++) {
                 Vec3 at = camera.add(this.gauss(14.0), this.gauss(4.0) - 2.0, this.gauss(14.0));
                 this.particle(level, this.random.nextFloat() < 0.6F ? ParticleTypes.SMALL_FLAME : ParticleTypes.SMOKE, at,
@@ -248,15 +255,15 @@ public final class ProximaFx {
             }
         }
         // the coronal front: its radio burst whining down as it comes on, and a deep roar rolling across the sky
-        if (t == ProximaPlan.FRONT) {
+        if (cme && t == ProximaPlan.FRONT) {
             this.play(HalleyContent.PROXIMA_RADIO.get(), camera, 0.06F, 1.0F);
             this.play(HalleyContent.MOON_RUMBLE.get(), camera, 0.06F, 0.55F);
         }
         // the air drawn in just before the plasma lands
-        if (t == ProximaPlan.IMPACT - 13) {
+        if (cme && t == ProximaPlan.IMPACT - 13) {
             this.play(HalleyContent.MOON_INHALE.get(), target, 1.0F, 1.1F);
         }
-        if (t == ProximaPlan.IMPACT) {
+        if (cme && t == ProximaPlan.IMPACT) {
             long now = level.getGameTime();
             AURORAS.add(new Aurora(level, target, now, now + AURORA_TICKS, this.plan.seed));
             int radiation = this.plan.params.radiationTicks();
@@ -280,7 +287,7 @@ public final class ProximaFx {
             }
         }
         // the coronal front passing over: a roar and a jolt where its leading line crosses the camera, embers round it
-        if (t >= ProximaPlan.FRONT && t <= ProximaPlan.IMPACT) {
+        if (cme && t >= ProximaPlan.FRONT && t <= ProximaPlan.IMPACT) {
             double side = camera.distanceTo(this.plan.frontCentre(t)) - ProximaPlan.FRONT_RADIUS;
             if (this.frontSide > 0.0 && side <= 0.0) {
                 this.play(HalleyContent.PROXIMA_WAVE.get(), camera, 0.07F, 0.8F);
@@ -296,9 +303,9 @@ public final class ProximaFx {
             }
         }
         // ground zero's shock wave running out: a blast and a jolt as it passes the camera, fire and dust thrown up along it
-        double wave = this.plan.waveRadius(t);
+        double wave = cme ? this.plan.waveRadius(t) : 0.0;
         double away = this.plan.horizontal(camera.x, camera.z);
-        if (t > ProximaPlan.IMPACT && this.lastWave < away && wave >= away && away < this.plan.waveReach()) {
+        if (cme && t > ProximaPlan.IMPACT && this.lastWave < away && wave >= away && away < this.plan.waveReach()) {
             this.play(HalleyContent.PROXIMA_WAVE.get(), camera, 0.08F, 1.0F);
             this.host.shake(camera, 0.5F, 60.0);
         }
@@ -317,7 +324,7 @@ public final class ProximaFx {
             }
         }
         // the magnetic storm: redstone near the camera sparks while the front comes on and just after
-        if (t >= ProximaPlan.FRONT && t < ProximaPlan.IMPACT + 60 && away < this.plan.params.scorchRadius() * 3.0) {
+        if (cme && t >= ProximaPlan.FRONT && t < ProximaPlan.IMPACT + 60 && away < this.plan.params.scorchRadius() * 3.0) {
             BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
             for (int i = 0; i < 30; i++) {
                 at.set(camera.x + this.gauss(10.0), camera.y + this.gauss(4.0), camera.z + this.gauss(10.0));
@@ -334,7 +341,7 @@ public final class ProximaFx {
             }
         }
         // water under the open sky steams in the flash and as the shock wave passes
-        boolean steaming = t >= ProximaPlan.FLASH && t < ProximaPlan.FLASH + 80 && away < this.plan.params.scorchRadius() * 1.25
+        boolean steaming = this.plan.params.burns() && t >= ProximaPlan.FLASH && t < ProximaPlan.FLASH + 80 && away < this.plan.params.scorchRadius() * 1.25
             || wave > 0.0 && Math.abs(wave - away) < 40.0;
         if (steaming) {
             BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
@@ -389,6 +396,14 @@ public final class ProximaFx {
             return new SkyLook(space * w, space * w, 0.0F, 0.0F, 0.0F, 0.0F, new Vec3(0.0, 1.0, 0.0), 0.0F, 0.0F, Vec3.ZERO,
                 space * w * 0.7F, (float) (this.plan.seed & 1023L), (float) (this.toNight * space * w), SkyLook.PALETTE_HALLEY);
         }
+        if (!this.plan.params.cme()) {
+            // a random flare with no front coming: the flash's crimson, gone again within a few seconds
+            float k = this.plan.params.burns() ? 1.0F : 0.6F;
+            float cover = k * smooth((t - ProximaPlan.FLASH) / 8.0) * (1.0F - smooth((t - (ProximaPlan.FLASH + 100.0)) / 60.0));
+            float flash = k * 1.6F * pulse(t, ProximaPlan.FLASH, 10.0);
+            return new SkyLook(cover * w * 0.85F, 0.0F, 0.0F, 0.0F, 0.0F, flash * w, new Vec3(0.0, 1.0, 0.0), cover * w * 0.3F, 1.0F,
+                Vec3.ZERO, cover * w * 0.25F, (float) (this.plan.seed & 1023L), (float) (this.toSunset * cover * w), SkyLook.PALETTE_PROXIMA);
+        }
         float cover = smooth((t - ProximaPlan.FLASH) / 8.0) * (1.0F - smooth((t - (ProximaPlan.DURATION - 120.0)) / 120.0));
         float flash = 1.6F * pulse(t, ProximaPlan.FLASH, 10.0) + 1.5F * pulse(t, ProximaPlan.IMPACT, 6.0);
         float veil = smooth((t - (ProximaPlan.IMPACT + 10.0)) / 40.0) * (1.0F - smooth((t - (ProximaPlan.DURATION - 60.0)) / 60.0));
@@ -426,6 +441,9 @@ public final class ProximaFx {
         float t = Math.min(this.host.clock(partial), ProximaPlan.DURATION);
         Vec3 camera = world.camera();
         ProximaSpace.render(world, glare, this.plan, t);
+        if (!this.plan.params.cme()) {
+            return;
+        }
         if (t >= ProximaPlan.FRONT && t < ProximaPlan.IMPACT + 8) {
             float fade = smooth((t - ProximaPlan.FRONT) / 25.0) * (1.0F - smooth((t - ProximaPlan.IMPACT) / 8.0));
             this.front(world, t, fade, camera, 0.0, 1.0F, 0.0);
@@ -587,25 +605,27 @@ public final class ProximaFx {
         float near = (float) Mth.clamp(1.0 - camera.distanceTo(this.plan.target) / (this.plan.params.scorchRadius() * 4.0), 0.15, 1.0);
         // the flash: white-red, searing, fading over two seconds
         if (t >= ProximaPlan.FLASH && t < ProximaPlan.FLASH + 40) {
-            float k = 1.0F - (t - ProximaPlan.FLASH) / 40.0F;
+            float k = (1.0F - (t - ProximaPlan.FLASH) / 40.0F) * (this.plan.params.burns() ? 1.0F : 0.5F);
             screen.flash(FLASH, k * k * 0.85F);
             screen.aberration(0.3F * k);
         }
         // the front's rumble, building as it comes on
-        if (t >= ProximaPlan.FRONT && t < ProximaPlan.IMPACT) {
+        boolean cme = this.plan.params.cme();
+        if (cme && t >= ProximaPlan.FRONT && t < ProximaPlan.IMPACT) {
             screen.shake(0.12F * (t - ProximaPlan.FRONT) / (ProximaPlan.IMPACT - ProximaPlan.FRONT) * near);
         }
         // the red sky while the front passes
-        float red = window(t, ProximaPlan.FLASH, ProximaPlan.FLASH + 10, ProximaPlan.HUSH, ProximaPlan.HUSH + 8);
+        float red = cme ? window(t, ProximaPlan.FLASH, ProximaPlan.FLASH + 10, ProximaPlan.HUSH, ProximaPlan.HUSH + 8)
+            : window(t, ProximaPlan.FLASH, ProximaPlan.FLASH + 10, ProximaPlan.FLASH + 60, ProximaPlan.FLASH + 100) * (this.plan.params.burns() ? 1.0F : 0.5F);
         if (red > 0.0F) {
             screen.vignette(CRIMSON, 0.35F * red);
             screen.bloom(0.35F * red, 1.2F);
         }
         // the hush: the colour drains out
-        if (t >= ProximaPlan.HUSH && t < ProximaPlan.IMPACT) {
+        if (cme && t >= ProximaPlan.HUSH && t < ProximaPlan.IMPACT) {
             screen.desaturate(0.5F * (t - ProximaPlan.HUSH) / (ProximaPlan.IMPACT - ProximaPlan.HUSH));
         }
-        if (t >= ProximaPlan.IMPACT) {
+        if (cme && t >= ProximaPlan.IMPACT) {
             float since = (t - ProximaPlan.IMPACT) / 20.0F;
             screen.flash(0xFFFFFF, Math.max(0.0F, 1.0F - since / 1.2F) * near);
             screen.zoomBlur(0.5F * (float) Math.exp(-since * 2.0) * near);

@@ -39,10 +39,13 @@ final class ProximaLand {
     private final List<ChunkPos> waiting = new ArrayList<>();
     private final long madeAt;
     private int sinceSweep;
+    /** A major random flare's light: only the plants burn away (no ground, no trunks, no ash, no bowl). */
+    private final boolean plantsOnly;
 
-    ProximaLand(ServerLevel level, ProximaPlan plan) {
+    ProximaLand(ServerLevel level, ProximaPlan plan, boolean plantsOnly) {
         this.level = level;
         this.plan = plan;
+        this.plantsOnly = plantsOnly;
         this.madeAt = level.getGameTime();
         double reach = plan.params.scorchRadius() * 1.12 + 1.0;
         int r = (int) Math.ceil(reach / 16.0) + 1;
@@ -123,7 +126,7 @@ final class ProximaLand {
                 double edge = this.plan.edge(x + 0.5, z + 0.5);
                 double scorch = this.plan.params.scorchRadius() * edge;
                 // the bowl's own carving takes the columns it cuts (its rim wobbles: no gap of grass left); the outer edge frays
-                if (this.plan.bowlDepth(r / edge) >= 0.5 || r >= scorch || r > scorch - 6.0 && this.plan.noise(x, 0, z) < (r - scorch + 6.0) / 6.0) {
+                if (!this.plantsOnly && this.plan.bowlDepth(r / edge) >= 0.5 || r >= scorch || r > scorch - 6.0 && this.plan.noise(x, 0, z) < (r - scorch + 6.0) / 6.0) {
                     continue;
                 }
                 boolean charred = r < this.plan.params.charRadius() * edge;
@@ -141,6 +144,9 @@ final class ProximaLand {
                     if (burnsAway(was)) {
                         blocks.put(at.immutable(), Blocks.AIR.defaultBlockState());
                         continue;
+                    }
+                    if (this.plantsOnly) {
+                        break;
                     }
                     if (was.is(BlockTags.LOGS)) {
                         if (charred) {

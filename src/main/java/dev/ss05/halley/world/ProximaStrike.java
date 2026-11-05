@@ -72,7 +72,8 @@ public final class ProximaStrike {
         this.level = level;
         this.plan = plan;
         this.cast = cast;
-        this.spared = caster != null ? caster.blockPosition() : BlockPos.containing(plan.target);
+        // nobody's footing to spare (a random flare): a point well outside the bowl
+        this.spared = caster != null ? caster.blockPosition() : BlockPos.containing(plan.target.add(plan.params.scorchRadius() + 64.0, 0.0, 0.0));
     }
 
     public ProximaPlan plan() {
@@ -83,10 +84,15 @@ public final class ProximaStrike {
         if (caster != null && t >= ProximaPlan.FLASH - 5 && t <= ProximaPlan.IMPACT + 60 && t % 30 == 0) {
             StarBridge.ward(caster);
         }
-        if (t == ProximaPlan.FLASH) {
+        ProximaParams params = this.plan.params;
+        if (t == ProximaPlan.FLASH && params.burns()) {
             this.flash(caster);
+            // a major random flare (no front coming): its light burns the plants away where it falls, all at once
+            if (!params.cme() && this.config.carveTerrain() && this.config.flaresBurnPlants()) {
+                this.land = new ProximaLand(this.level, this.plan, true);
+            }
         }
-        if (t == ProximaPlan.IMPACT) {
+        if (t == ProximaPlan.IMPACT && params.cme()) {
             this.impact(caster);
         }
         if (this.bowl != null && !this.bowl.done()) {
@@ -98,12 +104,15 @@ public final class ProximaStrike {
             this.waveHit = wave;
         }
         if (this.land != null) {
-            this.land.tick(wave);
+            this.land.tick(params.cme() ? wave : Double.MAX_VALUE);
         }
     }
 
     /** Whether the world work that can be done now is done (unloaded land waits, after the spell, for its chunks). */
     public boolean worldDone() {
+        if (!this.plan.params.cme()) {
+            return this.land == null || this.land.loadedDone();
+        }
         return this.waveHit >= this.plan.waveReach() && (this.land == null || this.land.loadedDone());
     }
 
@@ -248,7 +257,7 @@ public final class ProximaStrike {
         int minY = this.level.getMinBuildHeight();
         this.bowl = StarBridge.excavate(this.level, this.plan.target, bowl + 3.0, (x, z) -> this.bowlFloor(x, z, minY),
             (x, y, z, was) -> this.bowlSurface(x, y, z), this.spared, "SA-04 Proxima bowl", HalleyConfig.chunksPerTick(), null);
-        this.land = new ProximaLand(this.level, this.plan);
+        this.land = new ProximaLand(this.level, this.plan, false);
     }
 
     /**

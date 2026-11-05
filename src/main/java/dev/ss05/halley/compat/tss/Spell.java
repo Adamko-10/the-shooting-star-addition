@@ -30,6 +30,8 @@ abstract class Spell {
     private final CastTuning tuning;
     private final float yaw;
     protected ServerPlayer caster;
+    /** The entity named as the caster in the effect packet. */
+    private final int fxCaster;
     protected int age;
     private double clock;
 
@@ -38,11 +40,31 @@ abstract class Spell {
         this.level = caster.serverLevel();
         this.casterId = caster.getUUID();
         this.caster = caster;
+        this.fxCaster = caster.getId();
         this.origin = caster.position();
         this.target = target;
         this.seed = seed;
         this.tuning = tuning;
         this.yaw = caster.getYRot();
+    }
+
+    /**
+     * A strike nobody cast (a random solar flare): it has no caster (nobody is warded, none of its spells counts as a
+     * player's), {@code near} only stands in for one in the effect packet; its clock starts at {@code startTick}.
+     */
+    Spell(Skill skill, ServerPlayer near, Vec3 target, long seed, CastTuning tuning, int startTick) {
+        this.skill = skill;
+        this.level = near.serverLevel();
+        this.casterId = UUID.randomUUID();
+        this.caster = null;
+        this.fxCaster = near.getId();
+        this.origin = target;
+        this.target = target;
+        this.seed = seed;
+        this.tuning = tuning;
+        this.yaw = near.getYRot();
+        this.age = startTick;
+        this.clock = startTick;
     }
 
     protected abstract void onTick(int t);
@@ -78,7 +100,7 @@ abstract class Spell {
 
     static void start(Spell spell) {
         ACTIVE.add(spell);
-        StrikeFx fx = new StrikeFx(SkillSet.indexOf(spell.skill), spell.caster.getId(), spell.origin, spell.target, spell.yaw,
+        StrikeFx fx = new StrikeFx(SkillSet.indexOf(spell.skill), spell.fxCaster, spell.origin, spell.target, spell.yaw,
             spell.seed, spell.fxTargets(), everyone(spell.casterId) ? StrikeFx.FLAG_FOR_EVERYONE : 0,
             spell.tuning.power(), spell.tuning.speed());
         // as far as the built-in skills' effects reach
