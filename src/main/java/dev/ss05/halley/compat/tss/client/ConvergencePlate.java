@@ -28,9 +28,10 @@ import net.minecraft.util.Mth;
  * go to the server whenever they change, and as the game joins it.
  */
 public final class ConvergencePlate {
-    /** GLFW key codes: 1-9, R and V. */
+    /** GLFW key codes: 1-9, R, X and V. */
     private static final int KEY_1 = 49;
     private static final int KEY_RING = 82;
+    private static final int KEY_SHAKE = 88;
     private static final int KEY_HIDE = 86;
     private static final int WIDTH = 200;
     private static final int ROW = 12;
@@ -77,6 +78,11 @@ public final class ConvergencePlate {
             HalleyClientConfig.setConvergenceRing(!HalleyClientConfig.convergenceRing());
             AdditionPanel.click(true);
             sync(false);
+            return true;
+        }
+        if (key == KEY_SHAKE) {
+            HalleyClientConfig.setConvergenceShake(HalleyClientConfig.convergenceShake().next());
+            AdditionPanel.click(true);
             return true;
         }
         int index = key - KEY_1;
@@ -160,7 +166,7 @@ public final class ConvergencePlate {
         int w = Math.max(WIDTH, Math.max(Math.max(font.width(credit), font.width(warning)), font.width(hint)) + 22);
         int listTop = 38;
         int ringTop = listTop + weapons.size() * ROW + 6;
-        int h = ringTop + 50;
+        int h = ringTop + 64;
 
         // over the menu, in its top right corner
         g.pose().translate(g.guiWidth() - 8.0F - w * scale, 8.0F, 400.0F);
@@ -190,7 +196,7 @@ public final class ConvergencePlate {
                 Tuning own = SkillTuning.of(skill);
                 Tuning tuning = Convergence.scaled(new Convergence.Pick(skill.id(), own.power(), own.damage(), own.speed(), own.width()),
                     SkillTuning.of(TssLink.CONVERGENCE)).clampFor(skill);
-                String sliders = String.format(Locale.ROOT, "%.1f× · %s · %.1f×", tuning.power(),
+                String sliders = (Convergence.finale(skill) ? "last, 30 s on · " : "") + String.format(Locale.ROOT, "%.1f× · %s · %.1f×", tuning.power(),
                     Float.isInfinite(tuning.damage()) ? "∞" : String.format(Locale.ROOT, "%.0f", tuning.damage()), tuning.speed());
                 g.drawString(font, sliders, w - 12 - font.width(sliders), y + 1, 0xFF000000 | AdditionPanel.GREY, false);
             }
@@ -202,8 +208,14 @@ public final class ConvergencePlate {
         AdditionPanel.keyCap(g, font, w - 24, ringTop + 1, "R", true);
         Component where = Component.translatable(ring ? "gui.shooting_star_addition.convergence.ring" : "gui.shooting_star_addition.convergence.point");
         g.drawString(font, where, w - 30 - font.width(where), ringTop + 2, 0xFF000000 | AdditionPanel.GOLD, false);
-        g.drawString(font, credit, 11, ringTop + 17, 0xFF000000 | AdditionPanel.GREY, false);
-        g.drawString(font, warning, 11, ringTop + 28, 0xFF000000 | AdditionPanel.WARN, false);
+        g.drawString(font, Component.translatable("gui.shooting_star_addition.convergence.shake").withStyle(ChatFormatting.BOLD), 11,
+            ringTop + 16, 0xFF000000 | AdditionPanel.INK, false);
+        AdditionPanel.keyCap(g, font, w - 24, ringTop + 15, "X", true);
+        Component shake = Component.translatable("gui.shooting_star_addition.convergence.shake."
+            + HalleyClientConfig.convergenceShake().name().toLowerCase(Locale.ROOT));
+        g.drawString(font, shake, w - 30 - font.width(shake), ringTop + 16, 0xFF000000 | AdditionPanel.GOLD, false);
+        g.drawString(font, credit, 11, ringTop + 31, 0xFF000000 | AdditionPanel.GREY, false);
+        g.drawString(font, warning, 11, ringTop + 42, 0xFF000000 | AdditionPanel.WARN, false);
         g.pose().popPose();
     }
 }

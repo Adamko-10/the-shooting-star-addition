@@ -1,5 +1,6 @@
 package dev.ss05.halley.compat.tss.mixin;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.ss05.halley.compat.tss.client.StarClientBridge;
 import net.minecraft.client.gui.GuiGraphics;
 import org.spongepowered.asm.mixin.Mixin;
@@ -36,5 +37,13 @@ abstract class FxManagerMixin {
         at = @At("RETURN"), require = 0, remap = false)
     private static void ss05halley$allBack(GuiGraphics graphics, float partial, CallbackInfo ci) {
         StarClientBridge.allHuds();
+    }
+
+    // the camera shake during a Stellar Convergence: capped, full or off (its plate's X)
+    @Inject(method = "applyShake(Lcom/mojang/blaze3d/vertex/PoseStack;F)V", at = @At("HEAD"), cancellable = true, require = 0, remap = false)
+    private static void ss05halley$convergenceShake(PoseStack pose, float partial, CallbackInfo ci) {
+        if (StarClientBridge.holdShake()) {
+            ci.cancel();
+        }
     }
 }

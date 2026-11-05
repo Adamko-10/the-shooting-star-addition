@@ -28,7 +28,7 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
 - **Stellar Convergence (SA-00) is built** (§18): the user's to test in game; its film's panels only show with our own
   weapons (open, §18). Then switch to RimuLib's public API (§17a, recommended before porting).
 - **Done 2026-11-05**: the Convergence plate is smaller, shows only while SA-00 is selected, and V folds it to its name
-  (§18). Master sliders on SA-00 built 2026-11-05 (§18).
+  (§18). Master sliders on SA-00, Gravitia last, and the Convergence shake setting built 2026-11-05 (§18).
 - **2026-11-05: main moved to TSS 1.5.2 + RimuLib 1.2.2 and partly to RimuLib's public API** (§16a, §17a; the user
   picked the API switch, TSS 1.5.2 dropped meanwhile). The mapping tool's long-standing anchor bug is fixed (§16a).
 - **Next, the update's remaining list** (§14): Epic mode (needs `Video-Project-48.mp3` from Hamza's PC; not on Adam's
@@ -1164,7 +1164,7 @@ own thing, not a copy of it.
     Railgun 353 ticks, Gungnir 323, Seven Stars 339 (its seven stars land one every 16 ticks from 291, the middle one on
     the mark, then its constellation lines from ~400), Halley 331 (its plan's 330 + the cast tick), Luna 330. Tesseract
     carves no land (no moment to time); Gravitia turns the whole overworld into its space stage (`gravitia_space`) and
-    stopped the other weapons' impacts in a measuring run: it is off in the default picks. Remeasure after every TSS
+    stopped the other weapons' impacts in a measuring run: it fires last (below). Remeasure after every TSS
     update: a temporary `compat/mixin/DebugCarvingMixin` (in `shooting_star_addition.mixins.json`) injecting at the
     RETURN of RimuLib `Carving`'s private named constructor `(ServerLevel, String, Carving$Floor, BlockPos, Vec3, double)`
     to log `[TIMING] carving '<name>' gametime=... centre=... radius=...`, plus a `[TIMING] cast` log line in
@@ -1226,5 +1226,20 @@ own thing, not a copy of it.
   - **Found in testing**: the caster must aim far: the danger zone is the biggest weapon's (Gungnir 412 at 1×, the
     Railgun's column 200 to the bottom of the world, Seven Stars' pattern ~600 round the mark); the test player 116
     blocks off fell into the void, as with those weapons alone. At the hit every weapon's own screen effects (TSS's
-    impact frames, glitches) stack and fill the screen for seconds; the §18 idea of one shared, capped shake/flash is
-    not built (it would mean holding back RimuLib's ScreenFx for the weapons).
+    impact frames, glitches) run at once; flashes and impact frames don't add up (RimuLib's `ScreenFx.addFlash`/
+    `addImpact` keep the strongest), the camera shake did (below).
+  - **Gravitia fires last (the user's pick, 2026-11-05)**: `Convergence.finale(skill)` (TSS's `gravitia`) is cast
+    `FINALE_AFTER` = 600 ticks (30 s) after the others hit, at the mark (not in the ring), once their craters are cut
+    (TSS 1.5.2's last carving ended ~25 s after the hit); alone, it fires at once. Its own film plays then (Convergence
+    holds films only until 20 ticks after the hit). The plate shows "last, 30 s on" on its row. Still unticked by
+    default. Tested (`test builds\2026-11-05 auto test 16 gravitia last, shake cap\capped\`): the hits at 353, the
+    world in Imaginary Space at 1000, Gravitia's film at the end.
+  - **Convergence shake: CAPPED / FULL / OFF (the user, 2026-11-05)**, X on the plate, client config
+    `convergence_shake` (default CAPPED), from the cast until 20 s after the hit (`ConvergenceClient.active()`). TSS's
+    camera shake (`FxManager.applyShake`) reads two static floats: `trauma` (impact kicks, held to 1 by TSS) and
+    `rumble` (every effect's `ScreenFx.shake` added up: TSS's effects add, ours take the max). Measured: rumble 2.32 at
+    the hit with five weapons. `FxManagerMixin` at the HEAD of `applyShake` calls `StarClientBridge.holdShake`: CAPPED
+    holds both floats to 1.0 (found by reflection as FxManager's two static non-final floats: shadows in TSS mixins
+    aren't remapped per version; if the count changes it logs and only OFF works), OFF cancels the shake;
+    `PostFxRendererMixin` (RimuLib) zeroes `ScreenFx.shake` (its screen jitter) when OFF. The plate's new row isn't
+    screenshotted yet.

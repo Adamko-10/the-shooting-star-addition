@@ -12,6 +12,7 @@
   "client": [
     "CutsceneDirectorMixin",
     "FxManagerMixin",
+    "PostFxRendererMixin",
     "SkillKeysMixin"
   ],
   "injectors": {

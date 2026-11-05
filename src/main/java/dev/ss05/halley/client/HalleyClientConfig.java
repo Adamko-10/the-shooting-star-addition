@@ -34,6 +34,7 @@ public final class HalleyClientConfig {
     private static final ModConfigSpec.ConfigValue<List<? extends String>> CONVERGENCE;
     private static final ModConfigSpec.BooleanValue CONVERGENCE_RING;
     private static final ModConfigSpec.BooleanValue CONVERGENCE_PLATE;
+    private static final ModConfigSpec.EnumValue<ConvergenceShake> CONVERGENCE_SHAKE;
     /** What Stellar Convergence fires out of the box: every weapon but Gravitia (which only the menu chooses). */
     private static final List<String> CONVERGENCE_DEFAULT = List.of("the_shooting_star", "gungnir", "seven_stars", "tesseract", "halley", "luna");
 
@@ -48,6 +49,15 @@ public final class HalleyClientConfig {
         }
 
         public ImpactFrames next() {
+            return values()[(this.ordinal() + 1) % values().length];
+        }
+    }
+
+    /** The screen shake while a Stellar Convergence hits (X on its plate cycles it; the user, 2026-11-05). */
+    public enum ConvergenceShake {
+        CAPPED, FULL, OFF;
+
+        public ConvergenceShake next() {
             return values()[(this.ordinal() + 1) % values().length];
         }
     }
@@ -99,6 +109,9 @@ public final class HalleyClientConfig {
         CONVERGENCE_PLATE = b.comment("Stellar Convergence's plate in the remote's menu, shown while it is the selected skill (false: just its",
                 "name). V in the remote's menu.")
             .define("convergence_plate", true);
+        CONVERGENCE_SHAKE = b.comment("The screen shake while a Stellar Convergence is on its way and for 20 s after it hits: CAPPED (no",
+                "stronger than one big weapon's, though every weapon shakes), FULL (every weapon's added up) or OFF. X in the remote's menu.")
+            .defineEnum("convergence_shake", ConvergenceShake.CAPPED);
         b.pop();
         SPEC = b.build();
     }
@@ -194,6 +207,14 @@ public final class HalleyClientConfig {
 
     public static void setConvergencePlate(boolean on) {
         set(CONVERGENCE_PLATE, on);
+    }
+
+    public static ConvergenceShake convergenceShake() {
+        return get(CONVERGENCE_SHAKE);
+    }
+
+    public static void setConvergenceShake(ConvergenceShake shake) {
+        set(CONVERGENCE_SHAKE, shake);
     }
 
     /** Sets and saves a switch (kept for this session if the config isn't loaded). */

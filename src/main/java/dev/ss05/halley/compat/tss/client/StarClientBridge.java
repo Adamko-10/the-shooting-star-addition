@@ -11,6 +11,7 @@ import cyou.rimuru.shootingstardemo.mc1211.client.fx.FxManager;
 import cyou.rimuru.shootingstardemo.mc1211.ll1i111l11;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.AdditionPanel;
+import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
 import dev.ss05.halley.client.luna.MoonFx;
@@ -198,6 +199,62 @@ public final class StarClientBridge {
             }
         }
         return running;
+    }
+
+    /** How hard the camera may shake during a Stellar Convergence when capped: one big weapon's worth (Luna peaks at 1.3). */
+    private static final float SHAKE_CAP = 1.0F;
+    /** FxManager's two static floats, its trauma (impact kicks, which it holds to 1 itself) and rumble (every effect's shake, added up). */
+    private static List<Field> shakeFields;
+
+    /** With Stellar Convergence's shake off, while one is on its way or just hit. */
+    public static boolean shakeOff() {
+        return !ConvergenceClient.active().isEmpty() && HalleyClientConfig.convergenceShake() == HalleyClientConfig.ConvergenceShake.OFF;
+    }
+
+    /**
+     * From compat/mixin, before the remote shakes the camera: while a Stellar Convergence is on its way or just hit, its
+     * plate's setting (the user, 2026-11-05). Every weapon adds its shake to the remote's, so five at once shook five
+     * times as hard: capped holds it to {@link #SHAKE_CAP}, off skips it (true: no shake this frame), full leaves it.
+     */
+    public static boolean holdShake() {
+        if (ConvergenceClient.active().isEmpty()) {
+            return false;
+        }
+        HalleyClientConfig.ConvergenceShake mode = HalleyClientConfig.convergenceShake();
+        if (mode == HalleyClientConfig.ConvergenceShake.OFF) {
+            return true;
+        }
+        if (mode == HalleyClientConfig.ConvergenceShake.CAPPED) {
+            try {
+                // both held to the cap: trauma is at most 1 anyway, so which is which doesn't matter
+                for (Field field : shakeFields()) {
+                    field.setFloat(null, Math.min(field.getFloat(null), SHAKE_CAP));
+                }
+            } catch (ReflectiveOperationException | RuntimeException failed) {
+                HalleyAddon.LOG.warn("Couldn't cap the remote's screen shake; it shakes in full", failed);
+                shakeFields = List.of();
+            }
+        }
+        return false;
+    }
+
+    private static List<Field> shakeFields() {
+        if (shakeFields == null) {
+            List<Field> found = new ArrayList<>();
+            for (Field field : FxManager.class.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers()) && !Modifier.isFinal(field.getModifiers()) && field.getType() == float.class) {
+                    field.setAccessible(true);
+                    found.add(field);
+                }
+            }
+            if (found.size() != 2) {
+                HalleyAddon.LOG.warn("The remote's screen shake isn't where it was ({} static floats); Stellar Convergence's shake "
+                    + "can't be capped, only switched off. See StarClientBridge.holdShake.", found.size());
+                found.clear();
+            }
+            shakeFields = List.copyOf(found);
+        }
+        return shakeFields;
     }
 
     /**

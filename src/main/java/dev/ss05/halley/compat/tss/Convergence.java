@@ -54,6 +54,12 @@ public final class Convergence {
         "tesseract", 96.0);
     /** The slowest known weapon's ticks to impact at speed 1 (the skill's duration is counted from it). */
     static final int LONGEST = 353;
+    /**
+     * Gravitia sends the whole world into its space stage for good, which stopped the other weapons' impacts in a test
+     * run: it fires last, this long after the others hit, once their craters are cut (the user's pick, 2026-11-05; the
+     * last TSS carving ended ~25 s after the hit on TSS 1.5.2). Its own film plays then.
+     */
+    private static final int FINALE_AFTER = 600;
 
     /**
      * Ticks from the cast to the impact at speed 1, power 1, for The Shooting Star 1.5.1's weapons: measured in a game
@@ -121,6 +127,7 @@ public final class Convergence {
     static boolean cast(ServerPlayer player, Tuning master) {
         Picks picks = PICKS.get(player.getUUID());
         List<Weapon> weapons = new ArrayList<>();
+        List<Weapon> finale = new ArrayList<>();
         if (picks != null) {
             for (Pick pick : picks.picks()) {
                 Skill skill = find(pick.id());
@@ -128,12 +135,17 @@ public final class Convergence {
                     continue;
                 }
                 Tuning tuning = Limits.hold(skill, scaled(pick, master).clampFor(skill));
-                weapons.add(new Weapon(skill, tuning, impact(skill, tuning), reach(skill, tuning)));
+                (finale(skill) ? finale : weapons).add(new Weapon(skill, tuning, impact(skill, tuning), reach(skill, tuning)));
             }
         }
-        if (weapons.isEmpty()) {
+        if (weapons.isEmpty() && finale.isEmpty()) {
             StarBridge.deny(player, "Tick the weapons to fire on the Stellar Convergence plate (H)");
             return false;
+        }
+        if (weapons.isEmpty()) {
+            // Gravitia alone: nothing to wait for
+            weapons.addAll(finale);
+            finale.clear();
         }
         Vec3 target = StarBridge.aimGround(player, HalleyConfig.tuning().reach(), 260.0);
         int last = weapons.stream().mapToInt(Weapon::impact).max().orElse(0);
@@ -157,8 +169,12 @@ public final class Convergence {
             colors[i] = weapon.skill().color();
             points[i] = at;
         }
-        HalleyAddon.LOG.info("{} cast Stellar Convergence: {} at {} (all hit in {} ticks)", player.getGameProfile().getName(),
-            weapons.stream().map(w -> w.skill().id() + "+" + (w.impact() < 0 ? 0 : last - w.impact())).toList(), target, last);
+        for (Weapon weapon : finale) {
+            PENDING.add(new Pending(player.getUUID(), weapon.skill(), weapon.tuning(), target, now + last + FINALE_AFTER));
+        }
+        HalleyAddon.LOG.info("{} cast Stellar Convergence: {} at {} (all hit in {} ticks{})", player.getGameProfile().getName(),
+            weapons.stream().map(w -> w.skill().id() + "+" + (w.impact() < 0 ? 0 : last - w.impact())).toList(), target, last,
+            finale.isEmpty() ? "" : ", then " + finale.stream().map(w -> w.skill().id()).toList() + " " + FINALE_AFTER + " ticks later");
         ConvergenceFx.send(player, new ConvergenceFx(player.getId(), target, now + last, picks.ring(), colors, points));
         return true;
     }
@@ -307,6 +323,11 @@ public final class Convergence {
             return -1;
         }
         return Mth.ceil(base / Math.max(0.05F, tuning.speed()));
+    }
+
+    /** Whether this weapon fires last, after the others' destruction ({@link #FINALE_AFTER}): The Shooting Star's Gravitia. */
+    public static boolean finale(Skill skill) {
+        return skill.id().equals("gravitia") && SkillSet.of(skill) == SkillSet.of(TssLink.SKILL);
     }
 
     /** A non-hidden remote skill by its id (any mod's). */
