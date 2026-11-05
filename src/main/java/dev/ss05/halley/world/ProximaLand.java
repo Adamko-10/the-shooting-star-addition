@@ -114,7 +114,6 @@ final class ProximaLand {
 
     private void scorch(ChunkPos pos) {
         Map<BlockPos, BlockState> blocks = new HashMap<>();
-        double bowl = this.plan.params.bowlRadius();
         int minY = this.level.getMinBuildHeight();
         BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
         for (int x = pos.getMinBlockX(); x <= pos.getMaxBlockX(); x++) {
@@ -122,8 +121,8 @@ final class ProximaLand {
                 double r = this.plan.horizontal(x + 0.5, z + 0.5);
                 double edge = this.plan.edge(x + 0.5, z + 0.5);
                 double scorch = this.plan.params.scorchRadius() * edge;
-                // the bowl's own carving takes its middle; the outer edge frays
-                if (r < bowl - 1.0 || r >= scorch || r > scorch - 6.0 && this.plan.noise(x, 0, z) < (r - scorch + 6.0) / 6.0) {
+                // the bowl's own carving takes the columns it cuts (its rim wobbles: no gap of grass left); the outer edge frays
+                if (this.plan.bowlDepth(r / edge) >= 0.5 || r >= scorch || r > scorch - 6.0 && this.plan.noise(x, 0, z) < (r - scorch + 6.0) / 6.0) {
                     continue;
                 }
                 boolean charred = r < this.plan.params.charRadius() * edge;

@@ -8,6 +8,7 @@ import dev.ss05.halley.client.render.GlowBatch;
 import dev.ss05.halley.client.render.Shapes;
 import dev.ss05.halley.client.sky.SkyLook;
 import dev.ss05.halley.world.ProximaInfo;
+import dev.ss05.halley.world.ProximaStrike;
 import dev.ss05.halley.content.HalleyContent;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,6 +74,48 @@ public final class ProximaFx {
         return ACTIVE;
     }
 
+    /** The bowls still hot after their strikes (ProximaStrike's radiation zones, as this client saw them begin). */
+    private record Zone(ClientLevel level, Vec3 centre, double radius, long from, long until) {
+    }
+
+    private static final List<Zone> ZONES = new ArrayList<>();
+
+    /** From the client tick: the hot bowls shimmer (crimson motes and sparks rising) and hum at their edge, fading out. */
+    public static void tickZones() {
+        Minecraft minecraft = Minecraft.getInstance();
+        ClientLevel level = minecraft.level;
+        if (ZONES.isEmpty() || level == null) {
+            return;
+        }
+        ZONES.removeIf(zone -> zone.level() != level || level.getGameTime() > zone.until());
+        Vec3 camera = minecraft.gameRenderer.getMainCamera().getPosition();
+        RandomSource random = level.getRandom();
+        for (Zone zone : ZONES) {
+            double away = Math.hypot(camera.x - zone.centre().x, camera.z - zone.centre().z);
+            if (away > zone.radius() + 64.0) {
+                continue;
+            }
+            float left = 1.0F - (level.getGameTime() - zone.from()) / (float) Math.max(1L, zone.until() - zone.from());
+            int n = Math.round(10 * left);
+            for (int i = 0; i < n; i++) {
+                double a = random.nextDouble() * Math.PI * 2.0;
+                double r = Math.sqrt(random.nextDouble()) * zone.radius();
+                double x = zone.centre().x + Math.cos(a) * r;
+                double z = zone.centre().z + Math.sin(a) * r;
+                if (Math.hypot(x - camera.x, z - camera.z) > 48.0) {
+                    continue;
+                }
+                double y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, Mth.floor(x), Mth.floor(z)) + 0.2;
+                level.addParticle(random.nextFloat() < 0.8F ? new DustParticleOptions(new Vector3f(0.95F, 0.15F, 0.35F), 0.9F)
+                    : ParticleTypes.END_ROD, x, y, z, 0.0, 0.03 + random.nextDouble() * 0.04, 0.0);
+            }
+            if (Math.abs(away - zone.radius()) < 12.0 && level.getGameTime() % 50 == 0) {
+                minecraft.getSoundManager().play(new SimpleSoundInstance(HalleyContent.HUM.get().getLocation(), SoundSource.AMBIENT,
+                    0.5F * left, 0.5F, SoundInstance.createUnseededRandom(), false, 0, SoundInstance.Attenuation.NONE, 0.0, 0.0, 0.0, true));
+            }
+        }
+    }
+
     /**
      * From compat/mixin: a compass's needle while a coronal front batters the magnetic field near the camera (from the
      * front's arrival to five seconds after the impact, within 3000 blocks): spinning, wandering, each compass its own
@@ -134,6 +177,9 @@ public final class ProximaFx {
             this.play(HalleyContent.MOON_INHALE.get(), target, 1.0F, 1.1F);
         }
         if (t == ProximaPlan.IMPACT) {
+            long now = level.getGameTime();
+            ZONES.add(new Zone(level, target, this.plan.params.bowlRadius() * 1.3, now,
+                now + (long) (ProximaStrike.RADIATION_TICKS * Math.max(0.5, Math.sqrt(this.plan.params.power())))));
             this.play(HalleyContent.MOON_IMPACT.get(), target, 1.0F, 1.2F);
             this.play(HalleyContent.MOON_SHOCKWAVE.get(), target, 1.0F, 1.35F);
             this.host.shake(target, 0.6F, scorch * 3.0);

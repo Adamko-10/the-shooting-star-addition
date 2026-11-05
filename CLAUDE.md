@@ -45,8 +45,10 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   asked not to test while they played: a game run opens a window on their screen, and the Modrinth profile's jar is
   held open by their running game, so don't swap it then). Then the rest of stage 2 (radio burst,
   spinning compasses, redstone sparks, steam, cracks of light), game-tested too. Jar `test builds\2026-11-05 Proxima
-  stage 2 complete\`, in the Modrinth profile. **Next: stage 4 (the aftermath), then 3 (the film), 5 (sounds, music,
-  config).**
+  stage 2 complete\`. Then stage 4's first half, game-tested: Solar Residue (a new block, left in the bowl) and the
+  radiation zone (docs stage 4). Jar `test builds\2026-11-05 Proxima residue, radiation\`, in the Modrinth profile.
+  **Next: the rest of stage 4 (ash, auroras, radio blackout), then 3 (the film), 5 (sounds, music, config).** Remind
+  the user of the Solar Residue economy (§14) now that the residue exists.
   The user's feedback on stage 1: the sky with shaders "changes but not much" (now painted over the pack's sky too);
   radius "decently larger" (doubled: bowl 36, char 100, scorch 220); the CME "on a massive scale, many chunks and much
   more vfx, like a proper big wave" (the coronal front shell and ground zero's shock wave, which the scorch and the hits

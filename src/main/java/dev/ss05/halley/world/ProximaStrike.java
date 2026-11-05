@@ -6,6 +6,7 @@ import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.HalleyPlan;
 import dev.ss05.halley.ProximaPlan;
 import dev.ss05.halley.compat.StarBridge;
+import dev.ss05.halley.content.HalleyContent;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -42,6 +43,15 @@ import net.minecraft.world.phys.Vec3;
  */
 public final class ProximaStrike {
     public static final ResourceKey<DamageType> FLARE = ResourceKey.create(Registries.DAMAGE_TYPE, HalleyAddon.id("proxima_flare"));
+    public static final ResourceKey<DamageType> RADIATION = ResourceKey.create(Registries.DAMAGE_TYPE, HalleyAddon.id("proxima_radiation"));
+    /** How long the bowl stays dangerous at power 1 (ten minutes; longer at higher power): it fades out over that time. */
+    public static final int RADIATION_TICKS = 12000;
+    /** The radiation zones still glowing, after their strikes. */
+    private static final List<Zone> ZONES = new ArrayList<>();
+
+    /** A bowl still hot: hurts what lingers in it, less and less until {@code until}. */
+    private record Zone(ServerLevel level, Vec3 centre, double radius, long from, long until) {
+    }
     /** Solid blocks over a creature's head that shelter it from the flash and the blast. */
     private static final int SHELTER = 3;
     /** Lands still waiting for chunks to load, after their strike. */
@@ -110,6 +120,7 @@ public final class ProximaStrike {
 
     /** From the server tick: scorches what loaded since its strike ended. */
     public static void tickLingering() {
+        tickZones();
         LINGERING.removeIf(land -> {
             land.tick(Double.MAX_VALUE);
             return land.finished();
@@ -118,6 +129,30 @@ public final class ProximaStrike {
 
     public static void clearLingering() {
         LINGERING.clear();
+        ZONES.clear();
+    }
+
+    /** Once a second: what lingers in a radiation zone is hurt and weakened, less as the zone fades. */
+    private static void tickZones() {
+        ZONES.removeIf(zone -> zone.level().getGameTime() > zone.until());
+        for (Zone zone : ZONES) {
+            long now = zone.level().getGameTime();
+            if (now % 20 != 0) {
+                continue;
+            }
+            double left = 1.0 - (now - zone.from()) / (double) Math.max(1L, zone.until() - zone.from());
+            Vec3 c = zone.centre();
+            AABB box = new AABB(c.x - zone.radius(), c.y - 16.0, c.z - zone.radius(), c.x + zone.radius(), c.y + 24.0, c.z + zone.radius());
+            for (LivingEntity living : zone.level().getEntitiesOfClass(LivingEntity.class, box)) {
+                double d = Math.hypot(living.getX() - c.x, living.getZ() - c.z);
+                if (d > zone.radius() || living instanceof Player player && (player.isCreative() || player.isSpectator())) {
+                    continue;
+                }
+                float hurt = (float) (0.5 + 2.5 * left * (1.0 - d / zone.radius()));
+                living.hurt(new DamageSource(zone.level().registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(RADIATION)), hurt);
+                living.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 0));
+            }
+        }
     }
 
     // ---- The flash. ------------------------------------------------------------------------------------------------
@@ -146,6 +181,9 @@ public final class ProximaStrike {
             }
         }
         this.waveHit = 0.0;
+        long now = this.level.getGameTime();
+        ZONES.add(new Zone(this.level, this.plan.target, bowl * 1.3, now,
+            now + (long) (RADIATION_TICKS * Math.max(0.5, Math.sqrt(this.plan.params.power())))));
         int minY = this.level.getMinBuildHeight();
         this.bowl = StarBridge.excavate(this.level, this.plan.target, bowl + 3.0, (x, z) -> this.bowlFloor(x, z, minY),
             (x, y, z, was) -> this.bowlSurface(x, y, z), this.spared, "SA-04 Proxima bowl", HalleyConfig.chunksPerTick(), null);
@@ -260,6 +298,10 @@ public final class ProximaStrike {
         double k = this.plan.horizontal(x + 0.5, z + 0.5) / this.plan.params.bowlRadius();
         if (n < 0.12F) {
             return Blocks.MAGMA_BLOCK.defaultBlockState();
+        }
+        // the plasma's residue, here and there in the glassy floor (the user's server trades it)
+        if (n < 0.145F && k < 0.85) {
+            return HalleyContent.SOLAR_RESIDUE.get().defaultBlockState();
         }
         if (k < 0.55) {
             return n < 0.6F ? Blocks.TINTED_GLASS.defaultBlockState() : Blocks.OBSIDIAN.defaultBlockState();

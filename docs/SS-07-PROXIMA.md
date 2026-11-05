@@ -49,8 +49,21 @@ config); this file is the build's own record: what exists, where it lives, and w
 3. The film: the intro to space (title card "DYSON SPHERE", the lattice opening like an iris, the infinity-sign loops,
    "CORONAL MASS EJECTION" in plasma filaments), the lens beam and the gate near Earth, the pullback afterwards.
    RimuLib's film tools (`CameraRig`, `Shot`, `Subject`, `CutsceneDirector`), our own Earth shader (free imagery only).
-4. The aftermath: the Solar Residue block, the ash layer, the radiation zone (shimmer, hum, damage over time, fading
-   by default), auroras for a night or two, the "radio blackout" on the skill's own HUD text.
+4. **The aftermath, first half** (2026-11-05, game-tested: `auto test 19 proxima wave\residue-close\`):
+   - **Solar Residue** (`shooting_star_addition:solar_residue`, `content/SolarResidueBlock`): glowing (light 12),
+     emissive, amethyst sounds, sparks and an odd chime (`animateTick`), a pickaxe mines it and it drops itself;
+     strength 3. Texture `art/make_solar_residue.sh` (ffmpeg, 12 frames: crimson crystal facets, pulsing pink veins).
+     Left in the bowl's glassy floor: about 2.5% of its columns (`bowlSurface`, noise 0.12-0.145, not near the rim;
+     ~100 blocks at 1x). In the natural blocks tab. Not decided: an event tag so creative copies don't count (§14).
+   - **The radiation zone** (`ProximaStrike.Zone`, server tick): 1.3 x the bowl, for `RADIATION_TICKS` 12000 (10 min)
+     times sqrt(power) (at least half): once a second, whatever lingers in it is hurt (0.5 to 3, by how close to the
+     middle and how fresh) and weakened; damage type `proxima_radiation`. Not saved: it ends with the server. Clients
+     (`ProximaFx.tickZones`, client tick): crimson motes and white sparks rising over the bowl near the camera, a low hum
+     at its edge, fading with it. Not checked in game: the damage and the hum.
+   - Fixed in the same round: a ring of grass left at the bowl's wobbly rim (the scorch now skips exactly the columns
+     the bowl cuts).
+   Still to do: the ash layer, auroras for a night or two, the "radio blackout" on the skill's own HUD, permanent zones
+   (config, stage 5).
 5. Sounds (the sound overhaul's way: `art/overhaul_sounds.sh`) and the user's music track, cut so its drop lands on
    `IMPACT`; then config (the §15 list), random flares (off by default), and the title card.
 
