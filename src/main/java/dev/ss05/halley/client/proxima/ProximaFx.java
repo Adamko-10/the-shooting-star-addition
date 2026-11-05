@@ -23,7 +23,13 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
+import org.joml.Vector3f;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -67,6 +73,28 @@ public final class ProximaFx {
         return ACTIVE;
     }
 
+    /**
+     * From compat/mixin: a compass's needle while a coronal front batters the magnetic field near the camera (from the
+     * front's arrival to five seconds after the impact, within 3000 blocks): spinning, wandering, each compass its own
+     * way; -1 when no front is near (the compass points as usual).
+     */
+    public static float compassSpin(int seed) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (ACTIVE.isEmpty() || minecraft.level == null) {
+            return -1.0F;
+        }
+        Vec3 camera = minecraft.gameRenderer.getMainCamera().getPosition();
+        for (ProximaFx fx : ACTIVE) {
+            float t = fx.host.clock(0.0F);
+            if (t >= ProximaPlan.FRONT && t <= ProximaPlan.IMPACT + 100 && fx.plan.horizontal(camera.x, camera.z) < 3000.0) {
+                double s = System.nanoTime() / 1.0E9;
+                double wander = 1.7 * s + seed * 0.618 + 0.15 * Math.sin(s * 5.3 + seed);
+                return (float) (wander - Math.floor(wander));
+            }
+        }
+        return -1.0F;
+    }
+
     public void removed() {
         ACTIVE.remove(this);
     }
@@ -96,9 +124,10 @@ public final class ProximaFx {
                     0.0, 0.03 + this.random.nextFloat() * 0.05, 0.0);
             }
         }
-        // the coronal front: a deep roar rolling across the sky (its look comes in stage 2)
+        // the coronal front: its radio burst whining down as it comes on, and a deep roar rolling across the sky
         if (t == ProximaPlan.FRONT) {
-            this.play(HalleyContent.MOON_RUMBLE.get(), camera, 0.08F, 0.55F);
+            this.play(HalleyContent.PROXIMA_RADIO.get(), camera, 0.06F, 1.0F);
+            this.play(HalleyContent.MOON_RUMBLE.get(), camera, 0.06F, 0.55F);
         }
         // the air drawn in just before the plasma lands
         if (t == ProximaPlan.IMPACT - 13) {
@@ -154,6 +183,40 @@ public final class ProximaFx {
                 float pick = this.random.nextFloat();
                 this.particle(level, pick < 0.45F ? ParticleTypes.CAMPFIRE_COSY_SMOKE : pick < 0.8F ? ParticleTypes.FLAME : ParticleTypes.LAVA, at,
                     Math.cos(a) * 0.3, 0.15 + this.random.nextDouble() * 0.35, Math.sin(a) * 0.3);
+            }
+        }
+        // the magnetic storm: redstone near the camera sparks while the front comes on and just after
+        if (t >= ProximaPlan.FRONT && t < ProximaPlan.IMPACT + 60 && away < this.plan.params.scorchRadius() * 3.0) {
+            BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
+            for (int i = 0; i < 30; i++) {
+                at.set(camera.x + this.gauss(10.0), camera.y + this.gauss(4.0), camera.z + this.gauss(10.0));
+                BlockState state = level.getBlockState(at);
+                boolean wire = state.is(Blocks.REDSTONE_WIRE);
+                if ((wire || state.is(Blocks.REDSTONE_LAMP) || state.is(Blocks.REDSTONE_TORCH) || state.is(Blocks.REDSTONE_WALL_TORCH)
+                    || state.is(Blocks.REDSTONE_BLOCK)) && this.random.nextFloat() < 0.6F) {
+                    Vec3 spark = Vec3.atCenterOf(at).add(0.0, wire ? -0.4 : 0.0, 0.0);
+                    for (int k = 0; k < 3; k++) {
+                        this.particle(level, ParticleTypes.ELECTRIC_SPARK, spark, this.gauss(0.15), this.random.nextDouble() * 0.15, this.gauss(0.15));
+                    }
+                    this.particle(level, new DustParticleOptions(new Vector3f(1.0F, 0.1F, 0.05F), 1.2F), spark, 0.0, 0.05, 0.0);
+                }
+            }
+        }
+        // water under the open sky steams in the flash and as the shock wave passes
+        boolean steaming = t >= ProximaPlan.FLASH && t < ProximaPlan.FLASH + 80 && away < this.plan.params.scorchRadius() * 1.25
+            || wave > 0.0 && Math.abs(wave - away) < 40.0;
+        if (steaming) {
+            BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
+            for (int i = 0; i < 24; i++) {
+                int x = Mth.floor(camera.x + this.gauss(14.0));
+                int z = Mth.floor(camera.z + this.gauss(14.0));
+                at.set(x, level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1, z);
+                if (level.getFluidState(at).is(FluidTags.WATER) && level.canSeeSky(at.above())) {
+                    this.particle(level, ParticleTypes.CLOUD, Vec3.atCenterOf(at).add(0.0, 0.6, 0.0), this.gauss(0.02), 0.06 + this.random.nextDouble() * 0.08, this.gauss(0.02));
+                    if (this.random.nextFloat() < 0.04F) {
+                        this.play(SoundEvents.FIRE_EXTINGUISH, Vec3.atCenterOf(at), 0.02F, 0.6F + this.random.nextFloat() * 0.4F);
+                    }
+                }
             }
         }
         // after: smoke columns over the charred land, ash and embers drifting near the camera
@@ -241,6 +304,41 @@ public final class ProximaFx {
         double wave = this.plan.waveRadius(t);
         if (wave > 0.0 && wave < this.plan.waveReach() * 0.999) {
             this.shockWave(world, wave, level);
+        }
+        if (t >= ProximaPlan.IMPACT && t < ProximaPlan.IMPACT + 80) {
+            this.cracks(world, t - ProximaPlan.IMPACT, level);
+        }
+    }
+
+    /** Cracks of light racing out over the ground from the bowl at the impact, glowing white-orange, cooling over four seconds. */
+    private void cracks(GlowBatch world, float since, ClientLevel level) {
+        float fade = (float) Math.pow(1.0 - since / 80.0, 1.5);
+        float reach = Math.min(1.0F, since / 10.0F);
+        double bowl = this.plan.params.bowlRadius();
+        RandomSource shape = RandomSource.create(this.plan.seed ^ 0x5EEDL);
+        for (int c = 0; c < 9; c++) {
+            double a = (c + shape.nextDouble() * 0.6) / 9.0 * Math.PI * 2.0;
+            double length = bowl * (1.6 + shape.nextDouble()) * reach;
+            int pieces = 8;
+            Vec3 last = null;
+            Vec3 lastSide = null;
+            for (int i = 0; i <= pieces; i++) {
+                double r = bowl * 0.4 + (length - bowl * 0.4) * i / pieces;
+                double bend = a + (shape.nextDouble() - 0.5) * 0.25;
+                double x = this.plan.target.x + Math.cos(bend) * r;
+                double z = this.plan.target.z + Math.sin(bend) * r;
+                Vec3 p = new Vec3(x, groundAt(level, x, z, this.plan.target.y) + 0.15, z);
+                Vec3 side = new Vec3(-Math.sin(bend), 0.0, Math.cos(bend)).scale(1.4 * (1.0 - 0.7 * i / (double) pieces));
+                if (last != null) {
+                    float s = fade * (1.0F - 0.6F * i / pieces);
+                    world.corner(last.subtract(lastSide), 0xFFE0A0, s);
+                    world.corner(last.add(lastSide), 0xFFE0A0, s);
+                    world.corner(p.add(side), 0xFF9A50, s);
+                    world.corner(p.subtract(side), 0xFF9A50, s);
+                }
+                last = p;
+                lastSide = side;
+            }
         }
     }
 

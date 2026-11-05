@@ -43,8 +43,10 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   `test builds\2026-11-05 Proxima SA-04, sky, plate style, finale\`, in the Modrinth profile.
 - **2026-11-05, evening: Proxima stage 2 (the wave) built and game-tested** once the user had stopped playing (they
   asked not to test while they played: a game run opens a window on their screen, and the Modrinth profile's jar is
-  held open by their running game, so don't swap it then). Jar `test builds\2026-11-05 Proxima stage 2 wave\`, in the
-  Modrinth profile.
+  held open by their running game, so don't swap it then). Then the rest of stage 2 (radio burst,
+  spinning compasses, redstone sparks, steam, cracks of light), game-tested too. Jar `test builds\2026-11-05 Proxima
+  stage 2 complete\`, in the Modrinth profile. **Next: stage 4 (the aftermath), then 3 (the film), 5 (sounds, music,
+  config).**
   The user's feedback on stage 1: the sky with shaders "changes but not much" (now painted over the pack's sky too);
   radius "decently larger" (doubled: bowl 36, char 100, scorch 220); the CME "on a massive scale, many chunks and much
   more vfx, like a proper big wave" (the coronal front shell and ground zero's shock wave, which the scorch and the hits

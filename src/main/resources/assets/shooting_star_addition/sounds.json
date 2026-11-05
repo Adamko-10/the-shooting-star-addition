@@ -244,6 +244,14 @@
       }
     ]
   },
+  "proxima_radio": {
+    "subtitle": "subtitles.shooting_star_addition.proxima_radio",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:proxima_radio"
+      }
+    ]
+  },
   "luna_music": {
     "sounds": [
       {

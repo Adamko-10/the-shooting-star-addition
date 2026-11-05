@@ -38,8 +38,14 @@ config); this file is the build's own record: what exists, where it lives, and w
      blast, a jolt and fire and dust thrown up along the wave; the front's rumble builds on screen.
    - Radii doubled (the user, "decently larger"); Proxima's red sky is painted over a shader pack's sky too (its sunset
      alone was faint): `HalleySky.paint` covers it with the crimson night for `PALETTE_PROXIMA`.
-   Still to do for stage 2: the Type II radio burst (a whine drifting down), compasses spinning, redstone sparks,
-   steam off exposed water, cracks of light at ground zero.
+   - The rest of stage 2 (2026-11-05, game-tested: `auto test 19 proxima wave\cracks\`): the Type II radio burst
+     (`proxima_radio`, made by `art/make_proxima_sounds.sh`: a whine sweeping down 1600 -> 220 Hz over the front's 8.5 s
+     with two harmonics and a flutter, over banded static; played at FRONT; no missing-sound warning, not heard by
+     Claude); compasses and recovery compasses spin from the front to 5 s after the impact within 3000 blocks
+     (`compat/mixin/CompassSpinMixin` -> `ProximaFx.compassSpin`); redstone near the camera sparks (30 blocks sampled a
+     tick: wire, lamps, torches, blocks); water under the open sky steams in the flash and as the wave passes; nine
+     cracks of light race out from the bowl at the impact and cool over 4 s (`ProximaFx.cracks`). Not checked in game:
+     the compass, sparks and steam (the flat test world has none of them).
 3. The film: the intro to space (title card "DYSON SPHERE", the lattice opening like an iris, the infinity-sign loops,
    "CORONAL MASS EJECTION" in plasma filaments), the lens beam and the gate near Earth, the pullback afterwards.
    RimuLib's film tools (`CameraRig`, `Shot`, `Subject`, `CutsceneDirector`), our own Earth shader (free imagery only).

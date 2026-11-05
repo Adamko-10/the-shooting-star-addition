@@ -166,6 +166,8 @@ public final class HalleyContent {
     public static final DeferredHolder<SoundEvent, SoundEvent> MOON_BUILDUP = sound("luna_buildup");
     /** The air drawn in, after the hush and just before the impact. */
     public static final DeferredHolder<SoundEvent, SoundEvent> MOON_INHALE = sound("luna_inhale");
+    /** Proxima's coronal front coming in: its Type II radio burst, a whine drifting down (art/make_proxima_sounds.sh). */
+    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_RADIO = sound("proxima_radio");
 
     /** Damage from the shock wave outside the crater (inside it, things are erased the way the other skills erase). */
     public static final ResourceKey<DamageType> WAKE = ResourceKey.create(Registries.DAMAGE_TYPE, HalleyAddon.id("halley_wake"));
