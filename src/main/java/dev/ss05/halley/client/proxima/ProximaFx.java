@@ -80,6 +80,49 @@ public final class ProximaFx {
 
     private static final List<Zone> ZONES = new ArrayList<>();
 
+    /** After a flare the magnetic storm lingers: auroras for a night or two (36000 ticks, a day and a half). */
+    private static final long AURORA_TICKS = 36000L;
+
+    private record Aurora(ClientLevel level, Vec3 centre, long from, long until, long seed) {
+    }
+
+    private static final List<Aurora> AURORAS = new ArrayList<>();
+
+    /** Whether some flare's auroras may still be in this world's sky (HalleySky asks before anything else). */
+    public static boolean auroras() {
+        return !AURORAS.isEmpty();
+    }
+
+    /**
+     * The auroras a past flare leaves, as HalleySky draws them (red-topped green curtains, Proxima's palette): only by
+     * night, within 2000 blocks of the flare, fading in after it and out over their last hours; null when there are none.
+     */
+    public static SkyLook aurora(float partial, Vec3 camera) {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (AURORAS.isEmpty() || level == null) {
+            return null;
+        }
+        AURORAS.removeIf(a -> a.level() != level || level.getGameTime() > a.until());
+        float night = Mth.clamp(level.getStarBrightness(partial) * 2.0F, 0.0F, 1.0F);
+        float best = 0.0F;
+        Aurora shown = null;
+        for (Aurora a : AURORAS) {
+            double away = Math.hypot(camera.x - a.centre().x, camera.z - a.centre().z);
+            float since = level.getGameTime() - a.from();
+            float strength = smooth(since / 1200.0) * (1.0F - smooth((since - (AURORA_TICKS - 6000.0)) / 6000.0))
+                * (1.0F - smooth((away - 1200.0) / 800.0));
+            if (strength > best) {
+                best = strength;
+                shown = a;
+            }
+        }
+        if (shown == null || night * best <= 0.002F) {
+            return null;
+        }
+        return new SkyLook(0.0F, 0.0F, 0.9F * night * best, 0.0F, 0.0F, 0.0F, new Vec3(0.0, 1.0, 0.0), 0.0F, 0.0F, Vec3.ZERO, 0.0F,
+            (float) (shown.seed() & 1023L), 0.0F, SkyLook.PALETTE_PROXIMA);
+    }
+
     /** From the client tick: the hot bowls shimmer (crimson motes and sparks rising) and hum at their edge, fading out. */
     public static void tickZones() {
         Minecraft minecraft = Minecraft.getInstance();
@@ -178,6 +221,7 @@ public final class ProximaFx {
         }
         if (t == ProximaPlan.IMPACT) {
             long now = level.getGameTime();
+            AURORAS.add(new Aurora(level, target, now, now + AURORA_TICKS, this.plan.seed));
             ZONES.add(new Zone(level, target, this.plan.params.bowlRadius() * 1.3, now,
                 now + (long) (ProximaStrike.RADIATION_TICKS * Math.max(0.5, Math.sqrt(this.plan.params.power())))));
             this.play(HalleyContent.MOON_IMPACT.get(), target, 1.0F, 1.2F);

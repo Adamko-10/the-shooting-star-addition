@@ -13,6 +13,7 @@
   "death.attack.shooting_star_addition.proxima_flare.item": "%1$s was burnt by a flare %2$s called down with %3$s",
   "block.shooting_star_addition.comet_heart": "Comet Heart",
   "block.shooting_star_addition.solar_residue": "Solar Residue",
+  "block.shooting_star_addition.proxima_ash": "Flare Ash",
   "death.attack.shooting_star_addition.proxima_radiation": "%1$s lingered too long in a flare's crater",
   "death.attack.shooting_star_addition.proxima_radiation.player": "%1$s lingered too long in the crater of %2$s's flare",
   "block.shooting_star_addition.comet_trail": "Frozen Comet Trail",

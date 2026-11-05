@@ -62,8 +62,16 @@ config); this file is the build's own record: what exists, where it lives, and w
      at its edge, fading with it. Not checked in game: the damage and the hum.
    - Fixed in the same round: a ring of grass left at the bowl's wobbly rim (the scorch now skips exactly the columns
      the bowl cuts).
-   Still to do: the ash layer, auroras for a night or two, the "radio blackout" on the skill's own HUD, permanent zones
-   (config, stage 5).
+   - **Flare Ash** (`shooting_star_addition:proxima_ash`, 2026-11-05, game-tested: `auto test 19 proxima wave\aurora\`):
+     vanilla's `SnowLayerBlock` without random ticks (it never melts), grey (`art/make_ash.sh`), snow models with its
+     texture for all 8 layers, a shovel, drops nothing. One layer laid by `ProximaLand` over the scorched ground: half the
+     charred ring, thinning to a third and out toward the scorch's edge; only on scorched soil with air above.
+   - **Auroras** (same test): every flare leaves one for `AURORA_TICKS` 36000 (a day and a half), by night only, within
+     2000 blocks, fading in over a minute after the strike and out over its last 6000 ticks (`ProximaFx.aurora`, through
+     HalleySky when nothing else changes the sky, so shader packs get it too). The sky shader's curtain tops are a
+     uniform now (`AuroraTop`): red for Proxima's palette, violet as before for Halley's. Client only, not saved.
+   Still to do: the "radio blackout" on the skill's own HUD (Proxima has no HUD until its film, stage 3), permanent
+   zones and the rest of the config (stage 5).
 5. Sounds (the sound overhaul's way: `art/overhaul_sounds.sh`) and the user's music track, cut so its drop lands on
    `IMPACT`; then config (the §15 list), random flares (off by default), and the title card.
 

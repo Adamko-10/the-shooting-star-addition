@@ -2,6 +2,7 @@ package dev.ss05.halley.world;
 
 import dev.ss05.halley.ProximaPlan;
 import dev.ss05.halley.compat.StarBridge;
+import dev.ss05.halley.content.HalleyContent;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -157,6 +158,14 @@ final class ProximaLand {
                         blocks.put(at.immutable(), ground);
                         if (charred && this.level.getBlockState(at.below()).is(BlockTags.DIRT)) {
                             blocks.put(at.below().immutable(), Blocks.COARSE_DIRT.defaultBlockState());
+                        }
+                        // a thin layer of ash settles over it: thick over the charred ring, thinning out toward the edge
+                        BlockPos up = at.above();
+                        BlockState above = blocks.containsKey(up) ? blocks.get(up) : this.level.getBlockState(up);
+                        double ash = charred ? 0.5 : 0.35 * (1.0 - (r - this.plan.params.charRadius())
+                            / Math.max(1.0, this.plan.params.scorchRadius() - this.plan.params.charRadius()));
+                        if (above.isAir() && this.plan.noise(x, y + 7, z) < ash) {
+                            blocks.put(up, HalleyContent.PROXIMA_ASH.get().defaultBlockState());
                         }
                     }
                     break;

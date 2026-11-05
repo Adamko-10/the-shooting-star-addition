@@ -16,6 +16,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SnowLayerBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -110,6 +111,18 @@ public final class HalleyContent {
             .requiresCorrectToolForDrops()
             .isValidSpawn((state, level, pos, type) -> false));
     public static final DeferredItem<BlockItem> SOLAR_RESIDUE_ITEM = ITEMS.registerSimpleBlockItem(SOLAR_RESIDUE, new Item.Properties());
+
+    /** The thin ash SA-04 Proxima leaves over the land it scorched: a layer like snow that never melts. Drops nothing. */
+    public static final DeferredBlock<SnowLayerBlock> PROXIMA_ASH = BLOCKS.registerBlock("proxima_ash", SnowLayerBlock::new,
+        BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_GRAY)
+            .replaceable()
+            .forceSolidOff()
+            .strength(0.1F)
+            .sound(SoundType.SAND)
+            .isViewBlocking((state, level, pos) -> state.getValue(SnowLayerBlock.LAYERS) >= 8)
+            .pushReaction(PushReaction.DESTROY));
+    public static final DeferredItem<BlockItem> PROXIMA_ASH_ITEM = ITEMS.registerSimpleBlockItem(PROXIMA_ASH, new Item.Properties());
 
     /** Cheese, so eating any of it first clears your effects like milk does ({@link CheeseItem}). */
     public static final DeferredItem<BlockItem> MOON_CHEESE_ITEM =
@@ -216,6 +229,7 @@ public final class HalleyContent {
             event.accept(COMET_HEART_ITEM);
             event.accept(COMET_TRAIL_ITEM);
             event.accept(SOLAR_RESIDUE_ITEM);
+            event.accept(PROXIMA_ASH_ITEM);
             event.accept(MOON_CHEESE_ITEM);
             event.accept(HOLEY_MOON_CHEESE_ITEM);
             event.accept(MOLTEN_MOON_CHEESE_ITEM);
