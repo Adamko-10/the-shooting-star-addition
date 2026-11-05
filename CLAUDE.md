@@ -59,7 +59,10 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   and Earth (stage 3 part 3, ask before downloading imagery).** Also done then: Luna's full track rebuilt for Epic
   mode (`music\Luna full (rebuilt).flac` in the project folder: 29.09 s, drop at 24.45 s = up to 24.45 s of lead; Video
   Project 48 up to 10.03 s, +13.03 dB, crossfaded 60 ms onto luna_music.ogg from 1.52498 s; offset 8.44502 s, checked
-  sample-exact, no click). Epic mode itself not started. Earlier:
+  sample-exact, no click). Epic mode itself not started. Game run (`test builds\2026-11-05 auto test 21 proxima
+  music\sounds-config\`): no sound errors, the bowl 6 deep, the config sections written, the zones' save file made.
+  Test jar `test builds\2026-11-05 Proxima config, sounds\`, in the Modrinth profile (the music build renamed
+  `.disabled`). Not heard by the user yet. Earlier:
   **stage 5 was started late 2026-11-05 and then PAUSED by the user** ("dont proceed, i will
   do it rn": they are getting Proxima's music file). Nothing of stage 5 is written; the tree was clean. When they send
   the file: cut it so its drop lands on IMPACT (330), like Luna's (§6, docs/SS-06-LUNA.md), then Proxima's own sounds
