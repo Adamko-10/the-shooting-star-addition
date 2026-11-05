@@ -62,8 +62,11 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   shelter blocks, knockback, radiation minutes/damage, terrain on/off, residue on/off).
 - **Film lengths** (the user asked): Proxima's film is 520 ticks = **26 s** at speed 1 (`ProximaStoryboard.END` =
   IMPACT + 190); Halley's ~23 s, Luna's ~25 s; the speed slider scales them. The user then asked **how long TSS's own
-  films are**: not answered yet (a javap of TSS 1.5.2's readable jar `build/shooting-star-named/` was cut off by the
-  compaction): read each skill's film/`duration()` there and answer. The plan as agreed:
+  films are** (answered 2026-11-05): each skill's `duration()` in TSS 1.5.2 (whole skill, film included; its film
+  may end a little sooner, as ours do): Railgun 526 ticks (26.3 s), Gungnir 480 (24.0 s), Seven Stars 560 (28.0 s),
+  Tesseract 682 (34.1 s), Gravitia 802 (40.1 s); cooldown 1200 for all. Read from `StarSkill`'s static init in the
+  readable jar: its ints are XORed with a key (`lli1IIil`, from a float constant through a hash mix); the decoder
+  is a few lines of JS (enum order = remote order; keys K, I, U, Y, none). The plan as agreed:
   Agreed with the user in three parts: **(1) the in-world film first** (shots following the strike: the caster's
   remote, the flash, the CME front coming down the sky, the wall rolling past, a pull-back over the scorched land;
   a title card "SA-04 PROXIMA" like Halley's/Luna's (`compat/tss/client/FilmTitle`); a film HUD (like `MoonHud.film`)
