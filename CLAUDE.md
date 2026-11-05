@@ -57,7 +57,12 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
 - **Stage 5: the music (below), the `[proxima]` config and Proxima's own sounds are BUILT (2026-11-05, late; the
   user: "rebuild and continue work"; details: docs/SS-07-PROXIMA.md stage 5). Random flares BUILT too (the user's
   pick, 2026-11-05 night; docs stage 5; `/ssa flare <tier> [seconds]` for operators; off by default). Left: Earth
-  (stage 3 part 3, ask before downloading imagery).** Also done then: Luna's full track rebuilt for Epic
+  (stage 3 part 3, ask before downloading imagery).** Flares game-tested (`test builds\2026-11-05 auto test 21
+  proxima music\flares\`: `/ssa flare major 5` and `cataclysm 20`; both alerts in chat, both fired on time, the
+  cataclysm's impact 9.35 s after its flash, villagers "burnt by a solar flare", no film; screenshots of the white
+  flash, the red sky, the impact and the scorch). Not checked: the major flare's plants burning (the flat test world),
+  the random roll itself (once a minute, 1 in average_minutes). Test jar `test builds\2026-11-05 Proxima random
+  flares\`, in the Modrinth profile (the Epic mode build renamed `.disabled`). Also done then: Luna's full track rebuilt for Epic
   mode (`music\Luna full (rebuilt).flac` in the project folder: 29.09 s, drop at 24.45 s = up to 24.45 s of lead; Video
   Project 48 up to 10.03 s, +13.03 dB, crossfaded 60 ms onto luna_music.ogg from 1.52498 s; offset 8.44502 s, checked
   sample-exact, no click). **Epic mode then BUILT** (§14 "Epic mode", docs/SS-06-LUNA.md). Game run (`test builds\2026-11-05 auto test 21 proxima
@@ -901,7 +906,9 @@ The user runs a modded server (Montauk County partnership) where this addon will
 - **Solar Residue economy**: at the end of the server the user fires flares; players collect Solar Residue and sell it
   to the user for currency in a Discord-bot economy (also limited roles/badges). Remind the user of this when Proxima
   is built. Mod-side ideas (none decided):
-  - a "flare storm" operator command, e.g. `/ssa flarestorm <radius> <count>`, scattering several small Proxima flares;
+  - a "flare storm" operator command, e.g. `/ssa flarestorm <radius> <count>`, scattering several small Proxima flares
+    (since 2026-11-05 `/ssa flare <minor|major|cataclysm> [seconds]` calls one announced flare near the operator;
+    several of those in a row already make a small storm);
   - residue stamped with an event tag (data component/NBT) so creative-spawned copies don't count;
   - getting it to the bot: simplest is in-game hand-over and manual payout; smoother is a sell command that removes
     the residue and writes `player, amount` to a log file the bot reads (or a webhook). Decide once the bot is known.
