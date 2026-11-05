@@ -855,6 +855,11 @@ update).
   another letter there when porting). The fall from ALARM to CONTACT takes 24 s instead of 16 (`MoonPlan.EPIC_FALL`
   480, a time warp, not a second timeline), with `luna_music_epic.ogg` from the rebuilt full track. How it works:
   docs/SS-06-LUNA.md "Epic mode". The plate has six rows now: M, G, L, F, E, C.
+  Game-tested (`test builds\2026-11-05 auto test 21 proxima music\epic\` and `plate\`): the impact 24.6 s after the
+  cast (server log; 16.5 s normally), the moon still high at tick 330 and the impact frames at 495 (screenshots), the
+  plate's G row. Not heard yet (the epic music, the rumble and inhale timing); the film in Epic mode not screenshotted.
+  Test jar `test builds\2026-11-05 Luna Epic mode\`, in the Modrinth profile (the config/sounds build renamed
+  `.disabled`).
 - **Protected-blocks tag** (§10 #6): `shooting_star_addition:unbreakable`; matters even more for Proxima's wide area.
   **Done 2026-11-04** (`world/Protected`, `data/shooting_star_addition/tags/block/unbreakable.json`: bedrock, barrier,
   command/structure blocks, jigsaw, end portal and frame, reinforced deepslate; servers add more by data pack). Its
