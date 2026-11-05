@@ -52,6 +52,10 @@ public interface StarLink {
 
     void startMoon(ServerPlayer caster, Vec3 target, long seed, MoonParams params, CastTuning tuning);
 
+    void startProxima(ServerPlayer caster, Vec3 target, long seed, dev.ss05.halley.ProximaParams params, CastTuning tuning);
+
+    boolean proximaRunning(ServerPlayer player);
+
     boolean alreadyFlying(boolean moon, ServerPlayer player);
 
     /** The point on the ground under the crosshair (or under a creature in it), the way the built-in skills aim. */

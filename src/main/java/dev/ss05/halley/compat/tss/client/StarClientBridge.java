@@ -55,6 +55,9 @@ public final class StarClientBridge {
                     start(strike);
                 } else if (strike.skill() == SkillApi.index(TssLink.MOON)) {
                     startMoon(strike);
+                } else if (strike.skill() == SkillApi.index(TssLink.PROXIMA)) {
+                    // (no film yet: it comes with stage 3, see docs/SS-07-PROXIMA.md)
+                    FxManager.add(new ProximaFxAdapter(strike));
                 }
             }));
             NetClientApi.receive(ConvergenceFx.PACKET, (fx, context) -> Minecraft.getInstance().execute(() -> ConvergenceClient.start(fx)));

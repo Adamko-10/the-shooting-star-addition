@@ -31,8 +31,14 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   (§18). Master sliders on SA-00, Gravitia last, and the Convergence shake setting built 2026-11-05 (§18).
 - **2026-11-05: main moved to TSS 1.5.2 + RimuLib 1.2.2 and partly to RimuLib's public API** (§16a, §17a; the user
   picked the API switch, TSS 1.5.2 dropped meanwhile). The mapping tool's long-standing anchor bug is fixed (§16a).
-- **Next, the update's remaining list** (§14): Epic mode (needs `Video-Project-48.mp3` from Hamza's PC; not on Adam's
-  PC, searched 2026-11-04), SA-03 Proxima (§15, needs the user's track), then
+- **SA-03 Proxima: stage 1 of 5 built 2026-11-05** (the playable strike: on the remote as skill #8, key Z; flash burn,
+  glassy bowl, scorch, damage tiers, basic effects with borrowed sounds). Its build record, stages and code map:
+  `docs/SS-07-PROXIMA.md`; the agreed design: §15. Game-tested on the flat test world (`test builds6-11-05 auto
+  test 18 proximalat`: the bowl 6 deep tapering to 0 at 24 blocks, cut in 14 ms; the scorch round a village whose
+  houses stand). Not yet seen: trees burning and charring (the harness can't film real land: its camera follows its own
+  mark, which was water there). Test jar `test builds6-11-05 Proxima stage 1`, in the Modrinth profile.
+- **Next, the update's remaining list** (§14): Proxima stages 2-5 (the user's track for stage 5), Epic mode (needs
+  `Video-Project-48.mp3` from Hamza's PC; not on Adam's PC, searched 2026-11-04), then
   port to the six other branches (§3), CI, one Forge test, README/changelog/CurseForge text, release.
 - **Remind the user** (§0): idea #16 for the Mrityu mod (asked again 2026-11-04).
 
@@ -816,7 +822,7 @@ The user runs a modded server (Montauk County partnership) where this addon will
   portal animation and opens like a case to give the Stellar Remote (ties into §10 #3); keep one skill unused in the
   finale and point players to download the addon to try it; mention in the community that updates may be slower.
 
-## 15. SA-03 · Proxima (design agreed 2026-10-22/23, not started)
+## 15. SA-03 · Proxima (design agreed 2026-10-22/23; stage 1 built 2026-11-05, see docs/SS-07-PROXIMA.md)
 
 A red-dwarf flare star inside a Dyson sphere fires a solar flare and then a coronal mass ejection (CME) at the
 crosshair. Name: **Proxima** (Proxima Centauri, a real flare star; the user loves it), skill id `proxima`, SA-03.

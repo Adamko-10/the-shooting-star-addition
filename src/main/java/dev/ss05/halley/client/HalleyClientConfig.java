@@ -36,7 +36,7 @@ public final class HalleyClientConfig {
     private static final ModConfigSpec.BooleanValue CONVERGENCE_PLATE;
     private static final ModConfigSpec.EnumValue<ConvergenceShake> CONVERGENCE_SHAKE;
     /** What Stellar Convergence fires out of the box: every weapon but Gravitia (which only the menu chooses). */
-    private static final List<String> CONVERGENCE_DEFAULT = List.of("the_shooting_star", "gungnir", "seven_stars", "tesseract", "halley", "luna");
+    private static final List<String> CONVERGENCE_DEFAULT = List.of("the_shooting_star", "gungnir", "seven_stars", "tesseract", "halley", "luna", "proxima");
 
     /** How strong Halley's and Luna's impact frames are (F on the addon's plate cycles them). */
     public enum ImpactFrames {

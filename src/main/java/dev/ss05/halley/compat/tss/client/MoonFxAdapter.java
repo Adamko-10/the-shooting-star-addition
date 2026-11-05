@@ -113,7 +113,7 @@ final class MoonFxAdapter extends SpellFx {
     }
 
     /** SS-06's screen effects written into the remote's post-processing settings for this frame. */
-    private record Screen(ScreenFx fx) implements MoonFx.Screen {
+    record Screen(ScreenFx fx) implements MoonFx.Screen {
         @Override
         public void shake(float k) {
             this.fx.shake = Math.max(this.fx.shake, k);
