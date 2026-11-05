@@ -15,7 +15,11 @@ config); this file is the build's own record: what exists, where it lives, and w
    haze after ground zero, red clouds): without a shader pack the addon's sky shader paints it; with one, the sky's
    clock is wound on to **sunset** (`toSunset`, the pack's own red sky) at the flash and back over the aftermath, as
    Halley and Luna wind it to night.
-2. **The wave** (2026-11-05, built, not yet seen in game: the user was playing). The user: the CME should be "on a
+2. **The wave** (2026-11-05; game-tested the same evening: `test builds\2026-11-05 auto test 19 proxima wave\`, `far`
+   and `low` views: the shell fills a side of the sky with its white-hot nose, a white wall rises at ground zero and
+   rolls out over the land, the scorch spreading behind it. Tuned after: the wall up to 145 tall, filled in halfway
+   up, the burning band 40 wide; each chunk scorched once the wave is past its far corner, so the scorch follows
+   just behind the wall instead of showing in squares ahead of it, not re-tested). The user: the CME should be "on a
    massive scale, many chunks and much more vfx, like a proper big wave"; the sky "changes but not much" with shaders.
    - The coronal front (`ProximaFx.render`, drawn in `CometRenderer`'s glow pass through `GlowBatch.corner`, a plain
      mesh sampling the flat middle of the DISC shape, so it works with shader packs too): a shell of plasma

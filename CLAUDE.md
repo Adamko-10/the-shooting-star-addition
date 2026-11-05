@@ -41,13 +41,14 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   mark, which was water there). Its red sky (docs/SS-07-PROXIMA.md stage 1) is seen without a shader pack; not yet
   with one (the test client has none: the user's to check). Test jar
   `test builds\2026-11-05 Proxima SA-04, sky, plate style, finale\`, in the Modrinth profile.
-- **2026-11-05, evening: Proxima stage 2 (the wave) built, NOT tested in game** (the user was playing Minecraft and
-  asked not to test: no game runs, and the jar is NOT in the Modrinth profile, whose jar the running game holds open).
+- **2026-11-05, evening: Proxima stage 2 (the wave) built and game-tested** once the user had stopped playing (they
+  asked not to test while they played: a game run opens a window on their screen, and the Modrinth profile's jar is
+  held open by their running game, so don't swap it then). Jar `test builds\2026-11-05 Proxima stage 2 wave\`, in the
+  Modrinth profile.
   The user's feedback on stage 1: the sky with shaders "changes but not much" (now painted over the pack's sky too);
   radius "decently larger" (doubled: bowl 36, char 100, scorch 220); the CME "on a massive scale, many chunks and much
   more vfx, like a proper big wave" (the coronal front shell and ground zero's shock wave, which the scorch and the hits
-  now follow). Details: docs/SS-07-PROXIMA.md stage 2. Jar: `test builds\2026-11-05 Proxima stage 2 wave (untested)\`;
-  copy it into the Modrinth profile (old one renamed `.disabled`) once the game is closed, then test it.
+  now follow). Details and test results: docs/SS-07-PROXIMA.md stage 2.
 - **Next, the update's remaining list** (§14): Proxima stages 2 (rest) to 5 (the user's track for stage 5), Epic mode (needs
   `Video-Project-48.mp3` from Hamza's PC; not on Adam's PC, searched 2026-11-04), then
   port to the six other branches (§3), CI, one Forge test, README/changelog/CurseForge text, release.

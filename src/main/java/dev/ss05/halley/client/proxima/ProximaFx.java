@@ -293,7 +293,8 @@ public final class ProximaFx {
     private void shockWave(GlowBatch world, double radius, ClientLevel level) {
         float k = (float) (radius / this.plan.waveReach());
         float fade = (float) Math.pow(1.0 - k, 0.7);
-        double height = 10.0 + 55.0 * (1.0 - k);
+        // a towering wall at first (the user, 2026-11-05: "a proper big wave"), lower as it runs out
+        double height = 25.0 + 120.0 * (1.0 - k);
         int segments = 96;
         Vec3[] base = new Vec3[segments + 1];
         Vec3[] behind = new Vec3[segments + 1];
@@ -301,15 +302,19 @@ public final class ProximaFx {
             double a = Math.PI * 2.0 * j / segments;
             double x = this.plan.target.x + Math.cos(a) * radius;
             double z = this.plan.target.z + Math.sin(a) * radius;
-            double bx = this.plan.target.x + Math.cos(a) * Math.max(0.0, radius - 18.0);
-            double bz = this.plan.target.z + Math.sin(a) * Math.max(0.0, radius - 18.0);
+            double bx = this.plan.target.x + Math.cos(a) * Math.max(0.0, radius - 40.0);
+            double bz = this.plan.target.z + Math.sin(a) * Math.max(0.0, radius - 40.0);
             base[j] = new Vec3(x, groundAt(level, x, z, this.plan.target.y) + 0.2, z);
             behind[j] = new Vec3(bx, groundAt(level, bx, bz, this.plan.target.y) + 0.2, bz);
         }
         for (int j = 0; j < segments; j++) {
-            // the wall: white-hot at its foot, crimson and fading up it
+            // the wall: white-hot at its foot, glowing crimson up its lower half, fading out at its crest
             world.corner(base[j], 0xFFC27A, 0.95F * fade);
             world.corner(base[j + 1], 0xFFC27A, 0.95F * fade);
+            world.corner(base[j + 1].add(0.0, height * 0.45, 0.0), 0xFF4A6A, 0.6F * fade);
+            world.corner(base[j].add(0.0, height * 0.45, 0.0), 0xFF4A6A, 0.6F * fade);
+            world.corner(base[j].add(0.0, height * 0.45, 0.0), 0xFF4A6A, 0.6F * fade);
+            world.corner(base[j + 1].add(0.0, height * 0.45, 0.0), 0xFF4A6A, 0.6F * fade);
             world.corner(base[j + 1].add(0.0, height, 0.0), ProximaInfo.COLOR, 0.0F);
             world.corner(base[j].add(0.0, height, 0.0), ProximaInfo.COLOR, 0.0F);
             // the burning band on the ground behind it

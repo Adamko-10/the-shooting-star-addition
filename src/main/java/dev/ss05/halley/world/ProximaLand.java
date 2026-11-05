@@ -55,9 +55,23 @@ final class ProximaLand {
                 }
             }
         }
-        // nearest the mark first
-        chunks.sort(Comparator.comparingDouble(this::nearest));
+        // in the order the shock wave has passed right over them
+        chunks.sort(Comparator.comparingDouble(this::passed));
         this.todo.addAll(chunks);
+    }
+
+    /**
+     * How far out the shock wave must have run for this chunk to burn: past its far corner (so the scorch shows up just
+     * behind the wall, not in squares ahead of it), but no further than the wave runs.
+     */
+    private double passed(ChunkPos pos) {
+        double far = 0.0;
+        for (int corner = 0; corner < 4; corner++) {
+            double x = (corner & 1) == 0 ? pos.getMinBlockX() : pos.getMaxBlockX() + 1;
+            double z = (corner & 2) == 0 ? pos.getMinBlockZ() : pos.getMaxBlockZ() + 1;
+            far = Math.max(far, this.plan.horizontal(x, z));
+        }
+        return Math.min(far, this.plan.waveReach());
     }
 
     private double nearest(ChunkPos pos) {
@@ -79,7 +93,7 @@ final class ProximaLand {
             this.waiting.clear();
         }
         long deadline = System.nanoTime() + BUDGET_NS;
-        while (!this.todo.isEmpty() && System.nanoTime() < deadline && this.nearest(this.todo.peek()) <= radius) {
+        while (!this.todo.isEmpty() && System.nanoTime() < deadline && this.passed(this.todo.peek()) <= radius) {
             ChunkPos pos = this.todo.poll();
             if (this.level.hasChunk(pos.x, pos.z)) {
                 this.scorch(pos);
