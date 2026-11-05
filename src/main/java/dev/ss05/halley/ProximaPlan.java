@@ -21,6 +21,13 @@ public final class ProximaPlan {
     public static final int IMPACT = 270;
     /** The effects' end (the aftermath fades out by then). */
     public static final int DURATION = 600;
+    /** Ground zero's shock wave runs out over the land, burning and throwing as it goes: at the scorch's edge this long after the impact. */
+    public static final int WAVE_TICKS = 70;
+    /** The coronal front: a shell of plasma this big (radius, blocks), its nose this far from the mark when it appears. */
+    public static final double FRONT_RADIUS = 2600.0;
+    public static final double FRONT_START = 2600.0;
+    /** How steeply the front comes down out of the sky (radians above the horizon). */
+    private static final double FRONT_DIVE = Math.toRadians(22.0);
 
     public final Vec3 target;
     public final long seed;
@@ -51,6 +58,37 @@ public final class ProximaPlan {
     public double bowlDepth(double r) {
         double k = r / this.params.bowlRadius();
         return k >= 1.0 ? 0.0 : this.params.depth() * (1.0 - k * k);
+    }
+
+    /** How far out ground zero's shock wave has run at {@code t}: fast at first, slowing as it nears the scorch's edge. */
+    public double waveRadius(double t) {
+        if (t < IMPACT) {
+            return 0.0;
+        }
+        double reach = this.params.scorchRadius() * 1.12;
+        double k = Math.min(1.0, (t - IMPACT) / WAVE_TICKS);
+        return reach * (1.0 - (1.0 - k) * (1.0 - k));
+    }
+
+    public double waveReach() {
+        return this.params.scorchRadius() * 1.12;
+    }
+
+    /** The way the coronal front travels: down out of the sky toward the mark, from a side of the sky set by the strike. */
+    public Vec3 frontDirection() {
+        double a = (this.seed >>> 32 & 0xFFFF) / 65535.0 * Math.PI * 2.0;
+        return new Vec3(Math.cos(a) * Math.cos(FRONT_DIVE), -Math.sin(FRONT_DIVE), Math.sin(a) * Math.cos(FRONT_DIVE));
+    }
+
+    /** How far the front's nose is from the mark at {@code t}: {@link #FRONT_START} at {@link #FRONT}, closing faster and faster, 0 at the impact. */
+    public double frontDistance(double t) {
+        double k = Mth.clamp((t - FRONT) / (double) (IMPACT - FRONT), 0.0, 1.0);
+        return FRONT_START * (1.0 - k) * (1.0 + 0.4 * k);
+    }
+
+    /** The centre of the front's shell at {@code t} (its nose is {@link #FRONT_RADIUS} from it, toward the mark). */
+    public Vec3 frontCentre(double t) {
+        return this.target.subtract(this.frontDirection().scale(FRONT_RADIUS + this.frontDistance(t)));
     }
 
     /** A steady random number in [0, 1) for a block (materials, ragged edges). */

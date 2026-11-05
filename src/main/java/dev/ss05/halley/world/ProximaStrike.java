@@ -55,6 +55,9 @@ public final class ProximaStrike {
     private Excavation bowl;
     @Nullable
     private ProximaLand land;
+    /** How far out ground zero's shock wave has hit (it burns and throws as it runs out, see {@link ProximaPlan#waveRadius}). */
+    private double waveHit = -1.0;
+    private final java.util.Set<java.util.UUID> struck = new java.util.HashSet<>();
 
     public ProximaStrike(ServerLevel level, ProximaPlan plan, @Nullable ServerPlayer caster, CastTuning cast) {
         this.level = level;
@@ -80,14 +83,19 @@ public final class ProximaStrike {
         if (this.bowl != null && !this.bowl.done()) {
             this.bowl.tick();
         }
+        double wave = this.plan.waveRadius(t);
+        if (this.waveHit >= 0.0 && wave > this.waveHit) {
+            this.wave(this.waveHit, wave, caster);
+            this.waveHit = wave;
+        }
         if (this.land != null) {
-            this.land.tick();
+            this.land.tick(wave);
         }
     }
 
     /** Whether the world work that can be done now is done (unloaded land waits, after the spell, for its chunks). */
     public boolean worldDone() {
-        return this.land != null && this.land.loadedDone();
+        return this.land != null && this.waveHit >= this.plan.waveReach() && this.land.loadedDone();
     }
 
     /** The spell is over: what is left is done as its land loads. */
@@ -103,7 +111,7 @@ public final class ProximaStrike {
     /** From the server tick: scorches what loaded since its strike ended. */
     public static void tickLingering() {
         LINGERING.removeIf(land -> {
-            land.tick();
+            land.tick(Double.MAX_VALUE);
             return land.finished();
         });
     }
@@ -131,11 +139,31 @@ public final class ProximaStrike {
 
     private void impact(@Nullable ServerPlayer caster) {
         double bowl = this.plan.params.bowlRadius();
+        for (Entity entity : this.level.getEntities((Entity) null, this.around(bowl), Entity::isAlive)) {
+            if (this.plan.horizontal(entity.getX(), entity.getZ()) < bowl) {
+                this.struck.add(entity.getUUID());
+                this.vaporise(entity, caster);
+            }
+        }
+        this.waveHit = 0.0;
+        int minY = this.level.getMinBuildHeight();
+        this.bowl = StarBridge.excavate(this.level, this.plan.target, bowl + 3.0, (x, z) -> this.bowlFloor(x, z, minY),
+            (x, y, z, was) -> this.bowlSurface(x, y, z), this.spared, "SA-04 Proxima bowl", HalleyConfig.chunksPerTick(), null);
+        this.land = new ProximaLand(this.level, this.plan);
+    }
+
+    /**
+     * Ground zero's shock wave passing from {@code from} to {@code to} blocks out: what it reaches is hurt by tier (the
+     * charred ring badly, set alight; the scorch less, staggered) and thrown (players only nudged); sheltered ones only
+     * feel it.
+     */
+    private void wave(double from, double to, @Nullable ServerPlayer caster) {
+        double bowl = this.plan.params.bowlRadius();
         double charred = this.plan.params.charRadius();
         double reach = this.plan.params.scorchRadius();
-        for (Entity entity : this.level.getEntities((Entity) null, this.around(reach), Entity::isAlive)) {
+        for (Entity entity : this.level.getEntities((Entity) null, this.around(Math.min(to, reach)), Entity::isAlive)) {
             double d = this.plan.horizontal(entity.getX(), entity.getZ());
-            if (d > reach) {
+            if (d > to || d > reach || d <= from && d >= bowl || !this.struck.add(entity.getUUID())) {
                 continue;
             }
             if (d < bowl) {
@@ -156,10 +184,6 @@ public final class ProximaStrike {
                 }
             }
         }
-        int minY = this.level.getMinBuildHeight();
-        this.bowl = StarBridge.excavate(this.level, this.plan.target, bowl + 3.0, (x, z) -> this.bowlFloor(x, z, minY),
-            (x, y, z, was) -> this.bowlSurface(x, y, z), this.spared, "SA-04 Proxima bowl", HalleyConfig.chunksPerTick(), null);
-        this.land = new ProximaLand(this.level, this.plan);
     }
 
     /** In the bowl: erased (the damage slider below ∞: its hit instead); loose things burn up. */

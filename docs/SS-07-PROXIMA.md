@@ -15,9 +15,27 @@ config); this file is the build's own record: what exists, where it lives, and w
    haze after ground zero, red clouds): without a shader pack the addon's sky shader paints it; with one, the sky's
    clock is wound on to **sunset** (`toSunset`, the pack's own red sky) at the flash and back over the aftermath, as
    Halley and Luna wind it to night.
-2. The coronal front: the 3D ring sweeping across the sky (thin bright shock + translucent sheath with filaments), the
-   Type II radio burst whine drifting down, compasses spinning, redstone sparks; ground zero's look (white point,
-   cracks of light, shock ring, heat shimmer); steam off exposed water.
+2. **The wave** (2026-11-05, built, not yet seen in game: the user was playing). The user: the CME should be "on a
+   massive scale, many chunks and much more vfx, like a proper big wave"; the sky "changes but not much" with shaders.
+   - The coronal front (`ProximaFx.render`, drawn in `CometRenderer`'s glow pass through `GlowBatch.corner`, a plain
+     mesh sampling the flat middle of the DISC shape, so it works with shader packs too): a shell of plasma
+     `FRONT_RADIUS` 2600 across its radius, coming down 22° out of the sky from a side set by the seed
+     (`ProximaPlan.frontDirection`), its nose `FRONT_START` 2600 blocks out at FRONT and on the mark at IMPACT
+     (`frontDistance`, closing faster and faster). A cap 0.72 rad round the nose, 18 x 48 quads, recoloured every frame:
+     brightest edge-on (`rim`, the leading line sweeping across the sky and then the land), streaming filaments, a
+     white-hot nose glare, faded below the mark's level and at the cap's edge; a second, fainter sheath 260 behind.
+     Far parts are pulled in along the line of sight (GlowBatch), so it shows at any render distance.
+   - Ground zero's shock wave (`ProximaPlan.waveRadius`: out to 1.12 x the scorch in `WAVE_TICKS` 70, slowing): a wall
+     of fire and dust on the land (white-hot foot, crimson top, lower as it runs) and a burning band behind it; a white
+     point at the mark for 24 ticks. **The server follows it**: `ProximaStrike.wave` hurts and throws what it reaches as
+     it passes (only the bowl's are hit at once), and `ProximaLand.tick(radius)` scorches only the chunks it has
+     reached, so the scorch spreads out with the wave.
+   - Where they pass the camera: a roar and a jolt when the front's line crosses it (embers round it while near), the
+     blast, a jolt and fire and dust thrown up along the wave; the front's rumble builds on screen.
+   - Radii doubled (the user, "decently larger"); Proxima's red sky is painted over a shader pack's sky too (its sunset
+     alone was faint): `HalleySky.paint` covers it with the crimson night for `PALETTE_PROXIMA`.
+   Still to do for stage 2: the Type II radio burst (a whine drifting down), compasses spinning, redstone sparks,
+   steam off exposed water, cracks of light at ground zero.
 3. The film: the intro to space (title card "DYSON SPHERE", the lattice opening like an iris, the infinity-sign loops,
    "CORONAL MASS EJECTION" in plasma filaments), the lens beam and the gate near Earth, the pullback afterwards.
    RimuLib's film tools (`CameraRig`, `Shot`, `Subject`, `CutsceneDirector`), our own Earth shader (free imagery only).
@@ -41,9 +59,9 @@ The intro film (stage 3) will run in the first 90 ticks. Stellar Convergence use
 
 ## Sizes (`ProximaParams`, at power 1; the power slider scales the radii, the depth by its square root)
 
-- bowl radius 24, depth 6 (decided): tinted glass and obsidian in the middle, magma threads, blackstone toward the rim;
-- char radius 56: trunks to basalt, the ground to blackstone, basalt and coarse dirt;
-- scorch radius 110: leaves, grass, flowers, snow, vines and crops burn away, the topsoil to coarse dirt (dirt at the
+- bowl radius 36 (24 until the user asked for "decently larger", 2026-11-05), depth 6 (decided): tinted glass and obsidian in the middle, magma threads, blackstone toward the rim;
+- char radius 100 (56): trunks to basalt, the ground to blackstone, basalt and coarse dirt;
+- scorch radius 220 (110): leaves, grass, flowers, snow, vines and crops burn away, the topsoil to coarse dirt (dirt at the
   edge); the edges are ragged (`ProximaPlan.edge`).
 - Buildings stand outside the bowl (only natural ground is scorched, logs only charred). Water and lava are left.
 

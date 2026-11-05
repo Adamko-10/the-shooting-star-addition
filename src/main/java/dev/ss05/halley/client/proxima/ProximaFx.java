@@ -4,7 +4,10 @@ import dev.ss05.halley.ProximaParams;
 import dev.ss05.halley.ProximaPlan;
 import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.client.luna.MoonFx;
+import dev.ss05.halley.client.render.GlowBatch;
+import dev.ss05.halley.client.render.Shapes;
 import dev.ss05.halley.client.sky.SkyLook;
+import dev.ss05.halley.world.ProximaInfo;
 import dev.ss05.halley.content.HalleyContent;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +23,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -42,6 +46,9 @@ public final class ProximaFx {
     private final float particles;
     /** Ticks to wind the sky's clock on to sunset: with a shader pack on, the red sky is the pack's own sunset (as Halley and Luna wind it on to night). */
     private final long toSunset;
+    /** Where the camera was against the coronal front last tick (above 0: still ahead of it), and how far out the shock wave had run. */
+    private double frontSide = Double.NaN;
+    private double lastWave;
 
     public ProximaFx(MoonFx.Host host, int casterId, Vec3 target, long seed, int[] data) {
         this.host = host;
@@ -112,6 +119,43 @@ public final class ProximaFx {
                 this.particle(level, this.random.nextFloat() < 0.7F ? ParticleTypes.FLAME : ParticleTypes.LAVA, at, v.x, v.y, v.z);
             }
         }
+        // the coronal front passing over: a roar and a jolt where its leading line crosses the camera, embers round it
+        if (t >= ProximaPlan.FRONT && t <= ProximaPlan.IMPACT) {
+            double side = camera.distanceTo(this.plan.frontCentre(t)) - ProximaPlan.FRONT_RADIUS;
+            if (this.frontSide > 0.0 && side <= 0.0) {
+                this.play(HalleyContent.MOON_SHOCKWAVE.get(), camera, 0.07F, 0.7F);
+                this.host.shake(camera, 0.35F, 80.0);
+            }
+            this.frontSide = side;
+            if (Math.abs(side) < 60.0) {
+                for (int i = 0; i < this.count(8); i++) {
+                    Vec3 at = camera.add(this.gauss(12.0), this.gauss(5.0), this.gauss(12.0));
+                    this.particle(level, this.random.nextFloat() < 0.5F ? ParticleTypes.FLAME : ParticleTypes.SMALL_FLAME, at,
+                        this.gauss(0.08), this.random.nextDouble() * 0.1, this.gauss(0.08));
+                }
+            }
+        }
+        // ground zero's shock wave running out: a blast and a jolt as it passes the camera, fire and dust thrown up along it
+        double wave = this.plan.waveRadius(t);
+        double away = this.plan.horizontal(camera.x, camera.z);
+        if (t > ProximaPlan.IMPACT && this.lastWave < away && wave >= away && away < this.plan.waveReach()) {
+            this.play(HalleyContent.MOON_SHOCKWAVE.get(), camera, 0.08F, 1.0F);
+            this.host.shake(camera, 0.5F, 60.0);
+        }
+        this.lastWave = wave;
+        if (wave > 0.0 && wave < this.plan.waveReach() && Math.abs(wave - away) < 90.0) {
+            double facing = Math.atan2(camera.z - target.z, camera.x - target.x);
+            double spread = Math.min(1.0, 60.0 / Math.max(1.0, wave));
+            for (int i = 0; i < this.count(14); i++) {
+                double a = facing + this.gauss(spread);
+                double x = target.x + Math.cos(a) * wave;
+                double z = target.z + Math.sin(a) * wave;
+                Vec3 at = new Vec3(x, groundAt(level, x, z, target.y) + 0.5, z);
+                float pick = this.random.nextFloat();
+                this.particle(level, pick < 0.45F ? ParticleTypes.CAMPFIRE_COSY_SMOKE : pick < 0.8F ? ParticleTypes.FLAME : ParticleTypes.LAVA, at,
+                    Math.cos(a) * 0.3, 0.15 + this.random.nextDouble() * 0.35, Math.sin(a) * 0.3);
+            }
+        }
         // after: smoke columns over the charred land, ash and embers drifting near the camera
         if (t > ProximaPlan.IMPACT && t < ProximaPlan.IMPACT + 220) {
             if (t % 3 == 0) {
@@ -169,6 +213,131 @@ public final class ProximaFx {
         return t < at ? 0.0F : (float) Math.exp(-(t - at) / decay);
     }
 
+    // ---- The coronal front and ground zero's shock wave (drawn by client/render/CometRenderer). --------------------
+
+    /**
+     * The coronal front: a shell of plasma thousands of blocks across coming down out of the sky onto the mark, brightest
+     * where it is seen edge-on (its leading line sweeping across the sky, then over the land), streaming with filaments,
+     * a fainter sheath behind it and a white-hot nose; then ground zero's shock wave, a wall of fire and dust running out
+     * over the land to the scorch's edge. Everything far off is pulled in along its line of sight (see GlowBatch), so it
+     * is seen at any render distance.
+     */
+    public void render(GlowBatch world, GlowBatch glare, float partial, ClientLevel level) {
+        float t = Math.min(this.host.clock(partial), ProximaPlan.DURATION);
+        Vec3 camera = world.camera();
+        if (t >= ProximaPlan.FRONT && t < ProximaPlan.IMPACT + 8) {
+            float fade = smooth((t - ProximaPlan.FRONT) / 25.0) * (1.0F - smooth((t - ProximaPlan.IMPACT) / 8.0));
+            this.front(world, t, fade, camera, 0.0, 1.0F, 0.0);
+            this.front(world, t, fade, camera, 260.0, 0.45F, 2.1);
+            Vec3 nose = this.plan.target.subtract(this.plan.frontDirection().scale(this.plan.frontDistance(t)));
+            world.billboard(nose, 120.0 + 0.12 * this.plan.frontDistance(t), Shapes.GLOW, 0, 0xFF7A96, 0.9F * fade, 0.0);
+        }
+        // the white point at ground zero
+        if (t >= ProximaPlan.IMPACT && t < ProximaPlan.IMPACT + 24) {
+            float k = 1.0F - (t - ProximaPlan.IMPACT) / 24.0F;
+            glare.billboard(this.plan.target.add(0.0, 4.0, 0.0), 20.0 + this.plan.params.bowlRadius() * 2.5 * (1.0F - k * 0.5F),
+                Shapes.GLOW, 0, 0xFFF2F6, k * k, 0.0);
+        }
+        double wave = this.plan.waveRadius(t);
+        if (wave > 0.0 && wave < this.plan.waveReach() * 0.999) {
+            this.shockWave(world, wave, level);
+        }
+    }
+
+    /** One shell of the front, {@code back} blocks behind its nose; {@code phase} shifts its filaments. */
+    private void front(GlowBatch world, float t, float fade, Vec3 camera, double back, float gain, double phase) {
+        if (fade <= 0.003F) {
+            return;
+        }
+        Vec3 dir = this.plan.frontDirection();
+        Vec3 centre = this.plan.frontCentre(t).subtract(dir.scale(back));
+        Vec3 b1 = dir.cross(new Vec3(0.0, 1.0, 0.0)).normalize();
+        Vec3 b2 = b1.cross(dir).normalize();
+        double ground = this.plan.target.y - 4.0;
+        int rings = 18;
+        int sectors = 48;
+        double maxAngle = 0.72;
+        Vec3[][] at = new Vec3[rings + 1][sectors + 1];
+        int[][] colour = new int[rings + 1][sectors + 1];
+        float[][] strength = new float[rings + 1][sectors + 1];
+        for (int i = 0; i <= rings; i++) {
+            double angle = maxAngle * i / rings;
+            float nose = (float) Math.pow(1.0 - angle / maxAngle, 3.0);
+            float edge = 1.0F - smooth((angle - 0.65 * maxAngle) / (0.35 * maxAngle));
+            for (int j = 0; j <= sectors; j++) {
+                double around = Math.PI * 2.0 * j / sectors;
+                Vec3 normal = dir.scale(Math.cos(angle)).add(b1.scale(Math.sin(angle) * Math.cos(around)))
+                    .add(b2.scale(Math.sin(angle) * Math.sin(around)));
+                Vec3 p = centre.add(normal.scale(ProximaPlan.FRONT_RADIUS));
+                Vec3 view = p.subtract(camera);
+                double facing = view.lengthSqr() < 1.0E-6 ? 1.0 : Math.abs(normal.dot(view.normalize()));
+                float rim = (float) Math.pow(1.0 - facing, 3.0);
+                float filament = (float) Math.pow(0.5 + 0.5 * Math.sin(around * 13.0 + phase + 2.5 * Math.sin(angle * 9.0 + t * 0.05)), 6.0);
+                float under = smooth((p.y - ground) / 30.0);
+                at[i][j] = p;
+                colour[i][j] = mix(mix(ProximaInfo.COLOR, 0xFF5AA8, filament), 0xFFD6E4, rim * 0.6F);
+                strength[i][j] = fade * gain * edge * under * (0.10F + 0.6F * rim + 0.22F * nose + 0.25F * filament);
+            }
+        }
+        for (int i = 0; i < rings; i++) {
+            for (int j = 0; j < sectors; j++) {
+                world.corner(at[i][j], colour[i][j], strength[i][j]);
+                world.corner(at[i + 1][j], colour[i + 1][j], strength[i + 1][j]);
+                world.corner(at[i + 1][j + 1], colour[i + 1][j + 1], strength[i + 1][j + 1]);
+                world.corner(at[i][j + 1], colour[i][j + 1], strength[i][j + 1]);
+            }
+        }
+    }
+
+    /** Ground zero's shock wave at {@code radius} blocks out: a wall of fire and dust on the land, and a burning band behind it. */
+    private void shockWave(GlowBatch world, double radius, ClientLevel level) {
+        float k = (float) (radius / this.plan.waveReach());
+        float fade = (float) Math.pow(1.0 - k, 0.7);
+        double height = 10.0 + 55.0 * (1.0 - k);
+        int segments = 96;
+        Vec3[] base = new Vec3[segments + 1];
+        Vec3[] behind = new Vec3[segments + 1];
+        for (int j = 0; j <= segments; j++) {
+            double a = Math.PI * 2.0 * j / segments;
+            double x = this.plan.target.x + Math.cos(a) * radius;
+            double z = this.plan.target.z + Math.sin(a) * radius;
+            double bx = this.plan.target.x + Math.cos(a) * Math.max(0.0, radius - 18.0);
+            double bz = this.plan.target.z + Math.sin(a) * Math.max(0.0, radius - 18.0);
+            base[j] = new Vec3(x, groundAt(level, x, z, this.plan.target.y) + 0.2, z);
+            behind[j] = new Vec3(bx, groundAt(level, bx, bz, this.plan.target.y) + 0.2, bz);
+        }
+        for (int j = 0; j < segments; j++) {
+            // the wall: white-hot at its foot, crimson and fading up it
+            world.corner(base[j], 0xFFC27A, 0.95F * fade);
+            world.corner(base[j + 1], 0xFFC27A, 0.95F * fade);
+            world.corner(base[j + 1].add(0.0, height, 0.0), ProximaInfo.COLOR, 0.0F);
+            world.corner(base[j].add(0.0, height, 0.0), ProximaInfo.COLOR, 0.0F);
+            // the burning band on the ground behind it
+            world.corner(behind[j], ProximaInfo.COLOR, 0.0F);
+            world.corner(behind[j + 1], ProximaInfo.COLOR, 0.0F);
+            world.corner(base[j + 1], 0xFF8A4C, 0.6F * fade);
+            world.corner(base[j], 0xFF8A4C, 0.6F * fade);
+        }
+    }
+
+    private static double groundAt(ClientLevel level, double x, double z, double fallback) {
+        int bx = Mth.floor(x);
+        int bz = Mth.floor(z);
+        if (!level.hasChunk(bx >> 4, bz >> 4)) {
+            return fallback;
+        }
+        int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, bx, bz);
+        return y <= level.getMinBuildHeight() ? fallback : y;
+    }
+
+    private static int mix(int a, int b, float k) {
+        float c = Mth.clamp(k, 0.0F, 1.0F);
+        int r = (int) Mth.lerp(c, a >> 16 & 0xFF, b >> 16 & 0xFF);
+        int g = (int) Mth.lerp(c, a >> 8 & 0xFF, b >> 8 & 0xFF);
+        int bl = (int) Mth.lerp(c, a & 0xFF, b & 0xFF);
+        return r << 16 | g << 8 | bl;
+    }
+
     // ---- The screen, frame by frame. ------------------------------------------------------------------------------
 
     public void screen(MoonFx.Screen screen, float partial) {
@@ -180,6 +349,10 @@ public final class ProximaFx {
             float k = 1.0F - (t - ProximaPlan.FLASH) / 40.0F;
             screen.flash(FLASH, k * k * 0.85F);
             screen.aberration(0.3F * k);
+        }
+        // the front's rumble, building as it comes on
+        if (t >= ProximaPlan.FRONT && t < ProximaPlan.IMPACT) {
+            screen.shake(0.12F * (t - ProximaPlan.FRONT) / (ProximaPlan.IMPACT - ProximaPlan.FRONT) * near);
         }
         // the red sky while the front passes
         float red = window(t, ProximaPlan.FLASH, ProximaPlan.FLASH + 10, ProximaPlan.HUSH, ProximaPlan.HUSH + 8);

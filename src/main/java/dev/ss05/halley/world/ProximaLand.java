@@ -66,15 +66,20 @@ final class ProximaLand {
         return this.plan.horizontal(x, z);
     }
 
-    /** Scorches loaded chunks for up to {@link #BUDGET_NS}; looks again at the unloaded ones once a second. */
-    void tick() {
-        if (this.todo.isEmpty() && !this.waiting.isEmpty() && ++this.sinceSweep >= 20) {
+    /**
+     * Scorches the loaded chunks ground zero's shock wave has reached ({@code radius} blocks out; it scorches as it runs
+     * out over the land), for up to {@link #BUDGET_NS}; looks again at the unloaded ones once a second.
+     */
+    void tick(double radius) {
+        if (!this.waiting.isEmpty() && ++this.sinceSweep >= 20) {
             this.sinceSweep = 0;
-            this.todo.addAll(this.waiting);
+            for (ChunkPos pos : this.waiting) {
+                this.todo.addFirst(pos);
+            }
             this.waiting.clear();
         }
         long deadline = System.nanoTime() + BUDGET_NS;
-        while (!this.todo.isEmpty() && System.nanoTime() < deadline) {
+        while (!this.todo.isEmpty() && System.nanoTime() < deadline && this.nearest(this.todo.peek()) <= radius) {
             ChunkPos pos = this.todo.poll();
             if (this.level.hasChunk(pos.x, pos.z)) {
                 this.scorch(pos);

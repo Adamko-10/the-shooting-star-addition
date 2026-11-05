@@ -249,15 +249,17 @@ public final class HalleySky {
         if (look == null || program == null || level == null) {
             return;
         }
-        // the night itself is the shader pack's own (dayTime): only the haze after the impact covers its sky
-        float cover = look.veil() * 0.75F;
+        // the night itself is the shader pack's own (dayTime): only the haze after the impact covers its sky. Proxima's
+        // red sky is painted over the pack's (its sunset alone was too faint, the user, 2026-11-05)
+        boolean ownSky = look.palette() == SkyLook.PALETTE_PROXIMA;
+        float cover = ownSky ? Math.max(look.veil() * 0.75F, look.night()) : look.veil() * 0.75F;
         boolean base = cover > 0.002F;
         boolean light = look.stars() > 0.001F || look.aurora() > 0.001F || look.cometGlow() > 0.001F
             || look.halo() > 0.001F || look.flash() > 0.001F;
         if (!base && !light) {
             return;
         }
-        uniforms(program, look, level, partial, true);
+        uniforms(program, look, level, partial, !ownSky);
         RenderSystem.backupProjectionMatrix();
         RenderSystem.setProjectionMatrix(new Matrix4f(), VertexSorting.ORTHOGRAPHIC_Z);
         Matrix4fStack view = RenderSystem.getModelViewStack();

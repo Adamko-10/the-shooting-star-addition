@@ -14,10 +14,10 @@ import net.minecraft.util.Mth;
  * @param power100     the power slider, times 100
  */
 public record ProximaParams(int bowlRadius, int charRadius, int scorchRadius, int depth, int power100) {
-    /** At power 1: the bowl, the charred middle and the scorched ring, in blocks; the bowl's depth (decided: 6). */
-    public static final int BOWL = 24;
-    public static final int CHAR = 56;
-    public static final int SCORCH = 110;
+    /** At power 1: the bowl, the charred middle and the scorched ring, in blocks (doubled 2026-11-05, the user: "decently larger"); the bowl's depth (decided: 6). */
+    public static final int BOWL = 36;
+    public static final int CHAR = 100;
+    public static final int SCORCH = 220;
     public static final int DEPTH = 6;
     private static final int MAGIC = 0x50524F58;
     private static final int VERSION = 1;
