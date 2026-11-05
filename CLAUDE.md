@@ -25,8 +25,8 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   film overlays (broken since 1.6.0, fixed 2026-11-04) checked by screenshots (§14). **Not yet checked in game**:
   Halley's shake (feel), impact frames OFF (the white flash covers those frames), the
   Gravitia key when bound, the user's own test of the latest jar.
-- **Stellar Convergence (SA-00) is built** (§18): the user's to test in game; its film's panels only show with our own
-  weapons (open, §18). Then switch to RimuLib's public API (§17a, recommended before porting).
+- **Stellar Convergence (SA-00) is built** (§18): the user's to test in game; its film's panels work with every weapon
+  (the "open" bug was the test harness, fixed 2026-11-05, §18). Partly on RimuLib's public API (§17a).
 - **Done 2026-11-05**: the Convergence plate is smaller, shows only while SA-00 is selected, and V folds it to its name
   (§18). Master sliders on SA-00, Gravitia last, and the Convergence shake setting built 2026-11-05 (§18).
 - **2026-11-05: main moved to TSS 1.5.2 + RimuLib 1.2.2 and partly to RimuLib's public API** (§16a, §17a; the user
@@ -1207,18 +1207,21 @@ own thing, not a copy of it.
     option `select=<skill id>` selects a skill before the final menu shot (`test builds\2026-11-05 auto test 12
     convergence plate\`). Test jar `test builds\2026-11-05 Convergence plate smaller\`, in the Modrinth profile (the
     Stellar Convergence build renamed `.disabled`).
-  - **Open: the film's panels don't show while TSS's weapons' effects run.** `FilmPanels` freezes the frames and
-    draws them at the end of every frame (`RenderFrameEvent.Post`, LOWEST, after the frame is finished; the harness
-    screenshots after it), and with Halley and Luna alone that works (screenshot `film-debug2\other_00320.png`). With
-    any TSS weapon ticked, the panels are frozen and drawn on time, but a pixel read back right after drawing is just
-    the live frame: the draws do nothing. Ruled out by logging GL state at that point: framebuffer (main), blend
-    equation, stencil, logic op, depth mask, scissor, viewport, depth clear value, shader colour all normal; face
-    culling was ON while GlStateManager's cache likely thought it off (fixed by flipping it through the cache: no
-    change); resetting the cached shader program (`ShaderInstance.clear()`) and vertex arrays
-    (`BufferUploader.invalidate`, `VertexBuffer.unbind`): no change. Not yet tried: drawing the panels inside the GUI
-    pass (Gui.render TAIL mixin) instead, or rendering them into the world as camera-facing quads; or reading
-    RimuLib's `PostFx` (it may keep its own copy of the frame and present that). The first try, drawing them from
-    TSS's film-HUD pass, also failed: that pass doesn't run for a film whose subject isn't a TSS effect.
+  - **The film's panels work with TSS's weapons too (solved 2026-11-05: it was the test harness).** `FilmPanels`
+    draws them at the end of every frame (`RenderFrameEvent.Post`, LOWEST). The frames actually presented to the window
+    (saved at the start of the next frame) show the grid with the Railgun, Gungnir and Seven Stars ticked
+    (`test builds\2026-11-05 auto test 17 film panels\film-presented\presented_330.png`, `_345`). Every earlier test
+    said "no panels" because the harness's screenshots don't line up with the film when TSS's weapons run: the
+    integrated server falls ~200 ticks behind under five strikes, the client level's game time (the `skill=other`
+    shot clock) snaps back when it catches up (5138 -> 4940 at film time 242), and the film starts when the server's
+    `ConvergenceFx` arrives; the shots showed the first-person view after the film had ended. Harness fixes (a client
+    tick clock, grabbing at the next frame's start) were tried and didn't line the shots up: reverted. **To check a
+    film with TSS's weapons, save frames by the film's own time**: a temporary RenderFrameEvent.Pre listener that, at
+    chosen `current.time(0)` values in `ConvergenceFilm`, calls `Screenshot.grab` on the main target (the frame just
+    presented). Ruled out on the way (don't redo): GL state (draw buffer, colour mask, clip distances, rasterizer
+    discard, depth range, polygon mode, sample mask: all normal), the main framebuffer's colour attachment
+    (unchanged), drawing in the GUI pass (`Gui.render` is cut short at its start while a film plays). Worth knowing:
+    under heavy server lag the film runs on the client's clock, so its "hit" can come before the server's hits land.
   - Test runs: `test builds\2026-11-04 auto test 11 convergence\` (point, film-*, film-ring*); test jar
     `test builds\2026-11-05 Stellar Convergence\`, in the Modrinth profile (the code-names/sounds build renamed
     `.disabled`). The client-test harness now takes its screenshots at the lowest priority, registered at the first
