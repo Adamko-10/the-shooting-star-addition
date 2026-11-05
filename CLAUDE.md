@@ -28,7 +28,7 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
 - **Stellar Convergence (SA-00) is built** (§18): the user's to test in game; its film's panels only show with our own
   weapons (open, §18). Then switch to RimuLib's public API (§17a, recommended before porting).
 - **Done 2026-11-05**: the Convergence plate is smaller, shows only while SA-00 is selected, and V folds it to its name
-  (§18). Still open: the master power slider (explained to the user 2026-11-05, §18; not decided).
+  (§18). Master sliders on SA-00 built 2026-11-05 (§18).
 - **2026-11-05: main moved to TSS 1.5.2 + RimuLib 1.2.2 and partly to RimuLib's public API** (§16a, §17a; the user
   picked the API switch, TSS 1.5.2 dropped meanwhile). The mapping tool's long-standing anchor bug is fixed (§16a).
 - **Next, the update's remaining list** (§14): Epic mode (needs `Video-Project-48.mp3` from Hamza's PC; not on Adam's
@@ -1184,10 +1184,15 @@ own thing, not a copy of it.
     (all on the crosshair; the caster's own risk, as with the weapons alone).
   - **Sliders** (the user asked how power works, 2026-11-04): each weapon fires with its own sliders from the remote's
     menu; the plate says so ("Each uses its own sliders, set under it in this menu (shown on the right)") and shows
-    them per weapon; so does the skill's description. A master power slider on SA-00 was offered, not decided: SA-00
-    would get a power slider of its own in the menu (0.1-10×, default 1×; today `powerSliders()` is false) and
-    `Convergence.cast` would multiply every ticked weapon's own power by it (then the server limits, as now), so the
-    whole barrage scales at once without touching each weapon's slider.
+    them per weapon; so does the skill's description. **Master sliders (the user's pick, built 2026-11-05)**: SA-00
+    has its own sliders in the menu (`ConvergenceSkill.power()` = `Power(0.1, 10, 1, true, 0)`, warns above 2×).
+    `Convergence.scaled(pick, master)`: each ticked weapon fires at its own power × SA-00's, its own speed × SA-00's,
+    and the lower of its own damage and SA-00's; then its own slider range (`clampFor`) and the server limits
+    (`Limits.hold`). The plate shows each weapon's values after that (hint: "Each fires with its own sliders times
+    SA-00's"); the menu's line under SA-00 reads "every ticked weapon at N× its own power". RimuLib keeps SA-00's
+    sliders in `config/shooting_star_demo_skills.properties` (`stellar_remote.stellar_convergence.power=...`).
+    Game-tested at 2× (`test builds\2026-11-05 auto test 14 master power\`: the plate showed Railgun 400×, Gungnir
+    and Seven Stars 8×, Halley and Luna 2×); test jar `test builds\2026-11-05 master power\`, in the Modrinth profile.
   - **UI too big (the user, 2026-11-05: "overwhelming", do both)**: done: `ConvergencePlate` draws only while SA-00 is
     the remote's selected skill (`ClientSkills.selected(SkillSet.of(CONVERGENCE))`), at 0.8 of the addon plate's scale,
     with one hint line ("Each fires with its own sliders. 1-9 tick, R where, V hide.") and 12-pixel rows; **V** folds it

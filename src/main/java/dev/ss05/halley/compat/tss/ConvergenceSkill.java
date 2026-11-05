@@ -1,11 +1,12 @@
 package dev.ss05.halley.compat.tss;
 
+import cyou.rimuru.rimulib.mc1211.skill.Power;
 import cyou.rimuru.rimulib.mc1211.skill.Skill;
 import dev.ss05.halley.world.Codenames;
 
 /**
- * SA-00 · Stellar Convergence as an entry on the Stellar Remote (the user's pick: its own skill, 2026-11-04). It has no
- * sliders of its own: each weapon it fires uses its own (see {@link Convergence}).
+ * SA-00 · Stellar Convergence as an entry on the Stellar Remote (the user's pick: its own skill, 2026-11-04). Each weapon
+ * it fires uses its own sliders, scaled by this one's (see {@link Convergence}).
  */
 public final class ConvergenceSkill implements Skill {
     public static final String ID = "stellar_convergence";
@@ -54,9 +55,19 @@ public final class ConvergenceSkill implements Skill {
         return DEFAULT_KEY;
     }
 
+    /**
+     * The master power slider (the user, 2026-11-05): every ticked weapon fires at its own power times this, so the whole
+     * barrage scales at once. Its speed slider multiplies each weapon's speed, its damage slider caps each one's damage.
+     */
     @Override
-    public boolean powerSliders() {
-        return false;
+    public Power power() {
+        return new Power(0.1F, 10.0F, 1.0F, true, 0.0F);
+    }
+
+    /** Above this the remote's menu warns that the cast is very heavy (every weapon at twice its own power). */
+    @Override
+    public float warnAbove() {
+        return 2.0F;
     }
 
     @Override

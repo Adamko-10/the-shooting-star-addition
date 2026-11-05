@@ -186,7 +186,10 @@ public final class ConvergencePlate {
             }
             g.drawString(font, skill.title(), 43, y + 1, 0xFF000000 | (on ? AdditionPanel.INK : AdditionPanel.GREY), false);
             if (on) {
-                Tuning tuning = SkillTuning.of(skill);
+                // what will fire: its own sliders with SA-00's applied
+                Tuning own = SkillTuning.of(skill);
+                Tuning tuning = Convergence.scaled(new Convergence.Pick(skill.id(), own.power(), own.damage(), own.speed(), own.width()),
+                    SkillTuning.of(TssLink.CONVERGENCE)).clampFor(skill);
                 String sliders = String.format(Locale.ROOT, "%.1f× · %s · %.1f×", tuning.power(),
                     Float.isInfinite(tuning.damage()) ? "∞" : String.format(Locale.ROOT, "%.0f", tuning.damage()), tuning.speed());
                 g.drawString(font, sliders, w - 12 - font.width(sliders), y + 1, 0xFF000000 | AdditionPanel.GREY, false);

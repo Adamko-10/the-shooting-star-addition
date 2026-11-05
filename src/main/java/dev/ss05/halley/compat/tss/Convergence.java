@@ -118,7 +118,7 @@ public final class Convergence {
     }
 
     /** The remote fired SA-00 (or an operator's /ssa strike stellar_convergence). */
-    static boolean cast(ServerPlayer player) {
+    static boolean cast(ServerPlayer player, Tuning master) {
         Picks picks = PICKS.get(player.getUUID());
         List<Weapon> weapons = new ArrayList<>();
         if (picks != null) {
@@ -127,7 +127,7 @@ public final class Convergence {
                 if (skill == null || skill == TssLink.CONVERGENCE) {
                     continue;
                 }
-                Tuning tuning = Limits.hold(skill, new Tuning(pick.power(), pick.damage(), pick.speed(), pick.width()).clampFor(skill));
+                Tuning tuning = Limits.hold(skill, scaled(pick, master).clampFor(skill));
                 weapons.add(new Weapon(skill, tuning, impact(skill, tuning), reach(skill, tuning)));
             }
         }
@@ -204,6 +204,18 @@ public final class Convergence {
     }
 
     private record Weapon(Skill skill, Tuning tuning, int impact, double reach) {
+    }
+
+    /**
+     * A weapon's own sliders with SA-00's applied (the master sliders, the user, 2026-11-05): its power and speed times
+     * SA-00's, its damage no higher than SA-00's (∞ by default: no cap). Each weapon then stays within its own slider
+     * range and the server's limits.
+     */
+    public static Tuning scaled(Pick pick, Tuning master) {
+        if (master == null) {
+            return new Tuning(pick.power(), pick.damage(), pick.speed(), pick.width());
+        }
+        return new Tuning(pick.power() * master.power(), Math.min(pick.damage(), master.damage()), pick.speed() * master.speed(), pick.width());
     }
 
     private record Ring(Vec3 centre, Vec3[] spots) {

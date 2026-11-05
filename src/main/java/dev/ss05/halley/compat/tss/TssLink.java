@@ -118,9 +118,9 @@ public final class TssLink implements StarLink {
             }
             // The remote hands every cast a Tuning: the sliders under the skill in its menu (power, damage, speed),
             // clamped to the skill's range. Halley and Luna get theirs as the addon's own CastTuning; Stellar
-            // Convergence has none of its own: each weapon it fires uses its own.
+            // Convergence scales every weapon it fires (each with its own sliders) by its own.
             SkillApi.extend(set, new Skill[]{SKILL, MOON, CONVERGENCE}, (player, skill, tuning) -> skill == SKILL
-                ? HalleyCasting.cast(player, tune(tuning)) : skill == MOON ? MoonCasting.cast(player, tune(tuning)) : Convergence.cast(player));
+                ? HalleyCasting.cast(player, tune(tuning)) : skill == MOON ? MoonCasting.cast(player, tune(tuning)) : Convergence.cast(player, tuning));
             for (Skill ours : List.<Skill>of(SKILL, MOON, CONVERGENCE)) {
                 HalleyAddon.LOG.info("{} joined the Stellar Remote as skill #{} (key slot {}).", ours.title(), set.skills.indexOf(ours) + 1,
                     SkillApi.index(ours));
