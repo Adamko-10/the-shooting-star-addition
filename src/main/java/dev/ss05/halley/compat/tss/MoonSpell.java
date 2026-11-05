@@ -51,6 +51,11 @@ final class MoonSpell extends Spell {
     }
 
     @Override
+    protected double planClock(double clock) {
+        return this.strike.plan().warp(clock);
+    }
+
+    @Override
     protected void onEnd() {
         this.strike.end();
     }

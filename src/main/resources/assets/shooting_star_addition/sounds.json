@@ -292,6 +292,14 @@
       }
     ]
   },
+  "luna_music_epic": {
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_music_epic",
+        "stream": true
+      }
+    ]
+  },
   "proxima_music": {
     "sounds": [
       {

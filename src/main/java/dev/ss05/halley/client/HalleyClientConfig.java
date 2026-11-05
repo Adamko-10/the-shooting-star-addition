@@ -30,6 +30,7 @@ public final class HalleyClientConfig {
     private static final ModConfigSpec.BooleanValue NO_COOLDOWN;
     private static final ModConfigSpec.BooleanValue EVAC_LIFT;
     private static final ModConfigSpec.BooleanValue KEEP_MOON;
+    private static final ModConfigSpec.BooleanValue EPIC_MODE;
     private static final ModConfigSpec.EnumValue<ImpactFrames> IMPACT_FRAMES;
     private static final ModConfigSpec.ConfigValue<List<? extends String>> CONVERGENCE;
     private static final ModConfigSpec.BooleanValue CONVERGENCE_RING;
@@ -98,6 +99,9 @@ public final class HalleyClientConfig {
         KEEP_MOON = b.comment("Luna's moon model stays where it landed instead of crumbling into the block moon, until you switch",
                 "this off or leave the world (for filming). L in the remote's menu.")
             .define("keep_moon", false);
+        EPIC_MODE = b.comment("Luna's Epic mode: the moon you call down falls slower and more ominously (24 s from the alarm to the",
+                "impact instead of 16; everyone watching sees it), with the long cut of her music. G in the remote's menu.")
+            .define("epic_mode", false);
         IMPACT_FRAMES = b.comment("Halley's and Luna's impact frames (the screen flashing to negative at an impact): FULL, SOFT",
                 "(fainter) or OFF. F in the remote's menu.")
             .defineEnum("impact_frames", ImpactFrames.FULL);
@@ -167,6 +171,15 @@ public final class HalleyClientConfig {
 
     public static void setEvacLift(boolean on) {
         set(EVAC_LIFT, on);
+    }
+
+    /** Your Epic mode switch: the moons you call down fall slower (see EpicMode). */
+    public static boolean epicMode() {
+        return get(EPIC_MODE);
+    }
+
+    public static void setEpicMode(boolean on) {
+        set(EPIC_MODE, on);
     }
 
     /** Your keep-the-moon switch: Luna's moon model stays after it lands. */

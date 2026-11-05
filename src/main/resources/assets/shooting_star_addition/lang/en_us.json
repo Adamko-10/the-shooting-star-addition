@@ -65,6 +65,8 @@
   "gui.shooting_star_addition.off": "OFF",
   "gui.shooting_star_addition.music": "Music",
   "gui.shooting_star_addition.music.hint": "Luna's and Proxima's. Uses the Music volume.",
+  "gui.shooting_star_addition.epic": "Epic mode",
+  "gui.shooting_star_addition.epic.hint": "Luna falls slower; everyone sees it.",
   "gui.shooting_star_addition.keep_moon": "Keep the moon",
   "gui.shooting_star_addition.keep_moon.hint": "Luna's model stays after landing. Off clears it.",
   "gui.shooting_star_addition.frames": "Impact frames",

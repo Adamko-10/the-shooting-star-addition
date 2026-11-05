@@ -12,6 +12,7 @@ import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.HalleyPlan;
 import dev.ss05.halley.MoonConfig;
 import dev.ss05.halley.MoonParams;
+import dev.ss05.halley.EpicMode;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.NoCooldown;
 import dev.ss05.halley.ProximaParams;
@@ -141,7 +142,7 @@ public final class Convergence {
                     continue;
                 }
                 Tuning tuning = Limits.hold(skill, scaled(pick, master).clampFor(skill));
-                (finale(skill) ? finale : weapons).add(new Weapon(skill, tuning, impact(skill, tuning), reach(skill, tuning)));
+                (finale(skill) ? finale : weapons).add(new Weapon(skill, tuning, impact(skill, tuning, player), reach(skill, tuning)));
             }
         }
         if (weapons.isEmpty() && finale.isEmpty()) {
@@ -325,13 +326,14 @@ public final class Convergence {
     }
 
     /** Ticks from its cast to its impact at its speed slider, or -1 when that isn't known. */
-    private static int impact(Skill skill, Tuning tuning) {
+    private static int impact(Skill skill, Tuning tuning, ServerPlayer caster) {
         int base;
         if (skill == TssLink.SKILL) {
             HalleyParams params = HalleyParams.of(HalleyConfig.tuning(), 64, tuning.power());
             base = HalleyPlan.TOUCHDOWN + HalleyPlan.ploughTicks(params.trenchLength(), params.scale());
         } else if (skill == TssLink.MOON) {
-            base = MoonPlan.CONTACT;
+            // the caster's Epic mode slows Luna's fall
+            base = MoonPlan.contactClock(EpicMode.on(caster));
         } else if (skill == TssLink.PROXIMA) {
             base = ProximaPlan.IMPACT;
         } else if (SkillSet.of(skill) == SkillSet.of(TssLink.SKILL) && TSS_IMPACT.containsKey(skill.id())) {

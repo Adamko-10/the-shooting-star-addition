@@ -59,7 +59,7 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   and Earth (stage 3 part 3, ask before downloading imagery).** Also done then: Luna's full track rebuilt for Epic
   mode (`music\Luna full (rebuilt).flac` in the project folder: 29.09 s, drop at 24.45 s = up to 24.45 s of lead; Video
   Project 48 up to 10.03 s, +13.03 dB, crossfaded 60 ms onto luna_music.ogg from 1.52498 s; offset 8.44502 s, checked
-  sample-exact, no click). Epic mode itself not started. Game run (`test builds\2026-11-05 auto test 21 proxima
+  sample-exact, no click). **Epic mode then BUILT** (§14 "Epic mode", docs/SS-06-LUNA.md). Game run (`test builds\2026-11-05 auto test 21 proxima
   music\sounds-config\`): no sound errors, the bowl 6 deep, the config sections written, the zones' save file made.
   Test jar `test builds\2026-11-05 Proxima config, sounds\`, in the Modrinth profile (the music build renamed
   `.disabled`). Not heard by the user yet. Earlier:
@@ -850,6 +850,11 @@ update).
   `ChoicePayload`) and pick a slower `MoonPlan` timeline; the music needs its own cut for it (1.5.1's is cut, not
   stretched, to the 16 s from ALARM to CONTACT, §13; recipe in `docs/SS-06-LUNA.md`). The normal fall keeps
   1.5.1's (CONTACT 330, with Halley's impact, which the user asked for in §13; confirmed 2026-11-03).
+  **BUILT 2026-11-05 (the user: "Epic mode")**: since M became "Music" for Luna and Proxima, Epic mode is its own
+  switch, **G** on the plate (client config `epic_mode`, off; G is free on main, but on 26.3 Halley's key is G: pick
+  another letter there when porting). The fall from ALARM to CONTACT takes 24 s instead of 16 (`MoonPlan.EPIC_FALL`
+  480, a time warp, not a second timeline), with `luna_music_epic.ogg` from the rebuilt full track. How it works:
+  docs/SS-06-LUNA.md "Epic mode". The plate has six rows now: M, G, L, F, E, C.
 - **Protected-blocks tag** (§10 #6): `shooting_star_addition:unbreakable`; matters even more for Proxima's wide area.
   **Done 2026-11-04** (`world/Protected`, `data/shooting_star_addition/tags/block/unbreakable.json`: bedrock, barrier,
   command/structure blocks, jigsaw, end portal and frame, reinforced deepslate; servers add more by data pack). Its

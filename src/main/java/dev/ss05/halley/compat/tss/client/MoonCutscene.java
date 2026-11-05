@@ -45,7 +45,10 @@ final class MoonCutscene {
         List<Shot> shots = new ArrayList<>();
         for (MoonStoryboard.Take take : MoonStoryboard.takes(fx.plan)) {
             MoonStoryboard.Path path = take.path();
-            shots.add(new Shot(take.start(), take.end(), take.blendIn(), (x, partial, k) -> {
+            // the takes are in plan ticks, the director's clock in clock ticks: in Epic mode the fall's shots last longer
+            int start = (int) Math.round(fx.plan.unwarp(take.start()));
+            int end = (int) Math.round(fx.plan.unwarp(take.end()));
+            shots.add(new Shot(start, end, take.blendIn(), (x, partial, k) -> {
                 MoonStoryboard.Pose pose = path.pose(stage, partial, k);
                 return new CameraPose(pose.position(), pose.look(), pose.fov(), pose.roll());
             }));

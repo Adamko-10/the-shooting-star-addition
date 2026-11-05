@@ -92,6 +92,7 @@ public final class HalleyAddon {
             if (event.getEntity() instanceof ServerPlayer player) {
                 NoCooldown.forget(player);
                 Evac.forget(player);
+                EpicMode.forget(player);
             }
         });
     }

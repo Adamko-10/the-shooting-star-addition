@@ -1,5 +1,6 @@
 package dev.ss05.halley.net;
 
+import dev.ss05.halley.EpicMode;
 import dev.ss05.halley.Evac;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.NoCooldown;
@@ -23,14 +24,15 @@ public final class AddonNetwork {
     }
 
     private static void payloads(RegisterPayloadHandlersEvent event) {
-        // 2: ChoicePayload carries the evac switch too
-        PayloadRegistrar registrar = event.registrar("2").optional();
+        // 2: ChoicePayload carries the evac switch too; 3: and Epic mode
+        PayloadRegistrar registrar = event.registrar("3").optional();
         registrar.playToClient(SettingsPayload.TYPE, SettingsPayload.CODEC,
             (payload, context) -> context.enqueueWork(() -> ServerSettings.received(payload.noCooldown(), payload.survival())));
         registrar.playToServer(ChoicePayload.TYPE, ChoicePayload.CODEC, (payload, context) -> context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player) {
                 NoCooldown.choose(player, payload.noCooldown());
                 Evac.choose(player, payload.evacLift());
+                EpicMode.choose(player, payload.epic());
             }
         }));
     }

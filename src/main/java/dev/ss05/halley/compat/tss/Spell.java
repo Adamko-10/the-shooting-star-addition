@@ -57,12 +57,17 @@ abstract class Spell {
     /** Whether the strike's work on the land that can be done now is done (its effects may run on after it). */
     protected abstract boolean worldDone();
 
+    /** The plan's tick at this clock tick (Luna's Epic mode slows part of its plan; see MoonPlan.warp). */
+    protected double planClock(double clock) {
+        return clock;
+    }
+
     private boolean tick() {
         this.caster = this.level.getServer().getPlayerList().getPlayer(this.casterId);
         if (this.caster != null && this.caster.level() != this.level) {
             this.caster = null;
         }
-        int due = (int) Math.floor(this.clock);
+        int due = (int) Math.floor(this.planClock(this.clock));
         while (this.age <= due && !this.finished()) {
             this.onTick(this.age);
             this.age++;

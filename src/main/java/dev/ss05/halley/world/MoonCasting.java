@@ -1,6 +1,7 @@
 package dev.ss05.halley.world;
 
 import dev.ss05.halley.CastTuning;
+import dev.ss05.halley.EpicMode;
 import dev.ss05.halley.NoCooldown;
 import dev.ss05.halley.MoonConfig;
 import dev.ss05.halley.MoonParams;
@@ -42,7 +43,7 @@ public final class MoonCasting {
         float timeOfDay = level.getTimeOfDay(1.0F);
         Vec3 sky = MoonPlan.skyDirection(level.isNight() ? timeOfDay : timeOfDay + 0.5F);
         long seed = player.getRandom().nextLong();
-        StarBridge.startMoon(player, target, seed, MoonParams.of(tuning, Mth.floor(target.y), sky, cast.power()), cast);
+        StarBridge.startMoon(player, target, seed, MoonParams.of(tuning, Mth.floor(target.y), sky, cast.power()).withEpic(EpicMode.on(player)), cast);
         return true;
     }
 }

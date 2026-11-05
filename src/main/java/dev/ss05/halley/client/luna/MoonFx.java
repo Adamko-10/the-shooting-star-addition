@@ -474,11 +474,11 @@ public final class MoonFx {
             Vec3 at = p.centre(t);
             this.boom(HalleyContent.MOON_ENTRY.get(), at, sky(camera, at), 2.2F, film, 0.35F, Double.MAX_VALUE);
         }
-        if (t == MoonPlan.CONTACT - 60) {
+        if (t == this.beforeContact(60)) {
             // swelling, then near-silence for its last half second (the file is cut so): the hush before the impact
             this.play(HalleyContent.MOON_RUMBLE.get(), near(camera, p.target, p.params.craterRadius() * 1.5), 2.4F, 1.0F, film);
         }
-        if (t == MoonPlan.CONTACT - INHALE) {
+        if (t == this.beforeContact(INHALE)) {
             // out of the hush, the air rushing in: it ends as the impact is heard, so it is as late as the impact's sound
             int delay = film ? 0 : (int) Math.min(MAX_SOUND_DELAY, camera.distanceTo(p.target) / SOUND_SPEED);
             Runnable inhale = () -> this.play(HalleyContent.MOON_INHALE.get(), near(camera(), p.target, p.params.craterRadius() * 1.5),
@@ -535,7 +535,14 @@ public final class MoonFx {
         if (this.music != null || !HalleyClientConfig.lunaMusic() || !film && camera.distanceTo(this.plan.target) > MUSIC_RANGE) {
             return;
         }
-        this.music = StrikeMusic.play("luna_music", this.host, MUSIC_AT, () -> this.realTime(0.0F), () -> this.removed);
+        // Epic mode: the long cut (its drop 24 s on), kept in step with the clock, not the slowed plan
+        this.music = StrikeMusic.play(this.plan.params.epic() ? "luna_music_epic" : "luna_music", this.host, MUSIC_AT,
+            () -> this.plan.unwarp(this.realTime(0.0F)), () -> this.removed);
+    }
+
+    /** The plan's tick {@code ticks} ticks of the clock before the impact (in Epic mode the fall runs slower). */
+    private int beforeContact(int ticks) {
+        return (int) Math.round(this.plan.warp(this.plan.unwarp(MoonPlan.CONTACT) - ticks));
     }
 
     /** The point of the molten seam nearest the camera (on the ground). */
