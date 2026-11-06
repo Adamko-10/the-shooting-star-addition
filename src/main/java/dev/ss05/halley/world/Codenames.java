@@ -11,6 +11,8 @@ public final class Codenames {
     public static final String HALLEY = "SA-01";
     /** Luna, the moonfall. */
     public static final String LUNA = "SA-02";
+    /** Stellar Convergence: every ticked weapon at once (not a weapon of its own, so before the others). */
+    public static final String CONVERGENCE = "SA-00";
 
     private Codenames() {
     }

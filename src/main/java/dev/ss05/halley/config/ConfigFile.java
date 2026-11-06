@@ -52,6 +52,10 @@ public final class ConfigFile {
         return this.add(new EnumValue<>(key, value, comment));
     }
 
+    public StringListValue defineList(String key, List<String> value, String... comment) {
+        return this.add(new StringListValue(key, value, comment));
+    }
+
     private <V extends Value<?>> V add(V value) {
         if (this.current == null) {
             throw new IllegalStateException("start a section first");
@@ -226,6 +230,38 @@ public final class ConfigFile {
 
         String hint() {
             return null;
+        }
+    }
+
+    /** The selected skill ids, stored as a TOML string array (including an empty selection). */
+    public static final class StringListValue extends Value<List<String>> {
+        StringListValue(String key, List<String> fallback, String[] comment) {
+            super(key, List.copyOf(fallback), comment);
+        }
+
+        @Override
+        boolean read(String text) {
+            if (!text.startsWith("[") || !text.endsWith("]")) {
+                return false;
+            }
+            String body = text.substring(1, text.length() - 1).trim();
+            List<String> ids = new ArrayList<>();
+            if (!body.isEmpty()) {
+                for (String entry : body.split(",", -1)) {
+                    String id = entry.trim();
+                    if (!id.matches("\"[a-z0-9_./:-]+\"")) {
+                        return false;
+                    }
+                    ids.add(id.substring(1, id.length() - 1));
+                }
+            }
+            this.value = List.copyOf(ids);
+            return true;
+        }
+
+        @Override
+        String write(List<String> value) {
+            return "[" + String.join(", ", value.stream().map(id -> "\"" + id + "\"").toList()) + "]";
         }
     }
 

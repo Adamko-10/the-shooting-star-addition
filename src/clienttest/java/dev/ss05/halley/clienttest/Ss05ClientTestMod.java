@@ -18,6 +18,7 @@ public final class Ss05ClientTestMod implements ClientModInitializer {
         if (!HarnessParams.ACTIVE) {
             return;
         }
+        dev.ss05.halley.config.ConfigFileCheck.run();
         ClientTickEvents.END_CLIENT_TICK.register(client -> Harness.onClientTick());
         ServerTickEvents.END_SERVER_TICK.register(Harness::onServerTick);
         Harness.log("harness armed: " + HarnessParams.describe());

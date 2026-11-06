@@ -1,12 +1,16 @@
 package dev.ss05.halley.compat.tss;
 
+import cyou.rimuru.rimulib.bulwark.Bulwark;
 import cyou.rimuru.rimulib.erase.ErasePolicy;
 import cyou.rimuru.rimulib.erase.Erasure;
-import cyou.rimuru.rimulib.net.RimuNet;
+import cyou.rimuru.rimulib.api.NetApi;
+import cyou.rimuru.rimulib.api.RimulibApi;
+import cyou.rimuru.rimulib.api.SkillApi;
 import cyou.rimuru.rimulib.skill.Skill;
 import cyou.rimuru.rimulib.skill.SkillSet;
 import cyou.rimuru.rimulib.skill.Tuning;
 import cyou.rimuru.rimulib.terrain.Carving;
+import cyou.rimuru.rimulib.terrain.SectionSink;
 import cyou.rimuru.shootingstardemo.magic.Casting;
 import cyou.rimuru.shootingstardemo.spell.SpellEngine;
 import dev.ss05.halley.CastTuning;
@@ -15,17 +19,23 @@ import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.compat.StarLink;
 import dev.ss05.halley.compat.TssVersion;
+import dev.ss05.halley.compat.mixin.ChunkAccessMixin;
 import dev.ss05.halley.compat.tss.client.StarClientBridge;
 import dev.ss05.halley.world.Excavation;
 import dev.ss05.halley.world.HalleyCasting;
-import dev.ss05.halley.world.HalleyInfo;
 import dev.ss05.halley.world.MoonCasting;
-import dev.ss05.halley.world.MoonInfo;
+import dev.ss05.halley.world.Protected;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
+import com.mojang.brigadier.CommandDispatcher;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -42,6 +52,7 @@ import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
@@ -69,87 +80,53 @@ public final class TssLink implements StarLink {
     public static final HalleySkill SKILL = new HalleySkill();
     /** Luna as The Shooting Star sees it. */
     public static final MoonSkill MOON = new MoonSkill();
+    /** Stellar Convergence (every ticked weapon at once) as The Shooting Star sees it. */
+    public static final ConvergenceSkill CONVERGENCE = new ConvergenceSkill();
+
+    private static boolean installed;
 
     /**
-     * Adds Halley and Luna to the Stellar Remote: after the built-in skills, each with its own index, key binding,
-     * menu row, tooltip line and cooldown, exactly as if they had been among them. Safe to call more than once.
-     *
-     * <p>Since The Shooting Star 1.5.0 the remote's skill list is RimuLib's {@code SkillSet} (not obfuscated). It is
-     * still built once with no "add a skill" hook, so Halley and Luna are written into its tables the way
-     * {@code SkillSet.register} puts a set's skills there; RimuLib then shows them as an addon's skills.
+     * Adds Halley, Luna and Stellar Convergence to the Stellar Remote, after its own skills, each with its own index, key
+     * binding, menu row and cooldown, through RimuLib's public API (since RimuLib 1.2.2: {@code SkillApi.extend}, once
+     * The Shooting Star has registered the remote; before that we wrote into RimuLib's private tables). Safe to call
+     * more than once.
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public void install() throws ReflectiveOperationException {
-        if (SkillSet.of(SKILL) != null) {
+    public void install() {
+        if (installed) {
             return;
         }
-        SkillSet remote = remote();
-        Map<String, List<Skill>> byNamespace = (Map<String, List<Skill>>) field("BY_NAMESPACE").get(null);
-        Map<Skill, SkillSet> owner = (Map<Skill, SkillSet>) field("OWNER").get(null);
-        Map<Skill, Integer> index = (Map<Skill, Integer>) field("INDEX").get(null);
-        Field skillsField = field("skills");
-        Field casterField = field("caster");
-        SkillSet.Caster<Skill> builtIn = (SkillSet.Caster<Skill>) casterField.get(remote);
-        List<Skill> all = byNamespace.get(remote.namespace());
-        List<Skill> before = remote.skills;
-        if (builtIn == null || all == null || before == null || before.isEmpty()) {
-            throw new IllegalStateException("the Stellar Remote has no skills to join");
-        }
-
-        List<Skill> after = new ArrayList<>(before);
-        after.add(SKILL);
-        after.add(MOON);
-        // The remote hands every cast a Tuning: the sliders under the skill in its menu (power, damage, speed), clamped
-        // to the skill's range. Halley and Luna get theirs as the addon's own CastTuning; the built-in skills unchanged.
-        SkillSet.Caster<Skill> caster = (player, skill, tuning) -> skill == SKILL ? HalleyCasting.cast(player, tune(tuning))
-            : skill == MOON ? MoonCasting.cast(player, tune(tuning)) : builtIn.cast(player, skill, tuning);
-
-        for (Skill added : List.<Skill>of(SKILL, MOON)) {
-            index.put(added, all.size());
-            all.add(added);
-            owner.put(added, remote);
-        }
-        try {
-            skillsField.set(remote, List.copyOf(after));
-            casterField.set(remote, caster);
-        } catch (ReflectiveOperationException | RuntimeException failed) {
-            for (Skill added : List.<Skill>of(SKILL, MOON)) {
-                all.remove(added);
-                owner.remove(added);
-                index.remove(added);
+        installed = true;
+        RimulibApi.connect(HalleyAddon.MOD_ID, HalleyAddon.class, "1.2.2");
+        // the protected blocks are "cores" every carving that keeps cores leaves where they are: ours, and The Shooting
+        // Star's that do (one of its skills, in 1.5.1)
+        Carving.keepCores(Protected::is);
+        // the packets: declared now, before RimuLib registers its packets with the loader. The strikes' effects, and for
+        // Stellar Convergence each player's picks (their game to the server) and a convergence on its way (back)
+        NetApi.toClient(StrikeFx.PACKET);
+        NetApi.toServer(Convergence.Picks.PACKET);
+        NetApi.toClient(ConvergenceFx.PACKET);
+        NetApi.receive(Convergence.Picks.PACKET, (picks, context) -> context.server().execute(() -> {
+            if (context.player() != null) {
+                Convergence.received(context.player(), picks);
             }
-            skillsField.set(remote, before);
-            casterField.set(remote, builtIn);
-            throw failed;
-        }
-        // the strikes' effect packet: declared now, before RimuLib registers its packets with the loader
-        RimuNet.s2c(StrikeFx.PACKET);
-
-        HalleyAddon.LOG.info("{} (Halley) joined the Stellar Remote as skill #{} (key slot {}).", HalleyInfo.title(), after.indexOf(SKILL) + 1, SkillSet.indexOf(SKILL));
-        HalleyAddon.LOG.info("{} (Luna) joined the Stellar Remote as skill #{} (key slot {}).", MoonInfo.title(), after.indexOf(MOON) + 1, SkillSet.indexOf(MOON));
-    }
-
-    /** The Stellar Remote's skill set: The Shooting Star's set that holds its own skills (an enum of them). */
-    private static SkillSet remote() {
-        SkillSet found = null;
-        for (SkillSet set : SkillSet.all(TssVersion.MOD_ID)) {
-            if (!set.hidden && set.skills.stream().anyMatch(skill -> skill instanceof Enum<?>)
-                && (found == null || set.skills.size() > found.skills.size())) {
-                found = set;
+        }));
+        SkillApi.whenRegistered(TssVersion.MOD_ID, set -> {
+            // the remote is The Shooting Star's set that holds its own skills (an enum of them)
+            if (set.hidden || set.skills.stream().noneMatch(skill -> skill instanceof Enum<?>) || SkillApi.setOf(SKILL) != null) {
+                return;
             }
-        }
-        if (found == null) {
-            throw new IllegalStateException("The Shooting Star registered no Stellar Remote skills");
-        }
-        return found;
-    }
-
-    /** One of SkillSet's fields, by name (RimuLib isn't obfuscated). */
-    private static Field field(String name) throws NoSuchFieldException {
-        Field field = SkillSet.class.getDeclaredField(name);
-        field.setAccessible(true);
-        return field;
+            // The remote hands every cast a Tuning: the sliders under the skill in its menu (power, damage, speed),
+            // clamped to the skill's range. Halley and Luna get theirs as the addon's own CastTuning; Stellar
+            // Convergence scales every weapon it fires (each with its own sliders) by its own.
+            SkillApi.extend(set, new Skill[]{SKILL, MOON, CONVERGENCE}, (player, skill, tuning) -> skill == SKILL
+                ? HalleyCasting.cast(player, tune(tuning)) : skill == MOON ? MoonCasting.cast(player, tune(tuning))
+                : Convergence.cast(player, tuning));
+            for (Skill ours : List.<Skill>of(SKILL, MOON, CONVERGENCE)) {
+                HalleyAddon.LOG.info("{} joined the Stellar Remote as skill #{} (key slot {}).", ours.title(), set.skills.indexOf(ours) + 1,
+                    SkillApi.index(ours));
+            }
+        });
     }
 
     /** The remote's sliders for one cast, as the addon's own type (the defaults if there are none). */
@@ -165,11 +142,13 @@ public final class TssLink implements StarLink {
     @Override
     public void tick(MinecraftServer server) {
         Spell.tickAll();
+        Convergence.tick(server);
     }
 
     @Override
     public void clear() {
         Spell.clear();
+        Convergence.clear();
     }
 
     /**
@@ -206,12 +185,12 @@ public final class TssLink implements StarLink {
 
     @Override
     public int skillIndex() {
-        return SkillSet.indexOf(SKILL);
+        return SkillApi.index(SKILL);
     }
 
     @Override
     public int moonIndex() {
-        return SkillSet.indexOf(MOON);
+        return SkillApi.index(MOON);
     }
 
     @Override
@@ -238,6 +217,7 @@ public final class TssLink implements StarLink {
 
     @Override
     public Vec3 aimGround(ServerPlayer player, double reach, double fallback) {
+        // SpellEngine.aimGround (unmapped in 1.5.1, mapped again since 1.5.2)
         return SpellEngine.aimGround(player, reach, fallback);
     }
 
@@ -289,28 +269,135 @@ public final class TssLink implements StarLink {
     }
 
     @Override
-    public boolean liftClear(ServerPlayer caster, Vec3 target, double zone, double refuge, int ticks) {
-        // The Shooting Star 1.5.0 has no lift to call any more: set the caster down out of the zone, falling slowly
-        Vec3 away = caster.position().subtract(target).multiply(1.0, 0.0, 1.0);
-        Vec3 dir = away.lengthSqr() < 1.0E-4 ? new Vec3(1.0, 0.0, 0.0) : away.normalize();
-        Vec3 to = target.add(dir.scale(refuge));
-        int y = caster.serverLevel().getHeight(Heightmap.Types.MOTION_BLOCKING, (int) Math.floor(to.x), (int) Math.floor(to.z));
-        caster.teleportTo(to.x, y + 1.0, to.z);
+    public boolean liftClear(ServerPlayer caster, Vec3 target, double zone, double refuge, int ticks, boolean lift) {
+        // The Shooting Star 1.5.0 has no lift to call any more: take the caster out of the zone, falling slowly. Never
+        // onto land that isn't loaded: its height reads as the bottom of the world (bedrock), and the teleport waits for
+        // it to load, behind the strike's own chunks (a 40 s freeze at 10x, 2026-11-03)
+        ServerLevel level = caster.serverLevel();
+        Vec3 to = null;
+        if (!lift) {
+            Vec3 away = caster.position().subtract(target).multiply(1.0, 0.0, 1.0);
+            Vec3 dir = away.lengthSqr() < 1.0E-4 ? new Vec3(1.0, 0.0, 0.0) : away.normalize();
+            BlockPos edge = BlockPos.containing(target.add(dir.scale(refuge)));
+            if (level.hasChunkAt(edge)) {
+                to = new Vec3(edge.getX() + 0.5, level.getHeight(Heightmap.Types.MOTION_BLOCKING, edge.getX(), edge.getZ()) + 1.0,
+                    edge.getZ() + 0.5);
+            }
+        }
+        if (to == null) {
+            // straight up, above the strike: the caster's own chunk is loaded
+            double y = Math.min(Math.max(target.y + zone, caster.getY() + 24.0), level.getMaxBuildHeight() + 16.0);
+            to = new Vec3(caster.getX(), y, caster.getZ());
+        }
+        caster.teleportTo(to.x, to.y, to.z);
         caster.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, ticks, 0, true, false, true));
         return true;
     }
 
     @Override
+    public void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
+        StrikeCommand.register(dispatcher);
+    }
+
+    @Override
     public void paint(ServerLevel level, Map<BlockPos, BlockState> blocks) {
+        // paint looks at each block's block entity first, which loads saved ones the crater left behind (MoonLand's rim
+        // and cracks: 244 warnings at 10x, 2026-11-03); and it would write over protected blocks
+        LongSet chunks = new LongOpenHashSet();
+        LongSet kept = new LongOpenHashSet();
+        for (BlockPos at : blocks.keySet()) {
+            if (chunks.add(ChunkPos.asLong(at.getX() >> 4, at.getZ() >> 4))) {
+                dropStaleBlockEntities(level, at.getX() >> 4, at.getZ() >> 4);
+                LevelChunk chunk = level.getChunkSource().getChunkNow(at.getX() >> 4, at.getZ() >> 4);
+                var found = chunk == null ? null : Protected.scan(chunk);
+                if (found != null) {
+                    kept.addAll(found.keySet());
+                }
+            }
+        }
+        if (!kept.isEmpty()) {
+            blocks.keySet().removeIf(at -> kept.contains(at.asLong()));
+        }
         Carving.paint(level, blocks);
+    }
+
+    /**
+     * Drops a chunk's saved block entities not loaded yet whose block is gone (cut by a carving, covered by the moon):
+     * loading one fails with a warning or a stack trace each ("Tried to load a DUMMY block entity").
+     */
+    private static void dropStaleBlockEntities(ServerLevel level, int x, int z) {
+        if (level.getChunkSource().getChunkNow(x, z) instanceof ChunkAccessMixin chunk) {
+            LevelChunk live = (LevelChunk) chunk;
+            chunk.ss05halley$pendingBlockEntities().keySet().removeIf(at -> !live.getBlockState(at).hasBlockEntity());
+        }
+    }
+
+    @Override
+    public Excavation.Sink sink(ServerLevel level, ChunkPos pos, int fromY, int toY, int clearFrom) {
+        Long2ObjectMap<int[]> range = new Long2ObjectOpenHashMap<>();
+        range.put(pos.toLong(), new int[]{fromY, toY});
+        // the cell is the chunk itself, so whole sections from clearFrom up (to the top) start empty
+        SectionSink sink = SectionSink.snapshot(level, range, pos.getMinBlockX(), pos.getMinBlockZ(), 16,
+            clearFrom, Integer.MAX_VALUE);
+        return new Excavation.Sink() {
+            @Override
+            public void prepare() {
+                sink.prepare();
+            }
+
+            @Override
+            public void put(int x, int y, int z, BlockState state) {
+                sink.put(x, y, z, state);
+            }
+
+            @Override
+            public void clear(int x, int z, int y0, int y1) {
+                sink.clear(x, z, y0, y1);
+            }
+
+            @Override
+            public boolean stale() {
+                return sink.stale(level);
+            }
+
+            @Override
+            public void apply() {
+                sink.apply(level);
+                dropStaleBlockEntities(level, pos.x, pos.z);
+            }
+
+            @Override
+            public void release() {
+                sink.release(level);
+            }
+        };
+    }
+
+    @Override
+    public void relight(ServerLevel level, List<ChunkPos> chunks) {
+        List<LevelChunk> loaded = new ArrayList<>(chunks.size());
+        for (ChunkPos pos : chunks) {
+            LevelChunk chunk = level.getChunkSource().getChunkNow(pos.x, pos.z);
+            if (chunk != null) {
+                loaded.add(chunk);
+            }
+        }
+        Carving.relightAll(level, loaded);
+    }
+
+    @Override
+    public boolean spares(ServerLevel level, int x, int z) {
+        return Bulwark.spares(level, x, z);
     }
 
     @Override
     public Excavation excavate(ServerLevel level, Vec3 centre, double radius, Excavation.Floor floor,
                                Excavation.Surface surface, BlockPos spared, String name, int chunksPerTick,
                                Excavation.Loader loader) {
+        // keepsCores: the protected blocks (a "core", see install) stay where they are
         Carving base = Carving.flatten(level, centre, radius, floor::floor, surface::at, spared)
             .perTick(chunksPerTick)
+            .keepsCores()
             .named(name);
         // with a loader it streams the chunks it is waiting for in (as the built-in skills' carvings do), else it cuts
         // the ones that are loaded and waits for the rest to be

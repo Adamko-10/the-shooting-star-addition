@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /** The harness's frame hooks (Fabric has no event round a whole frame): before it is drawn, and once it is. */
-@Mixin(GameRenderer.class)
+@Mixin(value = GameRenderer.class, priority = 800)
 abstract class GameRendererFrameMixin {
     @Inject(method = "render(FJZ)V", at = @At("HEAD"))
     private void ss05clienttest$frameStart(float partialTicks, long nanoTime, boolean renderLevel, CallbackInfo ci) {

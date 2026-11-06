@@ -4,7 +4,7 @@ import cyou.rimuru.rimulib.client.cinematic.CutsceneDirector;
 import cyou.rimuru.rimulib.client.cinematic.Subject;
 import cyou.rimuru.shootingstardemo.client.fx.Frame;
 import cyou.rimuru.shootingstardemo.client.fx.FxManager;
-import cyou.rimuru.rimulib.client.text.Overlay;
+import cyou.rimuru.rimulib.client.api.UiApi;
 import cyou.rimuru.shootingstardemo.client.fx.SpellFx;
 import cyou.rimuru.rimulib.client.render.ScreenFx;
 import cyou.rimuru.shootingstardemo.net.SpellFxPayload;
@@ -111,8 +111,8 @@ final class HalleyFxAdapter extends SpellFx {
 
     @Override
     public void hud(GuiGraphics graphics, Frame frame) {
-        HalleyHud.world(graphics, this.fx, partial(), Overlay.width(graphics));
-        HalleyHud.marker(graphics, this.fx, partial(), Overlay.width(graphics), Overlay.height(graphics));
+        HalleyHud.world(graphics, this.fx, partial(), UiApi.width(graphics));
+        HalleyHud.marker(graphics, this.fx, partial(), UiApi.width(graphics), UiApi.height(graphics));
     }
 
     /** SS-05's screen effects written into the remote's post-processing settings for this frame. */

@@ -4,7 +4,7 @@ import cyou.rimuru.rimulib.client.cinematic.CutsceneDirector;
 import cyou.rimuru.rimulib.client.cinematic.Subject;
 import cyou.rimuru.shootingstardemo.client.fx.Frame;
 import cyou.rimuru.shootingstardemo.client.fx.FxManager;
-import cyou.rimuru.rimulib.client.text.Overlay;
+import cyou.rimuru.rimulib.client.api.UiApi;
 import cyou.rimuru.shootingstardemo.client.fx.SpellFx;
 import cyou.rimuru.rimulib.client.render.ScreenFx;
 import cyou.rimuru.shootingstardemo.net.SpellFxPayload;
@@ -36,12 +36,12 @@ final class MoonFxAdapter extends SpellFx {
 
             @Override
             public float filmTime(float partial) {
-                return CutsceneDirector.time(subject, partial);
+                return MoonFxAdapter.this.warp(CutsceneDirector.time(subject, partial));
             }
 
             @Override
             public float clock(float partial) {
-                return MoonFxAdapter.this.time(partial);
+                return MoonFxAdapter.this.warp(MoonFxAdapter.this.time(partial));
             }
 
             @Override
@@ -66,6 +66,11 @@ final class MoonFxAdapter extends SpellFx {
         return this.fx;
     }
 
+    /** The plan's time at this clock time (Epic mode slows the fall; see MoonPlan.warp). */
+    private float warp(float clock) {
+        return this.fx == null ? clock : (float) this.fx.plan.warp(clock);
+    }
+
     /** The game's partial tick for this frame (The Shooting Star's Frame no longer names it). */
     private static float partial() {
         return Minecraft.getInstance().getFrameTime();
@@ -81,14 +86,25 @@ final class MoonFxAdapter extends SpellFx {
         return this.speed;
     }
 
+    /** The plan ticks done so far: in Epic mode a clock tick doesn't always bring a new one. */
+    private int planTicks = -1;
+
     @Override
     public void beamTick(ClientLevel level, int t) {
-        this.fx.tick(Minecraft.getInstance(), level, t);
+        int due = (int) Math.floor(this.fx.plan.warp(t));
+        if (this.planTicks < 0) {
+            // from wherever The Shooting Star starts it, as before (never replaying ticks it skipped)
+            this.planTicks = due - 1;
+        }
+        while (this.planTicks < due) {
+            this.fx.tick(Minecraft.getInstance(), level, ++this.planTicks);
+        }
     }
 
     @Override
     public int duration() {
-        return MoonPlan.DURATION;
+        // read every tick by The Shooting Star: a kept moon stays until the switch goes off
+        return MoonFx.kept() ? Integer.MAX_VALUE : (int) Math.ceil(this.fx.plan.unwarp(MoonPlan.DURATION));
     }
 
     @Override
@@ -108,11 +124,11 @@ final class MoonFxAdapter extends SpellFx {
 
     @Override
     public void hud(GuiGraphics graphics, Frame frame) {
-        MoonHud.hud(graphics, this.fx, partial(), Overlay.width(graphics), Overlay.height(graphics));
+        MoonHud.hud(graphics, this.fx, partial(), UiApi.width(graphics), UiApi.height(graphics));
     }
 
     /** SS-06's screen effects written into the remote's post-processing settings for this frame. */
-    private record Screen(ScreenFx fx) implements MoonFx.Screen {
+    record Screen(ScreenFx fx) implements MoonFx.Screen {
         @Override
         public void shake(float k) {
             this.fx.shake = Math.max(this.fx.shake, k);

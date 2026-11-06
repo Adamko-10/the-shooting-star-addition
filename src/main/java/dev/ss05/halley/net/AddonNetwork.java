@@ -1,7 +1,10 @@
 package dev.ss05.halley.net;
 
+import dev.ss05.halley.EpicMode;
+import dev.ss05.halley.Evac;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.NoCooldown;
+import dev.ss05.halley.StellarQuartet;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
@@ -24,7 +27,12 @@ public final class AddonNetwork {
     public static void register() {
         ServerPlayNetworking.registerGlobalReceiver(ChoicePayload.ID, (server, player, handler, buf, responseSender) -> {
             ChoicePayload payload = ChoicePayload.read(buf);
-            server.execute(() -> NoCooldown.choose(player, payload.noCooldown()));
+            server.execute(() -> {
+                NoCooldown.choose(player, payload.noCooldown());
+                Evac.choose(player, payload.evacLift());
+                EpicMode.choose(player, payload.epic());
+                StellarQuartet.tell(player, payload.quartet());
+            });
         });
     }
 

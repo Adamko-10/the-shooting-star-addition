@@ -1,6 +1,7 @@
 package dev.ss05.halley.world;
 
 import dev.ss05.halley.CastTuning;
+import dev.ss05.halley.Evac;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.HalleyParams;
@@ -288,7 +289,7 @@ public final class HalleyStrike {
             return;
         }
         Vec3 from = caster.position();
-        if (StarBridge.liftClear(caster, this.plan.target, zone, zone + 36.0, this.plan.duration - HalleyPlan.EVAC)) {
+        if (StarBridge.liftClear(caster, this.plan.target, zone, zone + 36.0, this.plan.duration - HalleyPlan.EVAC, Evac.lifts(caster))) {
             for (Vec3 at : new Vec3[]{from, caster.position()}) {
                 this.level.playSound(null, at.x, at.y, at.z, HalleyContent.EVAC, SoundSource.PLAYERS, 1.2F, 1.0F);
             }

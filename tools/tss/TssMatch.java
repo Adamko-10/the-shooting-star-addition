@@ -115,18 +115,26 @@ public class TssMatch {
                 report.add("  dropped duplicate name " + named + desc + " on " + loser);
             }
         }
-        // an old obfuscated name (no real name to carry over) that would land on an unmatched method's own name: keep it
-        // obfuscated instead (the unmatched method can't always be renamed out of the way)
+        // an old obfuscated name (no real name to carry over) that would land on the name another method visible in the
+        // class keeps (unmatched, or matched to its own name; its own or a supertype's): keep it obfuscated instead (the
+        // other can't always be renamed out of the way). TSS 1.5.2: lliii1lil.liiiIll(F)F onto liiillli1l(F)F.
         for (ClassNode c : newC.values()) {
+            List<String> visible = new ArrayList<>();
+            for (MethodNode o : c.methods) visible.add(c.name + "." + o.name + o.desc);
+            for (String sup : supertypes(c, newC)) for (MethodNode o : newC.get(sup).methods) {
+                if ((o.access & Opcodes.ACC_PRIVATE) == 0) visible.add(sup + "." + o.name + o.desc);
+            }
             for (MethodNode m : c.methods) {
                 String key = c.name + "." + m.name + m.desc;
                 String named = methodNames.get(key);
-                if (named == null || !isShort(named) || named.equals(m.name)) continue;
-                for (MethodNode other : c.methods) {
-                    if (other != m && other.name.equals(named) && other.desc.equals(m.desc)
-                        && methodNames.get(c.name + "." + other.name + other.desc) == null) {
+                if (named == null || !(isShort(named) || named.matches("[liI1]+")) || named.equals(m.name)) continue;
+                for (String otherKey : visible) {
+                    String otherName = otherKey.substring(otherKey.indexOf('.') + 1, otherKey.indexOf('('));
+                    String otherNamed = methodNames.get(otherKey);
+                    if (!otherKey.equals(key) && otherName.equals(named) && otherKey.endsWith(m.desc)
+                        && otherKey.substring(otherKey.indexOf('(')).equals(m.desc) && (otherNamed == null || otherNamed.equals(otherName))) {
                         methodNames.remove(key);
-                        report.add("  kept obfuscated name " + key + " (its old name " + named + " is an unmatched method's)");
+                        report.add("  kept obfuscated name " + key + " (its old name " + named + " stays " + otherKey + "'s)");
                         break;
                     }
                 }
@@ -261,6 +269,8 @@ public class TssMatch {
         String simple = internal.substring(internal.lastIndexOf('/') + 1);
         for (String part : simple.split("\\$")) {
             if (part.length() <= 2 && part.chars().allMatch(Character::isLowerCase)) return true;
+            // TSS 1.5's style (i1i1iii11): reused for unrelated classes from one version to the next, so never an anchor
+            if (part.matches("[liI1]{5,}")) return true;
         }
         return false;
     }

@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import dev.ss05.halley.client.ConvergenceView;
 import dev.ss05.halley.client.HalleyFx;
 import javax.annotation.Nullable;
 import net.minecraft.client.Camera;
@@ -34,7 +35,7 @@ public final class CometRenderer {
 
     /** Right after the world's particles (see {@code HalleyClient.afterParticles}). */
     public static void render(WorldFrame frame) {
-        if (HalleyFx.active().isEmpty() || !HalleyRenderTypes.ready()) {
+        if (HalleyFx.active().isEmpty() && !ConvergenceView.any() || !HalleyRenderTypes.ready()) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
@@ -89,6 +90,10 @@ public final class CometRenderer {
             if (!fx.finished()) {
                 fx.render(worldBatch, glareBatch, partial, landRange, land);
             }
+        }
+        // Stellar Convergence's own effect uses the same glow shapes
+        for (ConvergenceView view : ConvergenceView.active(level.getGameTime())) {
+            view.render(worldBatch, level.getGameTime() + partial);
         }
 
         // the quads are camera-relative; in 1.20.1 the camera's rotation is only in the event's PoseStack (the shared
