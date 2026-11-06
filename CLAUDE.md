@@ -1247,6 +1247,16 @@ own thing, not a copy of it.
   §17, but loading and effects stack); clashes with Stellar Quartet when both are installed (its key is P, its page is
   in the H menu: check both).
 - **No limits**: like the commands (§14), warn on the plate that firing everything at high power can freeze a server.
+- **Unlock with Stellar Quartet? (the user's plan, 2026-11-06, for their announcement; not built, not decided)**: SA-00
+  only unlocks when Stellar Quartet is installed, so the addon doesn't pull players away from it. Today nothing checks
+  for it (SA-00 is always there and only credits it), and SA-00 lists every mod's remote skills (ours and TSS's are
+  timed to land together; other addons' fire at once). Stellar Quartet (CurseForge 1732380, ikun520, All Rights
+  Reserved, **client-only**, needs TSS): 1.4.0 (2026-11-02) for NeoForge/Forge/Fabric 1.21.1 and Fabric 26.3 only
+  (none for 1.20.1, 1.21.11, Forge/NeoForge 26.3); says it supports TSS up to 1.5.1 (this update needs 1.5.2).
+  Answer given: checking whether it is loaded is fine (nothing of theirs used or shipped; asking ikun520 is courteous,
+  not required); it must be a per-player client check told to the server (it's client-only); a wrong-loader jar isn't
+  loaded, so it wouldn't unlock (a file-presence check is possible but a bad idea: wrong-version jars of the same
+  loader can stop the game starting). Its mod id needs its jar (download needs the user's OK).
 - **Decided 2026-11-04 (the user's picks)**: it is **its own remote skill** (in the remote's list as SA-00 · Stellar
   Convergence; selected and fired like any skill, with its own key slot); **every impact lands on the same tick** (the
   quicker weapons are cast later); where they land is **a switch on the plate**: all on the crosshair, or spread in a
