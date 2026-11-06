@@ -591,6 +591,7 @@ final class Harness {
         if (gameTime < 0) {
             return;
         }
+        pressKey(gameTime);
         long[] shots = HarnessParams.SHOTS;
         while (nextShotIndex < shots.length && gameTime >= shots[nextShotIndex]) {
             takeScreenshot(mc, shots[nextShotIndex]);
@@ -657,6 +658,29 @@ final class Harness {
     private static int finalView = -1;
     private static long finalSince;
     private static int finalFrames;
+
+    private static boolean pressed;
+
+    /**
+     * -Dss05.clienttest.press=<key mapping name>@<tick>: presses that key once, that many ticks after the cast (e.g.
+     * another mod's key: {@code key.star_quartet.cast@20} with the remote in hand).
+     */
+    private static void pressKey(long age) {
+        String press = System.getProperty("ss05.clienttest.press", "");
+        if (pressed || press.isBlank() || age < Long.parseLong(press.substring(press.indexOf('@') + 1).trim())) {
+            return;
+        }
+        pressed = true;
+        String name = press.substring(0, press.indexOf('@')).trim();
+        for (net.minecraft.client.KeyMapping key : Minecraft.getInstance().options.keyMappings) {
+            if (key.getName().equals(name)) {
+                net.minecraft.client.KeyMapping.click(key.getKey());
+                log("pressed " + name + " (" + key.saveString() + ")");
+                return;
+            }
+        }
+        log("no key mapping called " + name);
+    }
 
     private static int lastFilmTick = Integer.MIN_VALUE;
     private static int lastFilmFrame = Integer.MIN_VALUE;
