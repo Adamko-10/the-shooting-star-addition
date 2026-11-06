@@ -160,11 +160,24 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   radius "decently larger" (doubled: bowl 36, char 100, scorch 220); the CME "on a massive scale, many chunks and much
   more vfx, like a proper big wave" (the coronal front shell and ground zero's shock wave, which the scorch and the hits
   now follow). Details and test results: docs/SS-07-PROXIMA.md stage 2.
-- **Next, the update's remaining list** (2026-11-06; everything on main is built): the user's in-game test of it all
-  (and fixes from it; the sounds and music only they can judge), their finished Proxima track (re-run
-  `art/make_proxima_music.sh`), then port to the six other branches (§3; with TSS 1.5.2 + RimuLib 1.2.2 and the API
-  switch on each; 26.3/1.21.11 render code by hand), CI, one Forge test, README/changelog/CurseForge text, release.
-  ETA given 2026-11-06: about 1-2 days of sessions after the user's test, most of it the porting.
+- **Next, the update's remaining list** (rewritten 2026-11-06 evening, with the new quality work; ETA given then:
+  **about 5-8 days of sessions**, plus the user's test rounds and two outside waits):
+  1. the Railgun reference (a game run, when the user's PC is free);
+  2. Proxima's new film in game, as the previz (the zoom-out from the land to orbit, a real star shader, the ~980-panel
+     Dyson sphere with its iris, rings, the hex lens, Earth and the gate, the title cards, the 31 s timeline, the music
+     re-cut), and the split into **SA-04A · Proxima Flare** (today's skill) / **SA-04B** (1.5-3 days);
+  3. **the sound overhaul from Sonniss** (all ~35 events of Halley, Luna and Proxima, plus the new film's: docs/SOUNDS.md;
+     the bundle is downloaded and catalogued in the project folder's `sound library\sonniss gdc 2026\` with
+     `catalogue.csv` and `candidates.txt`), then the user's listening rounds (1-1.5 days);
+  4. **SA-04B · Proxima CME**: design, a previz like Flare's, then build it (strike, effects, film, sounds, config)
+     (1.5-2.5 days);
+  5. the user's in-game test of everything built so far and fixes from it;
+  6. port to the six other branches (§3; TSS 1.5.2 + RimuLib 1.2.2 and the API switch on each; 26.3/1.21.11 render code
+     by hand, much new rendering now; the Stellar Quartet lock off on 1.20.1/1.21.11) (1.5-2 days);
+  7. CI, one Forge test, README/changelog/CurseForge text (credits: NASA imagery, Stellar Quartet; Sonniss needs no
+     credit), the one big push and the releases (about half a day).
+  Waiting on others: the user's finished Proxima track; a Stellar Quartet update for TSS 1.5.2 (else nobody can unlock
+  Convergence); Sonniss's answer if the user emails them about shipping sounds in a mod.
 - **Remind the user** (§0): idea #16 for the Mrityu mod (asked again 2026-11-04).
 
 ## 0. The user's rules (follow these exactly)
