@@ -16,8 +16,15 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
 
 - **1.7.0 = everything on main except Proxima**, for **all seven versions** (the user's pick), one big push. **Proxima
   (SA-04) waits for the next update** with its new previz film and SA-04B CME (the user: "skip cme for now and add it
-  next update"; held back because its current film "won't do"). It is taken out by ONE commit on main ("Hold Proxima
-  for the next update"); after the release, `git revert` it on main to bring Proxima back.
+  next update"; held back because its current film "won't do"). It is taken out on main by `b3f05a6` ("Hold Proxima
+  for the next update") and `d6d2b5f` (2/2: the vanilla damage/block tags that still named its content, which broke
+  `mineable/shovel` loading); after the release, `git revert d6d2b5f b3f05a6` on main to bring Proxima back. Version
+  1.7.0 is set (`51047e0`), changelog: `node dev/publish/changelog_170.js [out] [--sonniss]`.
+  **Game-tested 2026-11-06** (`test scripts\autotest19.sh`, `test builds\2026-11-06 auto test 25 1.7.0 without
+  proxima\`): the remote lists Halley #6, Luna #7, Convergence #8 and no Proxima; Halley's strike carved; the plate's
+  music hint reads "Luna's"; Convergence shows its Stellar Quartet lock. The run found the tag errors above (fixed in
+  `d6d2b5f`, built, not re-run in game). **Careful with the sounds**: `art/sonniss_sounds.sh` also writes the
+  `proxima_*` files; when applying the approved sounds to `src`, copy only the halley_*/luna_* ones.
 - **Sounds**: the new Sonniss ones only if the user likes them (listening in game; test jar in the Modrinth profile);
   else the 2026-11-04 overhauled ones stay. Licence grey area known to the user (Sonniss: no supplying as files).
 - **Builds/CI**: the six other branches are ported (parallel Sonnet helpers, one per branch, §3) and built by CI on
