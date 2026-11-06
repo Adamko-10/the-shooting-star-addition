@@ -99,6 +99,32 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   Game run (`test builds\2026-11-05 auto test 21 proxima music\`): no sound errors of ours. Test jar and the cut file:
   `test builds\2026-11-05 Proxima music\`, in the Modrinth profile (the space-intro build there renamed `.disabled`).
   Not heard yet: by the user, in game.
+- **2026-11-06, afternoon: the user wants much higher quality** ("this won't do quality wise"): better VFX in general,
+  proper SFX, a zoom-out "just like railgun", a proper Dyson sphere and Proxima Centauri, a title card for Proxima,
+  the infinity sign fainter, and **to see it before it's built**. Ponytail mode was turned off for this (the user's
+  pick; it can come back for porting). **A film previz was built and the user approved it ("it looks good")**:
+  artifact https://claude.ai/artifact/HavGduihZs5GjdHR74yqsc ("Proxima Film Previz"; three.js; source and build
+  script in the project folder's `previz\`: `template.html` + `build.js` inlines the Earth jpgs, `serve.js` serves it
+  for the app's browser pane (launch config `.claude/launch.json` "proxima-previz", kept out of git via
+  `.git/info/exclude`; frames are grabbed by POSTing `canvas.toDataURL` to `/shot`, the pane's screenshots time out).
+  13 shots, 31 s (impact 23 s = tick 460): uplink; a Railgun-style pull straight up from the shoulder through the
+  clouds to orbit; Proxima Centauri (boiling surface, starspots, prominences, corona) in a ~980-panel Dyson shell with
+  glowing seams, collector rings and satellites; the iris opening panel by panel (hole ~35 degrees, a dark rim stays);
+  faint infinity loops; panels flying into a hex lens, the beam (core, sheath, shock rings); Earth with the gate
+  catching the beam and a cone of plasma streaming to Earth; back on the land: flash, front, hush, impact, wave,
+  afterwards. Title cards: PROXIMA CENTAURI (new), DYSON SPHERE, CORONAL MASS EJECTION, SA-04 PROXIMA (at the flash).
+  Each shot's planned sounds are listed on the page. **Not built in game yet.** The Railgun reference (record TSS's
+  Railgun film to match its zoom-out) is still to do when the user's game is closed.
+- **Decided 2026-11-06 (the user's picks)**: (1) **Proxima becomes two skills: SA-04A · Proxima Flare = today's skill
+  (everything it does now, with the previz's film) and SA-04B · Proxima CME = a new, bigger strike, still to design**
+  (previz it first). (2) **Sounds: overhaul ALL of them (Halley, Luna, Proxima) with the Sonniss GDC library.** Its
+  licence (v2.0, effective 2026-08-27; sonniss.com/gdc-bundle-license): commercial use, no attribution, "finished
+  projects ... may be shared, published and sold"; but the sounds may not be supplied "as sound effects" (files),
+  modified ones included. A mod jar can be unzipped: a grey area; written confirmation from Sonniss (custom licences
+  offered) is the clean route, suggested to the user. Bundles: GDC 2026 = 7.47 GB, 5 zips (downloads.sonniss.com;
+  track list = a public Google Sheet, 346 files from ~100 libraries: bass drops, trailer booms, braams, impacts,
+  whooshes, electric arcs, sci-fi drones/reactor loops, servos, latches, metal screeches, winds, storms, fire loops,
+  ice cracks, radio static, AM sweeps); GDC 2024 = 23.5 GB, 9 parts; older ones bigger. Download needs the user's OK.
 - **Film lengths** (the user asked): Proxima's film is 520 ticks = **26 s** at speed 1 (`ProximaStoryboard.END` =
   IMPACT + 190); Halley's ~23 s, Luna's ~25 s; the speed slider scales them. The user then asked **how long TSS's own
   films are** (answered 2026-11-05): each skill's `duration()` in TSS 1.5.2 (whole skill, film included; its film
