@@ -181,6 +181,48 @@ asa` (Blue Marble NG June 2004 topo+bathy
 
 The space intro (stage 3) runs from SPACE to FLASH. Stellar Convergence uses `IMPACT` to land it with the others.
 
+## The Railgun reference (for the new film's zoom-out; recorded 2026-11-06)
+
+TSS 1.5.2's Railgun, cast by `/ssa strike the_shooting_star at 250 ~ 0` with its film on, on real land at noon
+(`test scripts\autotest16.sh`; results in `test builds\2026-11-06 auto test 23 railgun reference\`: `film-camera.txt`
+= the film camera every film tick, `other_film_<seconds>.png` = a frame every half second of film time). Recorded with
+the harness's new `-Dss05.clienttest.filmlog=true` (any mod's film, timed by RimuLib's `CutsceneDirector.seconds`, so
+server lag doesn't shift the frames). Only to match the feel and pace: none of TSS's assets, lettering or shaders are
+ours to use (CLAUDE.md §9).
+
+Its film runs 28.9 s at speed 1:
+
+| Film time | What |
+|---|---|
+| 0-1.0 s | at the caster: close on them, then over the shoulder |
+| 1.5 s | cut to the ground ~7 blocks from the mark, low, the beam standing from the sky into the land |
+| 2.0-2.3 s | at the mark looking up the beam (pitch -73, a 4 degree roll) |
+| 2.35-2.45 s | a whip turn in 0.1 s from looking up to looking down (pitch -67 to +55) |
+| **2.45-3.43 s** | **the pull up**: straight above the mark, looking down along the beam |
+| ~3.4 s | through TSS's own soft cloud layer (lit pink by the beam), then on top of a cloud field, the beam glowing red where it goes in |
+| 4.5 s | Earth from orbit filling the frame, the beam hitting it |
+| 5.5 s | Earth small and half lit in a starfield (a hard cut, not one move) |
+| 7-11 s | following the beam back: past Saturn, the Milky Way, its source over the galaxy |
+| 13.5 s | the satellite with its title card |
+| 16.5 s | warp streaks rushing back to Earth |
+| 17-21 s | the impact (an IMPACT caption at 18 s), wide shots |
+| 21-25 s | low in the shaft's red glow with slabs of debris, then high above looking down (y 306-336, pitch 42) |
+| 25-28.9 s | the camera coming back down to the caster's eyes |
+
+**The pull up, by numbers** (height of the camera above the ground at the mark): 6 blocks at 2.45 s, 7.7 at 2.62,
+13.5 at 2.71, 20 at 2.76, 33 at 2.81, 50 at 2.85, 82 at 2.90, 468 at 3.43 (then held). So: a short ease-in (~0.25 s),
+then exponential at about 9 per second (the height doubles every ~0.075 s, x1.5 per frame-ish) up to ~80 blocks, then
+easing out to ~480 by ~3.4 s. **About one second from the ground to above the clouds.** The pitch tightens from 55 to
+87 degrees (straight down), the FOV narrows from 70 to 64, and the camera drifts ~20 blocks off the mark sideways as it
+rises (the mark slides a little in the frame). From 3.9 s to 17 s the logged camera sits parked at 480 blocks above
+the mark: TSS draws its whole space part as its own scene, so only the frames show it.
+
+What this means for Proxima's film (previz shot 2, "Leaving Earth", 1.6-5.4 s, one continuous 3.8 s pull): the
+Railgun's rise is much faster (about 1 s through the clouds) and its way to orbit is two shots (the rise, then a cut
+to Earth from orbit filling the frame, then Earth small). Matching it means a fast exponential rise looking straight
+down, through a soft cloud layer, then the orbit shot. The user's call (asked 2026-11-06): the Railgun's pace or the
+previz's slower pull.
+
 ## Sizes (`ProximaParams`, at power 1; the power slider scales the radii, the depth by its square root)
 
 - bowl radius 36 (24 until the user asked for "decently larger", 2026-11-05), depth 6 (decided): tinted glass and obsidian in the middle, magma threads, blackstone toward the rim;

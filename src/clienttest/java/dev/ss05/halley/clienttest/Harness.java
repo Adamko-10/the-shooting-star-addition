@@ -584,6 +584,9 @@ final class Harness {
         if (mc.level == null) {
             return;
         }
+        if (Boolean.getBoolean("ss05.clienttest.filmlog") && CutsceneDirector.active()) {
+            filmLog(mc);
+        }
         long gameTime = strikeAge();
         if (gameTime < 0) {
             return;
@@ -654,6 +657,33 @@ final class Harness {
     private static int finalView = -1;
     private static long finalSince;
     private static int finalFrames;
+
+    private static int lastFilmTick = Integer.MIN_VALUE;
+    private static int lastFilmFrame = Integer.MIN_VALUE;
+
+    /**
+     * -Dss05.clienttest.filmlog=true: while any film plays (another mod's too, e.g. TSS's Railgun), the camera once a
+     * tick of film time in the log ("film t=..."), and a frame every half second of film time, named by it. Timed by the
+     * film's own clock, as the shot clock drifts from it when the server lags behind a big strike.
+     */
+    private static void filmLog(Minecraft mc) {
+        float partial = mc.getTimer().getGameTimeDeltaPartialTick(true);
+        float seconds = CutsceneDirector.seconds(partial);
+        int tick = (int) Math.floor(seconds * 20.0F);
+        if (tick != lastFilmTick) {
+            lastFilmTick = tick;
+            net.minecraft.client.Camera camera = mc.gameRenderer.getMainCamera();
+            net.minecraft.world.phys.Vec3 at = camera.getPosition();
+            log(String.format(java.util.Locale.ROOT, "film t=%.2f cam=%.1f,%.1f,%.1f yaw=%.1f pitch=%.1f fov=%.1f roll=%.1f player=%.1f,%.1f,%.1f",
+                seconds, at.x, at.y, at.z, camera.getYRot(), camera.getXRot(), CutsceneDirector.fov(mc.options.fov().get()),
+                CutsceneDirector.roll(), mc.player.getX(), mc.player.getY(), mc.player.getZ()));
+        }
+        int frame = (int) Math.floor(seconds * 2.0F);
+        if (frame != lastFilmFrame) {
+            lastFilmFrame = frame;
+            takeScreenshot(mc, String.format(java.util.Locale.ROOT, "film_%05.2f", seconds));
+        }
+    }
 
     private static void takeScreenshot(Minecraft mc, long tick) {
         takeScreenshot(mc, String.format("%05d", tick));
