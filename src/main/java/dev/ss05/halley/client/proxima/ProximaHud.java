@@ -62,9 +62,12 @@ public final class ProximaHud {
         } else if (ct < ProximaPlan.LENS) {
             caption = "MAGNETIC RECONNECTION";
             detail = "CLASS " + ProximaParams.flareClass(p.params.power());
-        } else if (ct < ProximaPlan.FLASH) {
+        } else if (ct < ProximaPlan.EARTH) {
             caption = "LENS ARRAY";
-            detail = ct < ProximaPlan.GATE ? "BEAM FOCUSED" : "GATE OPEN";
+            detail = "BEAM FOCUSED";
+        } else if (ct < ProximaPlan.FLASH) {
+            caption = "EARTH";
+            detail = ct < ProximaPlan.GATE ? "BEAM INBOUND" : "GATE OPEN";
         } else if (ct < ProximaPlan.FRONT) {
             caption = "FLARE DETECTED";
             detail = "CLASS " + ProximaParams.flareClass(p.params.power());

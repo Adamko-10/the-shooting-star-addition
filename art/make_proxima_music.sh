@@ -16,7 +16,7 @@ OUT="$HERE/../src/main/resources/assets/shooting_star_addition/sounds/proxima_mu
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 
-MUSIC_AT=10; FLASH=150; HUSH=320; IMPACT=330; FADE_END=560
+MUSIC_AT=10; FLASH=190; HUSH=360; IMPACT=370; FADE_END=600
 ENTRY=16.85; DROP=28.85
 A0=$(awk "BEGIN{print $ENTRY - ($FLASH - $MUSIC_AT) / 20}")
 ALEN=$(awk "BEGIN{print ($HUSH - $MUSIC_AT) / 20}")

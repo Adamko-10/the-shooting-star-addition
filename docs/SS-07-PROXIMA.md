@@ -74,7 +74,22 @@ config); this file is the build's own record: what exists, where it lives, and w
    sides, "PROXIMA CENTAURI · 4.24 LIGHT YEARS"), `FilmTitle.cme` (flickering half-formed plasma letters torn apart at
    BEAM+6). Captions per beat (uplink, 4.24 light years, aperture opening, magnetic reconnection and the class, beam
    focused, gate open).
-   Part 3, Earth, still to do (ask before downloading NASA imagery).
+   **Part 3, Earth, BUILT 2026-11-06** (the user: "do whatever the original mod did"): the same NASA imagery The
+   Shooting Star's own space Earth credits (its CREDITS.txt read for the sources only; nothing of its own used),
+   downloaded with the user's OK into the project folder's `art sources
+asa` (Blue Marble NG June 2004 topo+bathy
+   5400x2700, Black Marble 2016 0.1 degree): `art/make_earth.sh` makes `textures/proxima/earth_day.png` (2048x1024),
+   `earth_lights.png` (1024x512, cities only) and, since NASA's clouds image is gone, `earth_clouds.png` from noise
+   on the sphere (`art/make_earth_clouds.js`); credits in `textures/proxima/CREDITS.txt`. `client/proxima/EarthSphere`
+   (AFTER_ENTITIES, like MoonSphere): a lat/lon sphere, only the cap the camera sees, four layers in new no-depth render
+   types (`HalleyRenderTypes.EARTH_*`, the glowing-eyes shader: day opaque, lights added, clouds blended, a blue air
+   rim added with Luna's glow texture), lit from the west with a soft terminator, the Atlantic facing the camera, turning
+   slowly; it hangs 16 degrees across just behind the gate as the camera sees it, pulled in past the far plane. Only in
+   the caster's film, in its new Earth shot (`ProximaStoryboard` take 6, EARTH 140 to FLASH - 7: from 300 above the
+   caster, pushing in toward the gate, Earth behind it). The timeline moved 40 ticks for it (GATE 160, FLASH 190, FRONT
+   200, HUSH 360, IMPACT 370, DURATION 700; the film 28 s); the lens's beam now runs to the gate (into Earth's shot from
+   above); the HUD's caption there reads EARTH / BEAM INBOUND / GATE OPEN; the music re-cut (from 7.85 s; its pulses
+   near SPACE, IRIS, LOOPS and the Earth shot, its gap on the cut back to the ground, its entry on FLASH).
    The intro to space (title card "DYSON SPHERE", the lattice opening like an iris, the infinity-sign loops,
    "CORONAL MASS EJECTION" in plasma filaments), the lens beam and the gate near Earth, the pullback afterwards.
    RimuLib's film tools (`CameraRig`, `Shot`, `Subject`, `CutsceneDirector`), our own Earth shader (free imagery only).
@@ -156,12 +171,13 @@ config); this file is the build's own record: what exists, where it lives, and w
 | MUSIC_AT | 10 | the music starts (`ProximaFx`) |
 | SPACE | 30 | the film leaves for space: the star in its Dyson sphere |
 | IRIS, LOOPS, COLLAPSE | 60, 100, 118 | the iris opens; the infinity loops; they collapse to a point |
-| LENS, BEAM, GATE | 125, 135, 145 | the lens folds, fires; the gate near Earth |
-| FLASH | 150 | phase 1: the flare's light arrives; exposed things burn (the music's entry) |
-| FRONT | 160 | phase 2: the coronal front crosses the sky |
-| HUSH | 320 | near-silence: everyone thinks it's over (the music too) |
-| IMPACT | 330 | phase 3: ground zero (the music's main section) |
-| DURATION | 660 | the effects end; the film ends at 520 |
+| LENS, BEAM | 125, 135 | the lens folds, fires |
+| EARTH, GATE | 140, 160 | the film's Earth shot; the gate before it opens and catches the beam |
+| FLASH | 190 | phase 1: the flare's light arrives; exposed things burn (the music's entry) |
+| FRONT | 200 | phase 2: the coronal front crosses the sky |
+| HUSH | 360 | near-silence: everyone thinks it's over (the music too) |
+| IMPACT | 370 | phase 3: ground zero (the music's main section) |
+| DURATION | 700 | the effects end; the film ends at 560 |
 
 The space intro (stage 3) runs from SPACE to FLASH. Stellar Convergence uses `IMPACT` to land it with the others.
 

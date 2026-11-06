@@ -35,6 +35,7 @@ public final class HalleyClient {
         NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, CometRenderer::render);
         NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, MoonRenderer::render);
         NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, MoonSphere::renderSolid);
+        NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, dev.ss05.halley.client.proxima.EarthSphere::render);
         NeoForge.EVENT_BUS.addListener(RenderFrameEvent.Pre.class, HalleyClient::frameStart);
         // Proxima's hot bowls shimmer and hum after their strikes
         NeoForge.EVENT_BUS.addListener(net.neoforged.neoforge.client.event.ClientTickEvent.Post.class,

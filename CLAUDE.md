@@ -56,8 +56,15 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   music, config)**.
 - **Stage 5: the music (below), the `[proxima]` config and Proxima's own sounds are BUILT (2026-11-05, late; the
   user: "rebuild and continue work"; details: docs/SS-07-PROXIMA.md stage 5). Random flares BUILT too (the user's
-  pick, 2026-11-05 night; docs stage 5; `/ssa flare <tier> [seconds]` for operators; off by default). Left: Earth
-  (stage 3 part 3, ask before downloading imagery).** Flares game-tested (`test builds\2026-11-05 auto test 21
+  pick, 2026-11-05 night; docs stage 5; `/ssa flare <tier> [seconds]` for operators; off by default).
+  **2026-11-06: Earth (stage 3 part 3) BUILT** (the user: "build earth ... do whatever the original mod did": the NASA
+  imagery TSS credits, downloaded into the project folder's `art sources\nasa`; docs stage 3 part 3): `EarthSphere` in
+  the film's new Earth shot, **the timeline 40 ticks later (IMPACT 370, film 28 s)**, the music re-cut. Game-tested
+  (`test builds\2026-11-05 auto test 22 proxima earth\`): Earth with its terminator and clouds behind the gate, the
+  beam tapered after the first run (it filled the shot). Jar 7.6 MB now (Earth's textures). Also the major flare's
+  plants tested on real land (`...auto test 21 proxima music\major-trees\`: a forest's leaves gone, trunks and
+  ground left). **Proxima is complete on main** (to test in game by the user).** Test jar `test builds\2026-11-06
+  Proxima Earth\`, in the Modrinth profile (the random-flares build renamed `.disabled`). Flares game-tested (`test builds\2026-11-05 auto test 21
   proxima music\flares\`: `/ssa flare major 5` and `cataclysm 20`; both alerts in chat, both fired on time, the
   cataclysm's impact 9.35 s after its flash, villagers "burnt by a solar flare", no film; screenshots of the white
   flash, the red sky, the impact and the scorch). Not checked: the major flare's plants burning (the flat test world),
@@ -119,9 +126,11 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   radius "decently larger" (doubled: bowl 36, char 100, scorch 220); the CME "on a massive scale, many chunks and much
   more vfx, like a proper big wave" (the coronal front shell and ground zero's shock wave, which the scorch and the hits
   now follow). Details and test results: docs/SS-07-PROXIMA.md stage 2.
-- **Next, the update's remaining list** (§14): Proxima stages 2 (rest) to 5 (the user's track for stage 5), Epic mode (needs
-  `Video-Project-48.mp3` from Hamza's PC; not on Adam's PC, searched 2026-11-04), then
-  port to the six other branches (§3), CI, one Forge test, README/changelog/CurseForge text, release.
+- **Next, the update's remaining list** (2026-11-06; everything on main is built): the user's in-game test of it all
+  (and fixes from it; the sounds and music only they can judge), their finished Proxima track (re-run
+  `art/make_proxima_music.sh`), then port to the six other branches (§3; with TSS 1.5.2 + RimuLib 1.2.2 and the API
+  switch on each; 26.3/1.21.11 render code by hand), CI, one Forge test, README/changelog/CurseForge text, release.
+  ETA given 2026-11-06: about 1-2 days of sessions after the user's test, most of it the porting.
 - **Remind the user** (§0): idea #16 for the Mrityu mod (asked again 2026-11-04).
 
 ## 0. The user's rules (follow these exactly)

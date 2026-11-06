@@ -59,12 +59,20 @@ public final class ProximaStoryboard {
             return new Pose(x.keep(pos, x.feet(p)), star, (float) l(k, 16.0, 12.0), 2.0F);
         }));
         // 5. the lens and the beam fired across the sky, pulling back;
-        takes.add(Take.cut(ProximaPlan.LENS, ProximaPlan.GATE + 3, (x, p, k) -> {
+        takes.add(Take.cut(ProximaPlan.LENS, ProximaPlan.EARTH, (x, p, k) -> {
             Vec3 pos = x.feet(p).add(0.0, 300.0, 0.0);
             return new Pose(x.keep(pos, x.feet(p)), star, (float) l(k, 14.0, 26.0), (float) l(k, 2.0, 0.0));
         }));
-        // 6. back on the land, looking up at the gate in the sky as it catches the beam: the flash.
-        takes.add(Take.cut(ProximaPlan.GATE + 3, ProximaPlan.FLASH + 30, (x, p, k) -> {
+        // 6. Earth from space (client/proxima/EarthSphere hangs it behind the gate as this camera sees it): the beam
+        //    streaking in from above, the gate opening before Earth and catching it, pushing in;
+        takes.add(Take.cut(ProximaPlan.EARTH, ProximaPlan.FLASH - 7, (x, p, k) -> {
+            Vec3 base = x.feet(p).add(0.0, 300.0, 0.0);
+            double e = k * k * (3.0 - 2.0 * k);
+            Vec3 pos = base.add(gate.subtract(base).normalize().scale(l((float) e, 0.0, 180.0)));
+            return new Pose(x.keep(pos, x.feet(p)), gate, (float) l((float) e, 40.0, 33.0), (float) l(k, -3.0, 0.0));
+        }));
+        // 7. back on the land, looking up at the gate in the sky as it catches the beam: the flash.
+        takes.add(Take.cut(ProximaPlan.FLASH - 7, ProximaPlan.FLASH + 30, (x, p, k) -> {
             Vec3 feet = x.feet(p);
             Vec3 pos = frame(x, feet, 0.6, 1.7, -1.2);
             return new Pose(x.keep(pos, feet), gate, (float) l(k, 58.0, 68.0), 0.0F);

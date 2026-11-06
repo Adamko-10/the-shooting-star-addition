@@ -12,10 +12,11 @@ public final class ProximaPlan {
     /** The remote's button (as for the other skills). */
     public static final int PRESS = 7;
     /**
-     * The film's space intro (2026-11-05: the timeline moved 60 ticks later for it, so the impact lands with Halley's and
-     * Luna's at 330): the camera rises into a sky gone to space; the Dyson sphere's iris opens on the star; two plasma
-     * loops twist into an infinity sign, flare and collapse; the panels fold into a lens and focus the flare into a beam;
-     * a gate in the sky catches it. Everything is seen by anyone looking at that part of the sky, not only in the film.
+     * The film's space intro (2026-11-05: the timeline moved 60 ticks later for it; 2026-11-06 another 40 for Earth, so
+     * the impact is at 370): the camera rises into a sky gone to space; the Dyson sphere's iris opens on the star; two
+     * plasma loops twist into an infinity sign, flare and collapse; the panels fold into a lens and focus the flare into a
+     * beam; Earth, and the gate before it catching the beam. The star and the gate are seen by anyone looking at that part
+     * of the sky; Earth only in the film (client/proxima/EarthSphere).
      */
     public static final int SPACE = 30;
     public static final int IRIS = 60;
@@ -23,17 +24,19 @@ public final class ProximaPlan {
     public static final int COLLAPSE = 118;
     public static final int LENS = 125;
     public static final int BEAM = 135;
-    public static final int GATE = 145;
+    /** The film's Earth shot: Earth from space, the beam coming in, the gate before it opening and catching it. */
+    public static final int EARTH = 140;
+    public static final int GATE = 160;
     /** Phase 1, the flash burn: the flare's light arrives first, the sky goes white-red, exposed things burn. */
-    public static final int FLASH = 150;
+    public static final int FLASH = 190;
     /** Phase 2, the coronal front sweeping across the sky (looks only: no damage). */
-    public static final int FRONT = 160;
+    public static final int FRONT = 200;
     /** Near-silence: everyone thinks it's over. */
-    public static final int HUSH = 320;
+    public static final int HUSH = 360;
     /** Phase 3, ground zero: the bowl, the scorch, the blast. */
-    public static final int IMPACT = 330;
+    public static final int IMPACT = 370;
     /** The effects' end (the aftermath fades out by then). */
-    public static final int DURATION = 660;
+    public static final int DURATION = 700;
     /** The star in the intro: its radius and how far off it is drawn (far parts are pulled in, so only the angle matters). */
     public static final double STAR_RADIUS = 1400.0;
     public static final double STAR_DISTANCE = 20000.0;

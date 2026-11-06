@@ -88,9 +88,18 @@ final class ProximaSpace {
             glare.billboard(at, r * 0.3, Shapes.GLOW, 0, 0xFFF0F4, lens, 0.0);
             float beam = smooth((t - ProximaPlan.BEAM) / 6.0) * (1.0F - smooth((t - ProximaPlan.FLASH) / 6.0));
             if (beam > 0.003F) {
-                Vec3 end = camera.add(u.scale(-500.0)).add(v.scale(-700.0)).add(axis.scale(300.0));
-                strut(world, camera, at, end, r * 0.35, 0xFF4A6A, 0.4F * beam * seen);
-                strut(world, camera, at, end, r * 0.12, 0xFFE0EA, beam * seen);
+                // away across the sky to the gate before Earth (out of the star's shot at its foot, into Earth's from above)
+                Vec3 end = plan.gate();
+                // tapering toward the gate: as wide as the star's at its foot, a thin thread where it meets the gate
+                // (at full width it filled Earth's shot)
+                int pieces = 12;
+                for (int i = 0; i < pieces; i++) {
+                    double k = (i + 0.5) / pieces;
+                    Vec3 a = at.lerp(end, i / (double) pieces);
+                    Vec3 b = at.lerp(end, (i + 1) / (double) pieces);
+                    strut(world, camera, a, b, r * 0.35 + (60.0 - r * 0.35) * k, 0xFF4A6A, 0.4F * beam * seen);
+                    strut(world, camera, a, b, r * 0.12 + (18.0 - r * 0.12) * k, 0xFFE0EA, beam * seen);
+                }
             }
         }
 
