@@ -33,17 +33,23 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   unzipped, so it's a grey area; the user may email Sonniss for written OK (offer to draft it).
 - **The Railgun reference is DONE (2026-11-06)**: docs/SS-07-PROXIMA.md "The Railgun reference" (its whole film by
   film time; the pull up = ~1 s from the mark to above the clouds, exponential, straight down; then a cut to Earth from
-  orbit). Recorded with the harness's new `filmlog=true` (`test scriptsautotest16.sh`, frames and camera log in
-  `test builds6-11-06 auto test 23 railgun reference`). **Decided** (the user left it to Claude): Proxima's zoom-out
+  orbit). Recorded with the harness's new `filmlog=true` (`test scripts\autotest16.sh`, frames and camera log in
+  `test builds\2026-11-06 auto test 23 railgun reference\`). **Decided** (the user left it to Claude): Proxima's zoom-out
   at the Railgun's pace, inside shot 2's 3.8 s slot (docs). The user asked again for their Stellar Quartet
   announcement (2026-11-06): the corrected text from the earlier conversation was given again. Next on the list: Proxima's new film in game (item 2).
 - **Stellar Quartet on TSS 1.5.2 (2026-11-06)**: the user does **not** want to contact ikun520 (no pressure on them) and
   asked whether we "just hook in" to fix it. Advised against patching their All Rights Reserved mod (rewriting its
   hooks from outside, breaks with every update of theirs or TSS's, bugs would land on them); first see whether it
   breaks at all: SQ 1.4.0 has its own check ("incompatible with this demo version ... disabled itself for this
-  session"), and our unlock only checks it is installed. Game run `test scriptsautotest17.sh` (new dev-only
-  `-PextraMods=<folder>` puts other mods' jars in the prod test run) -> `test builds6-11-06 auto test 24 stellar
-  quartet on TSS 1.5.2`.
+  session"), and our unlock only checks it is installed. Game runs `test scripts\autotest17.sh` and `18.sh` (new
+  dev-only `-PextraMods=<folder>` puts other mods' jars in the prod test run; harness `press=<key name>@<tick>`) ->
+  `test builds\2026-11-06 auto test 24 stellar quartet on TSS 1.5.2\`. **Result: SQ 1.4.0 on TSS 1.5.2 doesn't crash
+  and doesn't switch itself off**: the game starts, TSS's Railgun works, P starts its four-screen show and H its setup
+  menu, but two of its hooks into TSS fail (log ERRORs "effect filter unavailable: FxManager active list not found"
+  and "fx camera hooks unavailable: NoSuchFieldException liiillli1l (Matrix4f)": keeping each screen to its own
+  strike's effects, and following the strikes' films per screen); firing from it not tried. Our unlock checks the mod
+  id `star_quartet`, which the game loaded, so Convergence unlocks (not screenshotted: SQ's menu took the H key).
+  **So nothing for us to do**; SQ's degraded parts are theirs to update (the user won't ask them).
 - **The user's PC**: free again (the user, 2026-11-06 ~16:00: "u can use my pc now"): game test runs and the
   browser pane are OK again. Still: **don't run game tests or swap the Modrinth jar while they play**, ask if unsure.
 - **Ponytail mode is OFF** for this creative work (the user's pick; their `/ponytail off` worked; they asked again
