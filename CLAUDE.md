@@ -125,6 +125,14 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   track list = a public Google Sheet, 346 files from ~100 libraries: bass drops, trailer booms, braams, impacts,
   whooshes, electric arcs, sci-fi drones/reactor loops, servos, latches, metal screeches, winds, storms, fire loops,
   ice cracks, radio static, AM sweeps); GDC 2024 = 23.5 GB, 9 parts; older ones bigger. Download needs the user's OK.
+  **The user OK'd downloading GDC 2026 (2026-11-06), not done yet**: downloads.sonniss.com sits behind a Cloudflare
+  bot challenge (scripts get 403 "Just a moment..."; never get round it), and the page's Google Drive mirror
+  (Mirror 1; file ids 1ndDWhCoq0NgkrJH6ku5MSA65zinEby9r, 1s9GAn7KBS4jr4NlF_ggTYDrXySCg6HXS,
+  16PX5T28pQaEs6S8j-m6ArR16JwQCQNNB, 1HqMHc0o9Uxv5SmR3KQzx2nHIyrn3sW6M, 1XL8zDflfC86Asd4D7G1T5N1DJ6hNLQVc; direct
+  download `https://drive.usercontent.google.com/download?id=<id>&export=download&confirm=t`, part 1 = 1.30 GB) said
+  "Quota exceeded" (too many downloads that day). Either the user downloads the five zips in their own browser, or
+  retry the mirror later. They go in the project folder's `sound library\sonniss gdc 2026\` (outside the repo; only
+  our processed sounds go in the jar).
 - **Film lengths** (the user asked): Proxima's film is 520 ticks = **26 s** at speed 1 (`ProximaStoryboard.END` =
   IMPACT + 190); Halley's ~23 s, Luna's ~25 s; the speed slider scales them. The user then asked **how long TSS's own
   films are** (answered 2026-11-05): each skill's `duration()` in TSS 1.5.2 (whole skill, film included; its film
