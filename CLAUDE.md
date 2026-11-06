@@ -44,8 +44,13 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   `4927f36`, conflict rules, release files (TSS 1.5.1/1.5.2 and RimuLib 1.2.2 ids: Forge 9400022/9438881/9438825,
   Fabric 9400005/9438887/9438845), `StellarQuartet.REQUIRED` (false on forge-1.20.1, fabric-1.20.1,
   fabric-1.21.11), the branch's API differences, how to build (Forge: locally with JDK 21; Fabric: not here, CI);
-  reports to `ports\<branch>\REPORT.md`; never push or stash. The user runs them in Antigravity and the ChatGPT app
-  (one-line prompt: read BRIEF.md and do it). **Next for Claude**: read the reports, review each
+  reports to `ports\<branch>\REPORT.md`; never push or stash. **Started 2026-11-06 ~21:35** (the user: "just send the
+  prompt yourself"; Antigravity holds about one agent under its limits): Claude typed the one-line prompt ("Read
+  BRIEF.md in this folder and do exactly what it says ...") through computer use into **Antigravity** (Claude Sonnet
+  4.6 Thinking, Turbo) for `fabric-1.21.1`, and the **Codex app** ("ChatGPT"; GPT-6.1 Sol, reasoning High; projects
+  "TSSA port forge-1.20.1" and "TSSA port fabric-1.20.1", folders trusted) for `forge-1.20.1` and `fabric-1.20.1`;
+  Claude's own background helpers took `fabric-26.3`, `fabric-1.21.11` (default model) and `forge-1.21.1` (Sonnet).
+  If Antigravity runs out of quota mid-way, Claude finishes that port. **Next for Claude**: read the reports, review each
   branch's diff, push each to `wip/<branch>` with `dev/ci/push-wip.sh` (the user OK'd wip pushes), fix from CI.
   The README is updated for 1.7.0 (`deb9792`).
 
