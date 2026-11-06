@@ -4,6 +4,7 @@ import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.client.HalleyClientConfig;
+import dev.ss05.halley.client.StrikeMusic;
 import dev.ss05.halley.client.render.CometVisuals;
 import dev.ss05.halley.client.sky.SkyLook;
 import dev.ss05.halley.content.HalleyContent;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.function.IntFunction;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.client.Minecraft;
+import net.minecraft.server.level.ParticleStatus;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -23,7 +25,6 @@ import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.server.level.ParticleStatus;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -52,6 +53,8 @@ public final class MoonFx {
     private static final double SOUND_SPEED = 17.0;
     /** ...but never more than this late. */
     private static final int MAX_SOUND_DELAY = 30;
+    /** How long luna_inhale.ogg is (0.65 s), so it ends on the impact. */
+    private static final int INHALE = 13;
     /**
      * When Luna's music starts: with the alarm, sixteen seconds before the impact - {@code luna_music.ogg} is the track
      * cut so that its drop comes sixteen seconds in (the original's drop is at 24.45 s, so it starts 8.45 s in).
@@ -122,7 +125,7 @@ public final class MoonFx {
     private final float pitch;
     private final RandomSource random;
     private final List<SoundInstance> filmSounds = new ArrayList<>();
-    private Music music;
+    private StrikeMusic music;
     private final List<Later> later = new ArrayList<>();
     private final float particles;
     /** How fast this tick's particles move, as a share of their usual speed (slower in the film's slow motion). */
@@ -213,14 +216,17 @@ public final class MoonFx {
      * showing, so leaving it never jumps).
      */
     public float time(float partial) {
-        float t = this.host.clock(partial);
+        float t = this.realTime(partial);
         float film = this.host.filmWeight();
         return film <= 0.0F || t <= MoonPlan.CONTACT ? t : (float) (t - slowLag(t - MoonPlan.CONTACT) * film);
     }
 
-    /** The strike's own clock, never slowed (what the server, the sounds and the music follow). */
+    /**
+     * The strike's own clock, never slowed (what the server, the sounds and the music follow). A kept moon's stops at the
+     * strike's end, so everything else of it stays as it was then (faded out), only the moon left.
+     */
     public float realTime(float partial) {
-        return this.host.clock(partial);
+        return Math.min(this.host.clock(partial), MoonPlan.DURATION);
     }
 
     // ---- The impact in slow motion (the film only). ------------------------------------------------------------------
@@ -287,7 +293,15 @@ public final class MoonFx {
     }
 
     public boolean finished() {
-        return this.age > MoonPlan.DURATION;
+        return this.age > MoonPlan.DURATION && !kept();
+    }
+
+    /**
+     * The keep-the-moon switch (L on the addon's plate): the moon model stays where it landed instead of crumbling, past
+     * the strike's end (everything else of it has long faded by then), until the switch goes off or the world is left.
+     */
+    public static boolean kept() {
+        return HalleyClientConfig.keepMoon();
     }
 
     // ---- Each tick. -----------------------------------------------------------------------------------------------
@@ -359,7 +373,7 @@ public final class MoonFx {
      * so the sphere giving way to blocks reads as the moon's crust breaking up as it cools, not a swap.
      */
     private void crumbleParticles(ClientLevel level, int t) {
-        if (this.handoverAt < 0 || t < this.handoverAt || t > this.handoverAt + HANDOVER_FADE) {
+        if (this.handoverAt < 0 || t < this.handoverAt || t > this.handoverAt + HANDOVER_FADE || kept()) {
             return;
         }
         MoonPlan p = this.plan;
@@ -390,7 +404,7 @@ public final class MoonFx {
 
     /** As {@link #sphereVisibility}, for an absolute time (age + partial) rather than a partial tick. */
     public float sphereVisibilityAt(double t) {
-        if (t < MoonPlan.SETTLE) {
+        if (t < MoonPlan.SETTLE || kept()) {
             return 1.0F;
         }
         int handover = this.handoverAt;
@@ -438,6 +452,8 @@ public final class MoonFx {
         }
         if (t == MoonPlan.ALARM) {
             this.play(HalleyContent.MOON_ALARM, film ? p.target : caster, 1.5F, 1.0F, film);
+            // the build-up: rising in the sky from the alarm until the moon tears loose (FALL)
+            this.play(HalleyContent.MOON_BUILDUP, sky(camera, p.centre(t)), 1.6F, 1.0F, film);
         }
         // the approach: the moon cracking, tearing loose, the long roar down, the scream of entry, the ground rumbling
         if (t == MoonPlan.BREAK) {
@@ -457,8 +473,20 @@ public final class MoonFx {
             Vec3 at = p.centre(t);
             this.boom(HalleyContent.MOON_ENTRY, at, sky(camera, at), 2.2F, film, 0.35F, Double.MAX_VALUE);
         }
-        if (t == MoonPlan.CONTACT - 60) {
+        if (t == this.beforeContact(60)) {
+            // swelling, then near-silence for its last half second (the file is cut so): the hush before the impact
             this.play(HalleyContent.MOON_RUMBLE, near(camera, p.target, p.params.craterRadius() * 1.5), 2.4F, 1.0F, film);
+        }
+        if (t == this.beforeContact(INHALE)) {
+            // out of the hush, the air rushing in: it ends as the impact is heard, so it is as late as the impact's sound
+            int delay = film ? 0 : (int) Math.min(MAX_SOUND_DELAY, camera.distanceTo(p.target) / SOUND_SPEED);
+            Runnable inhale = () -> this.play(HalleyContent.MOON_INHALE, near(camera(), p.target, p.params.craterRadius() * 1.5),
+                2.0F, 1.0F, film && this.inFilm());
+            if (delay <= 0) {
+                inhale.run();
+            } else {
+                this.later.add(new Later(t + delay, inhale));
+            }
         }
         if (t > MoonPlan.FALL && t < MoonPlan.CONTACT && t % 4 == 0) {
             this.host.shake(p.centre(t), 0.1F * (float) MoonPlan.fall(t), 650.0);
@@ -506,64 +534,14 @@ public final class MoonFx {
         if (this.music != null || !HalleyClientConfig.lunaMusic() || !film && camera.distanceTo(this.plan.target) > MUSIC_RANGE) {
             return;
         }
-        Minecraft minecraft = Minecraft.getInstance();
-        minecraft.getMusicManager().stopPlaying();
-        this.music = new Music();
-        minecraft.getSoundManager().play(this.music);
+        // Epic mode: the long cut (its drop 24 s on), kept in step with the clock, not the slowed plan
+        this.music = StrikeMusic.play(this.plan.params.epic() ? "luna_music_epic" : "luna_music", this.host, MUSIC_AT,
+            () -> this.plan.unwarp(this.realTime(0.0F)), () -> this.removed);
     }
 
-    /**
-     * Luna's music as it plays, kept in step with the strike: the game's clock and the sound card's drift apart
-     * (a slow frame, a stutter while land loads), so every tick it compares how much of the track has played with how
-     * far the moon has fallen and nudges its speed by up to 5% until they agree again - the drop always lands on the
-     * impact.
-     */
-    private final class Music extends AbstractTickableSoundInstance {
-        /** The track's own pitch: the remote's speed slider, as far as the game lets a sound go. */
-        private final float base;
-        private long last;
-        /** Seconds of the track played so far. */
-        private double played;
-        private boolean started;
-
-        Music() {
-            super(SoundEvent.createVariableRangeEvent(HalleyAddon.id("luna_music")), SoundSource.MUSIC, SoundInstance.createUnseededRandom());
-            this.base = MoonFx.this.pitch;
-            this.volume = 0.85F;
-            this.pitch = this.base;
-            this.relative = true;
-            this.attenuation = SoundInstance.Attenuation.NONE;
-            this.looping = false;
-        }
-
-        @Override
-        public void tick() {
-            if (MoonFx.this.removed || !HalleyClientConfig.lunaMusic()) {
-                this.stop();
-                return;
-            }
-            long now = System.nanoTime();
-            if (!this.started) {
-                // the track starts from its beginning once its stream is open (a tick or so after it is asked for):
-                // the time that took is caught up like any other drift
-                if (Minecraft.getInstance().getSoundManager().isActive(this)) {
-                    this.started = true;
-                    this.last = now;
-                    this.played = 0.0;
-                }
-                return;
-            }
-            double dt = (now - this.last) / 1.0E9;
-            this.last = now;
-            // a long gap: the game was paused, and the music with it
-            this.played += (dt > 1.0 ? 0.05 : dt) * this.pitch;
-            double want = (MoonFx.this.realTime(0.0F) - MUSIC_AT) / 20.0;
-            // at the speed slider's ends the game can't play it fast or slow enough anyway: leave it be
-            if (Math.abs(this.base - MoonFx.this.host.speed()) < 0.01F) {
-                double drift = this.played - want;
-                this.pitch = this.base * (float) (1.0 - Mth.clamp(drift * 0.6, -0.05, 0.05));
-            }
-        }
+    /** The plan's tick {@code ticks} ticks of the clock before the impact (in Epic mode the fall runs slower). */
+    private int beforeContact(int ticks) {
+        return (int) Math.round(this.plan.warp(this.plan.unwarp(MoonPlan.CONTACT) - ticks));
     }
 
     /** The point of the molten seam nearest the camera (on the ground). */
@@ -977,6 +955,8 @@ public final class MoonFx {
     }
 
     private static void impactSequence(Screen screen, float since, Vec3 focus, float strength, float frameSeconds, int... modes) {
+        // the impact-frames switch (F on the addon's plate): full, fainter, or none
+        strength *= HalleyClientConfig.impactFrames().strength;
         if (since < 0.0F || strength <= 0.0F) {
             return;
         }

@@ -1,7 +1,10 @@
 package dev.ss05.halley.net;
 
+import dev.ss05.halley.EpicMode;
+import dev.ss05.halley.Evac;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.NoCooldown;
+import dev.ss05.halley.StellarQuartet;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
@@ -21,8 +24,12 @@ public final class AddonNetwork {
     public static void register() {
         PayloadTypeRegistry.playS2C().register(SettingsPayload.TYPE, SettingsPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(ChoicePayload.TYPE, ChoicePayload.CODEC);
-        ServerPlayNetworking.registerGlobalReceiver(ChoicePayload.TYPE, (payload, context) ->
-            NoCooldown.choose(context.player(), payload.noCooldown()));
+        ServerPlayNetworking.registerGlobalReceiver(ChoicePayload.TYPE, (payload, context) -> {
+            NoCooldown.choose(context.player(), payload.noCooldown());
+            Evac.choose(context.player(), payload.evacLift());
+            EpicMode.choose(context.player(), payload.epic());
+            StellarQuartet.tell(context.player(), payload.quartet());
+        });
     }
 
     /** Tells a player the server's settings (as they join, and whenever the config file changes). */

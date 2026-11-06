@@ -40,6 +40,7 @@ public final class HalleyClient implements ClientModInitializer {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
+            ConvergenceView.clearAll();
             CometRenderer.release();
             MoonRenderer.release();
             MoonSphere.release();
@@ -60,7 +61,7 @@ public final class HalleyClient implements ClientModInitializer {
         float partial = deltaTracker.getGameTimeDeltaPartialTick(true);
         HalleySky.update(partial);
         if (ShaderPacks.active() && Minecraft.getInstance().level != null
-            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty())) {
+            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty() || ConvergenceView.any())) {
             GlowAtlas.paint();
             HalleySky.paint(partial);
         }

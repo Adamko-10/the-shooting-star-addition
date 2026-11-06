@@ -9,7 +9,7 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * The start of a Halley or Luna strike, sent to the players near it (The Shooting Star's own effect packet only
- * carries its own skills since 1.5.0). Sent through RimuLib's network (RimuNet.s2c/send/canSend, RimuNetClient.receive):
+ * carries its own skills since 1.5.0). Sent through RimuLib's network (NetApi.toClient/send/canSend, NetClientApi.receive):
  * on Fabric that is plain vanilla networking (a {@link CustomPacketPayload} of our own), unlike NeoForge's RimuPacket
  * wrapper - check with javap before assuming the same shape on another loader.
  */

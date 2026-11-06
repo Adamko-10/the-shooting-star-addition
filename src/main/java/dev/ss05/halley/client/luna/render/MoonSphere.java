@@ -9,6 +9,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.client.luna.MoonFx;
+import dev.ss05.halley.client.render.CometVisuals;
 import dev.ss05.halley.client.render.DynamicMesh;
 import dev.ss05.halley.client.render.Gfx;
 import dev.ss05.halley.client.render.HalleyPipelines;
@@ -509,10 +510,14 @@ public final class MoonSphere {
         float su = v.u() * SEAM_TILE_U;
         float sv = v.v() * SEAM_TILE_V;
         float crack = Math.max(placement.crack(), cooling);
-        out.seam().vertex(v.x(), v.y(), v.z(), su, sv, 1.0F, 1.0F, 1.0F, crack * left);
+        // a kept moon's seams cool over the strike's last 15 s and stay dark (its clock stops at the end; the user's
+        // pick, 2026-11-04); otherwise it crumbles away long before
+        float embers = MoonFx.kept() ? 1.0F - CometVisuals.smooth((time - (MoonPlan.DURATION - 300.0)) / 300.0) : 1.0F;
+        float soot = 0.25F + 0.75F * embers;
+        out.seam().vertex(v.x(), v.y(), v.z(), su, sv, soot, soot, soot, crack * left);
         float throb = 0.85F + 0.15F * (float) Math.sin(time * 0.9 + v.lon() * 3.0);
         float seamGlow = Mth.clamp(crack * (0.3F + 0.25F * approach + 0.7F * burn * (0.5F + 0.5F * lead) * throb) + cooling * 0.6F,
-            0.0F, 1.0F) * left;
+            0.0F, 1.0F) * left * embers;
         out.seamGlow().vertex(v.x(), v.y(), v.z(), su, sv, seamGlow, seamGlow * 0.72F, seamGlow * 0.38F, 1.0F);
 
         // a shell of fire round its leading edge: strongest at its outline on the side it leads with, a gentle warmth

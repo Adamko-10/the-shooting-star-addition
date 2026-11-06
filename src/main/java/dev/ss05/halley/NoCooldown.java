@@ -18,6 +18,10 @@ import net.minecraft.server.permissions.Permissions;
 public final class NoCooldown {
     /** Each player's own switch, as their game last told the server (players who never said have it on). */
     private static final Map<UUID, Boolean> CHOICE = new ConcurrentHashMap<>();
+    /** Set while The Shooting Star casts one of its own skills for a player this applies to (the server thread). */
+    private static boolean casting;
+    /** Set while an operator's /ssa strike casts: no cooldown and no "already on its way" for it, whoever runs it. */
+    private static boolean forced;
 
     private NoCooldown() {
     }
@@ -30,6 +34,28 @@ public final class NoCooldown {
     /** Whether the server lets this player switch the cooldowns off (whatever their own switch says). */
     public static boolean allowed(ServerPlayer player) {
         return HalleyConfig.noCooldown() && (HalleyConfig.noCooldownSurvival() || player.isCreative() || player.isSpectator());
+    }
+
+    /**
+     * The Shooting Star refuses one of its own skills while the same player's last one is still running ("already on
+     * its way"), as Halley and Luna do: while this is on, that check finds none (see {@code compat/tss/mixin}).
+     */
+    public static void casting(boolean on) {
+        casting = on;
+    }
+
+    public static void forced(boolean on) {
+        forced = on;
+    }
+
+    /** Whether an operator's /ssa strike is casting right now. */
+    public static boolean commandCast() {
+        return forced;
+    }
+
+    /** Whether "already on its way" is skipped for the cast being made: no cooldown applies, or a command casts. */
+    public static boolean casting() {
+        return casting || forced;
     }
 
     /** The player's switch in the remote's menu. */

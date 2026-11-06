@@ -192,6 +192,7 @@ final class Harness {
         if (age < 0) {
             return;
         }
+        pressKey(age);
         long[] shots = HarnessParams.SHOTS;
         if (nextShotIndex < shots.length) {
             if (age >= shots[nextShotIndex]) {
@@ -204,10 +205,15 @@ final class Harness {
         // the final views: once the strike is over, each from its own spot once everything in view is drawn again
         if (finalView < HarnessParams.FINAL_VIEWS.length) {
             if (finalView < 0) {
-                if (MoonFx.active().isEmpty() && HalleyFx.active().isEmpty()) {
+                // (a kept moon never ends: keep_moon on)
+                if (MoonFx.active().isEmpty() && HalleyFx.active().isEmpty() || MoonFx.kept()) {
                     finalView = 0;
                     finalSince = System.currentTimeMillis();
                     finalTicks = 0;
+                    IntegratedServer server = mc.getSingleplayerServer();
+                    if (Boolean.getBoolean("ss05.clienttest.protect") && server != null) {
+                        server.execute(() -> log("protected block at " + protectedPos() + ": " + server.overworld().getBlockState(protectedPos())));
+                    }
                 }
                 return;
             }
@@ -218,6 +224,13 @@ final class Harness {
                 // "skills" scrolls its list to the end first, where Halley and Luna are (with their sliders)
                 if (finalTicks == 1) {
                     mc.setCameraEntity(mc.player);
+                    // -Dss05.clienttest.select=<skill id>: that skill selected first (e.g. Stellar Convergence's plate)
+                    String select = System.getProperty("ss05.clienttest.select");
+                    if (select != null) {
+                        cyou.rimuru.rimulib.skill.SkillSet.all().stream().flatMap(set -> set.skills.stream())
+                            .filter(skill -> skill.id().equals(select)).findFirst()
+                            .ifPresent(cyou.rimuru.rimulib.client.magic.ClientSkills::select);
+                    }
                     if (!WhiteSpace.capturesInput()) {
                         WhiteSpace.open(mc);
                     }
@@ -286,7 +299,38 @@ final class Harness {
             lastAgeAt = now;
             return age;
         }
+        // skill=other: a skill that isn't ours (cast by command=), timed from the cast itself
+        if (HarnessParams.SKILL.equals("other")) {
+            return castGameTime < 0 ? -1 : now - castGameTime;
+        }
         return lastAge < 0 ? -1 : lastAge + (now - lastAgeAt);
+    }
+
+    private static net.minecraft.core.BlockPos protectedPos() {
+        return net.minecraft.core.BlockPos.containing(SPAWN_X + HarnessParams.DISTANCE + 6.0, groundY, SPAWN_Z + 6.0);
+    }
+
+    private static boolean pressed;
+
+    /**
+     * -Dss05.clienttest.press=<key mapping name>@<tick>: presses that key once, that many ticks after the cast (e.g.
+     * another mod's key: {@code key.star_quartet.cast@20} with the remote in hand).
+     */
+    private static void pressKey(long age) {
+        String press = System.getProperty("ss05.clienttest.press", "");
+        if (pressed || press.isBlank() || age < Long.parseLong(press.substring(press.indexOf('@') + 1).trim())) {
+            return;
+        }
+        pressed = true;
+        String name = press.substring(0, press.indexOf('@')).trim();
+        for (net.minecraft.client.KeyMapping key : Minecraft.getInstance().options.keyMappings) {
+            if (key.getName().equals(name)) {
+                net.minecraft.client.KeyMapping.click(com.mojang.blaze3d.platform.InputConstants.getKey(key.saveString()));
+                log("pressed " + name + " (" + key.saveString() + ")");
+                return;
+            }
+        }
+        log("no key mapping called " + name);
     }
 
     /** The views that film from a fixed spot use a camera of this client's own (see HarnessParams.camera()). */
@@ -430,6 +474,12 @@ final class Harness {
     private static void castAndMaybeRepositionCamera(Minecraft mc) {
         IntegratedServer server = mc.getSingleplayerServer();
         log("casting " + HarnessParams.SKILL);
+        // Gravitia's key: there (unbound) since the addon gives the remote's menu-only skills one (SkillKeysMixin)
+        for (net.minecraft.client.KeyMapping key : mc.options.keyMappings) {
+            if (key.getName().contains("gravitia")) {
+                log("key " + key.getName() + " in " + key.getCategory() + ": " + key.saveString());
+            }
+        }
         server.execute(() -> {
             ServerLevel level = server.overworld();
             ServerPlayer player = level.getServer().getPlayerList().getPlayers().get(0);
@@ -442,6 +492,25 @@ final class Harness {
             }
             if (Boolean.getBoolean("ss05.clienttest.eat")) {
                 eatCheck(level, player);
+            }
+            // -Dss05.clienttest.protect=true: a protected block (a command block) on the ground near the mark, which the
+            // strike must leave where it is (logged as the final views start)
+            if (Boolean.getBoolean("ss05.clienttest.protect")) {
+                level.setBlockAndUpdate(protectedPos(), net.minecraft.world.level.block.Blocks.COMMAND_BLOCK.defaultBlockState());
+                log("placed a protected block at " + protectedPos());
+            }
+            // -Dss05.clienttest.command=...: cast through a chat command (the operators' /ssa strike) instead of the remote
+            String command = System.getProperty("ss05.clienttest.command", "");
+            if (!command.isBlank()) {
+                // as the player, from the server's own (operator) source: no op list to touch (its API moved in 1.21.9+)
+                for (String one : command.split(";")) {
+                    String run = one.trim().startsWith("/") ? one.trim().substring(1) : one.trim();
+                    server.getCommands().performPrefixedCommand(server.createCommandSourceStack(),
+                        "execute as " + player.getScoreboardName() + " run " + run);
+                }
+                log("ran \"" + command + "\"");
+                maintainCamera(level, player);
+                return;
             }
             // the remote's sliders for this cast: their defaults, or -Dss05.clienttest.power / .damage / .speed
             Tuning initial = Tuning.initial(skill);

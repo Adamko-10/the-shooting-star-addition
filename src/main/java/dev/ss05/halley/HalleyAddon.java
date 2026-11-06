@@ -8,6 +8,7 @@ import dev.ss05.halley.content.HalleyContent;
 import dev.ss05.halley.net.AddonNetwork;
 import dev.ss05.halley.world.MoonStrike;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -53,6 +54,7 @@ public final class HalleyAddon implements ModInitializer {
             StarBridge.tick(server);
             MoonStrike.tickLingering();
         });
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> StarBridge.registerCommands(dispatcher));
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             StarBridge.clear();
             MoonStrike.clearLingering();
@@ -62,7 +64,12 @@ public final class HalleyAddon implements ModInitializer {
             AddonNetwork.sendSettings(handler.player);
             NoCooldown.greet(handler.player);
         });
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> NoCooldown.forget(handler.player));
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            NoCooldown.forget(handler.player);
+            Evac.forget(handler.player);
+            EpicMode.forget(handler.player);
+            StellarQuartet.forget(handler.player);
+        });
     }
 
     public static Identifier id(String path) {

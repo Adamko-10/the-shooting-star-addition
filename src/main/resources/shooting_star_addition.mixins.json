@@ -3,6 +3,9 @@
   "minVersion": "0.8",
   "package": "dev.ss05.halley.client.mixin",
   "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ChunkAccessMixin"
+  ],
   "client": [
     "RimulibClientMixin",
     "AttributeTrackSamplerMixin",
@@ -11,7 +14,8 @@
     "GameRendererMixin",
     "MoonHideMixin",
     "PlayerModelMixin",
-    "SkyRendererMixin"
+    "SkyRendererMixin",
+    "ToastManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 0

@@ -24,7 +24,7 @@ public final class HalleyCasting {
      */
     public static boolean cast(ServerPlayer player, CastTuning cast) {
         // (with no cooldown, another may be called down while one is still coming in)
-        if (!NoCooldown.appliesTo(player) && StarBridge.alreadyFlying(player)) {
+        if (!NoCooldown.appliesTo(player) && !NoCooldown.casting() && StarBridge.alreadyFlying(player)) {
             StarBridge.deny(player, HalleyInfo.title() + " is already on its way");
             return false;
         }
