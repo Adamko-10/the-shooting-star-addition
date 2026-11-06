@@ -34,8 +34,9 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
 - **The Railgun reference is DONE (2026-11-06)**: docs/SS-07-PROXIMA.md "The Railgun reference" (its whole film by
   film time; the pull up = ~1 s from the mark to above the clouds, exponential, straight down; then a cut to Earth from
   orbit). Recorded with the harness's new `filmlog=true` (`test scriptsautotest16.sh`, frames and camera log in
-  `test builds6-11-06 auto test 23 railgun reference`). **Open, asked the user**: Proxima's zoom-out at the
-  Railgun's pace or the previz's slower 3.8 s pull. Next on the list: Proxima's new film in game (item 2).
+  `test builds6-11-06 auto test 23 railgun reference`). **Decided** (the user left it to Claude): Proxima's zoom-out
+  at the Railgun's pace, inside shot 2's 3.8 s slot (docs). The user asked again for their Stellar Quartet
+  announcement (2026-11-06): the corrected text from the earlier conversation was given again. Next on the list: Proxima's new film in game (item 2).
 - **The user's PC**: free again (the user, 2026-11-06 ~16:00: "u can use my pc now"): game test runs and the
   browser pane are OK again. Still: **don't run game tests or swap the Modrinth jar while they play**, ask if unsure.
 - **Ponytail mode is OFF** for this creative work (the user's pick; their `/ponytail off` worked; they asked again

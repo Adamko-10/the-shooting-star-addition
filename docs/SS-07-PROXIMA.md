@@ -220,8 +220,12 @@ the mark: TSS draws its whole space part as its own scene, so only the frames sh
 What this means for Proxima's film (previz shot 2, "Leaving Earth", 1.6-5.4 s, one continuous 3.8 s pull): the
 Railgun's rise is much faster (about 1 s through the clouds) and its way to orbit is two shots (the rise, then a cut
 to Earth from orbit filling the frame, then Earth small). Matching it means a fast exponential rise looking straight
-down, through a soft cloud layer, then the orbit shot. The user's call (asked 2026-11-06): the Railgun's pace or the
-previz's slower pull.
+down, through a soft cloud layer, then the orbit shot. **Decided 2026-11-06: the Railgun's pace** (the user left it
+to Claude; they had asked for a zoom-out "just like railgun"). Shot 2 keeps its 3.8 s slot (1.6-5.4 s), so the 31 s
+timeline doesn't move, filled the Railgun way: a whip turn to look straight down (~0.15 s), the rise (~1.2 s: ease in,
+exponential, easing out above the clouds; pitch to straight down, FOV 70 to ~64, a little sideways drift), a hard cut
+to Earth from orbit filling the frame, then pulling back until the curve of the Earth sits in the frame (the rest of
+the slot), then shot 3 as planned.
 
 ## Sizes (`ProximaParams`, at power 1; the power slider scales the radii, the depth by its square root)
 
