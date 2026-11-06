@@ -168,6 +168,10 @@ var clienttestJar = tasks.register('clienttestJar', Jar) {
 var reobfClienttest = tssReobf(clienttestJar, 'tssReobfClienttest', 'prodtest')
 var copyProdMods = tasks.register('copyProdMods', Sync) {
     from tasks.named('tssPack'), reobfClienttest, tssTestJar, rimulib
+    // -PextraMods=<folder>: other mods' jars to run alongside (e.g. Stellar Quartet, to test it with this TSS)
+    if (project.hasProperty('extraMods')) {
+        from project.property('extraMods')
+    }
     into layout.projectDirectory.dir('run/prodclient/mods')
 }
 tasks.matching { it.name == 'runProdClientTest' }.configureEach {

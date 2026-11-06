@@ -37,6 +37,13 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   `test builds6-11-06 auto test 23 railgun reference`). **Decided** (the user left it to Claude): Proxima's zoom-out
   at the Railgun's pace, inside shot 2's 3.8 s slot (docs). The user asked again for their Stellar Quartet
   announcement (2026-11-06): the corrected text from the earlier conversation was given again. Next on the list: Proxima's new film in game (item 2).
+- **Stellar Quartet on TSS 1.5.2 (2026-11-06)**: the user does **not** want to contact ikun520 (no pressure on them) and
+  asked whether we "just hook in" to fix it. Advised against patching their All Rights Reserved mod (rewriting its
+  hooks from outside, breaks with every update of theirs or TSS's, bugs would land on them); first see whether it
+  breaks at all: SQ 1.4.0 has its own check ("incompatible with this demo version ... disabled itself for this
+  session"), and our unlock only checks it is installed. Game run `test scriptsautotest17.sh` (new dev-only
+  `-PextraMods=<folder>` puts other mods' jars in the prod test run) -> `test builds6-11-06 auto test 24 stellar
+  quartet on TSS 1.5.2`.
 - **The user's PC**: free again (the user, 2026-11-06 ~16:00: "u can use my pc now"): game test runs and the
   browser pane are OK again. Still: **don't run game tests or swap the Modrinth jar while they play**, ask if unsure.
 - **Ponytail mode is OFF** for this creative work (the user's pick; their `/ponytail off` worked; they asked again
