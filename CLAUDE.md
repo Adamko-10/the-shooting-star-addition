@@ -11,6 +11,45 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
+### START HERE (2026-11-06, evening, Adam's PC; the user moved to a new conversation)
+
+- **Doing right now: the sound overhaul from Sonniss** (the user: "Start the sound overhaul"). Only the planning is
+  done; **no sound has been made yet**. Read `docs/SOUNDS.md` first (every event of Halley, Luna and Proxima, what it
+  should be, which kinds of source to layer, the levels by role). The bundle: the project folder's
+  `sound library\sonniss gdc 2026\` (the 5 zips, all tested intact; `files\` unpacked, 347 sounds, 7.5 GB;
+  `catalogue.csv` = length, LUFS, LRA, true peak per file, made by `sound library\catalogue.js`; `candidates.txt` =
+  the files sorted into categories: sub drops, trailer booms/braams, whooshes, wind/storm/thunder, fire, ice/glass,
+  electric/arcs, metal/servo/mechanism, sci-fi drones, radio/static/glitch, debris, risers/magic). Good picks seen:
+  `344 Audio - Bass Drops & Downers Vol. 1-3` (sub drops), `Federico Soler - Effective Trailer Booms Vol. 2` (booms,
+  long tails), `Jake Fielding - Cinematic Horn Braams`, `Cinematic Sound Design - Colossal Impacts` / `Ultra
+  Transitions & Impacts`, `Alexander Kopeikin - 100 kHz Designed Ice` (Halley: crush, snapping, fissures, ice field
+  cracking), `Epic Stock Media - Elemental Mutation Whooshes and Impacts` (fire/glass/electric whooshes), `Tower
+  Defense Game` (ice shatter, servo whine), `InMotionAudio - Arc` (arc power-up, buzz), `The Noisery - Moaning Metal`
+  (bowed metal, low scrape, thud), `HD Lock And Mechanism` (latches), `Cinematic Sound Design - Sci-Fi Drones`,
+  `Strange Game Ambient Loops 3` (reactor loop), `344 Audio - Extreme Winds` (Eye Of The Storm), `Jake Fielding -
+  Interior ... Storms` (thunder rumble), fire loops/campfire, `Sonic Bat - Vintage Radio` (AM sweep), `The Noisery -
+  Rich Glitch`, `Epic Stock Media - Fake Advertisements ... Radio` (radio static loop).
+  **Next steps**: (1) pick sources per event (measure envelopes/onsets with ffmpeg: Claude can't hear); (2) write
+  the recipe script (like `art/overhaul_sounds.sh`: cut, layer with gain/filter/pitch/offset, tail, level by role,
+  write the shipped `.ogg`), keeping each pick's source file name in `art/sounds/sources.md`; (3) Halley, Luna,
+  Proxima (incl. the new film's events in docs/SOUNDS.md, which need new sounds.json entries and code later);
+  (4) levels/lengths check, build; (5) the user listens in game. Keep the old files until the user approves.
+  **Licence caveat**: Sonniss GDC licence v2.0 forbids supplying the sounds "as sound effects" (files); a jar can be
+  unzipped, so it's a grey area; the user may email Sonniss for written OK (offer to draft it).
+- **The user's PC**: "you can work on stuff but just don't use my pc for now" (2026-11-06) = no game test runs (they
+  open a window), no browser pane; background file work (ffmpeg, builds) is fine. They also said Claude may use their
+  browser (Chrome) if needed. **Don't run game tests or swap the Modrinth jar while they play.**
+- **Ponytail mode is OFF** for this creative work (the user's pick; their `/ponytail off` worked); it may come back on
+  for porting.
+- **The rest of the update, in order, with the ETA given (about 5-8 days of sessions)**: see "Next, the update's
+  remaining list" below (Railgun reference; Proxima's new film as the approved previz and the SA-04A/SA-04B split;
+  the sound overhaul; SA-04B Proxima CME design + previz + build; the user's test; porting; CI/docs/release).
+- **Built today, not tested by the user**: Earth in Proxima's film, random flares, Epic mode, Proxima config + sounds
+  + music, the Stellar Quartet unlock (all below). Not swapped into the Modrinth profile: the Stellar Quartet unlock
+  build (main at `4a21e9c` and later; the profile has the Earth build).
+- **Reminders still owed** (§0): idea #16 (Mrityu mod); Proxima's "Extra content" film ideas (mentioned 2026-11-06,
+  mention again when it ships); SA-05+ candidates and the free SA-03 slot.
+
 ### Resume here (2026-11-04, Adam's PC)
 
 - **Working on**: the next major update, on `main` only (§0: one branch until the user approves), **not pushed**: the
