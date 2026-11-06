@@ -39,11 +39,13 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   app")**: Claude recommended Antigravity (works on local folders; the ChatGPT app only if it has a local coding mode).
   Set up: `port-1.7.0` = `4927f36`, main's whole 1.7.0 squashed onto `origin/main` (same tree as main at `deb9792`);
   six worktrees in the project folder's `ports\<branch>\` on local branches `port/<branch>` (from `origin/<branch>`);
-  `ports\BRIEF-<branch>.md` (made by `ports\make-briefs.js`) = one self-contained brief per branch: cherry-pick
+  `ports\<branch>\BRIEF.md` (made by `ports\make-briefs.js`; `BRIEF.md` and `REPORT.md` are in the repo's
+  `.git/info/exclude`, never committed) = one self-contained brief per branch: cherry-pick
   `4927f36`, conflict rules, release files (TSS 1.5.1/1.5.2 and RimuLib 1.2.2 ids: Forge 9400022/9438881/9438825,
   Fabric 9400005/9438887/9438845), `StellarQuartet.REQUIRED` (false on forge-1.20.1, fabric-1.20.1,
   fabric-1.21.11), the branch's API differences, how to build (Forge: locally with JDK 21; Fabric: not here, CI);
-  reports to `ports\REPORT-<branch>.md`; never push or stash. **Next for Claude**: read the reports, review each
+  reports to `ports\<branch>\REPORT.md`; never push or stash. The user runs them in Antigravity and the ChatGPT app
+  (one-line prompt: read BRIEF.md and do it). **Next for Claude**: read the reports, review each
   branch's diff, push each to `wip/<branch>` with `dev/ci/push-wip.sh` (the user OK'd wip pushes), fix from CI.
   The README is updated for 1.7.0 (`deb9792`).
 
