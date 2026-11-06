@@ -5,42 +5,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **The Shooting Star Addition** - handoff notes for whoever (human or Claude) works on this next. Written 2026-10-14 at
 the end of the 1.4.0 work, updated 2026-10-17 for 1.5.0 (§12) and 2026-10-18 for the user's 1.5.0 test round (§13; status in §9),
 and 2026-10-29 with the agreed plan for the next updates and Proxima (§14, §15; SA-04 since 2026-11-05).
+2026-11-06: the Sonniss sound overhaul is made and waits for the user's ears (START HERE, docs/SOUNDS.md).
 **2026-10-31: 1.6.0 = The Shooting Star 1.5.0 + RimuLib support (§16); read §16 before §5, which describes 1.4.x.**
 2026-11-03: how RimuLib 1.2.2 makes huge carvings fast and how we'd use it (§17); Stellar Convergence, fire every
 weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### START HERE (2026-11-06, evening, Adam's PC; the user moved to a new conversation)
+### START HERE (2026-11-06, late evening, Adam's PC)
 
-- **Doing right now: the sound overhaul from Sonniss** (the user: "Start the sound overhaul"). Only the planning is
-  done; **no sound has been made yet**. Read `docs/SOUNDS.md` first (every event of Halley, Luna and Proxima, what it
-  should be, which kinds of source to layer, the levels by role). The bundle: the project folder's
-  `sound library\sonniss gdc 2026\` (the 5 zips, all tested intact; `files\` unpacked, 347 sounds, 7.5 GB;
-  `catalogue.csv` = length, LUFS, LRA, true peak per file, made by `sound library\catalogue.js`; `candidates.txt` =
-  the files sorted into categories: sub drops, trailer booms/braams, whooshes, wind/storm/thunder, fire, ice/glass,
-  electric/arcs, metal/servo/mechanism, sci-fi drones, radio/static/glitch, debris, risers/magic). Good picks seen:
-  `344 Audio - Bass Drops & Downers Vol. 1-3` (sub drops), `Federico Soler - Effective Trailer Booms Vol. 2` (booms,
-  long tails), `Jake Fielding - Cinematic Horn Braams`, `Cinematic Sound Design - Colossal Impacts` / `Ultra
-  Transitions & Impacts`, `Alexander Kopeikin - 100 kHz Designed Ice` (Halley: crush, snapping, fissures, ice field
-  cracking), `Epic Stock Media - Elemental Mutation Whooshes and Impacts` (fire/glass/electric whooshes), `Tower
-  Defense Game` (ice shatter, servo whine), `InMotionAudio - Arc` (arc power-up, buzz), `The Noisery - Moaning Metal`
-  (bowed metal, low scrape, thud), `HD Lock And Mechanism` (latches), `Cinematic Sound Design - Sci-Fi Drones`,
-  `Strange Game Ambient Loops 3` (reactor loop), `344 Audio - Extreme Winds` (Eye Of The Storm), `Jake Fielding -
-  Interior ... Storms` (thunder rumble), fire loops/campfire, `Sonic Bat - Vintage Radio` (AM sweep), `The Noisery -
-  Rich Glitch`, `Epic Stock Media - Fake Advertisements ... Radio` (radio static loop).
-  **Next steps**: (1) pick sources per event (measure envelopes/onsets with ffmpeg: Claude can't hear); (2) write
-  the recipe script (like `art/overhaul_sounds.sh`: cut, layer with gain/filter/pitch/offset, tail, level by role,
-  write the shipped `.ogg`), keeping each pick's source file name in `art/sounds/sources.md`; (3) Halley, Luna,
-  Proxima (incl. the new film's events in docs/SOUNDS.md, which need new sounds.json entries and code later);
-  (4) levels/lengths check, build; (5) the user listens in game. Keep the old files until the user approves.
+- **Doing right now: the sound overhaul from Sonniss: ALL 52 SOUNDS MADE, waiting for the user's ears** (status,
+  how the recipe works, what was kept: `docs/SOUNDS.md` "Status"). `art/sonniss_sounds.sh <out dir> [names]` makes
+  them (~3 min; no default out dir on purpose); `art/sounds/sources.md` (written by it) = which Sonniss file went
+  into which sound. The user listens in `test builds\2026-11-06 Sonniss sounds\` (`new\` = all 52, `old\` = the 40
+  shipped ones, same names, for A/B; `levels.txt`; the test jar = main's jar with the 40 swapped in, **not in the
+  Modrinth profile**: the user's to put there). **The old files stay in `src/` until the user approves**; then run
+  the script with `src/main/resources/assets/shooting_star_addition/sounds` and commit. Picks were made by
+  measuring: the project folder's `sound library\envelope.js <catalogue row or file>` (level + low/mid/high per
+  0.1 s, onsets, spectral peaks). The bundle: `sound library\sonniss gdc 2026\` (`files\` 347 sounds,
+  `catalogue.csv`, `candidates.txt`). **Next**: the user's verdict per sound (fix recipes from it), then approve ->
+  ship; Proxima's 12 film sounds get `sounds.json` entries and code with the film (they're cut to the previz's
+  shots; `proxima_front`/`proxima_inhale` can replace the borrowed `luna_rumble`/`luna_inhale` in ProximaFx).
+  `proxima_beam` is 4.0 s now (was 1.8; film-only). Not checked: a game run with the new sounds (same ffmpeg/Vorbis
+  pipeline as before, so low risk; only the user can judge them anyway).
   **Licence caveat**: Sonniss GDC licence v2.0 forbids supplying the sounds "as sound effects" (files); a jar can be
   unzipped, so it's a grey area; the user may email Sonniss for written OK (offer to draft it).
-- **The user's PC**: "you can work on stuff but just don't use my pc for now" (2026-11-06) = no game test runs (they
-  open a window), no browser pane; background file work (ffmpeg, builds) is fine. They also said Claude may use their
-  browser (Chrome) if needed. **Don't run game tests or swap the Modrinth jar while they play.**
-- **Ponytail mode is OFF** for this creative work (the user's pick; their `/ponytail off` worked); it may come back on
-  for porting.
+- **The user's PC**: free again (the user, 2026-11-06 ~16:00: "u can use my pc now"): game test runs and the
+  browser pane are OK again. Still: **don't run game tests or swap the Modrinth jar while they play**, ask if unsure.
+- **Ponytail mode is OFF** for this creative work (the user's pick; their `/ponytail off` worked; they asked again
+  2026-11-06 and were told it is off); it may come back on for porting.
 - **The rest of the update, in order, with the ETA given (about 5-8 days of sessions)**: see "Next, the update's
   remaining list" below (Railgun reference; Proxima's new film as the approved previz and the SA-04A/SA-04B split;
   the sound overhaul; SA-04B Proxima CME design + previz + build; the user's test; porting; CI/docs/release).
@@ -205,7 +198,7 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   2. Proxima's new film in game, as the previz (the zoom-out from the land to orbit, a real star shader, the ~980-panel
      Dyson sphere with its iris, rings, the hex lens, Earth and the gate, the title cards, the 31 s timeline, the music
      re-cut), and the split into **SA-04A · Proxima Flare** (today's skill) / **SA-04B** (1.5-3 days);
-  3. **the sound overhaul from Sonniss** (all ~35 events of Halley, Luna and Proxima, plus the new film's: docs/SOUNDS.md;
+  3. **the sound overhaul from Sonniss** (MADE 2026-11-06: all 52 files, waiting for the user's ears, START HERE; all ~35 events of Halley, Luna and Proxima, plus the new film's: docs/SOUNDS.md;
      the bundle is downloaded and catalogued in the project folder's `sound library\sonniss gdc 2026\` with
      `catalogue.csv` and `candidates.txt`), then the user's listening rounds (1-1.5 days);
   4. **SA-04B · Proxima CME**: design, a previz like Flare's, then build it (strike, effects, film, sounds, config)
