@@ -250,14 +250,42 @@ final class Harness {
     }
 
     private static void cast(Minecraft mc) {
+        castGameTime = mc.level.getGameTime();
         IntegratedServer server = mc.getSingleplayerServer();
         log("casting " + HarnessParams.SKILL);
+        // Gravitia's key: there (unbound) since the addon gives the remote's menu-only skills one (SkillKeysMixin)
+        for (net.minecraft.client.KeyMapping key : mc.options.keyMappings) {
+            if (key.getName().contains("gravitia")) {
+                log("key " + key.getName() + " in " + key.getCategory() + ": " + key.saveString());
+            }
+        }
         server.execute(() -> {
+            ServerLevel level = server.overworld();
             ServerPlayer player = server.getPlayerList().getPlayers().get(0);
             Skill skill = (Skill) StarBridge.skill(HarnessParams.MOON);
             int index = HarnessParams.MOON ? StarBridge.moonIndex() : StarBridge.skillIndex();
             if (index < 0) {
                 log("Halley/Luna never attached to the Stellar Remote (StarBridge.problem(): " + StarBridge.problem() + ")");
+                return;
+            }
+            if (Boolean.getBoolean("ss05.clienttest.eat")) {
+                eatCheck(level, player);
+            }
+            // -Dss05.clienttest.protect=true: a protected block (a command block) on the ground near the mark, which the
+            // strike must leave where it is (checked at the end, probeLand)
+            if (Boolean.getBoolean("ss05.clienttest.protect")) {
+                level.setBlockAndUpdate(protectedPos(), net.minecraft.world.level.block.Blocks.COMMAND_BLOCK.defaultBlockState());
+                log("placed a protected block at " + protectedPos());
+            }
+            // -Dss05.clienttest.command=...: cast through a chat command (the operators' /ssa strike) instead of the remote
+            String command = System.getProperty("ss05.clienttest.command", "");
+            if (!command.isBlank()) {
+                player.getServer().getPlayerList().op(player.getGameProfile());
+                for (String one : command.split(";")) {
+                    server.getCommands().performPrefixedCommand(player.createCommandSourceStack(), one.trim());
+                }
+                log("ran \"" + command + "\"");
+
                 return;
             }
             // the remote's sliders for this cast: their defaults, or -Dss05.clienttest.power / .damage / .speed
@@ -308,17 +336,81 @@ final class Harness {
             lastAgeAt = now;
             return age;
         }
+        // skill=other: a skill that isn't ours (cast by command=), timed from the cast itself
+        if (HarnessParams.SKILL.equals("other")) {
+            return castGameTime < 0 ? -1 : now - castGameTime;
+        }
         // once the strike is over its effects are gone: carry on counting from where they left off
         return lastAge < 0 ? -1 : lastAge + (now - lastAgeAt);
     }
 
     private static long lastAge = -1;
+    private static long castGameTime = -1;
     private static long lastAgeAt;
     private static net.minecraft.world.phys.Vec3 lastMark;
     private static int finalView = -1;
     private static long finalSince;
     private static int finalFrames;
 
+    /** What the strike left in the world, as the server has it: the land's height along two lines out from the mark. */
+    private static net.minecraft.core.BlockPos protectedPos() {
+        return net.minecraft.core.BlockPos.containing(SPAWN_X + HarnessParams.DISTANCE + 6.0, groundY, SPAWN_Z + 6.0);
+    }
+
+    /** The land's height over the old ground, or "unloaded" (an unloaded chunk reads as the bottom of the world: once
+     * mistaken for a crater, 2026-11-04). */
+    private static String height(ServerLevel level, int x, int z) {
+        if (!level.hasChunk(x >> 4, z >> 4)) {
+            return "unloaded";
+        }
+        // the blocks, not the heightmap: RimuLib leaves heightmaps as they were where it cuts to the bottom of the world
+        int y = level.getMaxBuildHeight();
+        net.minecraft.core.BlockPos.MutableBlockPos at = new net.minecraft.core.BlockPos.MutableBlockPos();
+        while (y > level.getMinBuildHeight() && level.getBlockState(at.set(x, y - 1, z)).isAir()) {
+            y--;
+        }
+        return String.valueOf(y - (int) groundY);
+    }
+
+    private static void probeLand(Minecraft mc) {
+        IntegratedServer server = mc.getSingleplayerServer();
+        if (server == null) {
+            return;
+        }
+        server.execute(() -> {
+            ServerLevel level = server.overworld();
+            int mx = (int) Math.floor(SPAWN_X + HarnessParams.DISTANCE);
+            int mz = (int) Math.floor(SPAWN_Z);
+            StringBuilder east = new StringBuilder();
+            StringBuilder south = new StringBuilder();
+            for (int d = 0; d <= 140; d += 4) {
+                east.append(d).append('=').append(height(level, mx + d, mz)).append(' ');
+                south.append(d).append('=').append(height(level, mx, mz + d)).append(' ');
+            }
+            log("land east of the mark (height over the old ground): " + east);
+            log("land south of the mark (height over the old ground): " + south);
+            log("block at the mark's core: " + level.getBlockState(new net.minecraft.core.BlockPos(mx, (int) groundY - 5, mz)));
+            log("the strike's mark: " + lastMark);
+            // -Dss05.clienttest.probe=x,z: the land's height there over the old ground (e.g. where a command aimed)
+            String[] probe = System.getProperty("ss05.clienttest.probe", "").split(",");
+            if (probe.length == 2) {
+                int px = (int) Math.floor(Double.parseDouble(probe[0].trim()));
+                int pz = (int) Math.floor(Double.parseDouble(probe[1].trim()));
+                log("land at " + px + "," + pz + ": " + height(level, px, pz)
+                    + " over the old ground");
+            }
+            if (Boolean.getBoolean("ss05.clienttest.protect")) {
+                log("protected block at " + protectedPos() + ": " + level.getBlockState(protectedPos()));
+            }
+        });
+    }
+
+    /**
+     * The views that film from a fixed spot (not through the caster's eyes) use a camera of their own on this client,
+     * so nothing the strike does to the caster (lifting them clear, holding them while the remote fires) moves it.
+     * {@code -Dss05.clienttest.cam=dx,dy,dz,lx,ly,lz} places it at the mark plus (dx, dy, dz), looking at the mark plus
+     * (lx, ly, lz); the named views are presets of that.
+     */
     static void onRenderTick(TickEvent.RenderTickEvent event) {
         Minecraft mc = Minecraft.getInstance();
         if (done || !placed || mc.screen != null || mc.level == null || mc.player == null) {
@@ -332,10 +424,14 @@ final class Harness {
         if (!castRequested) {
             return;
         }
+        if (Boolean.getBoolean("ss05.clienttest.filmlog") && CutsceneDirector.active()) {
+            filmLog(mc);
+        }
         long age = strikeAge();
         if (age < 0) {
             return;
         }
+        pressKey(age);
         long[] shots = HarnessParams.SHOTS;
         while (nextShotIndex < shots.length && age >= shots[nextShotIndex]) {
             takeScreenshot(mc, String.format("%05d", shots[nextShotIndex]));
@@ -347,7 +443,8 @@ final class Harness {
         // the final views: once the strike is over, each from its own spot once everything in view is drawn again
         if (finalView < HarnessParams.FINAL_VIEWS.length) {
             if (finalView < 0) {
-                if (MoonFx.active().isEmpty() && HalleyFx.active().isEmpty()) {
+                // (a kept moon never ends: keep_moon on)
+                if (MoonFx.active().isEmpty() && HalleyFx.active().isEmpty() || MoonFx.kept()) {
                     finalView = 0;
                     finalSince = System.currentTimeMillis();
                     finalFrames = 0;
@@ -361,6 +458,13 @@ final class Harness {
                 // "skills" scrolls its list to the end first, where Halley and Luna are (with their sliders)
                 if (finalFrames == 1) {
                     mc.setCameraEntity(mc.player);
+                    // -Dss05.clienttest.select=<skill id>: that skill selected first (e.g. Stellar Convergence's plate)
+                    String select = System.getProperty("ss05.clienttest.select");
+                    if (select != null) {
+                        cyou.rimuru.rimulib.mc1201.skill.SkillSet.all().stream().flatMap(set -> set.skills.stream())
+                            .filter(skill -> skill.id().equals(select)).findFirst()
+                            .ifPresent(cyou.rimuru.rimulib.mc1201.client.magic.ClientSkills::select);
+                    }
                     if (!WhiteSpace.capturesInput()) {
                         WhiteSpace.open(mc);
                     }
@@ -384,6 +488,7 @@ final class Harness {
             }
             return;
         }
+        probeLand(mc);
         done = true;
         log("done");
         mc.stop();
@@ -433,6 +538,86 @@ final class Harness {
         float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
         float pitch = (float) -Math.toDegrees(Math.atan2(dy, horizontal));
         return new float[] {yaw, pitch};
+    }
+
+    private static void eatCheck(ServerLevel level, ServerPlayer player) {
+        player.getFoodData().setFoodLevel(5);
+        new net.minecraft.world.item.ItemStack(dev.ss05.halley.content.HalleyContent.MOON_CHEESE_ITEM.get()).finishUsingItem(level, player);
+        log("eat moon_cheese: food 5 -> " + player.getFoodData().getFoodLevel() + ", saturation " + player.getFoodData().getSaturationLevel());
+        new net.minecraft.world.item.ItemStack(dev.ss05.halley.content.HalleyContent.MOLTEN_MOON_CHEESE_ITEM.get()).finishUsingItem(level, player);
+        net.minecraft.world.effect.MobEffectInstance strength = player.getEffect(net.minecraft.world.effect.MobEffects.DAMAGE_BOOST);
+        net.minecraft.world.effect.MobEffectInstance might = player.getEffect(dev.ss05.halley.content.HalleyContent.MOLTEN_MIGHT.get());
+        log("eat molten_moon_cheese: maxHealth " + player.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH)
+            + " health " + player.getHealth()
+            + " strength " + (strength == null ? "none" : "amplifier " + strength.getAmplifier() + " for " + strength.getDuration() + " ticks")
+            + " molten_might " + (might == null ? "none" : might.getDuration() + " ticks"));
+        // a relog, in miniature: save the player and load the data into a fresh player
+        net.minecraft.nbt.CompoundTag saved = player.saveWithoutId(new net.minecraft.nbt.CompoundTag());
+        ServerPlayer reloaded = net.minecraftforge.common.util.FakePlayerFactory.get(level,
+            new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "ss05reload"));
+        reloaded.load(saved);
+        log("after a save/load: maxHealth " + reloaded.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH)
+            + " health " + reloaded.getHealth()
+            + " strength " + (reloaded.getEffect(net.minecraft.world.effect.MobEffects.DAMAGE_BOOST) == null ? "none"
+                : "amplifier " + reloaded.getEffect(net.minecraft.world.effect.MobEffects.DAMAGE_BOOST).getAmplifier()));
+        // and again after the effects are gone, as if they ran out
+        player.removeEffect(dev.ss05.halley.content.HalleyContent.MOLTEN_MIGHT.get());
+        log("after molten_might removed: maxHealth " + player.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH));
+        new net.minecraft.world.item.ItemStack(dev.ss05.halley.content.HalleyContent.MOLTEN_MOON_CHEESE_ITEM.get()).finishUsingItem(level, player);
+    }
+
+    private static boolean pressed;
+
+    /**
+     * -Dss05.clienttest.press=<key mapping name>@<tick>: presses that key once, that many ticks after the cast (e.g.
+     * another mod's key: {@code key.star_quartet.cast@20} with the remote in hand).
+     */
+    private static void pressKey(long age) {
+        String press = System.getProperty("ss05.clienttest.press", "");
+        if (pressed || press.isBlank() || age < Long.parseLong(press.substring(press.indexOf('@') + 1).trim())) {
+            return;
+        }
+        pressed = true;
+        String name = press.substring(0, press.indexOf('@')).trim();
+        for (net.minecraft.client.KeyMapping key : Minecraft.getInstance().options.keyMappings) {
+            if (key.getName().equals(name)) {
+                net.minecraft.client.KeyMapping.click(key.getKey());
+                log("pressed " + name + " (" + key.saveString() + ")");
+                return;
+            }
+        }
+        log("no key mapping called " + name);
+    }
+
+    private static int lastFilmTick = Integer.MIN_VALUE;
+    private static int lastFilmFrame = Integer.MIN_VALUE;
+
+    /**
+     * -Dss05.clienttest.filmlog=true: while any film plays (another mod's too, e.g. TSS's Railgun), the camera once a
+     * tick of film time in the log ("film t=..."), and a frame every half second of film time, named by it. Timed by the
+     * film's own clock, as the shot clock drifts from it when the server lags behind a big strike.
+     */
+    private static void filmLog(Minecraft mc) {
+        float partial = mc.getPartialTick();
+        float seconds = CutsceneDirector.seconds(partial);
+        int tick = (int) Math.floor(seconds * 20.0F);
+        if (tick != lastFilmTick) {
+            lastFilmTick = tick;
+            net.minecraft.client.Camera camera = mc.gameRenderer.getMainCamera();
+            net.minecraft.world.phys.Vec3 at = camera.getPosition();
+            log(String.format(java.util.Locale.ROOT, "film t=%.2f cam=%.1f,%.1f,%.1f yaw=%.1f pitch=%.1f fov=%.1f roll=%.1f player=%.1f,%.1f,%.1f",
+                seconds, at.x, at.y, at.z, camera.getYRot(), camera.getXRot(), CutsceneDirector.fov(mc.options.fov().get()),
+                CutsceneDirector.roll(), mc.player.getX(), mc.player.getY(), mc.player.getZ()));
+        }
+        int frame = (int) Math.floor(seconds * 2.0F);
+        if (frame != lastFilmFrame) {
+            lastFilmFrame = frame;
+            takeScreenshot(mc, String.format(java.util.Locale.ROOT, "film_%05.2f", seconds));
+        }
+    }
+
+    private static void takeScreenshot(Minecraft mc, long tick) {
+        takeScreenshot(mc, String.format("%05d", tick));
     }
 
     private static void takeScreenshot(Minecraft mc, String name) {

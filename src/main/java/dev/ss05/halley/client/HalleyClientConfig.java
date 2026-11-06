@@ -1,5 +1,6 @@
 package dev.ss05.halley.client;
 
+import java.util.List;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 /**
@@ -27,6 +28,41 @@ public final class HalleyClientConfig {
     private static final ForgeConfigSpec.EnumValue<PackMode> SHADER_PACKS;
     private static final ForgeConfigSpec.BooleanValue LUNA_MUSIC;
     private static final ForgeConfigSpec.BooleanValue NO_COOLDOWN;
+    private static final ForgeConfigSpec.BooleanValue EVAC_LIFT;
+    private static final ForgeConfigSpec.BooleanValue KEEP_MOON;
+    private static final ForgeConfigSpec.BooleanValue EPIC_MODE;
+    private static final ForgeConfigSpec.EnumValue<ImpactFrames> IMPACT_FRAMES;
+    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> CONVERGENCE;
+    private static final ForgeConfigSpec.BooleanValue CONVERGENCE_RING;
+    private static final ForgeConfigSpec.BooleanValue CONVERGENCE_PLATE;
+    private static final ForgeConfigSpec.BooleanValue CONVERGENCE_PLATE_OLD;
+    private static final ForgeConfigSpec.EnumValue<ConvergenceShake> CONVERGENCE_SHAKE;
+    /** What Stellar Convergence fires out of the box: every weapon but Gravitia (which only the menu chooses). */
+    private static final List<String> CONVERGENCE_DEFAULT = List.of("the_shooting_star", "gungnir", "seven_stars", "tesseract", "halley", "luna");
+
+    /** How strong Halley's and Luna's impact frames are (F on the addon's plate cycles them). */
+    public enum ImpactFrames {
+        FULL(1.0F), SOFT(0.35F), OFF(0.0F);
+
+        public final float strength;
+
+        ImpactFrames(float strength) {
+            this.strength = strength;
+        }
+
+        public ImpactFrames next() {
+            return values()[(this.ordinal() + 1) % values().length];
+        }
+    }
+
+    /** The screen shake while a Stellar Convergence hits (X on its plate cycles it; the user, 2026-11-05). */
+    public enum ConvergenceShake {
+        CAPPED, FULL, OFF;
+
+        public ConvergenceShake next() {
+            return values()[(this.ordinal() + 1) % values().length];
+        }
+    }
 
     static {
         ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
@@ -52,11 +88,38 @@ public final class HalleyClientConfig {
         b.pop();
 
         b.comment("Your switches in the Stellar Remote's menu (H). They are saved here when you flip them there.").push("stellar_remote");
-        LUNA_MUSIC = b.comment("Play Luna's music while the moon comes down (M in the remote's menu).")
+        LUNA_MUSIC = b.comment("Play Luna's music as the moon comes down (M in the remote's menu).")
             .define("luna_music", true);
         NO_COOLDOWN = b.comment("Cast without cooldowns where the server allows it (its no_cooldown setting; C in the remote's",
                 "menu). Has no effect on a server that doesn't allow it.")
             .define("no_cooldown", true);
+        EVAC_LIFT = b.comment("In creative, standing where your own strike lands: true lifts you straight up above it, false",
+                "takes you out to the crater's edge (onto land that is loaded, else up). E in the remote's menu.")
+            .define("evac_lift", true);
+        KEEP_MOON = b.comment("Luna's moon model stays where it landed instead of crumbling into the block moon, until you switch",
+                "this off or leave the world (for filming). L in the remote's menu.")
+            .define("keep_moon", false);
+        EPIC_MODE = b.comment("Luna's Epic mode: the moon you call down falls slower and more ominously (24 s from the alarm to the",
+                "impact instead of 16; everyone watching sees it), with the long cut of her music. G in the remote's menu.")
+            .define("epic_mode", false);
+        IMPACT_FRAMES = b.comment("Halley's and Luna's impact frames (the screen flashing to negative at an impact): FULL, SOFT",
+                "(fainter) or OFF. F in the remote's menu.")
+            .defineEnum("impact_frames", ImpactFrames.FULL);
+        CONVERGENCE = b.comment("SA-00 Stellar Convergence: the remote's skills it fires, by id (ticked with 1-9 on its plate in the",
+                "remote's menu). Each fires with its own sliders.")
+            .defineListAllowEmpty("convergence", CONVERGENCE_DEFAULT, entry -> entry instanceof String);
+        CONVERGENCE_RING = b.comment("Stellar Convergence: true spreads its weapons in a ring round the crosshair, false puts them all on",
+                "it. R in the remote's menu.")
+            .define("convergence_ring", false);
+        CONVERGENCE_PLATE = b.comment("Stellar Convergence's plate in the remote's menu, shown while it is the selected skill (false: just its",
+                "name). V in the remote's menu.")
+            .define("convergence_plate", true);
+        CONVERGENCE_PLATE_OLD = b.comment("Stellar Convergence's plate in its old look: always shown in the remote's menu, at the addon plate's",
+                "size (false: the smaller one, shown while it is the selected skill). T in the remote's menu.")
+            .define("convergence_plate_old", false);
+        CONVERGENCE_SHAKE = b.comment("The screen shake while a Stellar Convergence is on its way and for 20 s after it hits: CAPPED (no",
+                "stronger than one big weapon's, though every weapon shakes), FULL (every weapon's added up) or OFF. X in the remote's menu.")
+            .defineEnum("convergence_shake", ConvergenceShake.CAPPED);
         b.pop();
         SPEC = b.build();
     }
@@ -101,8 +164,87 @@ public final class HalleyClientConfig {
         set(NO_COOLDOWN, on);
     }
 
+    /** Your evac switch: true lifts you straight up, false takes you to the crater's edge. */
+    public static boolean evacLift() {
+        return get(EVAC_LIFT);
+    }
+
+    public static void setEvacLift(boolean on) {
+        set(EVAC_LIFT, on);
+    }
+
+    /** Your Epic mode switch: the moons you call down fall slower (see EpicMode). */
+    public static boolean epicMode() {
+        return get(EPIC_MODE);
+    }
+
+    public static void setEpicMode(boolean on) {
+        set(EPIC_MODE, on);
+    }
+
+    /** Your keep-the-moon switch: Luna's moon model stays after it lands. */
+    public static boolean keepMoon() {
+        return get(KEEP_MOON);
+    }
+
+    public static void setKeepMoon(boolean on) {
+        set(KEEP_MOON, on);
+    }
+
+    public static ImpactFrames impactFrames() {
+        return get(IMPACT_FRAMES);
+    }
+
+    public static void setImpactFrames(ImpactFrames frames) {
+        set(IMPACT_FRAMES, frames);
+    }
+
+    /** Stellar Convergence's ticked weapons, by skill id. */
+    public static List<String> convergence() {
+        return List.copyOf(get(CONVERGENCE));
+    }
+
+    public static void setConvergence(List<String> ids) {
+        set(CONVERGENCE, List.copyOf(ids));
+    }
+
+    /** Stellar Convergence: in a ring round the crosshair (true) or all on it. */
+    public static boolean convergenceRing() {
+        return get(CONVERGENCE_RING);
+    }
+
+    public static void setConvergenceRing(boolean on) {
+        set(CONVERGENCE_RING, on);
+    }
+
+    /** Stellar Convergence's plate shown in full (true) or folded to its name. */
+    public static boolean convergencePlate() {
+        return get(CONVERGENCE_PLATE);
+    }
+
+    public static void setConvergencePlate(boolean on) {
+        set(CONVERGENCE_PLATE, on);
+    }
+
+    /** Stellar Convergence's plate in its old look (always shown, bigger) instead of the new one. */
+    public static boolean convergencePlateOld() {
+        return get(CONVERGENCE_PLATE_OLD);
+    }
+
+    public static void setConvergencePlateOld(boolean on) {
+        set(CONVERGENCE_PLATE_OLD, on);
+    }
+
+    public static ConvergenceShake convergenceShake() {
+        return get(CONVERGENCE_SHAKE);
+    }
+
+    public static void setConvergenceShake(ConvergenceShake shake) {
+        set(CONVERGENCE_SHAKE, shake);
+    }
+
     /** Sets and saves a switch (kept for this session if the config isn't loaded). */
-    private static void set(ForgeConfigSpec.BooleanValue value, boolean on) {
+    private static <T> void set(ForgeConfigSpec.ConfigValue<T> value, T on) {
         if (!SPEC.isLoaded()) {
             return;
         }
@@ -125,15 +267,15 @@ public final class HalleyClientConfig {
         }
     }
 
-    /** The default (true) until the config has loaded. */
-    private static boolean get(ForgeConfigSpec.BooleanValue value) {
+    /** The setting's default until the config has loaded (keep_moon's is off). */
+    private static <T> T get(ForgeConfigSpec.ConfigValue<T> value) {
         if (!SPEC.isLoaded()) {
-            return true;
+            return value.getDefault();
         }
         try {
             return value.get();
         } catch (IllegalStateException notLoadedYet) {
-            return true;
+            return value.getDefault();
         }
     }
 }

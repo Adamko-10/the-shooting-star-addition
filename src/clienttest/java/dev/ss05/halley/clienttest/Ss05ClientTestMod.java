@@ -20,7 +20,14 @@ public final class Ss05ClientTestMod {
             return;
         }
         MinecraftForge.EVENT_BUS.addListener(Harness::onClientTick);
-        MinecraftForge.EVENT_BUS.addListener(Harness::onRenderTick);
+        // Register once the client ticks so screenshots run after every mod's end-of-frame drawing.
+        boolean[] armed = {false};
+        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.event.TickEvent.ClientTickEvent event) -> {
+            if (!armed[0]) {
+                armed[0] = true;
+                MinecraftForge.EVENT_BUS.addListener(net.minecraftforge.eventbus.api.EventPriority.LOWEST, Harness::onRenderTick);
+            }
+        });
         MinecraftForge.EVENT_BUS.addListener(Harness::onServerTick);
         Harness.log("harness armed: " + HarnessParams.describe());
     }

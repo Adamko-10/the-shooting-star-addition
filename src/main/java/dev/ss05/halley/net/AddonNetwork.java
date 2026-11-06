@@ -1,8 +1,11 @@
 package dev.ss05.halley.net;
 
 import dev.ss05.halley.HalleyAddon;
+import dev.ss05.halley.Evac;
+import dev.ss05.halley.EpicMode;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.NoCooldown;
+import dev.ss05.halley.StellarQuartet;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -17,7 +20,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
  */
 public final class AddonNetwork {
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(HalleyAddon.id("main"),
-        () -> "1", NetworkRegistry.acceptMissingOr("1"), NetworkRegistry.acceptMissingOr("1"));
+        () -> "4", NetworkRegistry.acceptMissingOr("4"), NetworkRegistry.acceptMissingOr("4"));
 
     private AddonNetwork() {
     }
@@ -38,6 +41,9 @@ public final class AddonNetwork {
                 ServerPlayer player = context.get().getSender();
                 if (player != null) {
                     NoCooldown.choose(player, payload.noCooldown());
+                    Evac.choose(player, payload.evacLift());
+                    EpicMode.choose(player, payload.epic());
+                    StellarQuartet.tell(player, payload.quartet());
                 }
                 context.get().setPacketHandled(true);
             })

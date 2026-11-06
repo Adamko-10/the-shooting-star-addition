@@ -22,6 +22,7 @@ import net.minecraftforge.client.event.ViewportEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.EventPriority;
 
 /**
  * The client side of SS-05 and SS-06: their shaders, their renderers (the comet, the moon and the sky), and their
@@ -38,11 +39,17 @@ public final class HalleyClient {
         MinecraftForge.EVENT_BUS.addListener(MoonRenderer::render);
         MinecraftForge.EVENT_BUS.addListener(MoonSphere::renderSolid);
         MinecraftForge.EVENT_BUS.addListener(HalleyClient::frameStart);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, (TickEvent.RenderTickEvent event) -> {
+            if (event.phase == TickEvent.Phase.END) {
+                FilmPanels.endOfFrame();
+            }
+        });
         MinecraftForge.EVENT_BUS.addListener(HalleySky::render);
         MinecraftForge.EVENT_BUS.addListener(HalleySky::fog);
         MinecraftForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
+            ConvergenceView.clearAll();
             ServerSettings.forget();
         });
         // once the server has said what it allows, tell it this player's own no-cooldown switch
@@ -63,7 +70,7 @@ public final class HalleyClient {
         ShaderPacks.update();
         HalleySky.update(event);
         if (ShaderPacks.active() && Minecraft.getInstance().level != null
-            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty())) {
+            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty() || ConvergenceView.any())) {
             GlowAtlas.paint(HalleyRenderTypes.shader());
             HalleySky.paint(event.renderTickTime);
         }

@@ -4,6 +4,9 @@
   "package": "dev.ss05.halley.compat.mixin",
   "compatibilityLevel": "JAVA_17",
   "refmap": "shooting_star_addition.refmap.json",
+  "mixins": [
+    "ChunkAccessMixin"
+  ],
   "client": [
     "ClientLevelMixin",
     "ClientLevelTimeMixin",

@@ -4,13 +4,17 @@ import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.world.Excavation;
+import com.mojang.brigadier.CommandDispatcher;
+import java.util.List;
 import java.util.Map;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
@@ -74,11 +78,29 @@ public interface StarLink {
      */
     void hit(ServerLevel level, LivingEntity victim, ServerPlayer attacker, float damage);
 
-    /** Teleports a caster standing within {@code zone} of the target out to {@code refuge}, held in the air. */
-    boolean liftClear(ServerPlayer caster, Vec3 target, double zone, double refuge, int ticks);
+    /**
+     * Takes a caster standing within {@code zone} of the target out of it, falling slowly: straight up ({@code lift}),
+     * or out to {@code refuge} from the target when that land is loaded (else up). Never onto land that isn't loaded.
+     */
+    boolean liftClear(ServerPlayer caster, Vec3 target, double zone, double refuge, int ticks, boolean lift);
 
     /** Places blocks fast (straight into the chunk sections), relights and resends the chunks. */
     void paint(ServerLevel level, Map<BlockPos, BlockState> blocks);
+
+    /** The operators' /ssa command (cast any remote skill without the remote). */
+    void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher);
+
+    /**
+     * Copies a loaded chunk's sections from {@code fromY} to {@code toY} to build into off the server thread; whole
+     * sections from {@code clearFrom} up start empty (a section-aligned y; {@link Integer#MAX_VALUE}: none).
+     */
+    Excavation.Sink sink(ServerLevel level, ChunkPos pos, int fromY, int toY, int clearFrom);
+
+    /** Relights chunks written through a {@link Excavation.Sink} and sends each to its players once. */
+    void relight(ServerLevel level, List<ChunkPos> chunks);
+
+    /** Whether another mod's shield (a RimuLib ward) spares this column from strikes; safe off the server thread. */
+    boolean spares(ServerLevel level, int x, int z);
 
     /**
      * Cuts everything above a floor away, a chunk at a time, nearest {@code centre} first: the same fast carver the

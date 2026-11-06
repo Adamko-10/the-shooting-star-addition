@@ -1,5 +1,6 @@
 package dev.ss05.halley.compat.tss;
 
+import cyou.rimuru.rimulib.mc1201.api.NetApi;
 import cyou.rimuru.rimulib.mc1201.net.RimuPacket;
 import dev.ss05.halley.HalleyAddon;
 import net.minecraft.network.FriendlyByteBuf;
@@ -14,7 +15,7 @@ public record StrikeFx(int skill, int casterId, Vec3 origin, Vec3 target, float 
     /** The caster plays their films for everyone near the strike (the same bit as The Shooting Star's packet). */
     public static final int FLAG_FOR_EVERYONE = 8;
 
-    public static final RimuPacket<StrikeFx> PACKET = RimuPacket.of(HalleyAddon.id("strike_fx"), StrikeFx.class,
+    public static final RimuPacket<StrikeFx> PACKET = NetApi.packet(HalleyAddon.id("strike_fx"), StrikeFx.class,
         StrikeFx::write, StrikeFx::read);
 
     private void write(FriendlyByteBuf buf) {
@@ -36,13 +37,13 @@ public record StrikeFx(int skill, int casterId, Vec3 origin, Vec3 target, float 
     }
 
     /** 1.20.1's FriendlyByteBuf has no writeVec3/readVec3 (added in later versions). */
-    private static void writeVec3(FriendlyByteBuf buf, Vec3 v) {
+    static void writeVec3(FriendlyByteBuf buf, Vec3 v) {
         buf.writeDouble(v.x);
         buf.writeDouble(v.y);
         buf.writeDouble(v.z);
     }
 
-    private static Vec3 readVec3(FriendlyByteBuf buf) {
+    static Vec3 readVec3(FriendlyByteBuf buf) {
         return new Vec3(buf.readDouble(), buf.readDouble(), buf.readDouble());
     }
 }

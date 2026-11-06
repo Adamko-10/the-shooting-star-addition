@@ -482,6 +482,7 @@ public class TssRemap {
                 if (!(l.get(j) instanceof String s)) continue;
                 int p = s.indexOf('(');
                 String name = p < 0 ? s : s.substring(0, p), desc = p < 0 ? null : s.substring(p);
+                boolean mapped = false;
                 for (String t : targets) {
                     String obf = null;
                     if (desc != null) {
@@ -492,9 +493,14 @@ public class TssRemap {
                     if (obf != null) {
                         String obfDesc = desc == null ? "" : mapDesc(desc, m.classes);
                         l.set(j, obf + obfDesc);
-                        changed = true;
+                        changed = mapped = true;
                         break;
                     }
+                }
+                // a method kept under its obfuscated name has no entry, but classes in its descriptor may (1.5.1)
+                if (!mapped && desc != null && !mapDesc(desc, m.classes).equals(desc)) {
+                    l.set(j, name + mapDesc(desc, m.classes));
+                    changed = true;
                 }
             }
         }
