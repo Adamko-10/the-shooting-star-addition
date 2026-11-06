@@ -18,8 +18,9 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   how the recipe works, what was kept: `docs/SOUNDS.md` "Status"). `art/sonniss_sounds.sh <out dir> [names]` makes
   them (~3 min; no default out dir on purpose); `art/sounds/sources.md` (written by it) = which Sonniss file went
   into which sound. The user listens in `test builds\2026-11-06 Sonniss sounds\` (`new\` = all 52, `old\` = the 40
-  shipped ones, same names, for A/B; `levels.txt`; the test jar = main's jar with the 40 swapped in, **not in the
-  Modrinth profile**: the user's to put there). **The old files stay in `src/` until the user approves**; then run
+  shipped ones, same names, for A/B; `levels.txt`; the test jar = main's jar with the 40 swapped in, **in the Modrinth
+  profile since 2026-11-06 ~16:25** (the user's pick; the Earth build there renamed `(Proxima Earth build).jar.disabled`;
+  it also brings the untested Stellar Quartet unlock)). **The old files stay in `src/` until the user approves**; then run
   the script with `src/main/resources/assets/shooting_star_addition/sounds` and commit. Picks were made by
   measuring: the project folder's `sound library\envelope.js <catalogue row or file>` (level + low/mid/high per
   0.1 s, onsets, spectral peaks). The bundle: `sound library\sonniss gdc 2026\` (`files\` 347 sounds,
@@ -30,6 +31,11 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   pipeline as before, so low risk; only the user can judge them anyway).
   **Licence caveat**: Sonniss GDC licence v2.0 forbids supplying the sounds "as sound effects" (files); a jar can be
   unzipped, so it's a grey area; the user may email Sonniss for written OK (offer to draft it).
+- **The Railgun reference is DONE (2026-11-06)**: docs/SS-07-PROXIMA.md "The Railgun reference" (its whole film by
+  film time; the pull up = ~1 s from the mark to above the clouds, exponential, straight down; then a cut to Earth from
+  orbit). Recorded with the harness's new `filmlog=true` (`test scriptsautotest16.sh`, frames and camera log in
+  `test builds6-11-06 auto test 23 railgun reference`). **Open, asked the user**: Proxima's zoom-out at the
+  Railgun's pace or the previz's slower 3.8 s pull. Next on the list: Proxima's new film in game (item 2).
 - **The user's PC**: free again (the user, 2026-11-06 ~16:00: "u can use my pc now"): game test runs and the
   browser pane are OK again. Still: **don't run game tests or swap the Modrinth jar while they play**, ask if unsure.
 - **Ponytail mode is OFF** for this creative work (the user's pick; their `/ponytail off` worked; they asked again
@@ -194,7 +200,7 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   now follow). Details and test results: docs/SS-07-PROXIMA.md stage 2.
 - **Next, the update's remaining list** (rewritten 2026-11-06 evening, with the new quality work; ETA given then:
   **about 5-8 days of sessions**, plus the user's test rounds and two outside waits):
-  1. the Railgun reference (a game run, when the user's PC is free);
+  1. the Railgun reference (DONE 2026-11-06: docs/SS-07-PROXIMA.md "The Railgun reference");
   2. Proxima's new film in game, as the previz (the zoom-out from the land to orbit, a real star shader, the ~980-panel
      Dyson sphere with its iris, rings, the hex lens, Earth and the gate, the title cards, the 31 s timeline, the music
      re-cut), and the split into **SA-04A · Proxima Flare** (today's skill) / **SA-04B** (1.5-3 days);
