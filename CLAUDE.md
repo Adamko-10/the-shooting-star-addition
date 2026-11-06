@@ -12,6 +12,22 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
+### RELEASE PLAN (decided 2026-11-06 evening; the user: "what can we do to push it out today? either this session or the one after")
+
+- **1.7.0 = everything on main except Proxima**, for **all seven versions** (the user's pick), one big push. **Proxima
+  (SA-04) waits for the next update** with its new previz film and SA-04B CME (the user: "skip cme for now and add it
+  next update"; held back because its current film "won't do"). It is taken out by ONE commit on main ("Hold Proxima
+  for the next update"); after the release, `git revert` it on main to bring Proxima back.
+- **Sounds**: the new Sonniss ones only if the user likes them (listening in game; test jar in the Modrinth profile);
+  else the 2026-11-04 overhauled ones stay. Licence grey area known to the user (Sonniss: no supplying as files).
+- **Builds/CI**: the six other branches are ported (parallel Sonnet helpers, one per branch, §3) and built by CI on
+  `wip/<branch>` (the user OK'd wip pushes, 2026-11-06; never the real branches until the user says push). JDK 25
+  (Fabric) isn't on Adam's PC.
+- Order: (1) hold Proxima, build, game-test main; (2) version 1.7.0, changelog (Python isn't on Adam's PC: write it by
+  hand or in JS); (3) port six branches + one CI round; (4) the user's test; (5) push, GitHub releases, CurseForge
+  (ask about the tab suspender first, §0). ETA given: main today, all seven next session at the earliest.
+- **Ponytail**: Claude recommended turning it back on for this release/porting work (the user asked, 2026-11-06).
+
 ### START HERE (2026-11-06, late evening, Adam's PC)
 
 - **Doing right now: the sound overhaul from Sonniss: ALL 52 SOUNDS MADE, waiting for the user's ears** (status,
