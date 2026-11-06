@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:block/cube_all",
-  "textures": {
-    "all": "shooting_star_addition:block/proxima_ash"
-  }
-}

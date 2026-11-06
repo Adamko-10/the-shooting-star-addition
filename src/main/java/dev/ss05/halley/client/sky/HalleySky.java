@@ -13,7 +13,6 @@ import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.luna.MoonFx;
-import dev.ss05.halley.client.proxima.ProximaFx;
 import dev.ss05.halley.client.render.BakedTexture;
 import dev.ss05.halley.client.render.HalleyRenderTypes;
 import dev.ss05.halley.client.render.ShaderPacks;
@@ -85,8 +84,7 @@ public final class HalleySky {
     public static void update(RenderFrameEvent.Pre event) {
         current = null;
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level == null || (HalleyFx.active().isEmpty() && MoonFx.active().isEmpty() && ProximaFx.active().isEmpty()
-            && !ProximaFx.auroras())
+        if (minecraft.level == null || (HalleyFx.active().isEmpty() && MoonFx.active().isEmpty())
             || !HalleyClientConfig.sky()) {
             return;
         }
@@ -111,25 +109,6 @@ public final class HalleySky {
             }
             SkyLook look = fx.sky(partial, camera);
             float strength = look.cover() + look.flash() + look.aurora() * 0.2F + look.cometGlow() * 0.1F;
-            if (look.visible() && strength >= bestStrength) {
-                best = look;
-                bestStrength = strength;
-            }
-        }
-        // after a flare: auroras for a night or two (when nothing else is changing the sky)
-        if (best == null) {
-            SkyLook aurora = ProximaFx.aurora(partial, camera);
-            if (aurora != null && aurora.visible()) {
-                best = aurora;
-                bestStrength = aurora.aurora() * 0.2F;
-            }
-        }
-        for (ProximaFx fx : ProximaFx.active()) {
-            if (fx.finished(partial)) {
-                continue;
-            }
-            SkyLook look = fx.sky(partial, camera);
-            float strength = look.cover() + look.flash() + look.cometGlow() * 0.1F;
             if (look.visible() && strength >= bestStrength) {
                 best = look;
                 bestStrength = strength;

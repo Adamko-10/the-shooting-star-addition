@@ -100,30 +100,6 @@ public final class HalleyContent {
     public static final DeferredItem<BlockItem> COMET_HEART_ITEM = ITEMS.registerSimpleBlockItem(COMET_HEART, new Item.Properties());
     public static final DeferredItem<BlockItem> COMET_TRAIL_ITEM = ITEMS.registerSimpleBlockItem(COMET_TRAIL, new Item.Properties());
 
-    /** What SA-04 Proxima's plasma leaves in its glassy bowl: glowing, crackling, minable (a pickaxe), drops itself. */
-    public static final DeferredBlock<SolarResidueBlock> SOLAR_RESIDUE = BLOCKS.registerBlock("solar_residue", SolarResidueBlock::new,
-        BlockBehaviour.Properties.of()
-            .strength(3.0F, 9.0F)
-            .mapColor(MapColor.COLOR_MAGENTA)
-            .sound(SoundType.AMETHYST)
-            .lightLevel(state -> 12)
-            .emissiveRendering((state, level, pos) -> true)
-            .requiresCorrectToolForDrops()
-            .isValidSpawn((state, level, pos, type) -> false));
-    public static final DeferredItem<BlockItem> SOLAR_RESIDUE_ITEM = ITEMS.registerSimpleBlockItem(SOLAR_RESIDUE, new Item.Properties());
-
-    /** The thin ash SA-04 Proxima leaves over the land it scorched: a layer like snow that never melts. Drops nothing. */
-    public static final DeferredBlock<SnowLayerBlock> PROXIMA_ASH = BLOCKS.registerBlock("proxima_ash", SnowLayerBlock::new,
-        BlockBehaviour.Properties.of()
-            .mapColor(MapColor.COLOR_GRAY)
-            .replaceable()
-            .forceSolidOff()
-            .strength(0.1F)
-            .sound(SoundType.SAND)
-            .isViewBlocking((state, level, pos) -> state.getValue(SnowLayerBlock.LAYERS) >= 8)
-            .pushReaction(PushReaction.DESTROY));
-    public static final DeferredItem<BlockItem> PROXIMA_ASH_ITEM = ITEMS.registerSimpleBlockItem(PROXIMA_ASH, new Item.Properties());
-
     /** Cheese, so eating any of it first clears your effects like milk does ({@link CheeseItem}). */
     public static final DeferredItem<BlockItem> MOON_CHEESE_ITEM =
         ITEMS.register("moon_cheese", () -> new CheeseItem(MOON_CHEESE.get(), new Item.Properties().food(Foods.GOLDEN_CARROT)));
@@ -191,13 +167,6 @@ public final class HalleyContent {
     public static final DeferredHolder<SoundEvent, SoundEvent> MOON_BUILDUP = sound("luna_buildup");
     /** The air drawn in, after the hush and just before the impact. */
     public static final DeferredHolder<SoundEvent, SoundEvent> MOON_INHALE = sound("luna_inhale");
-    /** Proxima's coronal front coming in: its Type II radio burst, a whine drifting down (art/make_proxima_sounds.sh). */
-    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_RADIO = sound("proxima_radio");
-    /** Proxima's lens firing, its flash, ground zero and a shock front passing (art/make_proxima_sounds.sh). */
-    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_BEAM = sound("proxima_beam");
-    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_FLASH = sound("proxima_flash");
-    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_IMPACT = sound("proxima_impact");
-    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_WAVE = sound("proxima_wave");
 
     /** Damage from the shock wave outside the crater (inside it, things are erased the way the other skills erase). */
     public static final ResourceKey<DamageType> WAKE = ResourceKey.create(Registries.DAMAGE_TYPE, HalleyAddon.id("halley_wake"));
@@ -233,8 +202,6 @@ public final class HalleyContent {
         } else if (event.getTabKey() == CreativeModeTabs.NATURAL_BLOCKS) {
             event.accept(COMET_HEART_ITEM);
             event.accept(COMET_TRAIL_ITEM);
-            event.accept(SOLAR_RESIDUE_ITEM);
-            event.accept(PROXIMA_ASH_ITEM);
             event.accept(MOON_CHEESE_ITEM);
             event.accept(HOLEY_MOON_CHEESE_ITEM);
             event.accept(MOLTEN_MOON_CHEESE_ITEM);

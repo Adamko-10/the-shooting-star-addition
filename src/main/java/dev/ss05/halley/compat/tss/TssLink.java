@@ -17,7 +17,6 @@ import dev.ss05.halley.CastTuning;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.MoonParams;
-import dev.ss05.halley.ProximaParams;
 import dev.ss05.halley.compat.StarLink;
 import dev.ss05.halley.compat.TssVersion;
 import dev.ss05.halley.compat.mixin.ChunkAccessMixin;
@@ -25,7 +24,6 @@ import dev.ss05.halley.compat.tss.client.StarClientBridge;
 import dev.ss05.halley.world.Excavation;
 import dev.ss05.halley.world.HalleyCasting;
 import dev.ss05.halley.world.MoonCasting;
-import dev.ss05.halley.world.ProximaCasting;
 import dev.ss05.halley.world.Protected;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -82,8 +80,6 @@ public final class TssLink implements StarLink {
     public static final HalleySkill SKILL = new HalleySkill();
     /** Luna as The Shooting Star sees it. */
     public static final MoonSkill MOON = new MoonSkill();
-    /** Proxima as The Shooting Star sees it. */
-    public static final ProximaSkill PROXIMA = new ProximaSkill();
     /** Stellar Convergence (every ticked weapon at once) as The Shooting Star sees it. */
     public static final ConvergenceSkill CONVERGENCE = new ConvergenceSkill();
 
@@ -123,10 +119,10 @@ public final class TssLink implements StarLink {
             // The remote hands every cast a Tuning: the sliders under the skill in its menu (power, damage, speed),
             // clamped to the skill's range. Halley and Luna get theirs as the addon's own CastTuning; Stellar
             // Convergence scales every weapon it fires (each with its own sliders) by its own.
-            SkillApi.extend(set, new Skill[]{SKILL, MOON, PROXIMA, CONVERGENCE}, (player, skill, tuning) -> skill == SKILL
+            SkillApi.extend(set, new Skill[]{SKILL, MOON, CONVERGENCE}, (player, skill, tuning) -> skill == SKILL
                 ? HalleyCasting.cast(player, tune(tuning)) : skill == MOON ? MoonCasting.cast(player, tune(tuning))
-                : skill == PROXIMA ? ProximaCasting.cast(player, tune(tuning)) : Convergence.cast(player, tuning));
-            for (Skill ours : List.<Skill>of(SKILL, MOON, PROXIMA, CONVERGENCE)) {
+                : Convergence.cast(player, tuning));
+            for (Skill ours : List.<Skill>of(SKILL, MOON, CONVERGENCE)) {
                 HalleyAddon.LOG.info("{} joined the Stellar Remote as skill #{} (key slot {}).", ours.title(), set.skills.indexOf(ours) + 1,
                     SkillApi.index(ours));
             }
@@ -212,21 +208,6 @@ public final class TssLink implements StarLink {
     @Override
     public void startMoon(ServerPlayer caster, Vec3 target, long seed, MoonParams params, CastTuning tuning) {
         Spell.start(new MoonSpell(caster, target, seed, params, tuning));
-    }
-
-    @Override
-    public void startProxima(ServerPlayer caster, Vec3 target, long seed, ProximaParams params, CastTuning tuning) {
-        Spell.start(new ProximaSpell(caster, target, seed, params, tuning));
-    }
-
-    @Override
-    public void startFlare(ServerPlayer near, Vec3 target, long seed, ProximaParams params, CastTuning tuning) {
-        Spell.start(new ProximaSpell(near, target, seed, params, tuning, true));
-    }
-
-    @Override
-    public boolean proximaRunning(ServerPlayer player) {
-        return Spell.running(PROXIMA, player.getUUID());
     }
 
     @Override

@@ -7,7 +7,6 @@ import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.ss05.halley.client.ConvergenceView;
 import dev.ss05.halley.client.HalleyFx;
-import dev.ss05.halley.client.proxima.ProximaFx;
 import javax.annotation.Nullable;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -36,7 +35,6 @@ public final class CometRenderer {
 
     public static void render(RenderLevelStageEvent event) {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES || HalleyFx.active().isEmpty() && !ConvergenceView.any()
-            && ProximaFx.active().isEmpty()
             || !HalleyRenderTypes.ready()) {
             return;
         }
@@ -91,12 +89,7 @@ public final class CometRenderer {
                 fx.render(worldBatch, glareBatch, partial, landRange, land);
             }
         }
-        // Proxima's coronal front and shock wave, and Stellar Convergence's own effect, use the same glow shapes
-        for (ProximaFx fx : ProximaFx.active()) {
-            if (!fx.finished(partial)) {
-                fx.render(worldBatch, glareBatch, partial, level);
-            }
-        }
+        // Stellar Convergence's own effect uses the same glow shapes
         for (ConvergenceView view : ConvergenceView.active(level.getGameTime())) {
             view.render(worldBatch, level.getGameTime() + partial);
         }
