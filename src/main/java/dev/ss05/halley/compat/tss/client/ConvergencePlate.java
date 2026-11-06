@@ -173,7 +173,10 @@ public final class ConvergencePlate {
         boolean ring = HalleyClientConfig.convergenceRing();
         Component credit = Component.translatable("gui.shooting_star_addition.convergence.credit");
         Component warning = Component.translatable("gui.shooting_star_addition.convergence.warning");
-        Component hint = Component.translatable(old ? "gui.shooting_star_addition.convergence.hint.old" : "gui.shooting_star_addition.convergence.hint");
+        // without Stellar Quartet the plate says how to unlock it, in place of its hint
+        boolean locked = dev.ss05.halley.StellarQuartet.REQUIRED && !dev.ss05.halley.StellarQuartet.installedHere();
+        Component hint = Component.translatable(locked ? "gui.shooting_star_addition.convergence.locked"
+            : old ? "gui.shooting_star_addition.convergence.hint.old" : "gui.shooting_star_addition.convergence.hint");
         Component hint2 = old ? Component.translatable("gui.shooting_star_addition.convergence.hint2.old") : Component.empty();
         int row = old ? OLD_ROW : ROW;
         int w = Math.max(old ? OLD_WIDTH : WIDTH, Math.max(Math.max(font.width(credit), font.width(warning)), Math.max(font.width(hint), font.width(hint2))) + 22);
@@ -190,7 +193,7 @@ public final class ConvergencePlate {
         g.drawString(font, title, 11, 7, 0xFF000000 | AdditionPanel.INK, false);
         AdditionPanel.keyCap(g, font, w - 24, 6, old ? "T" : "V", true);
         g.fill(11, 19, w - 10, 20, 0xFF000000 | AdditionPanel.RULE);
-        g.drawString(font, hint, 11, 24, 0xFF000000 | AdditionPanel.GREY, false);
+        g.drawString(font, hint, 11, 24, 0xFF000000 | (locked ? AdditionPanel.WARN : AdditionPanel.GREY), false);
         g.drawString(font, hint2, 11, 35, 0xFF000000 | AdditionPanel.GREY, false);
 
         for (int i = 0; i < weapons.size(); i++) {

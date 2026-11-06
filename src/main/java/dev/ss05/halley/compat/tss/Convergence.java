@@ -13,6 +13,7 @@ import dev.ss05.halley.HalleyPlan;
 import dev.ss05.halley.MoonConfig;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.EpicMode;
+import dev.ss05.halley.StellarQuartet;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.NoCooldown;
 import dev.ss05.halley.ProximaParams;
@@ -132,6 +133,11 @@ public final class Convergence {
 
     /** The remote fired SA-00 (or an operator's /ssa strike stellar_convergence). */
     static boolean cast(ServerPlayer player, Tuning master) {
+        // the remote fires it only for players with Stellar Quartet installed (operators' /ssa strike always can)
+        if (!StellarQuartet.unlocked(player) && !NoCooldown.commandCast()) {
+            StarBridge.deny(player, "Stellar Convergence unlocks with The Shooting Star - Stellar Quartet (by ikun520) installed");
+            return false;
+        }
         Picks picks = PICKS.get(player.getUUID());
         List<Weapon> weapons = new ArrayList<>();
         List<Weapon> finale = new ArrayList<>();

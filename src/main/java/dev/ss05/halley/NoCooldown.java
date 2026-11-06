@@ -47,6 +47,11 @@ public final class NoCooldown {
         forced = on;
     }
 
+    /** Whether an operator's /ssa strike is casting right now. */
+    public static boolean commandCast() {
+        return forced;
+    }
+
     /** Whether "already on its way" is skipped for the cast being made: no cooldown applies, or a command casts. */
     public static boolean casting() {
         return casting || forced;

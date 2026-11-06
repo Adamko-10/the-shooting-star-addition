@@ -1257,6 +1257,18 @@ own thing, not a copy of it.
   not required); it must be a per-player client check told to the server (it's client-only); a wrong-loader jar isn't
   loaded, so it wouldn't unlock (a file-presence check is possible but a bad idea: wrong-version jars of the same
   loader can stop the game starting). Its mod id needs its jar (download needs the user's OK).
+  **BUILT on main 2026-11-06 (the user: "do only where sq exists")**: `StellarQuartet` (`MOD_ID` "star_quartet", read
+  from its 1.4.0 NeoForge jar, downloaded with the user's OK into the project folder's `other mods\stellar quartet\`,
+  never shipped): each client says `ModList.isLoaded` in `ChoicePayload` (network version 4), `Convergence.cast`
+  refuses the remote's cast without it (operators' `/ssa strike` always can, `NoCooldown.commandCast()`), the plate's
+  hint becomes "Locked: install Stellar Quartet ..." in red. `REQUIRED` = true on main; **set it false on the
+  forge-1.20.1, fabric-1.20.1 and fabric-1.21.11 branches when porting** (no Stellar Quartet there). Built, not tested
+  in game (the user's game was open). Found in its jar: it already lists *our* addon as an optional dependency (it
+  fires our Halley in one of its quarters), and it hooks TSS's obfuscated classes by their 1.5.1 names
+  (`lllli111i`, `llli1l1ll` = 1.5.1's FxManager, `ii1lilll1ll`) plus RimuLib internals; in TSS 1.5.2 those names are
+  different classes, and its TSS range is open (`[1.5.1-demo,)`), so 1.4.0 loads on 1.5.2 and most likely crashes or
+  breaks (not tested). Like us it needs an update after every TSS update; until it has one for 1.5.2, nobody on our
+  update can unlock Convergence. The user's announcement was corrected (they're posting it).
 - **Decided 2026-11-04 (the user's picks)**: it is **its own remote skill** (in the remote's list as SA-00 · Stellar
   Convergence; selected and fired like any skill, with its own key slot); **every impact lands on the same tick** (the
   quicker weapons are cast later); where they land is **a switch on the plate**: all on the crosshair, or spread in a

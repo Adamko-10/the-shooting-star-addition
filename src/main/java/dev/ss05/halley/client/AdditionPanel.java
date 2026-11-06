@@ -116,7 +116,7 @@ public final class AdditionPanel {
         ClientPacketListener connection = Minecraft.getInstance().getConnection();
         if (connection != null && connection.hasChannel(ChoicePayload.TYPE)) {
             PacketDistributor.sendToServer(new ChoicePayload(HalleyClientConfig.noCooldown(), HalleyClientConfig.evacLift(),
-                HalleyClientConfig.epicMode()));
+                HalleyClientConfig.epicMode(), dev.ss05.halley.StellarQuartet.installedHere()));
         }
     }
 

@@ -4,6 +4,7 @@ import dev.ss05.halley.EpicMode;
 import dev.ss05.halley.Evac;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.NoCooldown;
+import dev.ss05.halley.StellarQuartet;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
@@ -24,8 +25,8 @@ public final class AddonNetwork {
     }
 
     private static void payloads(RegisterPayloadHandlersEvent event) {
-        // 2: ChoicePayload carries the evac switch too; 3: and Epic mode
-        PayloadRegistrar registrar = event.registrar("3").optional();
+        // 2: ChoicePayload carries the evac switch too; 3: and Epic mode; 4: and whether Stellar Quartet is installed
+        PayloadRegistrar registrar = event.registrar("4").optional();
         registrar.playToClient(SettingsPayload.TYPE, SettingsPayload.CODEC,
             (payload, context) -> context.enqueueWork(() -> ServerSettings.received(payload.noCooldown(), payload.survival())));
         registrar.playToServer(ChoicePayload.TYPE, ChoicePayload.CODEC, (payload, context) -> context.enqueueWork(() -> {
@@ -33,6 +34,7 @@ public final class AddonNetwork {
                 NoCooldown.choose(player, payload.noCooldown());
                 Evac.choose(player, payload.evacLift());
                 EpicMode.choose(player, payload.epic());
+                StellarQuartet.tell(player, payload.quartet());
             }
         }));
     }

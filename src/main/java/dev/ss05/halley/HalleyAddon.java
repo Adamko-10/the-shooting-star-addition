@@ -95,6 +95,7 @@ public final class HalleyAddon {
                 NoCooldown.forget(player);
                 Evac.forget(player);
                 EpicMode.forget(player);
+                StellarQuartet.forget(player);
             }
         });
     }
