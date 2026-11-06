@@ -14,6 +14,38 @@ to send). Keep every source file's name in `art/sounds/sources.md` so a pick can
 `.ogg`. Levels by role, as the first overhaul (measured against The Shooting Star's own, never copied): impacts about
 -11 to -12.5 LUFS, cues -15/-16, beds -16/-18, hums -19. Claude can't hear: every result is checked by the user in game.
 
+## Status (2026-11-06, evening): all made, waiting for the user's ears
+
+- **`art/sonniss_sounds.sh <out dir> [names]`** makes all 52 files (the 40 the game plays + Proxima's 12 new film
+  ones) in ~3 minutes; **`art/sounds/sources.md`** (written by it) lists every layer: Sonniss file, cut, gain, start,
+  filters. No default out dir on purpose. How a recipe works: each cut is levelled to -20 LUFS first (so a layer's gain
+  means the same whatever the source), faded a few ms at both ends, filtered (pitch = `asetrate`, reverse, EQ,
+  envelope), delayed, mixed, trimmed by samples to the length the code expects, then `finish` (level by role, limiter
+  at -1 dBFS, up to three make-up passes, mono Vorbis q5). The countdown is generated (53 ticks on the old schedule,
+  1 s gap shrinking 8% a tick to 0.09 s, a latch thunk under the first 20); Luna's debris is twenty seeded-random small
+  knocks (books, a case, wood, a rattle, punches, pitched down) over gravel.
+- Picks were made by measuring (the project folder's `sound library\envelope.js <catalogue row or file>`: level and
+  three bands per 0.1 s, onsets, spectral peaks; Claude can't hear). Main sources: trailer booms 011/075/214 (hit 0.25 s
+  in), 344 Audio bass drops, Kopeikin ice (crush, snap, fissure, ice field), ESM ice shatter / glass shards / fire
+  whoosh / electric impact, Jake Fielding thunder rumble, The Noisery moaning metal and hurricane wind, AEROJet blast
+  off (Halley's approach, Proxima's ascent), trailer alarm WholeNotes_011 (Luna's alarm), InMotionAudio arcs, campfire
+  "putting out fire" (steam sizzle), a freight truck pass-by (Proxima's wave: high coming, low going).
+- Kept from the old ones: every length and timing the code relies on (Luna's rumble swelling then near-silent for its
+  last 0.5 s, the inhales ending on the impact, the build-up ending on FALL, the beam's discharge 0.5 s in, the wave's
+  pass at ~1 s); Proxima's radio keeps the old synthesised whine (as planned), cleaned, with real static under it.
+  Changed: `proxima_beam` is 4.0 s now (was 1.8; a sub-bass tail after the discharge, as the previz asks).
+- The hits get a decay over the whole mix (trailer booms hold their tails loud; without it the limiter made attack and
+  tail one wall). Levels reached: within 0.5 dB of target, except the hits 0.5-1.5 dB under (limiter-bound; the old ones
+  were 1.5-2 dB under).
+- **For the user to judge**: the listening folder `test builds\2026-11-06 Sonniss sounds\` (`new\` all 52, `old\` the
+  40 shipped ones, same names, for A/B) and the test jar there (main's jar with the 40 swapped in; nothing else
+  changed). **The old files stay in `src/` until the user approves**; then run the script with
+  `src/main/resources/assets/shooting_star_addition/sounds` (it also writes the 12 film ones, unused until the film
+  code and their `sounds.json` entries come).
+- Proxima's new film events (uplink, ascent, space, star, creak, iris, reconnect, lens, gate, front, inhale, after)
+  are cut to the previz's shot lengths; `proxima_front` is FRONT to HUSH (8 s) and `proxima_inhale` 0.65 s, so they can
+  replace the borrowed `luna_rumble`/`luna_inhale` in ProximaFx once wired.
+
 ## Halley (SA-01)
 
 | Event | When | What it should be | Layers to look for |
