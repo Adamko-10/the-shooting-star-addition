@@ -33,7 +33,19 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
 - Order: (1) hold Proxima, build, game-test main; (2) version 1.7.0, changelog (Python isn't on Adam's PC: write it by
   hand or in JS); (3) port six branches + one CI round; (4) the user's test; (5) push, GitHub releases, CurseForge
   (ask about the tab suspender first, §0). ETA given: main today, all seven next session at the earliest.
-- **Ponytail**: Claude recommended turning it back on for this release/porting work (the user asked, 2026-11-06).
+- **Ponytail**: Claude recommended turning it back on for this release/porting work (the user asked, 2026-11-06); the
+  user set it to **lite**.
+- **The ports run in the user's own agents (the user, 2026-11-06: "start them but via my antigravity or my chatgpt
+  app")**: Claude recommended Antigravity (works on local folders; the ChatGPT app only if it has a local coding mode).
+  Set up: `port-1.7.0` = `4927f36`, main's whole 1.7.0 squashed onto `origin/main` (same tree as main at `deb9792`);
+  six worktrees in the project folder's `ports\<branch>\` on local branches `port/<branch>` (from `origin/<branch>`);
+  `ports\BRIEF-<branch>.md` (made by `ports\make-briefs.js`) = one self-contained brief per branch: cherry-pick
+  `4927f36`, conflict rules, release files (TSS 1.5.1/1.5.2 and RimuLib 1.2.2 ids: Forge 9400022/9438881/9438825,
+  Fabric 9400005/9438887/9438845), `StellarQuartet.REQUIRED` (false on forge-1.20.1, fabric-1.20.1,
+  fabric-1.21.11), the branch's API differences, how to build (Forge: locally with JDK 21; Fabric: not here, CI);
+  reports to `ports\REPORT-<branch>.md`; never push or stash. **Next for Claude**: read the reports, review each
+  branch's diff, push each to `wip/<branch>` with `dev/ci/push-wip.sh` (the user OK'd wip pushes), fix from CI.
+  The README is updated for 1.7.0 (`deb9792`).
 
 ### START HERE (2026-11-06, late evening, Adam's PC)
 
