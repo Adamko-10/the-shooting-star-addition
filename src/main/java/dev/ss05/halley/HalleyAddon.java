@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
@@ -83,6 +84,7 @@ public final class HalleyAddon {
             StarBridge.tick(ServerLifecycleHooks.getCurrentServer());
             MoonStrike.tickLingering();
         });
+        MinecraftForge.EVENT_BUS.addListener((RegisterCommandsEvent event) -> StarBridge.registerCommands(event.getDispatcher()));
         MinecraftForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> {
             StarBridge.clear();
             MoonStrike.clearLingering();
@@ -90,6 +92,9 @@ public final class HalleyAddon {
         MinecraftForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedOutEvent event) -> {
             if (event.getEntity() instanceof ServerPlayer player) {
                 NoCooldown.forget(player);
+                Evac.forget(player);
+                EpicMode.forget(player);
+                StellarQuartet.forget(player);
             }
         });
     }

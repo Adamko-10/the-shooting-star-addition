@@ -6,6 +6,9 @@ import dev.ss05.halley.NoCooldown;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.PacketFlow;
+import dev.ss05.halley.EpicMode;
+import dev.ss05.halley.Evac;
+import dev.ss05.halley.StellarQuartet;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -26,7 +29,7 @@ public final class AddonNetwork {
 
     public static void register(IEventBus modBus) {
         CHANNEL = ChannelBuilder.named(HalleyAddon.id("addon"))
-            .networkProtocolVersion(1)
+            .networkProtocolVersion(4) // 2: ChoicePayload carries the evac switch too; 3: and Epic mode; 4: and whether Stellar Quartet is installed
             .optional()
             .simpleChannel();
 
@@ -44,6 +47,9 @@ public final class AddonNetwork {
             .consumerMainThread((payload, context) -> {
                 if (context.getSender() instanceof ServerPlayer player) {
                     NoCooldown.choose(player, payload.noCooldown());
+                    Evac.choose(player, payload.evacLift());
+                    EpicMode.choose(player, payload.epic());
+                    StellarQuartet.tell(player, payload.quartet());
                 }
             })
             .add();
@@ -63,10 +69,10 @@ public final class AddonNetwork {
     }
 
     /** Tells the server this player's own no-cooldown switch (client side only; see client/AdditionPanel). */
-    public static void sendChoice(boolean noCooldown) {
+    public static void sendChoice(boolean noCooldown, boolean evacLift, boolean epic, boolean quartet) {
         ClientPacketListener connection = Minecraft.getInstance().getConnection();
         if (connection != null && CHANNEL.isRemotePresent(connection.getConnection())) {
-            CHANNEL.send(new ChoicePayload(noCooldown), PacketDistributor.SERVER.noArg());
+            CHANNEL.send(new ChoicePayload(noCooldown, evacLift, epic, quartet), PacketDistributor.SERVER.noArg());
         }
     }
 }

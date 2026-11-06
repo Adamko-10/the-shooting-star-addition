@@ -2,6 +2,7 @@ package dev.ss05.halley.clienttest;
 
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.fml.common.Mod;
 
 /**
@@ -22,7 +23,15 @@ public final class Ss05ClientTestMod {
         }
         MinecraftForge.EVENT_BUS.addListener(Harness::onClientTick);
         MinecraftForge.EVENT_BUS.addListener(Harness::onRenderFramePre);
-        MinecraftForge.EVENT_BUS.addListener(Harness::onRenderFrame);
+        // the screenshots are the last thing a frame does (after everything else's end-of-frame drawing, the addon's
+        // film panels included): registered at the lowest priority once the game runs, so after every mod's own
+        boolean[] armed = {false};
+        MinecraftForge.EVENT_BUS.addListener((TickEvent.ClientTickEvent.Post event) -> {
+            if (!armed[0]) {
+                armed[0] = true;
+                MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, TickEvent.RenderTickEvent.Post.class, Harness::onRenderFrame);
+            }
+        });
         MinecraftForge.EVENT_BUS.addListener(Harness::onServerTick);
         Harness.log("harness armed: " + HarnessParams.describe());
     }

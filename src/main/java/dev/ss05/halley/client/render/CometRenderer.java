@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import dev.ss05.halley.client.ConvergenceView;
 import dev.ss05.halley.client.HalleyFx;
 import javax.annotation.Nullable;
 import net.minecraft.client.Camera;
@@ -33,7 +34,8 @@ public final class CometRenderer {
     }
 
     public static void render(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES || HalleyFx.active().isEmpty() || !HalleyRenderTypes.ready()) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES || HalleyFx.active().isEmpty() && !ConvergenceView.any()
+            || !HalleyRenderTypes.ready()) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
@@ -86,6 +88,10 @@ public final class CometRenderer {
             if (!fx.finished()) {
                 fx.render(worldBatch, glareBatch, partial, landRange, land);
             }
+        }
+        // Stellar Convergence's own effect uses the same glow shapes
+        for (ConvergenceView view : ConvergenceView.active(level.getGameTime())) {
+            view.render(worldBatch, level.getGameTime() + partial);
         }
 
         MeshData mesh = world.build();

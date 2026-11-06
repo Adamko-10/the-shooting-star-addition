@@ -1,5 +1,6 @@
 package dev.ss05.halley.compat.tss;
 
+import cyou.rimuru.rimulib.mc1211.api.NetApi;
 import cyou.rimuru.rimulib.mc1211.net.RimuPacket;
 import dev.ss05.halley.HalleyAddon;
 import net.minecraft.network.FriendlyByteBuf;
@@ -14,7 +15,7 @@ public record StrikeFx(int skill, int casterId, Vec3 origin, Vec3 target, float 
     /** The caster plays their films for everyone near the strike (the same bit as The Shooting Star's packet). */
     public static final int FLAG_FOR_EVERYONE = 8;
 
-    public static final RimuPacket<StrikeFx> PACKET = RimuPacket.of(HalleyAddon.id("strike_fx"), StrikeFx.class,
+    public static final RimuPacket<StrikeFx> PACKET = NetApi.packet(HalleyAddon.id("strike_fx"), StrikeFx.class,
         StrikeFx::write, StrikeFx::read);
 
     private void write(FriendlyByteBuf buf) {

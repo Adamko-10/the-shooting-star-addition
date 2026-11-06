@@ -29,6 +29,8 @@ uniform vec3 NightZenith;
 uniform vec3 NightMiddle;
 uniform vec3 NightHorizon;
 uniform vec3 VeilTop;
+// the tops of the aurora's curtains: violet (Halley's), red after a solar storm (Proxima's)
+uniform vec3 AuroraTop;
 uniform vec3 VeilHorizon;
 // what to draw: 0 = the dome as above; for shader packs, painted onto textures (HalleySky.paint): 1 = only the new
 // sky's colour (premultiplied; how much it covers is drawn separately), 2 = only the light on top
@@ -181,7 +183,7 @@ vec3 aurora(vec3 d) {
         vec2 p = d.xz / (d.y + 0.035) * (1.0 + layer * 0.55) * 0.55 + vec2(Seed * 0.17, Seed * 0.11);
         float c = curtain(p, t);
         vec3 col = mix(vec3(0.10, 1.0, 0.62), vec3(0.30, 0.70, 1.0), smoothstep(0.0, 0.5, layer));
-        col = mix(col, vec3(0.72, 0.36, 1.0), smoothstep(0.45, 1.0, layer));
+        col = mix(col, AuroraTop, smoothstep(0.45, 1.0, layer));
         acc += col * c * (1.0 - layer * 0.8) * 0.2;
     }
     return acc * smoothstep(0.02, 0.16, d.y) * (1.0 - smoothstep(0.55, 0.95, d.y));
