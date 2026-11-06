@@ -9,7 +9,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /** The harness's frame hooks (Fabric has no event round a whole frame): before it is drawn, and once it is. */
-@Mixin(GameRenderer.class)
+// priority: after every other mod's end-of-frame drawing, the addon's film panels included
+@Mixin(value = GameRenderer.class, priority = 9000)
 abstract class GameRendererFrameMixin {
     @Inject(method = "render(Lnet/minecraft/client/DeltaTracker;Z)V", at = @At("HEAD"))
     private void ss05clienttest$frameStart(DeltaTracker deltaTracker, boolean renderLevel, CallbackInfo ci) {

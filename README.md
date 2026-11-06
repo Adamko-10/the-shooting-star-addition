@@ -3,7 +3,8 @@
 An **unofficial**, fan-made addon for [The Shooting Star [Demo]](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-demo)
 by rimuru_dev. It adds two new skills to the Stellar Remote: **SA-01 · Halley**, a comet called down onto your
 crosshair, and **SA-02 · Luna**, which brings the moon itself down, leaving a moon of edible moon cheese with a
-molten heart in a huge crater. On the remote they come after The Shooting Star's own skills. Their codenames are
+molten heart in a huge crater; and **SA-00 · Stellar Convergence**, which fires every weapon you tick at once. On the
+remote they come after The Shooting Star's own skills. Their codenames are
 their own series, SA (Shooting star Addition), so they never clash with the SS numbers of The Shooting Star's own
 skills, whatever it adds.
 
@@ -11,10 +12,10 @@ skills, whatever it adds.
 
 ![Halley in game](docs/screenshots/overview.jpg)
 
-> **Compatibility:** this branch is the **Fabric, Minecraft 1.21.1** version, for **The Shooting Star [Demo] 1.3.3,
-> 1.3.4, 1.4.0, 1.4.1, 1.4.2 and 1.4.3 [Fabric]** (one jar for all of them). The **NeoForge 1.21.1** version is on the
-> `main` branch, **Forge and NeoForge 1.20.1** on `forge-1.20.1`, **Forge 1.21.1** on `forge-1.21.1`, and
-> **Fabric 26.3, 1.21.11 and 1.20.1** on `fabric-26.3`, `fabric-1.21.11` and `fabric-1.20.1`. See
+> **Compatibility:** this branch is the **Fabric, Minecraft 1.21.1** version, for **The Shooting Star [Demo] 1.5.2
+> [Fabric]** with **RimuLib 1.2.2** or newer (on The Shooting Star 1.5.0, use version 1.6.0 of this addon). The
+> **NeoForge 1.21.1** version is on the `main` branch, **Forge and NeoForge 1.20.1** on `forge-1.20.1`, **Forge 1.21.1**
+> on `forge-1.21.1`, and **Fabric 26.3, 1.21.11 and 1.20.1** on `fabric-26.3`, `fabric-1.21.11` and `fabric-1.20.1`. See
 > [Will it work with future versions?](#will-it-work-with-future-versions-of-the-shooting-star) below.
 
 ## Halley
@@ -40,8 +41,8 @@ land round it.
   comet heart shines a beam into the sky.
 - Joins the Stellar Remote like the built-in skills: its own key (**O** by default), menu card, sliders and description, HUD
   card, cooldown and recharge display.
-- Its own cutscene (skippable with the remote's cutscene key), with impact frames, flashes and camera shake in the
-  remote's style, and the remote's cover, button and screen animate for it.
+- Its own cutscene (skippable with the remote's cutscene key), with its title card (**SA-01 HALLEY**, the letters
+  streaking in like small comets), impact frames, flashes and camera shake in the remote's style.
 - Thirteen new sounds, and two new blocks: the **Comet Heart** and the **Frozen Comet Trail** (mine them with a pickaxe to take them home).
 - Everything in the trench and the crater is erased, the way the remote's other skills erase their strike zones (you
   too if you stand there; in creative you are lifted clear). Past the crater, the shock wave throws, hurts and
@@ -75,12 +76,16 @@ drives deep into it, the crust buckling up against it, and comes to rest there w
   leading face turns molten, its seams blaze and fire wraps its edge, with a bow shock, flames peeling off it and a
   long blazing trail. Always drawn at its true size (whatever the power slider), hidden by the clouds until it comes
   down through them, and it crumbles into its blocks when it lands. It looks right with shader packs too.
-- **Its film**: the uplink, a long lens on the moon cracking, the long fall, entry, the moon looming over you, and
-  **the impact in slow motion** while the camera pulls back, then the crater from above and the moon at rest. The
-  camera always stays over land your game has loaded.
-- **Light on the server**: only the land round the moon itself is ever loaded for it. The rest of the crater, the rim
-  and the cracks are cut where land is already loaded, and anywhere else as soon as that land loads (nothing is ever
-  generated for it).
+- **Its film**: the uplink, a long lens on the moon cracking (its title card, **SA-02 LUNA**, cracking in and breaking
+  away), the long fall, entry, the moon looming over you, and **the impact in slow motion** while the camera pulls
+  back, then the crater from above and the moon at rest. The camera always stays over land your game has loaded.
+- **Epic mode** (the remote's menu, **H**, then **G**): the moon falls slower and more ominously, 24 seconds from the
+  alarm to the impact instead of 16, for everyone watching, with a longer cut of its music.
+- **Keep the moon** (**L** in the menu): the moon model stays where it landed instead of crumbling, cooling down,
+  until you switch it off. Made for filming.
+- **Light on the server**: nothing is ever loaded or generated for it. The crater and the moon are built where land
+  is already loaded, on worker threads, and anywhere else as soon as that land loads, so even huge strikes don't stall
+  the server.
 - Everything in the crater is erased; past it, the shock wave throws, burns and hurts whatever it meets.
 - **Moon cheese** (and **holey moon cheese**, the cheese's eyes, scattered all through the moon): right-click a block to place it, right-click the air to eat it. It's as good as a golden carrot, and being cheese it clears your effects like milk.
 - **Molten moon cheese**: eat it for **500 hearts** and **Strength 255** for 10 minutes (Molten Might), and a full hunger bar with full saturation (it clears your other effects first, like all moon cheese).
@@ -93,6 +98,29 @@ drives deep into it, the crust buckling up against it, and comes to rest there w
 | | | |
 |---|---|---|
 | ![EARTH SYSTEM SHUT DOWN](docs/screenshots/13-luna-alarm.jpg) | ![The moon burning in](docs/screenshots/14-luna-fall.jpg) | ![The moon in its crater](docs/screenshots/15-luna-crater.jpg) |
+
+## SA-00 · Stellar Convergence
+
+A remote skill of its own that fires every weapon you tick, all at once, timed so every impact lands on the same
+tick: Halley, Luna and The Shooting Star's Railgun, Gungnir and Seven Stars (Tesseract fires along with them).
+Gravitia, if ticked, comes last, once the others are done. Other addons' remote skills can be ticked too; they fire
+straight away, as their timing isn't known.
+
+- **Its panel**: select SA-00 in the remote's menu (**H**) and a panel lists the weapons: **1-9** tick them, **R**
+  switches where they land, **X** the camera shake (capped, full or off), **V** folds the panel, **T** switches to its
+  older, always-shown look.
+- **Where they land**: all on the crosshair, or spread in a ring round it with room for each weapon's own size, so the
+  small ones aren't lost under the giants.
+- **Its film**: quick cuts to each weapon's moment, frozen into comic-style panels that fill the screen and shatter as
+  everything hits. One shared sigil and shock ring in the weapons' colours mark the spot.
+- **Sliders**: each weapon fires with its own sliders, times SA-00's own power and speed (its damage is the lower of
+  the two).
+- **Unlocked by Stellar Quartet**: it fires only when you have
+  [Stellar Quartet](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-stellar-quartet) by ikun520
+  installed, the addon that inspired it. Each player's own game checks; servers don't need it. Operators can always
+  fire it with `/ssa strike stellar_convergence`.
+- **No limits**: everything at once at high power can freeze a server. Aim far away: the biggest weapons reach
+  hundreds of blocks.
 
 ## Sliders
 
@@ -118,21 +146,41 @@ while one is still coming down).
 
 - It's for creative (and spectator) players only, unless `no_cooldown_survival = true` lets survival players use it too.
 - Each player switches it on or off for themselves in the remote's menu (**H**, then **C**); it's on until they do.
-- The menu's corner shows a small plate with both switches (Luna's music and no cooldown) and what the server allows,
-  in creative and in survival. Players are also told in chat as they join while it's on (and operators while it's off,
+- The menu's corner shows a small plate with your switches (Luna's music, Epic mode, keep the moon, impact frames,
+  where a creative caster goes, no cooldown) and what the server allows, in creative and in survival. Players are also told in chat as they join while it's on (and operators while it's off,
   with where to switch it on).
 
 Be careful with this: it lets the most destructive skills be cast back to back.
 
+## Operator command
+
+`/ssa strike <skill> [at <x y z>] [power] [damage|inf] [speed]` (operators, permission level 2) casts any skill on the
+remote as you, The Shooting Star's own too, aimed where you look or at `x y z`, with no cooldown. Values left out are
+the skill's defaults. It ignores the server's slider limits: values past the remote's own range warn you in chat, as
+they can freeze or crash a server. `/ssa` alone shows the help. From the console:
+`/execute as <player> run ssa strike ...`.
+
+## Protected blocks
+
+Blocks in the tag `shooting_star_addition:unbreakable` are never carved by Halley or Luna: bedrock, barriers, command
+and structure blocks, jigsaws, end portals and their frames, and reinforced deepslate. Servers can add more with a data
+pack (`data/shooting_star_addition/tags/block/unbreakable.json`).
+
+## A key for Gravitia
+
+The Shooting Star's own Gravitia has no key of its own (it's picked from the menu only). This addon gives it one in
+the remote's menu and in Controls, unbound until you set it.
+
 ## Installing
 
 1. Minecraft **1.21.1** with **Fabric Loader 0.17.0** or newer, and **Fabric API**.
-2. **The Shooting Star [Demo] 1.3.3, 1.3.4, 1.4.0, 1.4.1, 1.4.2 or 1.4.3 [Fabric]**, e.g. `the-shooting-star-demo-1.4.3-fabric.jar`,
-   one file for every Minecraft version it supports, 1.21.1 included.
+2. **The Shooting Star [Demo] 1.5.2 [Fabric]**, e.g. `the-shooting-star-demo-1.5.2-fabric.jar`, and **RimuLib 1.2.2** or
+   newer, which it needs anyway.
 3. This addon's jar ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
 
-In game: hold the Stellar Remote, press **O** for Halley or **N** for Luna (or pick them in the remote's menu, **H**),
+In game: hold the Stellar Remote, press **O** for Halley, **N** for Luna or **B** for Stellar Convergence (or pick them
+in the remote's menu, **H**),
 aim at the ground and right-click. The keys can be changed in Controls or from the remote's menu like the others.
 
 ## Settings — `config/shooting_star_addition-common.toml`
@@ -204,12 +252,21 @@ join a world.
 | `comet_marker`   | true    | The arrow at the edge of the screen pointing at the comet while it's out of view. |
 | `shader_packs`   | AUTO    | How it's drawn with a shader pack: `AUTO` switches to the shader-pack way whenever Iris has a pack on, `ALWAYS` uses it all the time, `NEVER` doesn't (the comet and the sky then won't show under a shader pack). |
 
-And your two switches from the remote's menu (**H**), in the `[stellar_remote]` section of the same file:
+And your switches from the remote's menu (**H**), in the `[stellar_remote]` section of the same file:
 
 | Setting          | Default | What it does |
 |------------------|---------|--------------|
-| `luna_music`     | true    | Luna's music while the moon comes down (**M** in the menu). |
-| `no_cooldown`    | true    | Cast without cooldowns where the server allows it (**C** in the menu). |
+| `luna_music`     | true    | Luna's music while the moon comes down (**M** in the menu). It follows Minecraft's Music volume. |
+| `epic_mode`      | false   | Luna falls slower, 24 s instead of 16, for everyone watching (**G**). |
+| `keep_moon`      | false   | Luna's moon model stays after it lands (**L**). |
+| `impact_frames`  | FULL    | Halley's and Luna's impact frames: `FULL`, `SOFT` or `OFF` (**F**). |
+| `evac_lift`      | true    | In creative, standing where your own strike lands: `true` lifts you straight up, `false` takes you to the crater's edge (**E**). |
+| `no_cooldown`    | true    | Cast without cooldowns where the server allows it (**C**). |
+| `convergence`    | all but Gravitia | The weapons Stellar Convergence fires (**1-9** on its panel). |
+| `convergence_ring` | false | `true` = spread them in a ring round the crosshair (**R**). |
+| `convergence_shake` | CAPPED | Its camera shake: `CAPPED`, `FULL` or `OFF` (**X**). |
+| `convergence_plate` | true  | Its panel shown in full (`false` folds it to its name; **V**). |
+| `convergence_plate_old` | false | Its panel's older look, always shown (**T**). |
 
 ## Will it work with future versions of The Shooting Star?
 
@@ -218,8 +275,8 @@ scrambled (`a`, `b`, `c`...) and change with every release. It has no official w
 this addon attaches to its internals by those names. It carries a separate attachment for each version of The
 Shooting Star it knows, and uses the one for the version you have:
 
-- This version works with **The Shooting Star 1.3.3, 1.3.4, 1.4.0, 1.4.1, 1.4.2 and 1.4.3** (and 1.4.0A, which is 1.4.0).
-  With any other version the game says so when it starts, instead of crashing.
+- This version works with **The Shooting Star 1.5.2** (older ones: earlier versions of this addon). With any other
+  version the game says so when it starts, instead of crashing.
 - When The Shooting Star updates, wait for the next update of this addon. It adds the new version and keeps the old
   ones, so you can update the two mods in either order.
 - On the remote, Halley and Luna come after The Shooting Star's own skills, whatever it adds, and keep their own
@@ -235,7 +292,7 @@ Shooting Star it knows, and uses the one for the version you have:
 
 ## Plans
 
-This is version 1.4. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
+This is version 1.7. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
 Shooting Star and keep improving it: more skills for the Stellar Remote, balancing and polish from your feedback,
 and versions for other loaders and Minecraft versions if there's demand. Bug reports, ideas and feedback are very
 welcome in the issues.
@@ -352,3 +409,5 @@ docs/screenshots/        in-game screenshots
 The Shooting Star and the Stellar Remote are by **rimuru_dev** (All Rights Reserved). This addon is not affiliated
 with or endorsed by them, and contains none of the original mod's code or assets — you need the original mod
 installed for it to do anything.
+
+Stellar Convergence is inspired by **Stellar Quartet** by ikun520, which unlocks it.

@@ -1,10 +1,13 @@
 package dev.ss05.halley.net;
 
+import dev.ss05.halley.EpicMode;
+import dev.ss05.halley.Evac;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.NoCooldown;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import dev.ss05.halley.StellarQuartet;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -21,8 +24,12 @@ public final class AddonNetwork {
     public static void register() {
         PayloadTypeRegistry.playS2C().register(SettingsPayload.TYPE, SettingsPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(ChoicePayload.TYPE, ChoicePayload.CODEC);
-        ServerPlayNetworking.registerGlobalReceiver(ChoicePayload.TYPE, (payload, context) ->
-            NoCooldown.choose(context.player(), payload.noCooldown()));
+        ServerPlayNetworking.registerGlobalReceiver(ChoicePayload.TYPE, (payload, context) -> {
+            NoCooldown.choose(context.player(), payload.noCooldown());
+            Evac.choose(context.player(), payload.evacLift());
+            EpicMode.choose(context.player(), payload.epic());
+            StellarQuartet.tell(context.player(), payload.quartet());
+        });
     }
 
     /** Registered from the client entrypoint only, so nothing client-only is loaded on a dedicated server. */

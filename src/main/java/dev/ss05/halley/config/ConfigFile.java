@@ -52,6 +52,10 @@ public final class ConfigFile {
         return this.add(new EnumValue<>(key, value, comment));
     }
 
+    public StringListValue defineList(String key, List<String> value, String... comment) {
+        return this.add(new StringListValue(key, List.copyOf(value), comment));
+    }
+
     private <V extends Value<?>> V add(V value) {
         if (this.current == null) {
             throw new IllegalStateException("start a section first");
@@ -321,6 +325,11 @@ public final class ConfigFile {
             super(key, fallback, comment);
         }
 
+        /** Sets the value in memory (call the owning {@link ConfigFile#save()} to write it back out). */
+        public void set(E value) {
+            this.value = value;
+        }
+
         @Override
         boolean read(String text) {
             for (E constant : this.fallback.getDeclaringClass().getEnumConstants()) {
@@ -345,6 +354,42 @@ public final class ConfigFile {
                 out.append(i == 0 ? "" : ", ").append(constants[i].name().toUpperCase(Locale.ROOT));
             }
             return out.toString();
+        }
+    }
+
+    /** A list of strings, written as {@code ["a", "b"]} (an empty list as {@code []}). */
+    public static final class StringListValue extends Value<List<String>> {
+        StringListValue(String key, List<String> fallback, String[] comment) {
+            super(key, fallback, comment);
+        }
+
+        /** Sets the value in memory (call the owning {@link ConfigFile#save()} to write it back out). */
+        public void set(List<String> value) {
+            this.value = List.copyOf(value);
+        }
+
+        @Override
+        boolean read(String text) {
+            String t = text.trim();
+            if (!t.startsWith("[") || !t.endsWith("]")) {
+                return false;
+            }
+            List<String> out = new ArrayList<>();
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("\"([^\"]*)\"").matcher(t.substring(1, t.length() - 1));
+            while (m.find()) {
+                out.add(m.group(1));
+            }
+            this.value = List.copyOf(out);
+            return true;
+        }
+
+        @Override
+        String write(List<String> value) {
+            StringBuilder out = new StringBuilder("[");
+            for (int i = 0; i < value.size(); i++) {
+                out.append(i == 0 ? "" : ", ").append("\"").append(value.get(i)).append("\"");
+            }
+            return out.append("]").toString();
         }
     }
 }

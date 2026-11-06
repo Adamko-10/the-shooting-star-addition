@@ -1,6 +1,7 @@
 package dev.ss05.halley.world;
 
 import dev.ss05.halley.CastTuning;
+import dev.ss05.halley.Evac;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.MoonConfig;
@@ -8,12 +9,9 @@ import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.content.HalleyContent;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.annotation.Nullable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -26,7 +24,6 @@ import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ThreadedLevelLightEngine;
-import net.minecraft.server.level.TicketType;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
@@ -55,18 +52,17 @@ import net.minecraft.world.phys.Vec3;
  *       and the crater's rim heaves up while the moon drives in, cracks race out across the land and lumps of moon
  *       and crust land round it ({@link MoonLand}).</li>
  *   <li>{@link MoonPlan#SETTLE}: the moon itself is built out of moon cheese, a few chunks per tick, nearest the mark
- *       first ({@link MoonBuild}).</li>
+ *       first ({@link MoonBuild}, which cuts the crater round the moon too, from the impact on).</li>
  * </ol>
  *
- * <h2>Never loading land it doesn't need</h2>
- * Like The Shooting Star's own carvings, it only loads the land the moon itself needs: the crater round the moon (and
- * the moon's own chunks) are loaded a few at a time as they are cut and built. Everything further out - the rest of
- * the crater's floor, the rim, the cracks, the debris - is done where land is loaded, and wherever it isn't, as that
- * land next loads (while the server runs: The Shooting Star's lingering carvings, and {@link MoonLand}'s). Nothing is
- * ever generated for it.
+ * <h2>Never loading land</h2>
+ * It loads no land at all (the user, 2026-11-04): the crater round the moon and the moon ({@link MoonBuild}), the rest
+ * of the crater's floor, the rim, the cracks, the debris are all done where land is loaded, and wherever it isn't, as
+ * that land next loads (while the server runs: The Shooting Star's lingering carvings, {@link MoonBuild}'s and
+ * {@link MoonLand}'s). Nothing is ever generated for it: a 10x moonfall used to load ~4000 chunks round the mark, most
+ * of them new land, a minute's work.
  */
 public final class MoonStrike {
-    private static final TicketType<ChunkPos> TICKET = TicketType.create(HalleyAddon.MOD_ID + ":luna", Comparator.comparingLong(ChunkPos::toLong));
     private static final int EVAC_COLOR = 0x6FE8FF;
 
     /**
@@ -94,31 +90,12 @@ public final class MoonStrike {
     private final CastTuning cast;
     private final MoonParams params;
     private final MoonConfig.Tuning tuning;
-    /** The single chunks the carver (or the moon's builder) is streaming in (see {@link Excavation.Loader}), let go once cut or at the end. */
-    private final Set<ChunkPos> streamed = new HashSet<>();
-    private final Excavation.Loader loader = new Excavation.Loader() {
-        @Override
-        public void hold(ChunkPos pos) {
-            if (MoonStrike.this.streamed.add(pos)) {
-                MoonStrike.this.holdChunk(pos);
-            }
-        }
-
-        @Override
-        public void release(ChunkPos pos) {
-            if (MoonStrike.this.streamed.remove(pos)) {
-                MoonStrike.this.releaseChunk(pos);
-            }
-        }
-    };
-    /** The crater round the moon, out past the slabs buckled up against it: loaded as it is cut. */
-    @Nullable
-    private Excavation crater;
     /** The rest of the crater's floor, out to the rim's inner wall: cut where land is loaded, the rest as it loads. */
     @Nullable
     private Excavation outerCrater;
     @Nullable
     private MoonVeins veins;
+    /** The crater round the moon, out past the slabs buckled up against it, and the moon (from the impact on). */
     @Nullable
     private MoonBuild moonBuild;
     @Nullable
@@ -143,32 +120,16 @@ public final class MoonStrike {
         return this.plan;
     }
 
-    /** Every server tick: past moonfalls finish their land as its chunks load (see {@link MoonLand}). */
+    /** Every server tick: past moonfalls finish their land as its chunks load (see {@link MoonBuild}, {@link MoonLand}). */
     public static void tickLingering() {
+        MoonBuild.tickLingering();
         MoonLand.tickLingering();
     }
 
     /** The server is stopping: forget what past moonfalls still had to do. */
     public static void clearLingering() {
+        MoonBuild.clearLingering();
         MoonLand.clearLingering();
-    }
-
-    // ---- Chunk tickets: only ever for the chunks the crater round the moon and the moon itself are waiting for. -----
-
-    private void releaseChunks() {
-        for (ChunkPos pos : this.streamed) {
-            this.releaseChunk(pos);
-        }
-        this.streamed.clear();
-    }
-
-    /** One chunk the carver is waiting for, kept loaded (the way The Shooting Star's own carvings hold theirs). */
-    private void holdChunk(ChunkPos pos) {
-        this.level.getChunkSource().addRegionTicket(TICKET, pos, 0, pos);
-    }
-
-    private void releaseChunk(ChunkPos pos) {
-        this.level.getChunkSource().removeRegionTicket(TICKET, pos, 0, pos);
     }
 
     // ---- The timeline. ---------------------------------------------------------------------------------------------
@@ -191,28 +152,22 @@ public final class MoonStrike {
         if (t == MoonPlan.CONTACT) {
             this.detonate(caster);
         }
-        if (t == MoonPlan.SETTLE && this.params.carve() && this.moonBuild == null) {
+        if (t == MoonPlan.SETTLE && this.moonBuild != null) {
             // The client plays the moon ploughing down into the crater until SETTLE; only from there does the
             // block moon actually sit at rest, so there is nothing to build before this.
-            this.moonBuild = new MoonBuild(this.level, this.plan, this.tuning.chunksPerTick(), this.loader);
+            this.moonBuild.moon();
         }
 
-        if (this.crater != null && !this.crater.done()) {
-            this.crater.tick();
+        if (this.moonBuild != null) {
+            this.moonBuild.tick();
         }
         if (this.outerCrater != null && !this.outerCrater.done()) {
             this.outerCrater.tick();
         }
-        // the rim, the slabs and the cracks rise and are cut round the crater: they wait for the crater round the moon
-        // to be dug (it takes a second or two), or the excavator would cut the slabs away again
-        boolean dug = this.crater == null || this.crater.done();
-        if (this.land != null && dug) {
+        // the rim, the slabs and the cracks rise and are cut round the crater: in each chunk, once the crater round the
+        // moon is cut there (MoonBuild.ready), or the slabs would be cut away again
+        if (this.land != null) {
             this.land.tick(t);
-        }
-        // Wait for the crater to be fully cut before painting any of the moon: the excavator removes everything
-        // above its floor in whatever chunk it next reaches, so a chunk painted ahead of it would be cut away again.
-        if (this.moonBuild != null && !this.moonBuild.done() && dug) {
-            this.moonBuild.tick();
         }
         if (this.carvedAt < 0 && this.carvingDone()) {
             this.carvedAt = t;
@@ -231,17 +186,10 @@ public final class MoonStrike {
             return;
         }
         this.ended = true;
-        // Crater first, always: the moon must never be painted into a chunk the excavator hasn't finished cutting.
-        if (this.crater != null) {
-            this.crater.finish();
-        }
-        if (this.moonBuild == null && this.params.carve()) {
-            this.moonBuild = new MoonBuild(this.level, this.plan, this.tuning.chunksPerTick(), this.loader);
-        }
+        // nothing is ever loaded for it: done where land is loaded now, the rest as it loads
         if (this.moonBuild != null) {
-            this.moonBuild.finish();
+            this.moonBuild.end();
         }
-        // what is further out is never loaded for it: done where land is loaded now, the rest as it loads
         if (this.outerCrater != null && !this.outerCrater.done()) {
             this.outerCrater.linger();
         }
@@ -251,23 +199,21 @@ public final class MoonStrike {
         if (this.params.carve()) {
             this.resendCrater();
         }
-        this.releaseChunks();
     }
 
     /**
-     * Whether everything it does to the land (crater, rim, cracks, the moon itself) is done. A big moonfall (the remote's
-     * power slider) can take longer than its film: the spell then runs on until this is true, rather than building the
-     * rest in one go at the end.
+     * Whether everything it does to loaded land (crater, rim, cracks, the moon itself) is done. A big moonfall (the
+     * remote's power slider) can take longer than its film: the spell then runs on until this is true. Land that isn't
+     * loaded is done as it loads, after the spell.
      */
     public boolean worldDone() {
         // the rest of the crater, the rim and the cracks are only cut into loaded chunks (and finished as the others
         // load), so only the crater round the moon and the moon are waited for
-        return !this.params.carve() || (this.crater == null || this.crater.done()) && this.moonBuild != null && this.moonBuild.done();
+        return !this.params.carve() || this.moonBuild != null && this.moonBuild.settled() && this.moonBuild.loadedDone();
     }
 
     private boolean carvingDone() {
-        return (this.crater == null || this.crater.done()) && this.moonBuild != null && this.moonBuild.done()
-            && (this.land == null || this.land.loadedDone());
+        return this.moonBuild != null && this.worldDone() && (this.land == null || this.land.loadedDone());
     }
 
     private double horizontal(double x, double z) {
@@ -308,7 +254,7 @@ public final class MoonStrike {
             return;
         }
         Vec3 from = caster.position();
-        if (StarBridge.liftClear(caster, this.plan.target, zone, zone + 36.0, MoonPlan.DURATION - MoonPlan.EVAC)) {
+        if (StarBridge.liftClear(caster, this.plan.target, zone, zone + 36.0, MoonPlan.DURATION - MoonPlan.EVAC, Evac.lifts(caster))) {
             for (Vec3 at : new Vec3[]{from, caster.position()}) {
                 this.level.playSound(null, at.x, at.y, at.z, HalleyContent.EVAC, SoundSource.PLAYERS, 1.2F, 1.0F);
             }
@@ -327,16 +273,17 @@ public final class MoonStrike {
         if (this.params.carve()) {
             this.veins = new MoonVeins(this.plan);
             double core = this.coreRadius();
-            // round the moon: loaded as it is cut (the moon is built there); further out: only where land is loaded
-            this.crater = StarBridge.excavate(this.level, this.plan.target, core + 2.0, (x, z) -> this.crater(x, z, true),
-                this::craterSurface, this.spared, "Luna impact", this.tuning.chunksPerTick(), this.loader);
+            // round the moon: cut by the moon's builder, which builds the moon there too; further out, the carver. Both
+            // only where land is loaded, the rest as it loads
+            this.moonBuild = new MoonBuild(this.level, this.plan, core + 2.0, (x, z) -> this.crater(x, z, true),
+                this::craterSurface, this.spared);
             if (core < this.plan.rimInner) {
                 this.outerCrater = StarBridge.excavate(this.level, this.plan.target, this.plan.rimInner + 2.0,
                     (x, z) -> this.crater(x, z, false), this::craterSurface, this.spared, "Luna crater", this.tuning.chunksPerTick(), null);
             }
             // the crust buckling up against the moon and the rim heaving up as it drives in, the fissures racing out
             // across the land, and the debris
-            this.land = new MoonLand(this.level, this.plan, this.tuning.chunksPerTick());
+            this.land = new MoonLand(this.level, this.plan, this.tuning.chunksPerTick(), this.moonBuild::ready);
         }
 
         Vec3 t = this.plan.target;

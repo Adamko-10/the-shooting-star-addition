@@ -64,6 +64,14 @@ public final class GlowBatch {
         this.vertex(cx - ax + bx, cy - ay + by, cz - az + bz, u0, v0 + 2.0F, rgb, strength);
     }
 
+    /**
+     * One corner of a plain quad (four in a row make one, in order round it), for a mesh of its own: the colour and
+     * strength are this corner's, blended smoothly across the quad (it samples the flat middle of {@link Shapes#DISC}).
+     */
+    public void corner(Vec3 at, int rgb, float strength) {
+        this.vertex(at.x, at.y, at.z, Shapes.DISC * 4.0F + 1.0F, 1.0F, rgb, strength);
+    }
+
     /** A camera-facing square of half-size {@code size}, turned by {@code rotation} radians on screen. */
     public void billboard(Vec3 at, double size, int shape, int variant, int rgb, float strength, double rotation) {
         double c = Math.cos(rotation) * size;

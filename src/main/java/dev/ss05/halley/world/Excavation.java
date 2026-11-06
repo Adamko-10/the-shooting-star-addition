@@ -33,6 +33,30 @@ public interface Excavation {
         void release(ChunkPos pos);
     }
 
+    /**
+     * A chunk's sections copied to be built into off the server thread, then swapped into the chunk in one go (RimuLib's
+     * section sink): the server thread only copies and swaps.
+     */
+    interface Sink {
+        /** Makes the working copy; on the thread that then puts the blocks. */
+        void prepare();
+
+        /** Sets a block in the copy (one thread at a time). */
+        void put(int x, int y, int z, BlockState state);
+
+        /** Empties a column of the copy from {@code y0} to {@code y1} (the sections that start empty are skipped). */
+        void clear(int x, int z, int y0, int y1);
+
+        /** Whether the chunk was written since it was copied, so the copy is out of date (server thread). */
+        boolean stale();
+
+        /** Swaps the built sections into the chunk (server thread); relight it after, see StarBridge.relight. */
+        void apply();
+
+        /** Throws the copy away (server thread). */
+        void release();
+    }
+
     @FunctionalInterface
     interface Floor {
         /** The y of the new top block of this column, or HalleyPlan.UNTOUCHED to leave the column alone. */

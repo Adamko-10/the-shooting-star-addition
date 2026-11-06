@@ -12,6 +12,8 @@ public record MoonParams(int moonRadius, int craterRadius, int rimHeight, int bu
                          int groundY, Vec3 sky, int flags, float scale) {
     public static final int FLAG_CARVE = 1;
     public static final int FLAG_CORE = 2;
+    /** Epic mode: a slower fall ({@link MoonPlan#EPIC_FALL}), for everyone watching. */
+    public static final int FLAG_EPIC = 4;
 
     /** Marks the int array as Luna's (Halley's uses 0x055A1E), followed by its layout version. */
     private static final int MAGIC = 0x0600A1;
@@ -44,6 +46,17 @@ public record MoonParams(int moonRadius, int craterRadius, int rimHeight, int bu
 
     public boolean carve() {
         return (this.flags & FLAG_CARVE) != 0;
+    }
+
+    public boolean epic() {
+        return (this.flags & FLAG_EPIC) != 0;
+    }
+
+    /** These sizes, in Epic mode or not. */
+    public MoonParams withEpic(boolean epic) {
+        int f = epic ? this.flags | FLAG_EPIC : this.flags & ~FLAG_EPIC;
+        return new MoonParams(this.moonRadius, this.craterRadius, this.rimHeight, this.buriedPercent, this.blastReach, this.groundY,
+            this.sky, f, this.scale);
     }
 
     /** Whether the single block of molten moon cheese is left at the moon's heart. */

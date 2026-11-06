@@ -1,12 +1,11 @@
 package dev.ss05.halley.compat.tss.mixin;
 
-import cyou.rimuru.rimulib.skill.Power;
 import cyou.rimuru.rimulib.skill.Skill;
 import cyou.rimuru.rimulib.skill.SkillSet;
 import cyou.rimuru.shootingstardemo.magic.Casting;
-import dev.ss05.halley.HalleyConfig;
 import dev.ss05.halley.NoCooldown;
 import dev.ss05.halley.compat.TssVersion;
+import dev.ss05.halley.compat.tss.Limits;
 import dev.ss05.halley.compat.tss.TssLink;
 import net.minecraft.server.level.ServerPlayer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -47,20 +46,10 @@ abstract class CastingMixin {
         if (Float.isNaN(power) || Float.isNaN(damage) || Float.isNaN(speed)) {
             return;
         }
-        HalleyConfig.Limits limits = HalleyConfig.limits();
-        float heldPower = power;
-        float heldDamage = damage;
-        float heldSpeed = Math.min(speed, limits.speed());
-        Skill skill = SkillSet.byIndex(TssVersion.MOD_ID, index);
-        if (limits.power() > 0.0F && skill != null) {
-            Power range = skill.power();
-            if (range != null) {
-                heldPower = Math.min(power, Math.max(range.min(), range.initial() * limits.power()));
-            }
-        }
-        if (limits.damage() > 0.0F) {
-            heldDamage = Math.min(damage, limits.damage());
-        }
+        float[] held = Limits.hold(SkillSet.byIndex(TssVersion.MOD_ID, index), power, damage, speed);
+        float heldPower = held[0];
+        float heldDamage = held[1];
+        float heldSpeed = held[2];
         if (heldPower != power || heldDamage != damage || heldSpeed != speed) {
             ci.cancel();
             Casting.liiillli1l(player, index, heldPower, heldDamage, heldSpeed, width, everyone);

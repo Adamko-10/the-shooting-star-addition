@@ -66,6 +66,7 @@ public final class HalleyClient implements ClientModInitializer {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
+            ConvergenceView.clearAll();
             ServerSettings.forget();
         });
         // once the server has said what it allows, tell it this player's own no-cooldown switch
@@ -87,7 +88,7 @@ public final class HalleyClient implements ClientModInitializer {
         float partial = deltaTracker.getGameTimeDeltaPartialTick(true);
         HalleySky.update(partial);
         if (ShaderPacks.active() && Minecraft.getInstance().level != null
-            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty())) {
+            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty() || ConvergenceView.any())) {
             GlowAtlas.paint(HalleyRenderTypes.shader());
             HalleySky.paint(partial);
         }

@@ -5,11 +5,15 @@
   "plugin": "dev.ss05.halley.compat.TssMixins",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "CastingMixin"
+    "CastingMixin",
+    "SpellsMixin",
+    "StarCastMixin"
   ],
   "client": [
+    "CutsceneDirectorMixin",
     "FxManagerMixin",
-    "WhiteSpaceMixin"
+    "PostFxRendererMixin",
+    "SkillKeysMixin"
   ],
   "injectors": {
     "defaultRequire": 0
