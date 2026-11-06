@@ -33,6 +33,8 @@ public final class HalleyClient implements ClientModInitializer {
         LevelRenderEvents.END_MAIN.register(MoonSphere::renderSolid);
         LevelRenderEvents.END_MAIN.register(CometRenderer::render);
         LevelRenderEvents.END_MAIN.register(MoonRenderer::render);
+        // a film's panels: the shot being cut away from is copied once the world is drawn (see FilmPanels)
+        LevelRenderEvents.END_MAIN.register(context -> FilmPanels.copyPending());
         LevelRenderEvents.COLLECT_SUBMITS.register(context -> {
             HalleySky.submitForShaderPack(context);
             CometRenderer.submitForShaderPack(context);
@@ -45,6 +47,7 @@ public final class HalleyClient implements ClientModInitializer {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
+            ConvergenceView.clearAll();
             CometRenderer.release();
             MoonRenderer.release();
             MoonSphere.release();
@@ -65,7 +68,7 @@ public final class HalleyClient implements ClientModInitializer {
         float partial = deltaTracker.getGameTimeDeltaPartialTick(true);
         HalleySky.update(partial);
         if (ShaderPacks.active() && Minecraft.getInstance().level != null
-            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty())) {
+            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty() || ConvergenceView.any())) {
             GlowAtlas.paint();
             HalleySky.paint(partial);
         }

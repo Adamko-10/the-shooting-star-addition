@@ -1,6 +1,7 @@
 package dev.ss05.halley.world;
 
 import dev.ss05.halley.CastTuning;
+import dev.ss05.halley.EpicMode;
 import dev.ss05.halley.NoCooldown;
 import dev.ss05.halley.MoonConfig;
 import dev.ss05.halley.MoonParams;
@@ -30,7 +31,7 @@ public final class MoonCasting {
      */
     public static boolean cast(ServerPlayer player, CastTuning cast) {
         // (with no cooldown, another may be called down while one is still falling)
-        if (!NoCooldown.appliesTo(player) && StarBridge.moonAlreadyFalling(player)) {
+        if (!NoCooldown.appliesTo(player) && !NoCooldown.casting() && StarBridge.moonAlreadyFalling(player)) {
             StarBridge.deny(player, MoonInfo.title() + ": the moon is already falling");
             return false;
         }
@@ -50,7 +51,7 @@ public final class MoonCasting {
         float timeOfDay = timeOfDay(level);
         Vec3 sky = MoonPlan.skyDirection(isNight(level) ? timeOfDay : timeOfDay + 0.5F);
         long seed = player.getRandom().nextLong();
-        StarBridge.startMoon(player, target, seed, MoonParams.of(tuning, Mth.floor(target.y), sky, cast.power()), cast);
+        StarBridge.startMoon(player, target, seed, MoonParams.of(tuning, Mth.floor(target.y), sky, cast.power()).withEpic(EpicMode.on(player)), cast);
         return true;
     }
 

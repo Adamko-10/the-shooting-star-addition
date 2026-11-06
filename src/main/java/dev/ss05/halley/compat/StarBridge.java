@@ -5,13 +5,17 @@ import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.MoonParams;
 import dev.ss05.halley.world.Excavation;
+import com.mojang.brigadier.CommandDispatcher;
+import java.util.List;
 import java.util.Map;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
@@ -89,6 +93,13 @@ public final class StarBridge {
     public static void tick(MinecraftServer server) {
         if (link != null) {
             link.tick(server);
+        }
+    }
+
+    /** The operators' /ssa command; does nothing if the addon didn't attach. */
+    public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
+        if (link != null) {
+            link.registerCommands(dispatcher);
         }
     }
 
@@ -171,12 +182,24 @@ public final class StarBridge {
         link().hit(level, victim, attacker, damage);
     }
 
-    public static boolean liftClear(ServerPlayer caster, Vec3 target, double zone, double refuge, int ticks) {
-        return link().liftClear(caster, target, zone, refuge, ticks);
+    public static boolean liftClear(ServerPlayer caster, Vec3 target, double zone, double refuge, int ticks, boolean lift) {
+        return link().liftClear(caster, target, zone, refuge, ticks, lift);
     }
 
     public static void paint(ServerLevel level, Map<BlockPos, BlockState> blocks) {
         link().paint(level, blocks);
+    }
+
+    public static Excavation.Sink sink(ServerLevel level, ChunkPos pos, int fromY, int toY, int clearFrom) {
+        return link().sink(level, pos, fromY, toY, clearFrom);
+    }
+
+    public static void relight(ServerLevel level, List<ChunkPos> chunks) {
+        link().relight(level, chunks);
+    }
+
+    public static boolean spares(ServerLevel level, int x, int z) {
+        return link().spares(level, x, z);
     }
 
     public static Excavation excavate(ServerLevel level, Vec3 centre, double radius, Excavation.Floor floor,

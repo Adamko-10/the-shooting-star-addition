@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
@@ -53,9 +54,9 @@ final class MoonLand {
 
     /** Strikes whose land still has chunks to do after their spell has ended (worked on as those chunks load). */
     private static final List<MoonLand> LINGERING = new ArrayList<>();
-    /** How many waiting chunks a lingering strike looks at each tick, and the most it works on. */
-    private static final int LOOK_PER_TICK = 48;
-    private static final int WORK_PER_TICK = 2;
+    /** How many waiting chunks a lingering strike looks at each tick, and the most time it works on them. */
+    private static final int LOOK_PER_TICK = 256;
+    private static final long WORK_NANOS = 15_000_000L;
     /**
      * How many jolts each chunk's rim heaves up in. Every chunk written is relit and sent again, whole, to everyone who
      * has it loaded (The Shooting Star's {@code Carving.paint}, as its own carvings do), and the client rebuilds all of
@@ -71,6 +72,9 @@ final class MoonLand {
     private final ServerLevel level;
     private final MoonPlan plan;
     private final int chunksPerTick;
+    /** Whether a chunk may be worked on: the crater round the moon is cut there first (MoonBuild), or the slabs that
+     * stand on its floor would be cut away again. */
+    private final Predicate<ChunkPos> ready;
     /** Every chunk with something to do, and what. */
     private final Long2ObjectOpenHashMap<Chunk> chunks = new Long2ObjectOpenHashMap<>();
     /** The same chunks, nearest the mark first (the order they are started in). */
@@ -116,10 +120,11 @@ final class MoonLand {
         }
     }
 
-    MoonLand(ServerLevel level, MoonPlan plan, int chunksPerTick) {
+    MoonLand(ServerLevel level, MoonPlan plan, int chunksPerTick, Predicate<ChunkPos> ready) {
         this.level = level;
         this.plan = plan;
         this.chunksPerTick = Math.max(1, chunksPerTick);
+        this.ready = ready;
         this.layRim();
         this.layCracks();
         this.layDebris();
@@ -239,7 +244,7 @@ final class MoonLand {
 
     /**
      * Works on every loaded chunk as far as it has got by time {@code t} (the rim heaving, the cracks running out); the
-     * others wait for {@link #tickLingering}. Starts once the crater round the moon is dug.
+     * others wait for {@link #tickLingering}. Each chunk only once the crater round the moon is cut in it ({@link #ready}).
      */
     void tick(double t) {
         Map<BlockPos, BlockState> out = new HashMap<>();
@@ -256,8 +261,9 @@ final class MoonLand {
             if (c.done) {
                 continue;
             }
-            if (!this.loaded(c.pos)) {
-                // not loaded (or let go of while it was being worked on): done as it loads, after the strike
+            if (!this.loaded(c.pos) || !this.ready.test(c.pos)) {
+                // not loaded (or let go of while it was being worked on): done as it loads, after the strike; or the
+                // crater round the moon isn't cut in it yet
                 continue;
             }
             int before = out.size();
@@ -303,27 +309,21 @@ final class MoonLand {
     }
 
     /**
-     * The strike's spell is over: every loaded chunk is finished now, and the rest are left to be done as they load
-     * (if there are any, this joins the lingering strikes).
+     * The strike's spell is over: what is left is finished as its chunks are loaded and ready, the loaded ones first,
+     * a few milliseconds' worth a tick (this joins the lingering strikes). Finishing every loaded chunk at once here
+     * took 846 ms in one tick at 10x (2026-11-03).
      */
     void end() {
         if (this.ended) {
             return;
         }
         this.ended = true;
-        Map<BlockPos, BlockState> out = new HashMap<>();
         this.waiting.clear();
-        for (Chunk c : this.chunks.values()) {
-            if (c.done) {
-                continue;
-            }
-            if (this.loaded(c.pos)) {
-                this.complete(c, out);
-            } else {
+        for (Chunk c : this.ordered) {
+            if (!c.done) {
                 this.waiting.add(c.pos.pack());
             }
         }
-        this.paint(out);
         if (!this.waiting.isEmpty()) {
             LINGERING.add(this);
         }
@@ -359,9 +359,8 @@ final class MoonLand {
 
     /** True once nothing of it is left to do. */
     private boolean lingerTick() {
-        Map<BlockPos, BlockState> out = new HashMap<>();
-        int worked = 0;
-        for (int i = 0; i < LOOK_PER_TICK && !this.waiting.isEmpty() && worked < Math.max(WORK_PER_TICK, this.chunksPerTick / 2); i++) {
+        long deadline = System.nanoTime() + WORK_NANOS;
+        for (int i = 0; i < LOOK_PER_TICK && !this.waiting.isEmpty() && System.nanoTime() < deadline; i++) {
             if (this.look >= this.waiting.size()) {
                 this.look = 0;
             }
@@ -371,15 +370,15 @@ final class MoonLand {
                 this.remove(this.look);
                 continue;
             }
-            if (this.loaded(c.pos)) {
+            if (this.loaded(c.pos) && this.ready.test(c.pos)) {
+                Map<BlockPos, BlockState> out = new HashMap<>();
                 this.complete(c, out);
+                this.paint(out);
                 this.remove(this.look);
-                worked++;
             } else {
                 this.look++;
             }
         }
-        this.paint(out);
         return this.waiting.isEmpty();
     }
 
@@ -673,7 +672,7 @@ final class MoonLand {
             this.writeNanos += took;
             this.worstNanos = Math.max(this.worstNanos, took);
         }
-        if (!this.logged && this.ended || !this.logged && this.loadedDone()) {
+        if (!this.logged && this.loadedDone()) {
             this.logged = true;
             HalleyAddon.LOG.info("Luna's rim and cracks: {} chunk writes for {} chunks in {} ms (worst tick {} ms)", this.writes,
                 this.chunks.size(), this.writeNanos / 1_000_000L, this.worstNanos / 1_000_000L);

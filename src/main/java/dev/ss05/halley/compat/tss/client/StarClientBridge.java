@@ -1,25 +1,36 @@
 package dev.ss05.halley.compat.tss.client;
 
 import cyou.rimuru.rimulib.client.cinematic.CutsceneDirector;
-import cyou.rimuru.rimulib.client.magic.SkillKeys;
-import cyou.rimuru.rimulib.client.magic.WhiteSpace;
-import cyou.rimuru.rimulib.client.text.Overlay;
+import cyou.rimuru.rimulib.api.SkillApi;
+import cyou.rimuru.rimulib.client.api.MenuApi;
+import cyou.rimuru.rimulib.client.api.UiApi;
 import cyou.rimuru.rimulib.client.net.RimuNetClient;
 import cyou.rimuru.rimulib.skill.Skill;
 import cyou.rimuru.rimulib.skill.SkillSet;
 import cyou.rimuru.shootingstardemo.client.fx.FxManager;
-import cyou.rimuru.shootingstardemo.net.SpellFxPayload;
+import cyou.rimuru.shootingstardemo.il11ill1iil;
 import dev.ss05.halley.HalleyAddon;
+import dev.ss05.halley.client.AdditionPanel;
+import dev.ss05.halley.client.FilmPanels;
+import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.MoonHud;
+import dev.ss05.halley.compat.tss.ConvergenceFx;
 import dev.ss05.halley.compat.tss.StrikeFx;
+import dev.ss05.halley.net.ServerSettings;
 import dev.ss05.halley.compat.tss.TssLink;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.KeyEvent;
 
 /**
  * The client half of {@link TssLink}: the only client code that touches The Shooting Star. It catches Halley's and
@@ -36,24 +47,37 @@ public final class StarClientBridge {
     private StarClientBridge() {
     }
 
-    /**
-     * Wraps The Shooting Star's receiver for its effect packet (registered in its client initializer, so this runs
-     * once every mod's client has started): SS-05's packets start SS-05's effects, everything else goes on to the
-     * remote's own handler untouched.
-     */
-    @SuppressWarnings("unchecked")
     public static synchronized void install() {
         if (installed) {
             return;
         }
         try {
-            RimuNetClient.receive(StrikeFx.TYPE, (strike, context) -> {
-                if (strike.skill() == SkillSet.indexOf(TssLink.SKILL)) {
+            // (Fabric: RimuLib's network takes vanilla payloads, by their Type)
+            RimuNetClient.receive(StrikeFx.TYPE, (strike, context) -> Minecraft.getInstance().execute(() -> {
+                if (strike.skill() == SkillApi.index(TssLink.SKILL)) {
                     start(strike);
-                } else if (strike.skill() == SkillSet.indexOf(TssLink.MOON)) {
+                } else if (strike.skill() == SkillApi.index(TssLink.MOON)) {
                     startMoon(strike);
                 }
+            }));
+            RimuNetClient.receive(ConvergenceFx.TYPE, (fx, context) -> Minecraft.getInstance().execute(() -> ConvergenceClient.start(fx)));
+            // the addon's plates in the remote's menu (H) and their keys (the menu holds the mouse: things in it are picked
+            // by looking at them), through RimuLib's public API; never a key the remote uses or one being rebound
+            UiApi.onMenuDraw((graphics, partial) -> {
+                if (MenuApi.capturesInput()) {
+                    AdditionPanel.draw(graphics);
+                    ConvergencePlate.draw(graphics);
+                }
             });
+            // 26.3: Minecraft's keys are SDL's (a letter is its lower-case character, 'm' = 109); the plates use GLFW's
+            // codes (upper case, 'M' = 77), which is what The Shooting Star translates them to: both are taken
+            MenuApi.onKey(key -> MenuApi.capturesInput() && !menuUses(key, 0) && (AdditionPanel.key(glfw(key)) || ConvergencePlate.key(glfw(key))));
+            // once the server has said hello, tell it this player's Stellar Convergence picks
+            Runnable before = ServerSettings.onReceived;
+            ServerSettings.onReceived = () -> {
+                before.run();
+                ConvergencePlate.sync(true);
+            };
             installed = true;
         } catch (Throwable failed) {
             HalleyAddon.LOG.error("Halley and Luna couldn't hook their effects into The Shooting Star; strikes will "
@@ -63,10 +87,13 @@ public final class StarClientBridge {
 
     /**
      * The Shooting Star's own effect packet for a strike, which its effects are built from: (skill, caster, origin,
-     * target, yaw, seed, targets, flags, power, speed, width). Its class name is obfuscated since 1.5.0 and unmapped.
+     * target, yaw, seed, targets, flags, power, speed, width). Its class name is obfuscated since 1.5.0 and unmapped
+     * (on NeoForge 1.5.0: {@code l1l1i1lii1}; 1.5.1: {@code ll1lil1iill}; 1.5.2: {@code ll1i111l11}, same fields). On
+     * Fabric 26.3 it read as {@code net.SpellFxPayload} in 1.5.0; in 1.5.2 Fabric names it {@code il11ill1iil} (found by CI
+     * on Fabric 1.21.1; not checked on 26.3).
      */
-    static SpellFxPayload payload(StrikeFx s) {
-        return new SpellFxPayload(s.skill(), s.casterId(), s.origin().x, s.origin().y, s.origin().z, s.target().x, s.target().y,
+    static il11ill1iil payload(StrikeFx s) {
+        return new il11ill1iil(s.skill(), s.casterId(), s.origin().x, s.origin().y, s.origin().z, s.target().x, s.target().y,
             s.target().z, s.yaw(), s.seed(), s.targets(), s.flags(), s.power(), s.speed(), 1.0F);
     }
 
@@ -98,52 +125,168 @@ public final class StarClientBridge {
         }
     }
 
-    /** From compat/mixin: SS-05's and SS-06's overlays on the caster's film (the remote draws its own skills' there). */
+    /**
+     * From compat/mixin: SS-05's and SS-06's overlays on the caster's film (the remote draws its own skills' there):
+     * the newest strike's only, as for the remote's own (see {@link #newestHudsOnly}).
+     */
     public static void renderFilmHud(GuiGraphicsExtractor graphics, float partial) {
+        // called from both of FxManager's overlay passes (see FxManagerMixin); a frame has one GuiGraphics
+        if (graphics == lastFilmHud) {
+            return;
+        }
+        lastFilmHud = graphics;
+        // in RimuLib's overlay units (UiApi.overlay: one size at any GUI scale)
         if (!HalleyFx.active().isEmpty()) {
-            Overlay.begin(graphics);
-            try {
-                int w = Overlay.width(graphics);
-                int h = Overlay.height(graphics);
-                for (HalleyFx fx : HalleyFx.active()) {
-                    HalleyHud.film(graphics, fx, partial, w, h, world -> FxManager.project(world, graphics));
-                }
-            } finally {
-                Overlay.end(graphics);
-            }
+            UiApi.overlay(graphics, () -> {
+                HalleyFx fx = HalleyFx.active().getLast();
+                HalleyHud.film(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics), world -> FxManager.project(world, graphics));
+                FilmTitle.halley(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics), world -> FxManager.project(world, graphics));
+            });
         }
         if (!MoonFx.active().isEmpty()) {
-            Overlay.begin(graphics);
-            try {
-                int w = Overlay.width(graphics);
-                int h = Overlay.height(graphics);
-                for (MoonFx fx : MoonFx.active()) {
-                    MoonHud.film(graphics, fx, partial, w, h, world -> FxManager.project(world, graphics));
-                }
-            } finally {
-                Overlay.end(graphics);
+            UiApi.overlay(graphics, () -> {
+                MoonFx fx = MoonFx.active().getLast();
+                MoonHud.film(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics), world -> FxManager.project(world, graphics));
+                FilmTitle.luna(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics), world -> FxManager.project(world, graphics));
+            });
+        }
+        // 26.3: Stellar Convergence's film panels are drawn here (the other versions draw them at the end of the frame)
+        FilmPanels.overlay(graphics);
+    }
+
+    private static GuiGraphicsExtractor lastFilmHud;
+
+    /** The remote's running effects, oldest first: FxManager's one static list, found by type (its name is obfuscated). */
+    private static List<Object> running;
+    private static boolean looked;
+    /** The whole list while the older effects are taken out of it, else null. */
+    private static List<Object> hidden;
+
+    /**
+     * From compat/mixin, before the remote draws its effects' overlays: only the newest effect of each kind keeps its
+     * overlay (two Gungnirs at once, with no cooldown, drew two over each other; the user picked "newest only",
+     * 2026-11-03). The older ones are taken out of the list while it draws and put back right after
+     * ({@link #allHuds}); they go on running as before.
+     */
+    public static void newestHudsOnly() {
+        allHuds();
+        List<Object> list = running();
+        if (list == null || list.size() < 2) {
+            return;
+        }
+        Set<Class<?>> seen = new HashSet<>();
+        List<Object> newest = new ArrayList<>(list.size());
+        for (int i = list.size() - 1; i >= 0; i--) {
+            if (seen.add(list.get(i).getClass())) {
+                newest.add(0, list.get(i));
             }
+        }
+        if (newest.size() < list.size()) {
+            hidden = new ArrayList<>(list);
+            list.clear();
+            list.addAll(newest);
         }
     }
 
+    /** From compat/mixin, after the remote drew its overlays: the older effects go back into its list. */
+    public static void allHuds() {
+        if (hidden != null) {
+            running.clear();
+            running.addAll(hidden);
+            hidden = null;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Object> running() {
+        if (!looked) {
+            looked = true;
+            for (Field field : FxManager.class.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers()) && field.getType() == List.class) {
+                    try {
+                        field.setAccessible(true);
+                        running = (List<Object>) field.get(null);
+                    } catch (ReflectiveOperationException | RuntimeException failed) {
+                        HalleyAddon.LOG.warn("Couldn't find the remote's running effects; every overlay is drawn", failed);
+                    }
+                    break;
+                }
+            }
+        }
+        return running;
+    }
+
+    /** How hard the camera may shake during a Stellar Convergence when capped: one big weapon's worth (Luna peaks at 1.3). */
+    private static final float SHAKE_CAP = 1.0F;
+    /** FxManager's two static floats, its trauma (impact kicks, which it holds to 1 itself) and rumble (every effect's shake, added up). */
+    private static List<Field> shakeFields;
+
+    /** With Stellar Convergence's shake off, while one is on its way or just hit. */
+    public static boolean shakeOff() {
+        return !ConvergenceClient.active().isEmpty() && HalleyClientConfig.convergenceShake() == HalleyClientConfig.ConvergenceShake.OFF;
+    }
+
     /**
-     * Whether the remote's menu has a use for this key right now (from compat/mixin, before the addon's plate takes M
-     * or C): a skill's key is being rebound, or it is the menu's, the films' or a skill's own key. When unsure, yes.
-     *
-     * <p>26.3's {@code WhiteSpace.key} takes a {@code KeyEvent} rather than raw GLFW ints, so this matches it the same
-     * way vanilla's own {@code KeyMapping.matches(KeyEvent)} does.
+     * From compat/mixin, before the remote shakes the camera: while a Stellar Convergence is on its way or just hit, its
+     * plate's setting (the user, 2026-11-05). Every weapon adds its shake to the remote's, so five at once shook five
+     * times as hard: capped holds it to {@link #SHAKE_CAP}, off skips it (true: no shake this frame), full leaves it.
      */
-    public static boolean menuUses(KeyEvent event) {
+    public static boolean holdShake() {
+        if (ConvergenceClient.active().isEmpty()) {
+            return false;
+        }
+        HalleyClientConfig.ConvergenceShake mode = HalleyClientConfig.convergenceShake();
+        if (mode == HalleyClientConfig.ConvergenceShake.OFF) {
+            return true;
+        }
+        if (mode == HalleyClientConfig.ConvergenceShake.CAPPED) {
+            try {
+                // both held to the cap: trauma is at most 1 anyway, so which is which doesn't matter
+                for (Field field : shakeFields()) {
+                    field.setFloat(null, Math.min(field.getFloat(null), SHAKE_CAP));
+                }
+            } catch (ReflectiveOperationException | RuntimeException failed) {
+                HalleyAddon.LOG.warn("Couldn't cap the remote's screen shake; it shakes in full", failed);
+                shakeFields = List.of();
+            }
+        }
+        return false;
+    }
+
+    private static List<Field> shakeFields() {
+        if (shakeFields == null) {
+            List<Field> found = new ArrayList<>();
+            for (Field field : FxManager.class.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers()) && !Modifier.isFinal(field.getModifiers()) && field.getType() == float.class) {
+                    field.setAccessible(true);
+                    found.add(field);
+                }
+            }
+            if (found.size() != 2) {
+                HalleyAddon.LOG.warn("The remote's screen shake isn't where it was ({} static floats); Stellar Convergence's shake "
+                    + "can't be capped, only switched off. See StarClientBridge.holdShake.", found.size());
+                found.clear();
+            }
+            shakeFields = List.copyOf(found);
+        }
+        return shakeFields;
+    }
+
+    /**
+     * Whether the remote's menu has a use for this key right now (before the addon's plates take theirs): a skill's key
+     * is being rebound, or it is the menu's, the films' or a skill's own key. When unsure, yes.
+     */
+    public static boolean menuUses(int key, int scancode) {
         try {
-            if (WhiteSpace.binding() != null) {
+            if (MenuApi.binding() != null) {
                 return true;
             }
-            if (matches(SkillKeys.menu, event) || matches(SkillKeys.cutscenes, event)) {
+            if (matches(MenuApi.menuKey(), key, scancode) || matches(MenuApi.filmKey(), key, scancode)) {
                 return true;
             }
-            SkillSet remote = SkillSet.of(TssLink.SKILL);
+            SkillSet remote = SkillApi.setOf(TssLink.SKILL);
             for (Skill skill : remote != null ? remote.skills : java.util.List.<Skill>of()) {
-                if (matches(SkillKeys.of(skill), event)) {
+                if (matches(MenuApi.key(skill), key, scancode)) {
                     return true;
                 }
             }
@@ -153,7 +296,13 @@ public final class StarClientBridge {
         }
     }
 
-    private static boolean matches(KeyMapping mapping, KeyEvent event) {
-        return mapping != null && mapping.matches(event);
+    /** 26.3's KeyMapping matches a KeyEvent (the key as the menu got it). */
+    private static boolean matches(KeyMapping mapping, int key, int scancode) {
+        return mapping != null && mapping.matches(new KeyEvent(key, scancode, 0));
+    }
+
+    /** A letter key as GLFW's code (upper case), whichever way it came. */
+    private static int glfw(int key) {
+        return key >= 'a' && key <= 'z' ? key - ('a' - 'A') : key;
     }
 }

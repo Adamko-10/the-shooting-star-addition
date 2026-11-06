@@ -3,6 +3,9 @@
   "minVersion": "0.8",
   "package": "dev.ss05.halley.client.mixin",
   "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "ChunkAccessMixin"
+  ],
   "client": [
     "RimulibClientMixin",
     "AttributeTrackSamplerMixin",

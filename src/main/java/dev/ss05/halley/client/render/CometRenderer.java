@@ -8,6 +8,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
+import dev.ss05.halley.client.ConvergenceView;
 import dev.ss05.halley.client.HalleyFx;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -44,7 +45,7 @@ public final class CometRenderer {
 
     /** Fabric's {@code LevelRenderEvents.END_MAIN}: the main pass is over and no render pass is open. */
     public static void render(LevelRenderContext context) {
-        if (HalleyFx.active().isEmpty() || ShaderPacks.active()) {
+        if (HalleyFx.active().isEmpty() && !ConvergenceView.any() || ShaderPacks.active()) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
@@ -74,6 +75,10 @@ public final class CometRenderer {
             if (!fx.finished()) {
                 fx.render(worldBatch, glareBatch, partial, landRange, land);
             }
+        }
+        // Stellar Convergence's own effect uses the same glow shapes
+        for (ConvergenceView view : ConvergenceView.active(level.getGameTime())) {
+            view.render(worldBatch, level.getGameTime() + partial);
         }
 
         // both uploaded before the pass opens (uploads aren't allowed inside one)
@@ -107,7 +112,7 @@ public final class CometRenderer {
      * right in front of the camera instead, where nothing stands in front of them.
      */
     public static void submitForShaderPack(LevelRenderContext context) {
-        if (HalleyFx.active().isEmpty() || !ShaderPacks.active() || !GlowAtlas.ready()) {
+        if (HalleyFx.active().isEmpty() && !ConvergenceView.any() || !ShaderPacks.active() || !GlowAtlas.ready()) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
@@ -134,6 +139,10 @@ public final class CometRenderer {
                 if (!fx.finished()) {
                     fx.render(world, glare, partial, landRange, land);
                 }
+            }
+            // Stellar Convergence's own effect uses the same glow shapes
+            for (ConvergenceView view : ConvergenceView.active(level.getGameTime())) {
+                view.render(world, level.getGameTime() + partial);
             }
         });
     }

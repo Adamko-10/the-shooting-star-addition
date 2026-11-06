@@ -52,6 +52,10 @@ public final class ConfigFile {
         return this.add(new EnumValue<>(key, value, comment));
     }
 
+    public StringListValue defineList(String key, List<String> value, String... comment) {
+        return this.add(new StringListValue(key, value, comment));
+    }
+
     private <V extends Value<?>> V add(V value) {
         if (this.current == null) {
             throw new IllegalStateException("start a section first");
@@ -345,6 +349,41 @@ public final class ConfigFile {
                 out.append(i == 0 ? "" : ", ").append(constants[i].name().toUpperCase(Locale.ROOT));
             }
             return out.toString();
+        }
+    }
+
+    /** A list of strings, written the way NeoForge writes one: {@code ["a", "b"]} (no commas inside the strings). */
+    public static final class StringListValue extends Value<List<String>> {
+        StringListValue(String key, List<String> fallback, String[] comment) {
+            super(key, List.copyOf(fallback), comment);
+        }
+
+        @Override
+        boolean read(String text) {
+            String s = text.trim();
+            if (s.length() < 2 || !s.startsWith("[") || !s.endsWith("]")) {
+                return false;
+            }
+            List<String> out = new ArrayList<>();
+            for (String part : s.substring(1, s.length() - 1).split(",")) {
+                String p = part.trim();
+                if (p.length() >= 2 && p.startsWith("\"") && p.endsWith("\"")) {
+                    out.add(p.substring(1, p.length() - 1));
+                } else if (!p.isEmpty()) {
+                    return false;
+                }
+            }
+            this.value = List.copyOf(out);
+            return true;
+        }
+
+        @Override
+        String write(List<String> value) {
+            StringBuilder out = new StringBuilder("[");
+            for (int i = 0; i < value.size(); i++) {
+                out.append(i == 0 ? "" : ", ").append('"').append(value.get(i)).append('"');
+            }
+            return out.append(']').toString();
         }
     }
 }

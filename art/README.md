@@ -7,8 +7,13 @@ hand-edited:
   HUD.
 - `make_thumbnail.py` - the project thumbnail (`thumbnail.png`, 512x512, used on CurseForge) and the mod's logo in
   the game's mod list.
-- `make_sounds.py` - all thirteen sounds (one function each; their lengths match the strike's timeline, e.g. the
-  countdown is cut to end exactly at touchdown).
+- `make_sounds.py` - the raw sounds (one function each; their lengths match the strike's timeline, e.g. the
+  countdown is cut to end exactly at touchdown). Since the sound overhaul (2026-11-04) they are kept in `raw/`
+  (`python3 make_sounds.py raw` remakes them there), not shipped as they are.
+- `overhaul_sounds.sh` - what the addon ships, made from `raw/` with ffmpeg: cleaned up, the impacts layered (sub-bass
+  drop, crack, rolling tail), levels set by role against The Shooting Star's own, variants of the sounds that repeat,
+  and Luna's build-up (`luna_buildup`, the hush in `luna_rumble`, `luna_inhale`). Run it after changing anything in
+  `raw/` (needs ffmpeg with libvorbis): `bash art/overhaul_sounds.sh`.
 
 They need Python 3 with `numpy` and `Pillow`; the sounds also need `scipy` and `soundfile`
 (`pip install numpy pillow scipy soundfile`). Run them from anywhere; they write straight into `src/main/resources`.

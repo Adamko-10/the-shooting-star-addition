@@ -30,6 +30,8 @@ abstract class Spell {
     private final CastTuning tuning;
     private final float yaw;
     protected ServerPlayer caster;
+    /** The entity named as the caster in the effect packet. */
+    private final int fxCaster;
     protected int age;
     private double clock;
 
@@ -38,6 +40,7 @@ abstract class Spell {
         this.level = caster.level();
         this.casterId = caster.getUUID();
         this.caster = caster;
+        this.fxCaster = caster.getId();
         this.origin = caster.position();
         this.target = target;
         this.seed = seed;
@@ -54,12 +57,20 @@ abstract class Spell {
 
     protected abstract void onEnd();
 
+    /** Whether the strike's work on the land that can be done now is done (its effects may run on after it). */
+    protected abstract boolean worldDone();
+
+    /** The plan's tick at this clock tick (Luna's Epic mode slows part of its plan; see MoonPlan.warp). */
+    protected double planClock(double clock) {
+        return clock;
+    }
+
     private boolean tick() {
         this.caster = this.level.getServer().getPlayerList().getPlayer(this.casterId);
         if (this.caster != null && this.caster.level() != this.level) {
             this.caster = null;
         }
-        int due = (int) Math.floor(this.clock);
+        int due = (int) Math.floor(this.planClock(this.clock));
         while (this.age <= due && !this.finished()) {
             this.onTick(this.age);
             this.age++;
@@ -70,7 +81,7 @@ abstract class Spell {
 
     static void start(Spell spell) {
         ACTIVE.add(spell);
-        StrikeFx fx = new StrikeFx(SkillSet.indexOf(spell.skill), spell.caster.getId(), spell.origin, spell.target, spell.yaw,
+        StrikeFx fx = new StrikeFx(SkillSet.indexOf(spell.skill), spell.fxCaster, spell.origin, spell.target, spell.yaw,
             spell.seed, spell.fxTargets(), everyone(spell.casterId) ? StrikeFx.FLAG_FOR_EVERYONE : 0,
             spell.tuning.power(), spell.tuning.speed());
         // as far as the built-in skills' effects reach
@@ -89,6 +100,16 @@ abstract class Spell {
         } catch (LinkageError | RuntimeException unknown) {
             return false;
         }
+    }
+
+    /** Whether a strike of this skill by this caster is still working on the land (Stellar Convergence's finale waits for it). */
+    static boolean busy(Skill skill, UUID caster) {
+        for (Spell spell : ACTIVE) {
+            if (spell.skill == skill && spell.casterId.equals(caster) && !spell.worldDone()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static boolean running(Skill skill, UUID caster) {

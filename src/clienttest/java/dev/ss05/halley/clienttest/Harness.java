@@ -189,6 +189,12 @@ final class Harness {
         if (done || castGameTime < 0 || mc.level == null || shotPending) {
             return;
         }
+        if (Boolean.getBoolean("ss05.clienttest.filmlog") && CutsceneDirector.active()) {
+            filmLog(mc);
+            if (shotPending) {
+                return;
+            }
+        }
         long age = strikeAge();
         if (age < 0) {
             return;
@@ -205,10 +211,12 @@ final class Harness {
         // the final views: once the strike is over, each from its own spot once everything in view is drawn again
         if (finalView < HarnessParams.FINAL_VIEWS.length) {
             if (finalView < 0) {
-                if (MoonFx.active().isEmpty() && HalleyFx.active().isEmpty()) {
+                // (a kept moon never ends: keep_moon on)
+                if (MoonFx.active().isEmpty() && HalleyFx.active().isEmpty() || MoonFx.kept()) {
                     finalView = 0;
                     finalSince = System.currentTimeMillis();
                     finalTicks = 0;
+                    logProtected(mc);
                 }
                 return;
             }
@@ -219,6 +227,13 @@ final class Harness {
                 // "skills" scrolls its list to the end first, where Halley and Luna are (with their sliders)
                 if (finalTicks == 1) {
                     mc.setCameraEntity(mc.player);
+                    // -Dss05.clienttest.select=<skill id>: that skill selected first (e.g. Stellar Convergence's plate)
+                    String select = System.getProperty("ss05.clienttest.select");
+                    if (select != null) {
+                        cyou.rimuru.rimulib.skill.SkillSet.all().stream().flatMap(set -> set.skills.stream())
+                            .filter(skill -> skill.id().equals(select)).findFirst()
+                            .ifPresent(cyou.rimuru.rimulib.client.magic.ClientSkills::select);
+                    }
                     if (!WhiteSpace.capturesInput()) {
                         WhiteSpace.open(mc);
                     }
@@ -287,7 +302,50 @@ final class Harness {
             lastAgeAt = now;
             return age;
         }
+        // skill=other: a skill that isn't ours (cast by command=), timed from the cast itself
+        if (HarnessParams.SKILL.equals("other")) {
+            return castGameTime < 0 ? -1 : now - castGameTime;
+        }
         return lastAge < 0 ? -1 : lastAge + (now - lastAgeAt);
+    }
+
+    /** -Dss05.clienttest.protect=true: near the mark, where the strike must have left a protected block. */
+    private static net.minecraft.core.BlockPos protectedPos() {
+        return net.minecraft.core.BlockPos.containing(SPAWN_X + HarnessParams.DISTANCE + 6.0, groundY, SPAWN_Z + 6.0);
+    }
+
+    /** With protect on, what is at the protected block's spot once the strike is over, as the server has it. */
+    private static void logProtected(Minecraft mc) {
+        IntegratedServer server = mc.getSingleplayerServer();
+        if (server != null && Boolean.getBoolean("ss05.clienttest.protect")) {
+            server.execute(() -> log("protected block at " + protectedPos() + ": " + server.overworld().getBlockState(protectedPos())));
+        }
+    }
+
+    private static int lastFilmTick = Integer.MIN_VALUE;
+    private static int lastFilmFrame = Integer.MIN_VALUE;
+
+    /**
+     * -Dss05.clienttest.filmlog=true: while any film plays (another mod's too, e.g. TSS's Railgun), the camera once a
+     * tick of film time in the log ("film t=..."), and a frame every half second of film time, named by it. Timed by the
+     * film's own clock. (26.3: the camera's position only; its angles aren't logged.)
+     */
+    private static void filmLog(Minecraft mc) {
+        float partial = mc.getDeltaTracker().getGameTimeDeltaPartialTick(true);
+        float seconds = CutsceneDirector.seconds(partial);
+        int tick = (int) Math.floor(seconds * 20.0F);
+        if (tick != lastFilmTick) {
+            lastFilmTick = tick;
+            net.minecraft.world.phys.Vec3 at = mc.gameRenderer.mainCamera().position();
+            log(String.format(java.util.Locale.ROOT, "film t=%.2f cam=%.1f,%.1f,%.1f roll=%.1f player=%.1f,%.1f,%.1f",
+                seconds, at.x, at.y, at.z, CutsceneDirector.roll(), mc.player.getX(), mc.player.getY(), mc.player.getZ()));
+        }
+        int frame = (int) Math.floor(seconds * 2.0F);
+        if (frame != lastFilmFrame) {
+            lastFilmFrame = frame;
+            shotPending = true;
+            pendingShot = String.format(java.util.Locale.ROOT, "film_%05.2f", seconds);
+        }
     }
 
     /** The views that film from a fixed spot use a camera of this client's own (see HarnessParams.camera()). */
@@ -435,6 +493,12 @@ final class Harness {
     private static void castAndMaybeRepositionCamera(Minecraft mc) {
         IntegratedServer server = mc.getSingleplayerServer();
         log("casting " + HarnessParams.SKILL);
+        // Gravitia's key: there (unbound) since the addon gives the remote's menu-only skills one (SkillKeysMixin)
+        for (net.minecraft.client.KeyMapping key : mc.options.keyMappings) {
+            if (key.getName().contains("gravitia")) {
+                log("key " + key.getName() + " in " + key.getCategory() + ": " + key.saveString());
+            }
+        }
         server.execute(() -> {
             ServerLevel level = server.overworld();
             ServerPlayer player = level.getServer().getPlayerList().getPlayers().get(0);
@@ -447,6 +511,23 @@ final class Harness {
             }
             if (Boolean.getBoolean("ss05.clienttest.eat")) {
                 eatCheck(level, player);
+            }
+            // -Dss05.clienttest.protect=true: a protected block (a command block) on the ground near the mark, which the
+            // strike must leave where it is (checked at the end, probeLand)
+            if (Boolean.getBoolean("ss05.clienttest.protect")) {
+                level.setBlockAndUpdate(protectedPos(), net.minecraft.world.level.block.Blocks.COMMAND_BLOCK.defaultBlockState());
+                log("placed a protected block at " + protectedPos());
+            }
+            // -Dss05.clienttest.command=...: cast through a chat command (the operators' /ssa strike) instead of the remote
+            String command = System.getProperty("ss05.clienttest.command", "");
+            if (!command.isBlank()) {
+                // as the player, with the server's own (operator) permission
+                for (String one : command.split(";")) {
+                    server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withEntity(player), one.trim());
+                }
+                log("ran \"" + command + "\"");
+                maintainCamera(level, player);
+                return;
             }
             // the remote's sliders for this cast: their defaults, or -Dss05.clienttest.power / .damage / .speed
             Tuning initial = Tuning.initial(skill);

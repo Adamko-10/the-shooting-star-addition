@@ -28,6 +28,7 @@ import net.minecraft.world.item.component.Consumables;
 import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
 import net.minecraft.world.item.consume_effects.ClearAllStatusEffectsConsumeEffect;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SnowLayerBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -165,6 +166,10 @@ public final class HalleyContent {
     public static final SoundEvent MOON_SIZZLE = sound("luna_sizzle");
     /** Debris and rubble raining down afterwards. */
     public static final SoundEvent MOON_DEBRIS = sound("luna_debris");
+    /** From the alarm to the fall: a roar rising in the sky as the moon shudders and its crust grinds. */
+    public static final SoundEvent MOON_BUILDUP = sound("luna_buildup");
+    /** The air drawn in, after the hush and just before the impact. */
+    public static final SoundEvent MOON_INHALE = sound("luna_inhale");
 
     /**
      * Keeps the chunks under a strike loaded and ticking until it is over (the trench and the crater are cut a chunk

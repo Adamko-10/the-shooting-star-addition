@@ -47,7 +47,7 @@ loom {
             // Forwarded straight from the Gradle invocation (-Dss05.clienttest.xxx=... works; Gradle re-applies
             // -D system properties on every build even when a daemon is reused) so the harness's parameters can
             // be changed without recompiling.
-            ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat', 'hud', 'cam', 'land', 'final', 'world', 'power', 'damage', 'speed'].each { key ->
+            ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat', 'hud', 'cam', 'land', 'final', 'world', 'power', 'damage', 'speed', 'command', 'protect', 'probe', 'select', 'filmlog'].each { key ->
                 var propertyName = "ss05.clienttest.${key}"
                 var value = project.findProperty(propertyName) ?: System.getProperty(propertyName)
                 if (value != null) {
@@ -157,9 +157,13 @@ def reobfClienttest = tssReobf(clienttestJar, 'tssReobfClienttest', 'prodtest')
 tasks.register('prodClientTest', net.fabricmc.loom.task.prod.ClientProductionRunTask) {
     // setFrom: Loom adds the project's own jar by default, which here is the readable one in build/libs-raw
     mods.setFrom(tasks.named('tssPack'), reobfClienttest, configurations.prodMods, tssTestJar, rimulib)
+    // -PextraMods=<folder>: other mods' jars to run alongside (e.g. Stellar Quartet, to test it with this TSS)
+    if (project.hasProperty('extraMods')) {
+        mods.from(fileTree(dir: project.property('extraMods'), include: '*.jar'))
+    }
     runDir = file('run/prodclient')
     jvmArgs.add('-Dss05.clienttest=true')
-    ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat', 'hud', 'cam', 'land', 'final', 'world', 'power', 'damage', 'speed'].each { key ->
+    ['skill', 'shots', 'view', 'time', 'distance', 'film', 'eat', 'hud', 'cam', 'land', 'final', 'world', 'power', 'damage', 'speed', 'command', 'protect', 'probe', 'select', 'filmlog'].each { key ->
         var propertyName = "ss05.clienttest.${key}"
         var value = project.findProperty(propertyName) ?: System.getProperty(propertyName)
         if (value != null) {

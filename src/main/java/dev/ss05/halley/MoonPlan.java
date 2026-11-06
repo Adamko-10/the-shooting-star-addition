@@ -49,6 +49,39 @@ public final class MoonPlan {
     /** How long the spell keeps running after it comes to rest (dust, debris, the molten seam cooling). */
     public static final int AFTERMATH = 270;
     public static final int DURATION = SETTLE + AFTERMATH;
+    /**
+     * Epic mode (the caster's switch, Z in the remote's menu on 26.3): the alarm-to-impact stretch takes this many ticks of the
+     * strike's clock instead of 320 - 24 s, the whole lead of Luna's track before its drop - so everything in it runs at
+     * two thirds (the moon, the sky, the film). Before the alarm and after the impact the clock runs as usual.
+     */
+    public static final int EPIC_FALL = 480;
+
+    /** The plan's tick at clock tick {@code c} (ticks since the cast, at the speed slider): the same unless in Epic mode. */
+    public double warp(double c) {
+        if (!this.params.epic() || c <= ALARM) {
+            return c;
+        }
+        if (c >= ALARM + EPIC_FALL) {
+            return c - (EPIC_FALL - (CONTACT - ALARM));
+        }
+        return ALARM + (c - ALARM) * (CONTACT - ALARM) / EPIC_FALL;
+    }
+
+    /** The clock tick at which the plan reaches tick {@code p}: {@link #warp}'s inverse. */
+    public double unwarp(double p) {
+        if (!this.params.epic() || p <= ALARM) {
+            return p;
+        }
+        if (p >= CONTACT) {
+            return p + (EPIC_FALL - (CONTACT - ALARM));
+        }
+        return ALARM + (p - ALARM) * EPIC_FALL / (CONTACT - ALARM);
+    }
+
+    /** Clock ticks from the cast to the impact (the speed slider aside). */
+    public static int contactClock(boolean epic) {
+        return epic ? ALARM + EPIC_FALL : CONTACT;
+    }
 
     // ---- The fall. -----------------------------------------------------------------------------------------------
     /**
