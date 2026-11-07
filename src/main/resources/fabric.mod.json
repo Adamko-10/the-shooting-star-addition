@@ -41,6 +41,6 @@
     "java": ">=25",
     "fabric-api": "*",
     "${shooting_star_mod_id}": ["${shooting_star_versions}"],
-    "${rimulib_mod_id}": ">=1.1.5"
+    "${rimulib_mod_id}": ">=1.2.2"
   }
 }
