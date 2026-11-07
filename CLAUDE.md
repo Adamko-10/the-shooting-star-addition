@@ -62,6 +62,12 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   CurseForge uploads once all seven pass CI (no user test first: their call). Sounds: the current (2026-11-04) ones
   ship; the user never gave a Sonniss verdict. `wip/main` pushed for CI too. Python isn't on this PC (the
   `dev/publish/github_160.sh` release script needs it): do the release step with `gh api` from JS or bash instead.
+  **CI at 06:35**: passed `wip/main` #155, `wip/forge-1.20.1` #153, `wip/fabric-1.20.1` #157 (after `e7a6155`),
+  `wip/forge-1.21.1` #158 (port `188d69a` + `731310e` foojay resolver 1.0.0, needed to build on Gradle 9.7.1 here).
+  `fabric-1.21.1`: #156 failed on TSS 1.5.2's renamed Fabric packet record (`llil1ii111` -> `il11ill1iil`, fixed
+  `372c243`); #159 failed after compiling with no error shown, so `ci.sh` now also prints the pack check's "missing"
+  lines and Gradle's summary (main `dev/ci/common`, and the port's copy); re-run. fabric-26.3 and fabric-1.21.11
+  helpers hit the usage limit again at ~02:00 and were resumed at 06:31. CurseForge still not signed in (06:35).
   **CI so far (01:50)**: `wip/forge-1.20.1` #153 ok; `wip/fabric-1.20.1` #154 failed to compile (1.20.1's
   FriendlyByteBuf has no writeVec3/readVec3 in `ConvergenceFx`; fixed `e7a6155`, re-pushed); `wip/main` #155 and
   `wip/fabric-1.21.1` #156 running. The CI key isn't on Adam's PC: read failures from the Actions job log
