@@ -1,6 +1,6 @@
 # The Shooting Star Addition
 
-An **unofficial**, fan-made addon for **[The Shooting Star \[Demo\]](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-demo)** by rimuru\_dev. It adds two skills to the Stellar Remote: **SA-01 · Halley**, a comet called down onto your crosshair, and **SA-02 · Luna**, which brings the moon itself down.
+An **unofficial**, fan-made addon for **[The Shooting Star \[Demo\]](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-demo)** by rimuru\_dev. It adds three skills to the Stellar Remote: **SA-01 · Halley**, a comet called down onto your crosshair, **SA-02 · Luna**, which brings the moon itself down, and **SA-00 · Stellar Convergence**, which fires every weapon at once.
 
 ### My discord server is now open! join for leaks on upcoming updates and projects!
 

@@ -673,7 +673,12 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
    there are no default relations, so add them every time. Upload from the path the file chooser can reach. Ask the
    user to turn off their tab suspender first (Adam's PC only, see §0).
 6. Project description: `dev/publish/curseforge-description.md`. **Keep the top part (title line, Discord, YouTube,
-   other mod links) exactly as it is**; update the rest to match the features.
+   other mod links) exactly as it is**; update the rest to match the features. (2026-11-07: the user changed the intro
+   to "three skills" themselves on CurseForge; the repo copy says three too, maybe not word for word: copy the live
+   top before replacing the rest. The summary is max 256 characters; 1.7.0's is "Unofficial addon for The Shooting
+   Star [Demo]: adds SA-01 Halley (comet strike), SA-02 Luna (moon strike) and SA-00 Stellar Convergence (every
+   weapon at once) to the Stellar Remote. For The Shooting Star 1.5.2 + RimuLib, all loaders and versions."; add
+   Proxima when it ships.)
 7. Delete `wip/*` branches and `ci-*` drafts.
 
 ## 9. Status (2026-11-03)
