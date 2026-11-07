@@ -7,7 +7,7 @@ import cyou.rimuru.shootingstardemo.client.fx.FxManager;
 import cyou.rimuru.rimulib.client.api.UiApi;
 import cyou.rimuru.shootingstardemo.client.fx.SpellFx;
 import cyou.rimuru.rimulib.client.render.ScreenFx;
-import cyou.rimuru.shootingstardemo.llil1ii111;
+import cyou.rimuru.shootingstardemo.il11ill1iil;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.MoonHud;
