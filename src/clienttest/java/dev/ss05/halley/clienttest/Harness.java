@@ -670,7 +670,7 @@ public final class Harness {
         String name = press.substring(0, press.indexOf('@')).trim();
         for (net.minecraft.client.KeyMapping key : Minecraft.getInstance().options.keyMappings) {
             if (key.getName().equals(name)) {
-                net.minecraft.client.KeyMapping.click(key.getKey());
+                net.minecraft.client.KeyMapping.click(com.mojang.blaze3d.platform.InputConstants.getKey(key.saveString()));
                 log("pressed " + name + " (" + key.saveString() + ")");
                 return;
             }
