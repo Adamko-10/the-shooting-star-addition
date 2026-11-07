@@ -68,6 +68,18 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   `372c243`); #159 failed after compiling with no error shown, so `ci.sh` now also prints the pack check's "missing"
   lines and Gradle's summary (main `dev/ci/common`, and the port's copy); re-run. fabric-26.3 and fabric-1.21.11
   helpers hit the usage limit again at ~02:00 and were resumed at 06:31. CurseForge still not signed in (06:35).
+  **Status 2026-11-07 ~08:00: PUSHED and RELEASED on GitHub: main (`b605256`), forge-1.20.1, fabric-1.20.1,
+  forge-1.21.1** (tags `v1.7.0`, `v1.7.0+1.20.1`, `v1.7.0+fabric-1.20.1`, `v1.7.0+forge-1.21.1`; jars = their CI
+  jars, also in the project folder's `releases\1.7.0\jars\` under release names; changelogs in
+  `releases\1.7.0\changelogs\` from `changelog_170.js`, which now says Z for Epic mode on 26.3 and lists the Fabric
+  server-hooks fix and 1.21.11's settings fix). Still in CI: `fabric-1.21.1` (#168: build ok, its three client tests
+  die in ~13 s before the game starts; `client-test.sh` now prints Gradle's error, re-run), `fabric-1.21.11` (#166
+  passed, but its plate said "This server doesn't run the addon": the client's SettingsPayload receiver was never
+  registered on that branch since 1.5.0, fixed `89cd60e`, re-run), `fabric-26.3` (#167 passed, client tests included:
+  TSS 1.5.2's 26.3 build starts now; its jar asked for RimuLib >=1.1.5, fixed to >=1.2.2 in `7e8546d`, re-run).
+  `github_170.sh` needed a Windows path for gh (fixed). `curseforge-description.md` rewritten for 1.7.0 (top kept).
+  CurseForge: the app's browser pane is still "Unauthorized" and Claude in Chrome isn't connected: the user must sign
+  in (never enter credentials for them).
   **CI so far (01:50)**: `wip/forge-1.20.1` #153 ok; `wip/fabric-1.20.1` #154 failed to compile (1.20.1's
   FriendlyByteBuf has no writeVec3/readVec3 in `ConvergenceFx`; fixed `e7a6155`, re-pushed); `wip/main` #155 and
   `wip/fabric-1.21.1` #156 running. The CI key isn't on Adam's PC: read failures from the Actions job log
