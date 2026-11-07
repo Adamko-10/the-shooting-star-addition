@@ -43,6 +43,7 @@ public final class HalleyClient {
         // a film's panels over the finished picture: last, after The Shooting Star's own end-of-frame drawing
         NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, RenderFrameEvent.Post.class, event -> FilmPanels.endOfFrame());
         NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, HalleySky::render);
+        NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, ProximaCosmos::renderSky);
         NeoForge.EVENT_BUS.addListener(ViewportEvent.ComputeFogColor.class, HalleySky::fog);
         // Proxima's Earth images (two 4096 maps, mipmapped) loaded as the world is joined, not mid-film (that stall made the
         // film's music and soundtrack stutter)

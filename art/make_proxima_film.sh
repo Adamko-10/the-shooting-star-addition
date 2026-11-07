@@ -108,6 +108,9 @@ METALTHUD="The Noisery - Moaning Metal/DSGNImpt_Metal Hit Thud Thump Low Ring Ge
 METALBOW="The Noisery - Moaning Metal/DSGNTonl_Designed Metal Bowed Screech Tonal Reverb 7_The Noisery_Moaning Metal.wav"
 METALSCRAPE="The Noisery - Moaning Metal/DSGNTonl_Metal Scrape Low Tonal LFE 4_The Noisery_Moaning Metal.wav"
 GUSTS="The Noisery - City Rain/WINDTonl_Wind Strong Gusts Hurricane Vents Rattle 06_The Noisery_City Rain.wav"
+GORE="Epic Stock Media - Halloween Game - Haunted House and Horror Audio Scare Kit/GORESplt_Gore Designed Transient Heavy Impact Smash 01_ESM_HALG.wav"
+DEEPHIT="Epic Stock Media - Elemental Mutation Whooshes and Impacts/WATRImpt_Impact Water Deep Submerge Bubble Drown Ship Hit 05_ESM_EMWI.wav"
+ICECRUSH="Alexander Kopeikin - 100 kHz Designed Ice/ice, block of ice crushed, heavy-015.wav"
 WOOD="344 Audio - Haunting Ambiences Vol. 3/WOODImpt_Wooden Hit, Dark, Heavy Hit, Vampire's Prison_344 Audio_Haunting Ambiences Vol 3.wav"
 
 # synthesised: the lens charging (a whine rising from 180 Hz to ~2 kHz, with a growl an octave down), the radio burst (a
@@ -272,18 +275,21 @@ L "$BRAAM_A" 0 2.6 -8 17.65 "afade=t=out:st=1.2:d=1.4"
 L "$CAULDRON" 60 6.0 -17 17.7 "afade=t=in:d=0.5,afade=t=out:st=1.2:d=0.4"
 L "$FIRELOOP" 0 1.8 -17 17.9 "afade=t=in:d=0.4,afade=t=out:st=1.2:d=0.6"
 
-# ---- 10. The coronal front (19.3-24.9): the radio burst whining down, a roar building across the sky, sparks, then cut
-# dead for the hush --------------------------------------------------------------------------------------------------------
-L "$RADIO" 0 5.6 -6 19.3 "highpass=f=200,lowpass=f=5000,afade=t=in:d=0.5"
-L "$AMRADIO" 40 5.6 -11 19.3 "highpass=f=300,lowpass=f=4000,afade=t=in:d=0.6"
-L "$STORM" 100 5.6 1 19.3 "$(rise 5.6),lowpass=f=2500"
-L "$BOOM_B" 6.0 5.6 -5 19.3 "$(rise 5.6)"
-L "$RUMBLE" 0 5.4 -4 19.5 "$(rise 5.4)"
-L "$GUSTS" 20 5.6 -5 19.3 "$(rise 5.6)"
-L "$ARC" 0 1.0 -13 20.7 "$(rate 1.2),$(pan -0.6)"
-L "$ARC" 0 1.0 -13 22.1 "$(rate 1.1),$(pan 0.6)"
-L "$ARC" 0 1.0 -12 23.4 "$(rate 1.3),$(pan -0.2)"
-L "$DEBRIS" 0.1 1.6 -6 21.6
+# ---- 10. The coronal front (19.3-24.9): a colossal roar coming down out of the sky, deepening and building, two bass
+# downers played backwards rising into the hush, a dark horn swelling under them, the ground rumbling, plasma crackling;
+# then cut dead for the hush (2026-11-07: replaced the radio whine and static, "change the sfx on the ... approaching") ----
+L "$BOOM_B" 0.15 3.5 -3 19.25 "afade=t=out:st=1.5:d=2.0"
+L "$BLASTOFF" 1.5 3.92 4 19.3 "$(rate 0.7),$(rise 5.6),lowpass=f=3000"
+L "$TONEDOWN" 0.25 5.6 0 19.3 "areverse"
+L "$RATTLEDOWN" 0 5.6 -4 19.3 "areverse"
+L "$BRAAM_A" 4 5.6 -5 19.3 "$(rise 5.6),lowpass=f=1800"
+L "$RUMBLE" 0 5.4 -3 19.5 "$(rise 5.4)"
+L "$GUSTS" 20 5.6 -9 19.3 "$(rise 5.6)"
+L "$BUZZ" 0 5.6 -13 19.3 "highpass=f=1500,$(rise 5.6)"
+L "$ARC" 0 1.0 -13 20.7 "$(rate 0.8),$(pan -0.6)"
+L "$ARC" 0 1.0 -13 22.1 "$(rate 0.7),$(pan 0.6)"
+L "$ARC" 0 1.0 -12 23.4 "$(rate 0.9),$(pan -0.2)"
+L "$DEBRIS" 0.1 1.6 -8 21.6
 L "$CUTSWEEP" 0 1.0 -6 23.85 "highpass=f=100"
 
 # ---- 11. The hush (24.9-25.5): near silence, a low drone, the air drawn in, ending on the impact ------------------------
@@ -291,14 +297,16 @@ L "$TONEDOWN" 1.0 0.6 -18 24.9 "lowpass=f=200"
 L "$FIREWHOOSH" 0 0.65 -13 24.85 "areverse,$(up 0.65)"
 L "$BOOM_A" 0.25 0.6 -14 24.9 "areverse,$(up 0.6)"
 
-# ---- 12. The impact (25.5) and the shock wave rolling out over the land (27.1-33.1, passing under the camera ~29.0) ------------------------------------------------
-L "$BOOM_C" 0.2 7.0 5 25.47 "afade=t=out:st=3.5:d=3.5"
-L "$BRAAM_B" 0 4.0 -5 25.45 "afade=t=out:st=2.0:d=2.0"
-L "$FIREWORKS" 1.35 1.5 1 25.48 "lowpass=f=7000"
-L "$THUNDER" 3.0 4.0 -2 25.45 "afade=t=out:st=2.5:d=1.5"
+# ---- 12. The impact (25.5: a sharp heavy hit, a deep thud an octave down, two trailer booms, a sub drop, rock crunching,
+# the blast's roar dying away; no braam: the music's drop is there) and the shock wave rolling out over the land (27.1-33.1, passing under the camera ~29.0) ------------------------------------------------
+L "$GORE" 0 1.8 2 25.45
+L "$DEEPHIT" 0 2.17 1 25.47 "$(rate 0.5)"
+L "$BOOM_C" 0.2 7.0 4 25.47 "afade=t=out:st=3.5:d=3.5"
+L "$BOOM_A" 0.2 5.0 0 25.47 "afade=t=out:st=2.5:d=2.5"
 L "$DROP_SLOW" 0 6.0 0 25.5 "afade=t=out:st=4.0:d=2.0"
-L "$RATTLEDOWN" 0 4.0 -7 25.5 "afade=t=out:st=2.5:d=1.5"
-L "$ELECHIT" 0 2.5 -6 25.5
+L "$ICECRUSH" 0 2.84 -3 25.52 "$(rate 0.6),lowpass=f=4000"
+L "$BLASTOFF" 5 3.0 -4 25.6 "afade=t=in:d=0.05,afade=t=out:st=1.5:d=1.5"
+L "$RUMBLE" 8 4.0 -6 25.6 "afade=t=out:st=2.5:d=1.5"
 L "$DEBRIS" 0.1 2.0 -4 25.6
 L "$RUMBLE" 0 6.0 -5 27.1 "afade=t=in:d=0.5,afade=t=out:st=4.5:d=1.5"
 L "$STORM" 140 2.6 -5 26.5 "$(up 2.6)"

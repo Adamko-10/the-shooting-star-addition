@@ -296,6 +296,23 @@ disc"; "the projectile itself also should look cooler".
   the air drawn in; the blast and the bolt roaring away; the long wave: a rolling rumble, the pass under the camera,
   trees snapping (wood hits), fire.
 
+### Fourth round (2026-11-07, night): the user: "its very good just change the sfx on the last part where its approaching
+and the impact", then "work on the non cutscene version"
+
+- **The front approaching** (19.3-24.9, sound section 10): a boom as it appears, a colossal roar coming down out of the
+  sky (the blast-off, an octave-ish down, rising), two bass downers played backwards rising into the hush, a dark horn
+  swelling, rumble, crackling plasma; the radio burst's synth whine and the static are gone (also from the world sound
+  `proxima_front`, cut from it). **The impact** (25.5, section 12): a sharp heavy hit (Epic Stock Media's gore
+  transient), a deep underwater hit an octave down, two trailer booms, the sub drop, ice crushed an octave down (rock
+  crunching), the blast's roar dying away, a rumble; no braam or fireworks crack (the music's drop is there).
+- **The Dyson sphere in the real sky** (`ProximaCosmos.renderSky`, from `RenderLevelStageEvent` AFTER_SKY): for everyone
+  not watching the film (bystanders; the caster in third person or with films off), not for random flares. The film's
+  own scene (`proxima`, no backdrop, no flying bolt) drawn 100 blocks off at 28 degrees across, 48 degrees up on the side
+  the front comes from (`skyDirection`), turned so its iris faces the viewer, on the strike's clock: it appears in a
+  flash at ORBIT + 7, the iris opens, the lens gathers and absorbs, the beam fires straight at the viewer, gone in the
+  shot's flash. Drawn before the land (land and clouds hide it) with its own depth, cleared before and after. Shader
+  packs: not checked. Test: `test scriptsautotest21.sh` (the harness's new view `proximasky`).
+
 ## Timeline (`ProximaPlan`, ticks at speed 1)
 
 | | tick | |

@@ -82,6 +82,15 @@ final class HarnessParams {
             case "rim" -> new double[] {-40, 30, 115, 0, 5, 0};
             // straight down from high above
             case "top" -> new double[] {0.5, 230, 0.6, 0, 0, 0};
+            // looking up at Proxima's Dyson sphere in the sky (where ProximaCosmos.skyDirection puts it)
+            case "proximasky" -> {
+                java.util.List<dev.ss05.halley.client.proxima.ProximaFx> fx = dev.ss05.halley.client.proxima.ProximaFx.active();
+                if (fx.isEmpty()) {
+                    yield new double[] {0, 3, 0, 100, 40, 0};
+                }
+                net.minecraft.world.phys.Vec3 d = dev.ss05.halley.client.proxima.ProximaCosmos.skyDirection(fx.getLast().plan);
+                yield new double[] {0, 3, 0, d.x * 100.0, 3.0 + d.y * 100.0, d.z * 100.0};
+            }
             // close up on the moon's side, to see the cheese itself
             case "cheese" -> new double[] {-25, 40, 62, 0, 25, 0};
             default -> null;

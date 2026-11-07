@@ -205,7 +205,14 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
      (energy visibly flowing into the disc, shake, sounds) then blasting, a cooler projectile with a tracking shot, a
      slower shock wave (WAVE_TICKS 130, for everyone) with a 6 s pull-back shot and trees bursting. Timeline: FLASH 350,
      IMPACT 510, MUSIC_AT 60 (same music file, same sync). Test jar `test builds\2026-11-07 Proxima film 36s\`.
-  2. **Third person / everyone not in the film: draw the Dyson sphere in the real sky again, "pretty big"** (the user,
+  1e. **The user, 2026-11-07 night: the 36 s film "its very good"**; changed the approach's and impact's sounds (done)
+     and the crash they saw was FTB Ultimine's (NullPointerException in its player data), not ours. Then they asked for
+     the non-cutscene version (item 2, BUILT the same night, below) and whether to start porting; they want Proxima out
+     "today/tmr" with GPT (Codex) porting. Claude's odds given: sky sphere ~80% this session; ports by the next day:
+     1.21.1 Forge/Fabric ~85%, 1.20.1 ~60%, 1.21.11/26.3 ~25% (rendering rewrite); recommended two waves.
+  2. **DONE 2026-11-07 night: the Dyson sphere in the real sky** for everyone not in the film (docs/SS-07-PROXIMA.md
+     "Fourth round"; `ProximaCosmos.renderSky`). Earlier note:
+     **Third person / everyone not in the film: draw the Dyson sphere in the real sky again, "pretty big"** (the user,
      2026-11-07): the old in-sky intro (`ProximaSpace`, deleted in af100f4: git show af100f4^:src/main/java/dev/ss05/
      halley/client/proxima/ProximaSpace.java) showed it to everyone; bring a sky version back, bigger, matching the
      film's look as far as the glow pipeline allows (it only adds light: dark panels need the star held dim behind).
