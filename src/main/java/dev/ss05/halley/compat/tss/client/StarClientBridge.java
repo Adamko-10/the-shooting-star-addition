@@ -16,6 +16,9 @@ import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.MoonHud;
+import dev.ss05.halley.client.proxima.ProximaFx;
+import dev.ss05.halley.client.proxima.ProximaCosmos;
+import dev.ss05.halley.client.proxima.ProximaHud;
 import dev.ss05.halley.compat.tss.ConvergenceFx;
 import dev.ss05.halley.compat.tss.StrikeFx;
 import dev.ss05.halley.net.ServerSettings;
@@ -56,6 +59,8 @@ public final class StarClientBridge {
                     start(strike);
                 } else if (strike.skill() == SkillApi.index(TssLink.MOON)) {
                     startMoon(strike);
+                } else if (strike.skill() == SkillApi.index(TssLink.PROXIMA)) {
+                    startProxima(strike);
                 }
             }));
             NetClientApi.receive(ConvergenceFx.TYPE, (fx, context) -> Minecraft.getInstance().execute(() -> ConvergenceClient.start(fx)));
@@ -104,6 +109,16 @@ public final class StarClientBridge {
         }
     }
 
+    /** SA-04's effects (and its film, for the caster, or everyone near it when the caster plays it for everyone). */
+    private static void startProxima(StrikeFx strike) {
+        ProximaFxAdapter fx = new ProximaFxAdapter(strike);
+        FxManager.add(fx);
+        // a random flare has no film (nobody cast it)
+        if (films(fx.proxima().mine, strike) && !fx.proxima().plan.params.natural()) {
+            CutsceneDirector.play(ProximaCutscene.of(fx));
+        }
+    }
+
     /** SS-06's effects (and its film, for the caster, or everyone near it when the caster plays it for everyone). */
     private static void startMoon(StrikeFx strike) {
         MoonFxAdapter fx = new MoonFxAdapter(strike);
@@ -136,6 +151,19 @@ public final class StarClientBridge {
                 MoonFx fx = MoonFx.active().getLast();
                 MoonHud.film(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics), world -> FxManager.project(world, graphics));
                 FilmTitle.luna(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics), world -> FxManager.project(world, graphics));
+            });
+        }
+        if (!ProximaFx.active().isEmpty()) {
+            ProximaFx proxima = ProximaFx.active().getLast();
+            // its film's space and Earth shots: a scene of their own over the world, under the captions
+            ProximaCosmos.render(graphics, proxima, partial);
+            UiApi.overlay(graphics, () -> {
+                ProximaHud.film(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
+                FilmTitle.caption(graphics, ProximaHud.caption(proxima, partial), UiApi.width(graphics), UiApi.height(graphics));
+                FilmTitle.centauri(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
+                FilmTitle.dyson(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
+                FilmTitle.cme(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
+                FilmTitle.proxima(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
             });
         }
     }

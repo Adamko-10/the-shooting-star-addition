@@ -13,6 +13,9 @@ import cyou.rimuru.rimulib.skill.Skill;
 import cyou.rimuru.rimulib.skill.SkillSet;
 import cyou.rimuru.rimulib.skill.Tuning;
 import dev.ss05.halley.NoCooldown;
+import dev.ss05.halley.ProximaConfig;
+import dev.ss05.halley.ProximaParams;
+import dev.ss05.halley.world.SolarFlares;
 import java.util.Locale;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -52,7 +55,27 @@ final class StrikeCommand {
                     .then(Commands.literal("at")
                         .then(Commands.argument("pos", Vec3Argument.vec3())
                             .executes(c -> strike(c, true, 0))
-                            .then(tuned(true)))))));
+                            .then(tuned(true))))))
+            // a random solar flare now, near the player running it (announced first, like the random ones)
+            .then(Commands.literal("flare")
+                .executes(StrikeCommand::help)
+                .then(Commands.argument("tier", StringArgumentType.word())
+                    .suggests((c, builder) -> SharedSuggestionProvider.suggest(new String[] {"minor", "major", "cataclysm"}, builder))
+                    .executes(c -> flare(c, ProximaConfig.tuning().warningSeconds()))
+                    .then(Commands.argument("seconds", IntegerArgumentType.integer(1, 600))
+                        .executes(c -> flare(c, IntegerArgumentType.getInteger(c, "seconds")))))));
+    }
+
+    private static int flare(CommandContext<CommandSourceStack> c, int seconds) throws CommandSyntaxException {
+        ServerPlayer player = c.getSource().getPlayerOrException();
+        int tier = switch (StringArgumentType.getString(c, "tier").toLowerCase(Locale.ROOT)) {
+            case "minor" -> ProximaParams.MINOR;
+            case "major" -> ProximaParams.MAJOR;
+            case "cataclysm" -> ProximaParams.CATACLYSM;
+            default -> throw new SimpleCommandExceptionType(Component.literal("A flare is minor, major or cataclysm")).create();
+        };
+        SolarFlares.schedule(player, tier, seconds);
+        return 1;
     }
 
     /** [power [damage [speed]]] */
@@ -68,6 +91,8 @@ final class StrikeCommand {
     private static int help(CommandContext<CommandSourceStack> c) {
         c.getSource().sendSuccess(() -> Component.literal("/ssa strike <skill> [at <x y z>] [power] [damage|inf] [speed]: casts a remote "
             + "skill as you, aimed where you look (or at x y z), with no cooldown. Unset values are the skill's defaults."), false);
+        c.getSource().sendSuccess(() -> Component.literal("/ssa flare <minor|major|cataclysm> [seconds]: a solar flare near you, "
+            + "announced to your world first (seconds: the warning, else the config's warning_seconds)."), false);
         c.getSource().sendSuccess(() -> Component.literal(WARNING).withStyle(ChatFormatting.RED), false);
         return 1;
     }

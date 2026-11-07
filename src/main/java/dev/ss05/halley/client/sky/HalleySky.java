@@ -20,6 +20,7 @@ import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.luna.MoonFx;
+import dev.ss05.halley.client.proxima.ProximaFx;
 import dev.ss05.halley.client.render.BakedTexture;
 import dev.ss05.halley.client.render.HalleyPipelines;
 import dev.ss05.halley.client.render.ShaderPacks;
@@ -59,9 +60,9 @@ import org.lwjgl.system.MemoryStack;
 public final class HalleySky {
     /** The dark sky's colour at the horizon, by {@link SkyLook#palette()} (HORIZON in halley_sky.fsh): the fog takes
      * it on. SS-06 Luna's is a warm dusty red instead of SS-05's cold navy. */
-    private static final Vec3[] HORIZON_BY_PALETTE = {new Vec3(0.055, 0.110, 0.215), new Vec3(0.360, 0.090, 0.020)};
+    private static final Vec3[] HORIZON_BY_PALETTE = {new Vec3(0.055, 0.110, 0.215), new Vec3(0.360, 0.090, 0.020), new Vec3(0.950, 0.330, 0.190)};
     /** The haze's colour at the horizon, by palette (veilSky in halley_sky.fsh at the horizon). */
-    private static final Vec3[] VEIL_HORIZON_BY_PALETTE = {new Vec3(0.63, 0.84, 0.98), new Vec3(0.62, 0.38, 0.20)};
+    private static final Vec3[] VEIL_HORIZON_BY_PALETTE = {new Vec3(0.63, 0.84, 0.98), new Vec3(0.62, 0.38, 0.20), new Vec3(0.60, 0.36, 0.32)};
     /** The land's light at night (the overworld's sky_light_factor and sky_light_color then). */
     private static final float NIGHT_LIGHT = 0.24F;
     private static final int NIGHT_TINT = 0xFF7A7AFF;
@@ -93,7 +94,9 @@ public final class HalleySky {
     public static void update(float partial) {
         current = null;
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level == null || (HalleyFx.active().isEmpty() && MoonFx.active().isEmpty()) || !HalleyClientConfig.sky()) {
+        if (minecraft.level == null || (HalleyFx.active().isEmpty() && MoonFx.active().isEmpty() && ProximaFx.active().isEmpty()
+            && !ProximaFx.auroras())
+            || !HalleyClientConfig.sky()) {
             return;
         }
         Vec3 camera = minecraft.gameRenderer.getMainCamera().position();
@@ -116,6 +119,25 @@ public final class HalleySky {
             }
             SkyLook look = fx.sky(partial, camera);
             float strength = look.cover() + look.flash() + look.aurora() * 0.2F + look.cometGlow() * 0.1F;
+            if (look.visible() && strength >= bestStrength) {
+                best = look;
+                bestStrength = strength;
+            }
+        }
+        // after a flare: auroras for a night or two (when nothing else is changing the sky)
+        if (best == null) {
+            SkyLook aurora = ProximaFx.aurora(partial, camera);
+            if (aurora != null && aurora.visible()) {
+                best = aurora;
+                bestStrength = aurora.aurora() * 0.2F;
+            }
+        }
+        for (ProximaFx fx : ProximaFx.active()) {
+            if (fx.finished(partial)) {
+                continue;
+            }
+            SkyLook look = fx.sky(partial, camera);
+            float strength = look.cover() + look.flash() + look.cometGlow() * 0.1F;
             if (look.visible() && strength >= bestStrength) {
                 best = look;
                 bestStrength = strength;
@@ -300,7 +322,8 @@ public final class HalleySky {
             return;
         }
         // the night itself is the shader pack's own (clockShift): only the haze after the impact covers its sky
-        float cover = look.veil() * 0.75F;
+        boolean ownSky = look.palette() == SkyLook.PALETTE_PROXIMA;
+        float cover = ownSky ? Math.max(look.veil() * 0.75F, look.night()) : look.veil() * 0.75F;
         boolean base = cover > 0.002F;
         boolean light = look.stars() > 0.001F || look.aurora() > 0.001F || look.cometGlow() > 0.001F
             || look.halo() > 0.001F || look.flash() > 0.001F;
@@ -316,12 +339,12 @@ public final class HalleySky {
         RenderSystem.AutoStorageIndexBuffer indices = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS);
         GpuBuffer indexBuffer = indices.getBuffer(36);
         if (base) {
-            paintFaces(BASE, writeUniforms(1, look, level, camera, partial, true, 1.0F), box, identity, indexBuffer, indices);
+            paintFaces(BASE, writeUniforms(1, look, level, camera, partial, !ownSky, 1.0F), box, identity, indexBuffer, indices);
             paintedBase = true;
             paintedCover = cover;
         }
         if (light) {
-            paintFaces(LIGHT, writeUniforms(2, look, level, camera, partial, true, 2.0F), box, identity, indexBuffer, indices);
+            paintFaces(LIGHT, writeUniforms(2, look, level, camera, partial, !ownSky, 2.0F), box, identity, indexBuffer, indices);
             paintedLight = true;
         }
     }
@@ -458,7 +481,8 @@ public final class HalleySky {
             if (look == null) {
                 return value;
             }
-            int c = ARGB.srgbLerp(look.night(), value, NIGHT_CLOUDS);
+            int c = ARGB.srgbLerp(look.night(), value, look.palette() == SkyLook.PALETTE_PROXIMA
+                ? ARGB.colorFromFloat(1.0F, 0.75F, 0.28F, 0.22F) : NIGHT_CLOUDS);
             c = ARGB.srgbLerp(look.veil() * 0.4F, c, ICY_CLOUDS);
             return ARGB.color(ARGB.alpha(value), c);
         });

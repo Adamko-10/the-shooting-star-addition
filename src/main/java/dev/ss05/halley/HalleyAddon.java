@@ -53,11 +53,15 @@ public final class HalleyAddon implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             StarBridge.tick(server);
             MoonStrike.tickLingering();
+            dev.ss05.halley.world.ProximaStrike.tickLingering(server);
+            dev.ss05.halley.world.SolarFlares.tick(server);
         });
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> StarBridge.registerCommands(dispatcher));
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             StarBridge.clear();
             MoonStrike.clearLingering();
+            dev.ss05.halley.world.ProximaStrike.clearLingering();
+            dev.ss05.halley.world.SolarFlares.clear();
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             warnIfDetached(handler.player);

@@ -102,9 +102,9 @@ float fbm3(vec3 p) {
 // ---- The night sky. ------------------------------------------------------------------------------------------------
 
 vec3 nightSky(vec3 d) {
-    vec3 zenith = mix(ZENITH_HALLEY, ZENITH_LUNA, Palette);
-    vec3 middle = mix(MIDDLE_HALLEY, MIDDLE_LUNA, Palette);
-    vec3 horizon = mix(HORIZON_HALLEY, HORIZON_LUNA, Palette);
+    vec3 zenith = (Palette > 1.5 ? vec3(0.200, 0.020, 0.045) : mix(ZENITH_HALLEY, ZENITH_LUNA, Palette));
+    vec3 middle = (Palette > 1.5 ? vec3(0.520, 0.070, 0.085) : mix(MIDDLE_HALLEY, MIDDLE_LUNA, Palette));
+    vec3 horizon = (Palette > 1.5 ? vec3(0.950, 0.330, 0.190) : mix(HORIZON_HALLEY, HORIZON_LUNA, Palette));
     float h = d.y;
     vec3 c = mix(horizon, middle, smoothstep(0.0, 0.3, h));
     c = mix(c, zenith, smoothstep(0.3, 1.0, h));
@@ -196,7 +196,7 @@ vec3 aurora(vec3 d) {
         vec2 p = d.xz / (d.y + 0.035) * (1.0 + layer * 0.55) * 0.55 + vec2(Seed * 0.17, Seed * 0.11);
         float c = curtain(p, t);
         vec3 col = mix(vec3(0.10, 1.0, 0.62), vec3(0.30, 0.70, 1.0), smoothstep(0.0, 0.5, layer));
-        col = mix(col, vec3(0.72, 0.36, 1.0), smoothstep(0.45, 1.0, layer));
+        col = mix(col, Palette > 1.5 ? vec3(1.0, 0.22, 0.28) : vec3(0.72, 0.36, 1.0), smoothstep(0.45, 1.0, layer));
         acc += col * c * (1.0 - layer * 0.8) * 0.2;
     }
     return acc * smoothstep(0.02, 0.16, d.y) * (1.0 - smoothstep(0.55, 0.95, d.y));
@@ -219,8 +219,8 @@ vec3 cometLight(vec3 d) {
 // ---- The ice in the air after the impact. ---------------------------------------------------------------------------
 
 vec3 veilSky(vec3 d) {
-    vec3 veilHorizon = mix(vec3(0.56, 0.76, 0.90), vec3(0.62, 0.38, 0.20), Palette);
-    vec3 veilTop = mix(vec3(0.30, 0.50, 0.76), vec3(0.42, 0.22, 0.10), Palette);
+    vec3 veilHorizon = (Palette > 1.5 ? vec3(0.60, 0.36, 0.32) : mix(vec3(0.56, 0.76, 0.90), vec3(0.62, 0.38, 0.20), Palette));
+    vec3 veilTop = (Palette > 1.5 ? vec3(0.36, 0.18, 0.17) : mix(vec3(0.30, 0.50, 0.76), vec3(0.42, 0.22, 0.10), Palette));
     float h = d.y;
     vec3 c = mix(veilHorizon, veilTop, smoothstep(0.0, 0.85, h));
     return c + vec3(0.07, 0.08, 0.08) * exp(-max(h, 0.0) * 9.0);

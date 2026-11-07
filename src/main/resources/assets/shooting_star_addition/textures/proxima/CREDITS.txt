@@ -1,0 +1,13 @@
+Earth in SA-04 Proxima's film - real imagery, resampled and packed (art/make_earth.sh)
+
+earth_day.png (rgb: the day side)
+    NASA Earth Observatory, Blue Marble: Next Generation with topography and bathymetry (June 2004), Reto Stöckli.
+    https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/
+earth_day.png (alpha: the water), earth_detail.png (red, green: the relief; alpha: the clouds)
+    Solar System Scope (https://www.solarsystemscope.com/textures/), 8k Earth specular map, normal map and clouds,
+    CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Resampled, the relief boosted and the clouds' levels set.
+earth_detail.png (blue: the city lights)
+    NASA Earth Observatory, Black Marble 2016 (Suomi NPP VIIRS), Joshua Stevens / Miguel Román.
+    https://science.nasa.gov/earth/earth-observatory/earth-at-night/maps
+
+NASA imagery is not subject to copyright in the United States.

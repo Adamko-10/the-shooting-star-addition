@@ -29,6 +29,7 @@ import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
 import net.minecraft.world.item.consume_effects.ClearAllStatusEffectsConsumeEffect;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.SnowLayerBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
@@ -105,6 +106,30 @@ public final class HalleyContent {
     public static final Item MOON_CHEESE_ITEM = item("moon_cheese", key -> new BlockItem(MOON_CHEESE, new Item.Properties().setId(key).food(Foods.GOLDEN_CARROT, CHEESE)));
     public static final Item HOLEY_MOON_CHEESE_ITEM = item("holey_moon_cheese", key -> new BlockItem(HOLEY_MOON_CHEESE, new Item.Properties().setId(key).food(Foods.GOLDEN_CARROT, CHEESE)));
 
+    /** What SA-04 Proxima's plasma leaves in its glassy bowl: glowing, crackling, minable (a pickaxe), drops itself. */
+    public static final SolarResidueBlock SOLAR_RESIDUE = Registry.register(BuiltInRegistries.BLOCK, HalleyAddon.id("solar_residue"),
+        new SolarResidueBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, HalleyAddon.id("solar_residue")))
+            .strength(3.0F, 9.0F)
+            .mapColor(MapColor.COLOR_MAGENTA)
+            .sound(SoundType.AMETHYST)
+            .lightLevel(state -> 12)
+            .emissiveRendering((state, level, pos) -> true)
+            .requiresCorrectToolForDrops()
+            .isValidSpawn((state, level, pos, type) -> false)));
+    public static final Item SOLAR_RESIDUE_ITEM = item("solar_residue", key -> new BlockItem(SOLAR_RESIDUE, new Item.Properties().setId(key)));
+
+    /** The thin ash SA-04 Proxima leaves over the land it scorched: a layer like snow that never melts. Drops nothing. */
+    public static final SnowLayerBlock PROXIMA_ASH = Registry.register(BuiltInRegistries.BLOCK, HalleyAddon.id("proxima_ash"),
+        new SnowLayerBlock(BlockBehaviour.Properties.of().setId(ResourceKey.create(Registries.BLOCK, HalleyAddon.id("proxima_ash")))
+            .mapColor(MapColor.COLOR_GRAY)
+            .replaceable()
+            .forceSolidOff()
+            .strength(0.1F)
+            .sound(SoundType.SAND)
+            .isViewBlocking((state, level, pos) -> state.getValue(SnowLayerBlock.LAYERS) >= 8)
+            .pushReaction(PushReaction.DESTROY)));
+    public static final Item PROXIMA_ASH_ITEM = item("proxima_ash", key -> new BlockItem(PROXIMA_ASH, new Item.Properties().setId(key)));
+
     /**
      * Always edible, like a golden apple, and fills the hunger bar and its saturation to the top (nutrition
      * 20 at saturation modifier 0.5: 20 hunger, 20 saturation); gives Molten Might and Strength for {@code molten_minutes} and heals to
@@ -169,6 +194,19 @@ public final class HalleyContent {
     public static final SoundEvent MOON_BUILDUP = sound("luna_buildup");
     /** The air drawn in, after the hush and just before the impact. */
     public static final SoundEvent MOON_INHALE = sound("luna_inhale");
+    /** Proxima's coronal front coming in: its Type II radio burst, a whine drifting down (art/make_proxima_sounds.sh). */
+    /** Proxima's lens firing, its flash, ground zero and a shock front passing (art/make_proxima_sounds.sh). */
+    public static final SoundEvent PROXIMA_FLASH = sound("proxima_flash");
+    public static final SoundEvent PROXIMA_IMPACT = sound("proxima_impact");
+    public static final SoundEvent PROXIMA_WAVE = sound("proxima_wave");
+    /**
+     * Proxima's film (art/sonniss_sounds.sh, cut to its shots): the uplink under the press, the pull up through the air,
+     * space's drone, the star's roar, the shell's creaks, the iris, the loops snapping, the lens locking, the gate, the
+     * front's roar, the air drawn in before the impact, the wind coming back after.
+     */
+    public static final SoundEvent PROXIMA_FRONT = sound("proxima_front");
+    public static final SoundEvent PROXIMA_INHALE = sound("proxima_inhale");
+
 
     /**
      * Keeps the chunks under a strike loaded and ticking until it is over (the trench and the crater are cut a chunk
@@ -219,6 +257,8 @@ public final class HalleyContent {
         ItemGroupEvents.modifyEntriesEvent(NATURAL_BLOCKS_TAB).register(output -> {
             output.accept(COMET_HEART_ITEM);
             output.accept(COMET_TRAIL_ITEM);
+            output.accept(SOLAR_RESIDUE_ITEM);
+            output.accept(PROXIMA_ASH_ITEM);
             output.accept(MOON_CHEESE_ITEM);
             output.accept(HOLEY_MOON_CHEESE_ITEM);
             output.accept(MOLTEN_MOON_CHEESE_ITEM);

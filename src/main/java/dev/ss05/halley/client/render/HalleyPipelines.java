@@ -60,6 +60,35 @@ public final class HalleyPipelines {
     /** The dome painted onto textures for shader packs. */
     public static final RenderPipeline SKY_PAINT = sky("sky_paint", true);
 
+    /** Proxima's opaque, additive, translucent and backdrop passes, for quads and panel triangles. */
+    private static final RenderPipeline[][] PROXIMA = new RenderPipeline[4][2];
+
+    public static RenderPipeline proxima(int blend, VertexFormat.Mode topology) {
+        int shape = topology == VertexFormat.Mode.TRIANGLES ? 1 : 0;
+        if (PROXIMA[blend][shape] == null) {
+            RenderPipeline.Builder b = RenderPipeline.builder()
+                .withLocation(HalleyAddon.id("pipeline/proxima_" + blend + "_" + shape))
+                .withVertexShader(HalleyAddon.id("core/proxima_space"))
+                .withFragmentShader(HalleyAddon.id("core/proxima_space"))
+                .withUniform("Projection", UniformType.UNIFORM_BUFFER)
+                .withUniform("ProximaScene", UniformType.UNIFORM_BUFFER)
+                .withSampler("Sampler0").withSampler("Sampler1")
+                .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL, topology)
+                .withDepthTestFunction(blend == 3 ? DepthTestFunction.NO_DEPTH_TEST : DepthTestFunction.LEQUAL_DEPTH_TEST)
+                .withDepthWrite(blend == 0).withCull(false).withColorWrite(true, false);
+            if (blend == 1) {
+                // Main's scene shader already weights its light by alpha.
+                b.withBlend(new BlendFunction(SourceFactor.ONE, DestFactor.ONE));
+            } else if (blend == 2) {
+                b.withBlend(BlendFunction.TRANSLUCENT);
+            } else {
+                b.withoutBlend();
+            }
+            PROXIMA[blend][shape] = b.build();
+        }
+        return PROXIMA[blend][shape];
+    }
+
     private HalleyPipelines() {
     }
 

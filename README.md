@@ -1,9 +1,10 @@
 # The Shooting Star Addition
 
 An **unofficial**, fan-made addon for [The Shooting Star [Demo]](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-demo)
-by rimuru_dev. It adds two new skills to the Stellar Remote: **SA-01 · Halley**, a comet called down onto your
+by rimuru_dev. It adds new skills to the Stellar Remote: **SA-01 · Halley**, a comet called down onto your
 crosshair, and **SA-02 · Luna**, which brings the moon itself down, leaving a moon of edible moon cheese with a
-molten heart in a huge crater; and **SA-00 · Stellar Convergence**, which fires every weapon you tick at once. On the
+molten heart in a huge crater; **SA-04 · Proxima**, a red dwarf in a Dyson sphere that fires a solar flare at your
+crosshair; and **SA-00 · Stellar Convergence**, which fires every weapon you tick at once. On the
 remote they come after The Shooting Star's own skills. Their codenames are
 their own series, SA (Shooting star Addition), so they never clash with the SS numbers of The Shooting Star's own
 skills, whatever it adds.
@@ -158,6 +159,19 @@ the skill's defaults. It ignores the server's slider limits: values past the rem
 they can freeze or crash a server. `/ssa` alone shows the help. From the console:
 `/execute as <player> run ssa strike ...`.
 
+`/ssa flare <minor|major|cataclysm> [seconds]` schedules a solar flare near you after a warning; use `/ssa` for help.
+
+## Proxima
+
+Select **SA-04 · Proxima** with **Z** on the Stellar Remote. Its 36-second film travels from a red dwarf inside a
+Dyson sphere to Earth, before a solar flash and a coronal front strike the mark. Outside the film, a gate hangs in
+the sky. The strike leaves a glassy bowl, scorched land, Flare Ash and Solar Residue, with lingering radiation.
+Solid shelter protects creatures from the flash and blast.
+
+The common config's `proxima`, `proxima_size`, `proxima_world` and `proxima_flares` sections control the skill,
+terrain changes, radiation and random flares. Random flares are off by default. See
+[the Proxima design and code map](docs/SS-07-PROXIMA.md) for details.
+
 ## Protected blocks
 
 Blocks in the tag `shooting_star_addition:unbreakable` are never carved by Halley or Luna: bedrock, barriers, command
@@ -176,7 +190,7 @@ the remote's menu and in Controls, unbound until you set it.
 3. This addon's jar ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
 
-In game: hold the Stellar Remote, press **O** for Halley, **N** for Luna or **B** for Stellar Convergence (or pick them
+In game: hold the Stellar Remote, press **O** for Halley, **N** for Luna, **Z** for Proxima or **B** for Stellar Convergence (or pick them
 in the remote's menu, **H**),
 aim at the ground and right-click. The keys can be changed in Controls or from the remote's menu like the others.
 
@@ -250,6 +264,8 @@ And your switches from the remote's menu (**H**), in the `[stellar_remote]` sect
 | Setting          | Default | What it does |
 |------------------|---------|--------------|
 | `luna_music`     | true    | Luna's music while the moon comes down (**M** in the menu). It follows Minecraft's Music volume. |
+| `stack_music`    | false   | Let strike soundtracks overlap (**=** in the menu). |
+| `imperial_units` | false   | Show the film's distances in miles instead of kilometres (**-** in the menu). |
 | `epic_mode`      | false   | Luna falls slower, 24 s instead of 16, for everyone watching (**G**). |
 | `keep_moon`      | false   | Luna's moon model stays after it lands (**L**). |
 | `impact_frames`  | FULL    | Halley's and Luna's impact frames: `FULL`, `SOFT` or `OFF` (**F**). |
@@ -285,7 +301,7 @@ Shooting Star it knows, and uses the one for the version you have:
 
 ## Plans
 
-This is version 1.7. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
+This is version 1.8. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
 Shooting Star and keep improving it: more skills for the Stellar Remote, balancing and polish from your feedback,
 and versions for other loaders and Minecraft versions if there's demand. Bug reports, ideas and feedback are very
 welcome in the issues.

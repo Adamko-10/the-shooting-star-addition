@@ -10,6 +10,7 @@
     "RimulibClientMixin",
     "AttributeTrackSamplerMixin",
     "ClientLevelMixin",
+    "CompassSpinMixin",
     "FogRendererMixin",
     "GameRendererMixin",
     "MoonHideMixin",
