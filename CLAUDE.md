@@ -145,8 +145,8 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
      EntityCulling, ModernFix. Copies of those jars are in the project folder's `other mods\user render mods\`;
      `test scripts\autotest20.sh` takes `EXTRA=<folder>` (`-PextraMods`) and `NAME=`; the run with all of them is
      `test builds\2026-11-07 auto test 26 proxima new film\usermods\`. **Result: with all those mods the scene DRAWS**
-     (Dyson sphere, title card, captions), so they are not the cause. Next suspects: **third person** (the user
-     mentioned it: were they in F5 when casting? RimuLib's `CutsceneDirector.weight/time(subject)` may differ then),
+     (Dyson sphere, title card, captions), so they are not the cause. Not third person (the user: they cast in first
+     person, 2026-11-07). Next suspects:
      casting with the remote instead of `/ssa strike` (the test uses the command), their heavy server lag ("Can't keep
      up! ... 117 ticks behind" with C2ME + DH generating), and their other mods (JEI, Jade, FTB Library/Ultimine,
      AppleSkin, Architectury, C2ME, Lithium, FerriteCore, CWB, Chunky, mezz_config). Ask the user first: third person
