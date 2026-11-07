@@ -48,7 +48,7 @@ Flip the cover and press the button: **EARTH SYSTEM SHUT DOWN**, and the sky fal
 
 *   **The impact**: a white flash, a shock ring, and a crater more than twice the moon's width, with the moon driven deep into it: burnt black and still glowing, veins of molten rock, a band of lava and a ragged rim of upturned crust. Fissures tear out across the land and lumps of moon and crust rain down far and wide.
 *   **Its own film**, with its title card, **SA-02 LUNA**, cracking in and breaking away, and the impact in slow motion.
-*   **Its own music**, cut so the drop lands the moment it hits (under your Music volume; **M** in the remote's menu switches it off).
+*   **Its own music**, cut so the drop lands the moment it hits (under your Music volume; **M** in the remote's menu switches it off). Music by [DOM\_MusicST](https://www.youtube.com/@DOM_MusicST) and [FarzanNB](https://www.youtube.com/@FarzanNB).
 *   **Epic mode** (**G** in the remote's menu, **Z** on Fabric 26.3): the moon falls slower and more ominously, 24 seconds from the alarm to the impact instead of 16, for everyone watching, with a longer cut of its music.
 *   **Keep the moon** (**L**): the moon model stays where it landed instead of crumbling, cooling down, until you switch it off. Made for filming.
 *   **Light on the server**: nothing is loaded or generated for it. The crater and the moon are built where land is already loaded, on worker threads, so even huge strikes don't stall the server.
@@ -112,10 +112,10 @@ This is version **1.7.0**. More skills for the Stellar Remote are planned, along
 
 ## Credits
 
-The Shooting Star and the Stellar Remote are by **rimuru\_dev**. This addon is **not affiliated with or endorsed by** them, and contains none of the original mod's code or assets — you need the original mod installed for it to do anything.
+The Shooting Star and the Stellar Remote are by **rimuru\_dev**. Luna's music is by **[DOM\_MusicST](https://www.youtube.com/@DOM_MusicST)** and **[FarzanNB](https://www.youtube.com/@FarzanNB)**. This addon is **not affiliated with or endorsed by** them, and contains none of the original mod's code or assets — you need the original mod installed for it to do anything.
 
 Stellar Convergence is inspired by **Stellar Quartet** by **ikun520**, which unlocks it.
 
 Source code and bug reports: [github.com/Adamko-10/the-shooting-star-addition](https://github.com/Adamko-10/the-shooting-star-addition)
 
-You are free to use this mod in modpacks but, please do not distribute or reupload this mod on other websites without my consent, CurseForge is the only mod hoster/distributor this mod will be on.
+You are free to use this mod in modpacks but, please do not distribute or reupload this mod on other websites without my consent, CurseForge and Modrinth are the only mod hosters/distributors this mod will be on.
