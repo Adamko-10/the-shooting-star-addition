@@ -50,7 +50,14 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   4.6 Thinking, Turbo) for `fabric-1.21.1`, and the **Codex app** ("ChatGPT"; GPT-6.1 Sol, reasoning High; projects
   "TSSA port forge-1.20.1" and "TSSA port fabric-1.20.1", folders trusted) for `forge-1.20.1` and `fabric-1.20.1`;
   Claude's own background helpers took `fabric-26.3`, `fabric-1.21.11` (default model) and `forge-1.21.1` (Sonnet).
-  If Antigravity runs out of quota mid-way, Claude finishes that port. **Next for Claude**: read the reports, review each
+  If Antigravity runs out of quota mid-way, Claude finishes that port.
+  **Status 2026-11-07 01:40**: Codex finished `forge-1.20.1` (`cf4bb73`, built here, tssPack clean; Forge's effect
+  packet is the readable `net.SpellFxPayload`) and `fabric-1.20.1` (`db2770b` + `2178a55`, not buildable here; its
+  REPORT.md lists the TSS names CI must confirm: Fabric 1.5.2's packet record is `il11ill1iil`, kept readable
+  `net.SpellFxPayload`). Both pushed to `wip/` (CI runs 153, 154). Antigravity's agent ran out of quota after 12 min
+  having only touched build.gradle/gradle.properties, so a Claude helper (Sonnet) took over `fabric-1.21.1`. Claude's
+  three helpers hit the 5-hour usage limit at ~23:00 mid-merge and were resumed at 01:31 (their work was saved).
+  **Next for Claude**: read the reports, review each
   branch's diff, push each to `wip/<branch>` with `dev/ci/push-wip.sh` (the user OK'd wip pushes), fix from CI.
   The README is updated for 1.7.0 (`deb9792`).
 
