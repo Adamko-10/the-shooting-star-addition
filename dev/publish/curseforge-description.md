@@ -10,7 +10,7 @@ An **unofficial**, fan-made addon for **[The Shooting Star \[Demo\]](https://www
 
 ### Consider Supporting my youtube channel, any help is VERY appreciated 🙏 [https://www.youtube.com/@The\_Game\_Explainer](https://www.youtube.com/@The_Game_Explainer/?sub_confirmation=1)
 
-### Check out my other mod: [https://www.curseforge.com/minecraft/mc-mods/etch-gate](https://www.curseforge.com/minecraft/mc-mods/etch-gate)
+### Check out my other mod that will be just as cool as this one: \[[https://www.curseforge.com/minecraft/mc-addons/type-95-sniper-rifle-addition](https://www.curseforge.com/minecraft/mc-addons/type-95-sniper-rifle-addition))
 
 ## ⚠️ Compatibility — please read
 
