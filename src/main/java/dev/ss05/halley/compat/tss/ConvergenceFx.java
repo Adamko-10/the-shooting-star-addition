@@ -20,27 +20,38 @@ public record ConvergenceFx(int casterId, Vec3 target, long hitAt, boolean ring,
 
     private void write(FriendlyByteBuf buf) {
         buf.writeVarInt(this.casterId);
-        buf.writeVec3(this.target);
+        writeVec(buf, this.target);
         buf.writeLong(this.hitAt);
         buf.writeBoolean(this.ring);
         buf.writeVarIntArray(this.colors);
         buf.writeVarInt(this.points.length);
         for (Vec3 point : this.points) {
-            buf.writeVec3(point);
+            writeVec(buf, point);
         }
     }
 
     private static ConvergenceFx read(FriendlyByteBuf buf) {
         int casterId = buf.readVarInt();
-        Vec3 target = buf.readVec3();
+        Vec3 target = readVec(buf);
         long hitAt = buf.readLong();
         boolean ring = buf.readBoolean();
         int[] colors = buf.readVarIntArray(32);
         Vec3[] points = new Vec3[Math.min(buf.readVarInt(), 32)];
         for (int i = 0; i < points.length; i++) {
-            points[i] = buf.readVec3();
+            points[i] = readVec(buf);
         }
         return new ConvergenceFx(casterId, target, hitAt, ring, colors, points);
+    }
+
+    /** Minecraft 1.20.1's FriendlyByteBuf has no writeVec3/readVec3. */
+    private static void writeVec(FriendlyByteBuf buf, Vec3 v) {
+        buf.writeDouble(v.x);
+        buf.writeDouble(v.y);
+        buf.writeDouble(v.z);
+    }
+
+    private static Vec3 readVec(FriendlyByteBuf buf) {
+        return new Vec3(buf.readDouble(), buf.readDouble(), buf.readDouble());
     }
 
     static void send(ServerPlayer caster, ConvergenceFx fx) {
