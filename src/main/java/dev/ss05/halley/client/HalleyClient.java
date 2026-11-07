@@ -5,6 +5,8 @@ import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.render.MoonRenderer;
 import dev.ss05.halley.client.luna.render.MoonSphere;
+import dev.ss05.halley.client.proxima.ProximaCosmos;
+import dev.ss05.halley.client.proxima.ProximaFx;
 import dev.ss05.halley.client.render.CometRenderer;
 import dev.ss05.halley.client.render.GlowAtlas;
 import dev.ss05.halley.client.render.HalleyRenderTypes;
@@ -14,8 +16,10 @@ import dev.ss05.halley.client.sky.HalleySky;
 import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.net.AddonNetwork;
 import dev.ss05.halley.net.ServerSettings;
+import java.io.IOException;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -49,9 +53,17 @@ public final class HalleyClient implements ClientModInitializer {
                 HalleyAddon.LOG.error("Halley's sky shader didn't load, so the sky won't change during a strike", failed);
                 HalleySky.setShader(null);
             }
+            try {
+                context.register(HalleyAddon.id("proxima_space"), DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL,
+                    ProximaCosmos::setShader);
+            } catch (IOException failed) {
+                HalleyAddon.LOG.error("SA-04 Proxima's space shader didn't load, so its film's space shots will be empty", failed);
+                ProximaCosmos.setShader(null);
+            }
         });
         // the moon sphere among the entities, solid and depth-tested, so the glow drawn later tests against its depth
         WorldRenderEvents.AFTER_ENTITIES.register(context -> MoonSphere.renderSolid(frame(context)));
+        WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> ProximaCosmos.renderSky(frame(context)));
         // the glow goes right after the world's particles (compat/mixin); should that hook be missing (another mod
         // reworking the level renderer), at the very end of the world instead
         WorldRenderEvents.LAST.register(context -> {
@@ -62,7 +74,11 @@ public final class HalleyClient implements ClientModInitializer {
         });
         // once every mod's client has started, The Shooting Star's effect handling is in place to be hooked
         ClientLifecycleEvents.CLIENT_STARTED.register(client -> StarBridge.installClient());
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> HalleyClientConfig.SPEC.load());
+        ClientTickEvents.END_CLIENT_TICK.register(client -> ProximaFx.tickZones());
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            HalleyClientConfig.SPEC.load();
+            ProximaCosmos.preload();
+        });
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
@@ -88,7 +104,8 @@ public final class HalleyClient implements ClientModInitializer {
         float partial = deltaTracker.getGameTimeDeltaPartialTick(true);
         HalleySky.update(partial);
         if (ShaderPacks.active() && Minecraft.getInstance().level != null
-            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty() || ConvergenceView.any())) {
+            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty() || !ProximaFx.active().isEmpty()
+                || ProximaFx.auroras() || ConvergenceView.any())) {
             GlowAtlas.paint(HalleyRenderTypes.shader());
             HalleySky.paint(partial);
         }

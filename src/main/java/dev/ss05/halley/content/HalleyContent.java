@@ -93,6 +93,30 @@ public final class HalleyContent {
     public static final Item COMET_HEART_ITEM = item("comet_heart", props -> new BlockItem(COMET_HEART, props));
     public static final Item COMET_TRAIL_ITEM = item("comet_trail", props -> new BlockItem(COMET_TRAIL, props));
 
+    /** What SA-04 Proxima's plasma leaves in its glassy bowl: glowing, crackling, minable (a pickaxe), drops itself. */
+    public static final SolarResidueBlock SOLAR_RESIDUE = Registry.register(BuiltInRegistries.BLOCK, HalleyAddon.id("solar_residue"),
+        new SolarResidueBlock(BlockBehaviour.Properties.of()
+            .strength(3.0F, 9.0F)
+            .mapColor(MapColor.COLOR_MAGENTA)
+            .sound(SoundType.AMETHYST)
+            .lightLevel(state -> 12)
+            .emissiveRendering((state, level, pos) -> true)
+            .requiresCorrectToolForDrops()
+            .isValidSpawn((state, level, pos, type) -> false)));
+    public static final Item SOLAR_RESIDUE_ITEM = item("solar_residue", props -> new BlockItem(SOLAR_RESIDUE, props));
+
+    /** The thin ash SA-04 Proxima leaves over the scorched land. It never melts and drops nothing. */
+    public static final SnowLayerBlock PROXIMA_ASH = Registry.register(BuiltInRegistries.BLOCK, HalleyAddon.id("proxima_ash"),
+        new SnowLayerBlock(BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_GRAY)
+            .replaceable()
+            .forceSolidOff()
+            .strength(0.1F)
+            .sound(SoundType.SAND)
+            .isViewBlocking((state, level, pos) -> state.getValue(SnowLayerBlock.LAYERS) >= 8)
+            .pushReaction(PushReaction.DESTROY)) {}); // SnowLayerBlock's vanilla constructor is protected.
+    public static final Item PROXIMA_ASH_ITEM = item("proxima_ash", props -> new BlockItem(PROXIMA_ASH, props));
+
     /**
      * Eaten like a golden carrot (6 hunger, 14.4 saturation); right-click a block to place it, right-click in the air to
      * eat it. Cheese, so eating any of it first clears your effects like milk does ({@link CheeseItem}).
@@ -159,6 +183,11 @@ public final class HalleyContent {
     public static final SoundEvent MOON_BUILDUP = sound("luna_buildup");
     /** The air drawn in, after the hush and just before the impact. */
     public static final SoundEvent MOON_INHALE = sound("luna_inhale");
+    public static final SoundEvent PROXIMA_FLASH = sound("proxima_flash");
+    public static final SoundEvent PROXIMA_IMPACT = sound("proxima_impact");
+    public static final SoundEvent PROXIMA_WAVE = sound("proxima_wave");
+    public static final SoundEvent PROXIMA_FRONT = sound("proxima_front");
+    public static final SoundEvent PROXIMA_INHALE = sound("proxima_inhale");
 
     /** Damage from the shock wave outside the crater (inside it, things are erased the way the other skills erase). */
     public static final ResourceKey<DamageType> WAKE = ResourceKey.create(Registries.DAMAGE_TYPE, HalleyAddon.id("halley_wake"));
@@ -200,6 +229,8 @@ public final class HalleyContent {
         ItemGroupEvents.modifyEntriesEvent(NATURAL_BLOCKS_TAB).register(entries -> {
             entries.accept(COMET_HEART_ITEM);
             entries.accept(COMET_TRAIL_ITEM);
+            entries.accept(SOLAR_RESIDUE_ITEM);
+            entries.accept(PROXIMA_ASH_ITEM);
             entries.accept(MOON_CHEESE_ITEM);
             entries.accept(HOLEY_MOON_CHEESE_ITEM);
             entries.accept(MOLTEN_MOON_CHEESE_ITEM);

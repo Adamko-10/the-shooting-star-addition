@@ -69,6 +69,7 @@ public final class HalleyConfig {
             "Lift a creative-mode caster clear if they stand inside the crater, like the other skills do.");
 
         MoonConfig.define(b);
+        ProximaConfig.define(b);
 
         b.section("stellar_remote", "The Stellar Remote itself.");
         NO_COOLDOWN = b.define("no_cooldown", false,

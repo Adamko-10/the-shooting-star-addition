@@ -1,9 +1,10 @@
 # The Shooting Star Addition
 
 An **unofficial**, fan-made addon for [The Shooting Star [Demo]](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-demo)
-by rimuru_dev. It adds two new skills to the Stellar Remote: **SA-01 · Halley**, a comet called down onto your
+by rimuru_dev. It adds three new strikes to the Stellar Remote: **SA-01 · Halley**, a comet called down onto your
 crosshair, and **SA-02 · Luna**, which brings the moon itself down, leaving a moon of edible moon cheese with a
-molten heart in a huge crater; and **SA-00 · Stellar Convergence**, which fires every weapon you tick at once. On the
+molten heart in a huge crater, and **SA-04 · Proxima**, a solar flare fired from a red dwarf in a Dyson sphere.
+**SA-00 · Stellar Convergence** fires every weapon you tick at once. On the
 remote they come after The Shooting Star's own skills. Their codenames are
 their own series, SA (Shooting star Addition), so they never clash with the SS numbers of The Shooting Star's own
 skills, whatever it adds.
@@ -12,10 +13,10 @@ skills, whatever it adds.
 
 ![Halley in game](docs/screenshots/overview.jpg)
 
-> **Compatibility:** this branch is the **Fabric, Minecraft 1.21.1** version, for **The Shooting Star [Demo] 1.5.2
-> [Fabric]** with **RimuLib 1.2.2** or newer (on The Shooting Star 1.5.0, use version 1.6.0 of this addon). The
-> **NeoForge 1.21.1** version is on the `main` branch, **Forge and NeoForge 1.20.1** on `forge-1.20.1`, **Forge 1.21.1**
-> on `forge-1.21.1`, and **Fabric 26.3, 1.21.11 and 1.20.1** on `fabric-26.3`, `fabric-1.21.11` and `fabric-1.20.1`. See
+> **Compatibility:** this is the **Fabric, Minecraft 1.21.1** version. It requires **Fabric API**, **The Shooting Star
+> [Demo] 1.5.2 [Fabric]** and **RimuLib 1.2.2** or newer. For The Shooting Star 1.5.0, use version 1.6.0 of this addon.
+> Other builds are on `main` (NeoForge 1.21.1), `forge-1.21.1`, `forge-1.20.1` (Forge and NeoForge 1.20.1),
+> `fabric-26.3`, `fabric-1.21.11` and `fabric-1.20.1`. See
 > [Will it work with future versions?](#will-it-work-with-future-versions-of-the-shooting-star) below.
 
 ## Halley
@@ -33,9 +34,9 @@ land round it.
 - **You can't miss it**: outside the cutscene the comet is drawn bigger, and an arrow at the edge of the screen points
   at it while it's out of view.
 - **Works with shader packs** (Iris, e.g. Complementary): with one on, Halley paints its comet and sky onto textures
-  and hands them to the pack as glowing geometry, and the dark sky becomes the pack's own night: the sky's clock races
-  through a dusk into the night as the comet comes in, and on through a dawn after the impact. Only what you see
-  changes, never the world's actual time.
+  and draws them the way the pack expects, and the dark sky becomes the pack's own night: the sky's clock races through
+  a dusk into the night as the comet comes in, and on through a dawn after the impact. Only what you see changes, never
+  the world's actual time.
 - Pieces break off the comet and burst in the sky, the fireball sheds sparks and throws lens flares, ice is thrown
   out of the crater on long arcs, glowing cracks race across the land, a wall of snow rides the shock front, and the
   comet heart shines a beam into the sky.
@@ -91,18 +92,30 @@ drives deep into it, the crust buckling up against it, and comes to rest there w
 - **Molten moon cheese**: eat it for **500 hearts** and **Strength 255** for 10 minutes (Molten Might), and a full hunger bar with full saturation (it clears your other effects first, like all moon cheese).
 - **Any size**: the moon, crater and shock wave are server settings, from a pebble to a monster (see below),
   and every cast can be 0.1× to 10× that with the remote's power slider.
-- **Works with shader packs**, the same way Halley does (its own moon sphere and light are drawn without fog, so it
-  never washes out while it's still far off in the sky).
 - **It permanently changes the land.** Back up worlds you care about.
 
 | | | |
 |---|---|---|
 | ![EARTH SYSTEM SHUT DOWN](docs/screenshots/13-luna-alarm.jpg) | ![The moon burning in](docs/screenshots/14-luna-fall.jpg) | ![The moon in its crater](docs/screenshots/15-luna-crater.jpg) |
 
+## SA-04 · Proxima
+
+Proxima Centauri's Dyson sphere fires a solar flare through a gate above your crosshair. The flash burns exposed
+creatures, then a coronal front sweeps in. The impact carves a shallow, glassy bowl with Solar Residue, while a shock
+wave scorches the land and leaves Flare Ash. Radiation lingers in the bowl and auroras follow the strike.
+
+- Proxima has its own 36-second film and soundtrack, with shots of Earth from orbit and the Dyson sphere charging.
+  Outside the film, you can watch the gate catch the shot and beam it down.
+- Press **Z** to select Proxima. In the remote's menu (**H**), **M** toggles strike music, **=** toggles music
+  stacking and **-** switches the film's distance readouts between metric and imperial units.
+- Configure the strike in the `[proxima]`, `[proxima_size]`, `[proxima_world]` and `[proxima_flares]` sections
+  of the common config. Random flares are off by default. Operators can call one with
+  `/ssa flare <minor|major|cataclysm> [seconds]`.
+
 ## SA-00 · Stellar Convergence
 
 A remote skill of its own that fires every weapon you tick, all at once, timed so every impact lands on the same
-tick: Halley, Luna and The Shooting Star's Railgun, Gungnir and Seven Stars (Tesseract fires along with them).
+tick: Halley, Luna, Proxima and The Shooting Star's Railgun, Gungnir and Seven Stars (Tesseract fires along with them).
 Gravitia, if ticked, comes last, once the others are done. Other addons' remote skills can be ticked too; they fire
 straight away, as their timing isn't known.
 
@@ -173,20 +186,16 @@ the remote's menu and in Controls, unbound until you set it.
 
 ## Installing
 
-1. Minecraft **1.21.1** with **Fabric Loader 0.17.0** or newer, and **Fabric API**.
-2. **The Shooting Star [Demo] 1.5.2 [Fabric]**, e.g. `the-shooting-star-demo-1.5.2-fabric.jar`, and **RimuLib 1.2.2** or
-   newer, which it needs anyway.
+1. Minecraft **1.21.1** with **Fabric Loader 0.17.0** or newer and **Fabric API**.
+2. **The Shooting Star [Demo] 1.5.2 [Fabric]** and **RimuLib 1.2.2** or newer for Fabric.
 3. This addon's jar ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
 
-In game: hold the Stellar Remote, press **O** for Halley, **N** for Luna or **B** for Stellar Convergence (or pick them
-in the remote's menu, **H**),
-aim at the ground and right-click. The keys can be changed in Controls or from the remote's menu like the others.
+In game, hold the Stellar Remote and press **O** for Halley, **N** for Luna, **Z** for Proxima or **B** for Stellar
+Convergence. You can also pick a skill in the remote's menu (**H**). Aim at the ground and right-click.
+Change the keys in Controls or in the remote's menu.
 
 ## Settings — `config/shooting_star_addition-common.toml`
-
-Written the first time the game starts, in the same layout as the NeoForge version's file (you can copy values
-across). Read when the game starts and whenever a world or server starts.
 
 | Section  | Setting                    | Default | What it does |
 |----------|----------------------------|---------|--------------|
@@ -203,8 +212,6 @@ across). Read when the game starts and whenever a world or server starts.
 | world    | `leave_comet_heart`        | true    | The glowing heart crystal and the frozen trail down the trench. |
 | world    | `frost_rays`               | true    | Rays of snow painted out from the crater. |
 | safety   | `evacuate_creative_caster` | true    | Lift a creative-mode caster out of the crater first (Halley and Luna). |
-
-The server's values are sent with every strike, so every client films exactly the crater the server cuts.
 
 Luna and moon cheese, in the same file:
 
@@ -238,10 +245,11 @@ The Stellar Remote itself, in the same file:
 Updating from 1.3: `impact_radius`, `rim_height` and `buried_percent` replace Luna's old `crater_radius`,
 `crater_depth` and `sink_percent`, so the new, deeper moonfall takes its new defaults even with an old config file.
 
+The server's values are sent with every strike, so every client films exactly the crater the server cuts.
+
 ## Looks — `config/shooting_star_addition-client.toml`
 
-Each player can set these for themselves; they only change what you see. Read when the game starts and whenever you
-join a world.
+Each player can set these for themselves; they only change what you see.
 
 | Setting          | Default | What it does |
 |------------------|---------|--------------|
@@ -256,7 +264,9 @@ And your switches from the remote's menu (**H**), in the `[stellar_remote]` sect
 
 | Setting          | Default | What it does |
 |------------------|---------|--------------|
-| `luna_music`     | true    | Luna's music while the moon comes down (**M** in the menu). It follows Minecraft's Music volume. |
+| `luna_music`     | true    | Music for Luna and Proxima (**M**). It follows Minecraft's Music volume. |
+| `stack_music`    | false   | Let music from overlapping strikes play together (**=**). |
+| `imperial_units` | false   | Use miles and feet for Proxima's film readouts (**-**). |
 | `epic_mode`      | false   | Luna falls slower, 24 s instead of 16, for everyone watching (**G**). |
 | `keep_moon`      | false   | Luna's moon model stays after it lands (**L**). |
 | `impact_frames`  | FULL    | Halley's and Luna's impact frames: `FULL`, `SOFT` or `OFF` (**F**). |
@@ -286,13 +296,13 @@ Shooting Star it knows, and uses the one for the version you have:
 - **If The Shooting Star changes its mod id** (for example when it stops being a demo), this addon won't load until
   it is updated.
 
-- **Other mod loaders and Minecraft versions** beyond NeoForge 1.21.1, Forge 1.21.1, Forge and NeoForge 1.20.1,
-  Fabric 26.3, Fabric 1.21.11, Fabric 1.21.1 and Fabric 1.20.1 are not supported. They would each need their own port.
+- **Other mod loaders and Minecraft versions** each need their own build. See the compatibility note above for the
+  other branches.
 
 
 ## Plans
 
-This is version 1.7. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
+This is version 1.8.0. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
 Shooting Star and keep improving it: more skills for the Stellar Remote, balancing and polish from your feedback,
 and versions for other loaders and Minecraft versions if there's demand. Bug reports, ideas and feedback are very
 welcome in the issues.
@@ -303,19 +313,16 @@ welcome in the issues.
 
 ### Building
 
-Gradle runs on JDK 25 (Loom 1.18 needs it) and fetches JDK 21 for the build itself. Put The Shooting Star's Fabric
-jars in `libs/` as you downloaded them, one for every version the addon should support (see `libs/README.txt`; the
-build takes their Minecraft 1.21.1 part out of them), then:
+Gradle runs on JDK 25 (Loom 1.18 needs it) and fetches JDK 21 for the build. Put The Shooting Star's Fabric jars in
+`libs/` as downloaded, one for each supported version. The build extracts their Minecraft 1.21.1 jars. See
+`libs/README.txt` for details.
 
 - `./gradlew build` → `build/libs/shooting_star_addition-<version>.jar`, for all of them
 - `./gradlew runClient` / `./gradlew runServer` → a dev game with the addon and the newest of them
-- `./gradlew prodClientTest -PtssTest=1.4.0 -Dss05.clienttest.skill=halley` → the release jar in a production game
-  with that version's real jar
+- `./gradlew prodClientTest -PtssTest=1.5.2 -Dss05.clienttest.skill=halley` → the release jar in a game with that
+  version's real jar (see `src/clienttest`)
 
-Minecraft 1.21.1 is obfuscated: the code uses Mojang's names (`loom.officialMojangMappings()`), and Loom remaps the
-release jar, its mixin refmap and The Shooting Star's jar (`modCompileOnly`/`modLocalRuntime`) to intermediary names.
-`./gradlew runClientTest -Dss05.clienttest.skill=moon|halley` casts a skill in a fresh world and takes screenshots
-(see `src/clienttest`).
+The code uses Mojang's names. Loom remaps the release jar, mixin refmap and mod dependencies to intermediary names.
 
 ### When The Shooting Star updates
 
@@ -343,7 +350,7 @@ de-obfuscation map of The Shooting Star.
    the bottom of `compat/tss/TssLink.java`; the skills are `HalleySkill.java`/`MoonSkill.java`, the spells
    `HalleySpell.java`/`MoonSpell.java`, the effects `client/*.java`. If the old versions need the old code, the
    change has to work with both (the build checks all of them); the rest of the addon only sees `compat/StarLink`.
-5. Test each version: `./gradlew prodClientTest -PtssTest=<version> -Dss05.clienttest.skill=halley` (and `moon`).
+5. Test each version with `./gradlew prodClientTest -PtssTest=<version> -Dss05.clienttest.skill=halley` (and `moon`).
    The log should say `Attaching to The Shooting Star <version> through dev.ss05.halley.compat.v...` and
    `SA-01 · Halley (Halley) joined the Stellar Remote as skill #N`. If it says "couldn't attach", the remote's skill
    list (`SkillSet`) changed shape: `TssLink.install()` finds the fields it needs by their types.
@@ -351,7 +358,7 @@ de-obfuscation map of The Shooting Star.
    target moved:
    - the remote's cover/button/screen not animating for Halley and Luna → `compat/tss/mixin/RemoteRendererMixin`
      (`strikeTime`);
-   - no overlay of theirs on the cutscene → `compat/tss/mixin/FxManagerMixin` (`renderFilmHud`);
+   - no overlay on the cutscene → `compat/tss/mixin/FxManagerMixin` (`renderHud` and `liiillli1l`);
    - the no-cooldown note missing from the remote's menu → `compat/tss/mixin/WhiteSpaceMixin` (`render`); the
      `no_cooldown` option not clearing cooldowns → `compat/tss/mixin/CastingMixin` (`syncCooldowns`);
    - the caster's arm not raising (vanilla target, very unlikely to change) → `compat/mixin/PlayerModelMixin`;
@@ -370,12 +377,12 @@ de-obfuscation map of The Shooting Star.
 | Sizes, cooldown, what it leaves behind | `config/shooting_star_addition-common.toml` (defaults in `HalleyConfig.java`) |
 | The timeline (when it is sighted, enters, touches down) | `HalleyPlan.java` — film, sounds and server all follow it |
 | Luna (the moonfall), moon cheese | see [docs/SS-06-LUNA.md](docs/SS-06-LUNA.md) (design and code map) |
+| Proxima | see [docs/SS-07-PROXIMA.md](docs/SS-07-PROXIMA.md) (timeline and code map) |
 | What it does to the world | `world/HalleyStrike.java` (block palettes at the top) |
 | Name, colour, default key | `world/HalleyInfo.java`; description and key name in `assets/shooting_star_addition/lang/en_us.json` |
 | The look: colours, comet size, tails | top of `client/render/CometVisuals.java`; shapes in `halley_glow.fsh` |
 | The extras: fragments, ice from the crater, cracks, shock wall, beam | top of `client/render/CometExtras.java` |
 | The sky: when it darkens, the aurora, the haze | `sky()` in `client/HalleyFx.java` (timing); `halley_sky.fsh` (the look) |
-| How it's drawn | `client/render/HalleyPipelines.java` (pipelines), `CometRenderer.java` (the light), `client/sky/HalleySky.java` (the sky) |
 | Shader packs (Iris) | `client/render/ShaderPacks.java` (when), `GlowAtlas.java` (the painted shapes), `paint()` in `client/sky/HalleySky.java` |
 | Sounds, particles, screen effects, HUD | `client/HalleyFx.java`, `client/HalleyHud.java` |
 | The cutscene | `client/film/HalleyStoryboard.java` (one block per shot) |
@@ -385,19 +392,17 @@ de-obfuscation map of The Shooting Star.
 
 ```
 src/main/java/dev/ss05/halley/
-  HalleyAddon.java       mod entry point (Fabric "main")
+  HalleyAddon.java       Fabric main entry point
+  HalleyServer.java      Fabric dedicated server entry point
   HalleyConfig.java      the settings file
   HalleyPlan.java        timeline and geometry, shared by server and client
   HalleyParams.java      the sizes of one strike, sent to clients with it
-  config/                the small TOML reader and writer behind both config files
   compat/                how the addon reaches The Shooting Star (StarBridge), and vanilla mixins
   compat/tss/            everything that touches The Shooting Star (server side, client side, mixins); one copy
                          per supported version in the release jar
-  content/               blocks, sounds, damage type, chunk ticket
+  content/               blocks, sounds, damage type
   world/                 what the strike does to the world (server)
-  client/                what it looks and sounds like (renderer, effects, HUD, cutscene); HalleyClient is the
-                         Fabric "client" entry point
-  client/mixin/          the hooks into Minecraft's own drawing
+  client/                what it looks and sounds like (renderer, effects, HUD, cutscene)
   client/sky/            the sky during a strike (night, aurora, the ice haze)
 src/main/resources/      fabric.mod.json, mixin configs, shaders, textures, sounds, language file, data
 art/                     scripts that generate the textures, thumbnail and sounds
@@ -411,3 +416,5 @@ with or endorsed by them, and contains none of the original mod's code or assets
 installed for it to do anything.
 
 Stellar Convergence is inspired by **Stellar Quartet** by ikun520, which unlocks it.
+
+Proxima's music is by **DOM_MusicST** and **FarzanNB**. [DOM_MusicST](https://www.youtube.com/@DOM_MusicST), [FarzanNB](https://www.youtube.com/@FarzanNB)
