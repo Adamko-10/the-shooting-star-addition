@@ -136,6 +136,30 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   film\`): every shot draws, no shader errors; tweaked after (loops fainter, beam stronger, smaller sun glint, orbit
   shot from 0.3 Earth radii; re-run `film2` confirms). Test jar `test builds6-11-07 Proxima new film`, in the Modrinth profile (the Sonniss test jar there renamed `(Sonniss sounds build).jar.disabled`; the profile has TSS 1.5.2 + RimuLib 1.2.2). Not yet: the user's own look (test jar), the SA-04A/SA-04B split, SA-04B CME.
   Known: the test client's short render distance fogs the pull up's ground and the last shot (fine in a real game).
+- **The user's test of it (2026-11-07 ~13:15) and what's next, IN ORDER (the user: "be ready for the next session")**:
+  1. **BUG: in the user's game the space scene never shows** ("it zooms out to the sky and stops ... all i see is
+     clouds", with and without shaders): the pull up plays, then the parked camera's clouds; no Dyson sphere. Their log
+     has no shader error (`proxima_space` loaded). In my plain test (TSS + RimuLib only) it draws, so suspect their
+     rendering mods: ImmediatelyFast 1.6.15 (HUD batching: our scene is drawn mid-GUI from TSS's film overlay pass),
+     Sodium 0.8.13 + Sodium Extra, Iris 1.8.14 (shaders off by default), Distant Horizons 3.3.3, BadOptimizations,
+     EntityCulling, ModernFix. Copies of those jars are in the project folder's `other mods\user render mods\`;
+     `test scripts\autotest20.sh` takes `EXTRA=<folder>` (`-PextraMods`) and `NAME=`; the run with all of them is
+     `test builds\2026-11-07 auto test 26 proxima new film\usermods\` (see its result below). Bisect from there. Also
+     unknown: whether the film's captions/title cards showed for them (same overlay pass). A robust fix if the overlay
+     pass is the problem: draw the scene from `RenderFrameEvent.Post` (like `FilmPanels`) and our HUD/titles after it.
+  2. **Third person / everyone not in the film: draw the Dyson sphere in the real sky again, "pretty big"** (the user,
+     2026-11-07): the old in-sky intro (`ProximaSpace`, deleted in af100f4: git show af100f4^:src/main/java/dev/ss05/
+     halley/client/proxima/ProximaSpace.java) showed it to everyone; bring a sky version back, bigger, matching the
+     film's look as far as the glow pipeline allows (it only adds light: dark panels need the star held dim behind).
+  3. **The Flare's impact made cinematic (decided 2026-11-07)**: at the music's drop the camera pulls back and up in
+     slow motion while a glowing shock ring races out to the horizon, looks only (the damage stays its size). **SA-04B
+     CME gets the real "massive wave that spreads everywhere"** later.
+  4. **Music: the Flare keeps this track for now** (decided; "keep it for now"); the CME's music is decided when it is
+     built (the user's finished track, or a new one; moving this one is just a recut of `art/make_proxima_music.sh`).
+  5. Then the rest of the remaining list below (Sonniss sounds' verdict, SA-04A/04B split, CME design + previz, ...).
+  **Sounds clarified**: the test jar's sounds are byte-identical to 1.7.0's (checked all 37); the "newer" moon sounds the
+  user remembered were the unreleased Sonniss test jar's. The user wants the test builds to match what shipped
+  ("same sfx same everything"): it already does; no Sonniss swap until they say so.
 
 ### START HERE (2026-11-06, late evening, Adam's PC)
 
