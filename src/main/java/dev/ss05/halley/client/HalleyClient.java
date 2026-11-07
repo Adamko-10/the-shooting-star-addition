@@ -3,6 +3,8 @@ package dev.ss05.halley.client;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.render.MoonRenderer;
 import dev.ss05.halley.client.luna.render.MoonSphere;
+import dev.ss05.halley.client.proxima.ProximaFx;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import dev.ss05.halley.client.render.CometRenderer;
 import dev.ss05.halley.client.render.GlowAtlas;
 import dev.ss05.halley.client.render.ShaderPacks;
@@ -41,12 +43,15 @@ public final class HalleyClient implements ClientModInitializer {
             MoonSphere.submitForShaderPack(context);
             MoonRenderer.submitForShaderPack(context);
         });
+        ClientTickEvents.END_CLIENT_TICK.register(client -> ProximaFx.tickZones());
         // once every mod's client has started, The Shooting Star's effect handling is in place to be hooked
         ClientLifecycleEvents.CLIENT_STARTED.register(client -> StarBridge.installClient());
+        // TODO(port): Restore Proxima Earth texture preload with mipmapped GPU textures when its scene is ported.
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> HalleyClientConfig.SPEC.load());
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
+            ProximaFx.clearAll();
             ConvergenceView.clearAll();
             CometRenderer.release();
             MoonRenderer.release();
@@ -68,7 +73,7 @@ public final class HalleyClient implements ClientModInitializer {
         float partial = deltaTracker.getGameTimeDeltaPartialTick(true);
         HalleySky.update(partial);
         if (ShaderPacks.active() && Minecraft.getInstance().level != null
-            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty() || ConvergenceView.any())) {
+            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty() || ConvergenceView.any() || !ProximaFx.active().isEmpty() || ProximaFx.auroras())) {
             GlowAtlas.paint();
             HalleySky.paint(partial);
         }

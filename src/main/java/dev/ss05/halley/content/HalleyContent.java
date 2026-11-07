@@ -101,6 +101,22 @@ public final class HalleyContent {
     public static final Item COMET_HEART_ITEM = item("comet_heart", key -> new BlockItem(COMET_HEART, new Item.Properties().setId(key)));
     public static final Item COMET_TRAIL_ITEM = item("comet_trail", key -> new BlockItem(COMET_TRAIL, new Item.Properties().setId(key)));
 
+    /** Proxima's glowing residue and its ash layer (no random ticks, so it never melts). */
+    private static final ResourceKey<Block> SOLAR_RESIDUE_KEY = ResourceKey.create(Registries.BLOCK, HalleyAddon.id("solar_residue"));
+    public static final Block SOLAR_RESIDUE = Registry.register(BuiltInRegistries.BLOCK, SOLAR_RESIDUE_KEY,
+        new SolarResidueBlock(BlockBehaviour.Properties.of().setId(SOLAR_RESIDUE_KEY)
+            .strength(3.0F, 9.0F).mapColor(MapColor.COLOR_MAGENTA).sound(SoundType.AMETHYST)
+            .lightLevel(state -> 12).emissiveRendering(state -> true).requiresCorrectToolForDrops()
+            .isValidSpawn((state, level, pos, type) -> false)));
+    private static final ResourceKey<Block> PROXIMA_ASH_KEY = ResourceKey.create(Registries.BLOCK, HalleyAddon.id("proxima_ash"));
+    public static final Block PROXIMA_ASH = Registry.register(BuiltInRegistries.BLOCK, PROXIMA_ASH_KEY,
+        new SnowLayerBlock(BlockBehaviour.Properties.of().setId(PROXIMA_ASH_KEY)
+            .mapColor(MapColor.COLOR_GRAY).replaceable().forceSolidOff().strength(0.1F).sound(SoundType.SAND)
+            .isViewBlocking((state, level, pos, bounds) -> state.getValue(SnowLayerBlock.LAYERS) >= 8)
+            .pushReaction(PushReaction.DESTROY)) {});
+    public static final Item SOLAR_RESIDUE_ITEM = item("solar_residue", key -> new BlockItem(SOLAR_RESIDUE, new Item.Properties().setId(key)));
+    public static final Item PROXIMA_ASH_ITEM = item("proxima_ash", key -> new BlockItem(PROXIMA_ASH, new Item.Properties().setId(key)));
+
     /** Cheese, so eating any of it first clears your effects like milk does. */
     private static final Consumable CHEESE = Consumables.defaultFood().onConsume(ClearAllStatusEffectsConsumeEffect.INSTANCE).build();
     public static final Item MOON_CHEESE_ITEM = item("moon_cheese", key -> new BlockItem(MOON_CHEESE, new Item.Properties().setId(key).food(Foods.GOLDEN_CARROT, CHEESE)));
@@ -178,6 +194,12 @@ public final class HalleyContent {
     public static final TicketType CHUNKS = Registry.register(BuiltInRegistries.TICKET_TYPE, HalleyAddon.id("halley"),
         new TicketType(TicketType.NO_TIMEOUT, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION | TicketType.FLAG_KEEP_DIMENSION_ACTIVE));
 
+    public static final SoundEvent PROXIMA_FLASH = sound("proxima_flash");
+    public static final SoundEvent PROXIMA_IMPACT = sound("proxima_impact");
+    public static final SoundEvent PROXIMA_WAVE = sound("proxima_wave");
+    public static final SoundEvent PROXIMA_FRONT = sound("proxima_front");
+    public static final SoundEvent PROXIMA_INHALE = sound("proxima_inhale");
+
     /** Damage from the shock wave outside the crater (inside it, things are erased the way the other skills erase). */
     public static final ResourceKey<DamageType> WAKE = ResourceKey.create(Registries.DAMAGE_TYPE, HalleyAddon.id("halley_wake"));
 
@@ -220,6 +242,8 @@ public final class HalleyContent {
         CreativeModeTabEvents.modifyOutputEvent(NATURAL_BLOCKS_TAB).register(output -> {
             output.accept(COMET_HEART_ITEM);
             output.accept(COMET_TRAIL_ITEM);
+            output.accept(SOLAR_RESIDUE_ITEM);
+            output.accept(PROXIMA_ASH_ITEM);
             output.accept(MOON_CHEESE_ITEM);
             output.accept(HOLEY_MOON_CHEESE_ITEM);
             output.accept(MOLTEN_MOON_CHEESE_ITEM);

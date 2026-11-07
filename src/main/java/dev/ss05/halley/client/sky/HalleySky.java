@@ -17,6 +17,7 @@ import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.HalleyClientConfig;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.luna.MoonFx;
+import dev.ss05.halley.client.proxima.ProximaFx;
 import dev.ss05.halley.client.render.BakedTexture;
 import dev.ss05.halley.client.render.HalleyPipelines;
 import dev.ss05.halley.client.render.ShaderPacks;
@@ -56,9 +57,9 @@ import org.lwjgl.system.MemoryStack;
 public final class HalleySky {
     /** The dark sky's colour at the horizon, by {@link SkyLook#palette()} (HORIZON in halley_sky.fsh): the fog takes
      * it on. SS-06 Luna's is a warm dusty red instead of SS-05's cold navy. */
-    private static final Vec3[] HORIZON_BY_PALETTE = {new Vec3(0.055, 0.110, 0.215), new Vec3(0.360, 0.090, 0.020)};
+    private static final Vec3[] HORIZON_BY_PALETTE = {new Vec3(0.055, 0.110, 0.215), new Vec3(0.360, 0.090, 0.020), new Vec3(0.950, 0.330, 0.190)};
     /** The haze's colour at the horizon, by palette (veilSky in halley_sky.fsh at the horizon). */
-    private static final Vec3[] VEIL_HORIZON_BY_PALETTE = {new Vec3(0.63, 0.84, 0.98), new Vec3(0.62, 0.38, 0.20)};
+    private static final Vec3[] VEIL_HORIZON_BY_PALETTE = {new Vec3(0.63, 0.84, 0.98), new Vec3(0.62, 0.38, 0.20), new Vec3(0.60, 0.36, 0.32)};
     /** The land's light at night (the overworld's sky_light_factor and sky_light_color then). */
     private static final float NIGHT_LIGHT = 0.24F;
     private static final Vector3fc NIGHT_TINT = new Vector3f(0x7A / 255.0F, 0x7A / 255.0F, 1.0F);
@@ -90,7 +91,9 @@ public final class HalleySky {
     public static void update(float partial) {
         current = null;
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level == null || (HalleyFx.active().isEmpty() && MoonFx.active().isEmpty()) || !HalleyClientConfig.sky()) {
+        if (minecraft.level == null || (HalleyFx.active().isEmpty() && MoonFx.active().isEmpty() && ProximaFx.active().isEmpty()
+            && !ProximaFx.auroras())
+            || !HalleyClientConfig.sky()) {
             return;
         }
         Vec3 camera = minecraft.gameRenderer.mainCamera().position();
@@ -113,6 +116,25 @@ public final class HalleySky {
             }
             SkyLook look = fx.sky(partial, camera);
             float strength = look.cover() + look.flash() + look.aurora() * 0.2F + look.cometGlow() * 0.1F;
+            if (look.visible() && strength >= bestStrength) {
+                best = look;
+                bestStrength = strength;
+            }
+        }
+        // after a flare: auroras for a night or two (when nothing else is changing the sky)
+        if (best == null) {
+            SkyLook aurora = ProximaFx.aurora(partial, camera);
+            if (aurora != null && aurora.visible()) {
+                best = aurora;
+                bestStrength = aurora.aurora() * 0.2F;
+            }
+        }
+        for (ProximaFx fx : ProximaFx.active()) {
+            if (fx.finished(partial)) {
+                continue;
+            }
+            SkyLook look = fx.sky(partial, camera);
+            float strength = look.cover() + look.flash() + look.cometGlow() * 0.1F;
             if (look.visible() && strength >= bestStrength) {
                 best = look;
                 bestStrength = strength;
@@ -193,7 +215,7 @@ public final class HalleySky {
             Vec3 comet = look.cometDir();
             Vec3 tail = look.tailDir();
             ByteBuffer data = Std140Builder.onStack(stack, UNIFORM_SIZE)
-                .putVec4(skyClock, packNight ? 0.0F : look.night(), look.stars(), look.aurora() * (packNight ? 0.6F : 1.0F))
+                .putVec4(skyClock, packNight && look.palette() != SkyLook.PALETTE_PROXIMA ? 0.0F : look.night(), look.stars(), look.aurora() * (packNight ? 0.6F : 1.0F))
                 .putVec4(look.veil(), look.halo(), look.flash(), look.cometGlow())
                 .putVec4((float) comet.x, (float) comet.y, (float) comet.z, look.cometHeat())
                 .putVec4((float) tail.x, (float) tail.y, (float) tail.z, look.seed())
@@ -297,7 +319,7 @@ public final class HalleySky {
             return;
         }
         // the night itself is the shader pack's own (clockShift): only the haze after the impact covers its sky
-        float cover = look.veil() * 0.75F;
+        float cover = look.palette() == SkyLook.PALETTE_PROXIMA ? Math.max(look.veil() * 0.75F, look.night()) : look.veil() * 0.75F;
         boolean base = cover > 0.002F;
         boolean light = look.stars() > 0.001F || look.aurora() > 0.001F || look.cometGlow() > 0.001F
             || look.halo() > 0.001F || look.flash() > 0.001F;
@@ -455,7 +477,7 @@ public final class HalleySky {
             if (look == null) {
                 return value;
             }
-            Vector4f c = value.lerp(NIGHT_CLOUDS, look.night(), new Vector4f());
+            Vector4f c = value.lerp(look.palette() == SkyLook.PALETTE_PROXIMA ? new Vector4f(0.75F, 0.28F, 0.22F, 1.0F) : NIGHT_CLOUDS, look.night(), new Vector4f());
             return c.lerp(ICY_CLOUDS, look.veil() * 0.4F, c).setComponent(3, value.w());
         });
     }

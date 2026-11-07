@@ -1,9 +1,9 @@
 # The Shooting Star Addition
 
 An **unofficial**, fan-made addon for [The Shooting Star [Demo]](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-demo)
-by rimuru_dev. It adds two new skills to the Stellar Remote: **SA-01 · Halley**, a comet called down onto your
+by rimuru_dev. It adds three new strike skills to the Stellar Remote: **SA-01 · Halley**, a comet called down onto your
 crosshair, and **SA-02 · Luna**, which brings the moon itself down, leaving a moon of edible moon cheese with a
-molten heart in a huge crater; and **SA-00 · Stellar Convergence**, which fires every weapon you tick at once. On the
+molten heart in a huge crater; **SA-04 · Proxima**, a solar flare and coronal mass ejection; and **SA-00 · Stellar Convergence**, which fires every weapon you tick at once. On the
 remote they come after The Shooting Star's own skills. Their codenames are
 their own series, SA (Shooting star Addition), so they never clash with the SS numbers of The Shooting Star's own
 skills, whatever it adds.
@@ -98,6 +98,17 @@ drives deep into it, the crust buckling up against it, and comes to rest there w
 |---|---|---|
 | ![EARTH SYSTEM SHUT DOWN](docs/screenshots/13-luna-alarm.jpg) | ![The moon burning in](docs/screenshots/14-luna-fall.jpg) | ![The moon in its crater](docs/screenshots/15-luna-crater.jpg) |
 
+## SA-04 · Proxima
+
+Select Proxima with **]** (right bracket), aim at the ground and fire. The flash burns exposed creatures; the coronal
+front then hits the mark, leaving a glassy bowl, charred ground, Solar Residue and Flare Ash. Three solid blocks
+overhead shelter you from the flash and the outer blast. Radiation lingers in the bowl and is saved with the world.
+Power scales the strike, and the common config controls terrain changes, radiation and optional random solar flares.
+
+On this Fabric 26.3 port the 36-second film has its world camera, captions, title cards and soundtrack. The separate
+space/Earth scene and sky gate are deferred: the world camera stays visible during the space portion.
+Epic mode remains **Z**; **=** switches music stacking and **-** switches kilometres/metres to miles/feet.
+
 ## SA-00 · Stellar Convergence
 
 A remote skill of its own that fires every weapon you tick, all at once, timed so every impact lands on the same
@@ -159,6 +170,8 @@ the skill's defaults. It ignores the server's slider limits: values past the rem
 they can freeze or crash a server. `/ssa` alone shows the help. From the console:
 `/execute as <player> run ssa strike ...`.
 
+`/ssa flare <minor|major|cataclysm> [seconds]` announces a natural flare near you, then fires it after the warning.
+
 ## Protected blocks
 
 Blocks in the tag `shooting_star_addition:unbreakable` are never carved by Halley or Luna: bedrock, barriers, command
@@ -180,7 +193,7 @@ the remote's menu and in Controls, unbound until you set it.
 Minecraft must be drawing with OpenGL (*Video Settings → Graphics API → Prefer OpenGL*), or The Shooting Star
 won't start.
 
-In game: hold the Stellar Remote, press **G** for Halley, **N** for Luna or **B** for Stellar Convergence (or pick them
+In game: hold the Stellar Remote, press **G** for Halley, **N** for Luna, **]** for Proxima or **B** for Stellar Convergence (or pick them
 in the remote's menu, **H**),
 aim at the ground and right-click. The keys can be changed in Controls or from the remote's menu like the others.
 
@@ -254,6 +267,8 @@ And your switches from the remote's menu (**H**), in the `[stellar_remote]` sect
 | Setting          | Default | What it does |
 |------------------|---------|--------------|
 | `luna_music`     | true    | Luna's music while the moon comes down (**M** in the menu). It follows Minecraft's Music volume. |
+| `stack_music` | false | Let successive strikes keep their music playing together (**=**). |
+| `imperial_units` | false | Film distances in miles/feet instead of kilometres/metres (**-**). |
 | `epic_mode`      | false   | Luna falls slower, 24 s instead of 16, for everyone watching (**Z**). |
 | `keep_moon`      | false   | Luna's moon model stays after it lands (**L**). |
 | `impact_frames`  | FULL    | Halley's and Luna's impact frames: `FULL`, `SOFT` or `OFF` (**F**). |
@@ -398,3 +413,6 @@ with or endorsed by them, and contains none of the original mod's code or assets
 installed for it to do anything.
 
 Stellar Convergence is inspired by **Stellar Quartet** by ikun520, which unlocks it.
+
+Proxima's music is by **DOM_MusicST** and **FarzanNB**. Its preserved Earth imagery is from **NASA** and
+**Solar System Scope (CC BY 4.0)**; see [image credits](src/main/resources/assets/shooting_star_addition/textures/proxima/CREDITS.txt).

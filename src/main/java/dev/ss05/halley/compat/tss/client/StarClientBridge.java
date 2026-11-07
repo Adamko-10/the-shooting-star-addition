@@ -17,6 +17,8 @@ import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.MoonHud;
+import dev.ss05.halley.client.proxima.ProximaFx;
+import dev.ss05.halley.client.proxima.ProximaHud;
 import dev.ss05.halley.compat.tss.ConvergenceFx;
 import dev.ss05.halley.compat.tss.StrikeFx;
 import dev.ss05.halley.net.ServerSettings;
@@ -27,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -58,6 +61,8 @@ public final class StarClientBridge {
                     start(strike);
                 } else if (strike.skill() == SkillApi.index(TssLink.MOON)) {
                     startMoon(strike);
+                } else if (strike.skill() == SkillApi.index(TssLink.PROXIMA)) {
+                    startProxima(strike);
                 }
             }));
             RimuNetClient.receive(ConvergenceFx.TYPE, (fx, context) -> Minecraft.getInstance().execute(() -> ConvergenceClient.start(fx)));
@@ -69,8 +74,7 @@ public final class StarClientBridge {
                     ConvergencePlate.draw(graphics);
                 }
             });
-            // 26.3: Minecraft's keys are SDL's (a letter is its lower-case character, 'm' = 109); the plates use GLFW's
-            // codes (upper case, 'M' = 77), which is what The Shooting Star translates them to: both are taken
+            // RimuLib 1.2.2 passes KeyEvent.key() directly: SDL scancodes, converted to the plates' GLFW codes here.
             MenuApi.onKey(key -> MenuApi.capturesInput() && !menuUses(key, 0) && (AdditionPanel.key(glfw(key)) || ConvergencePlate.key(glfw(key))));
             // once the server has said hello, tell it this player's Stellar Convergence picks
             Runnable before = ServerSettings.onReceived;
@@ -113,6 +117,19 @@ public final class StarClientBridge {
         }
     }
 
+    /** SA-04's effects (and its film, for the caster, or everyone near it when the caster plays it for everyone). */
+    private static void startProxima(StrikeFx strike) {
+        if (Minecraft.getInstance().level == null) {
+            return;
+        }
+        ProximaFxAdapter fx = new ProximaFxAdapter(strike);
+        FxManager.add(fx);
+        // a random flare has no film (nobody cast it)
+        if (films(fx.proxima().mine, strike) && !fx.proxima().plan.params.natural()) {
+            CutsceneDirector.play(ProximaCutscene.of(fx));
+        }
+    }
+
     /** SS-06's effects (and its film, for the caster, or everyone near it when the caster plays it for everyone). */
     private static void startMoon(StrikeFx strike) {
         if (Minecraft.getInstance().level == null) {
@@ -148,6 +165,18 @@ public final class StarClientBridge {
                 MoonFx fx = MoonFx.active().getLast();
                 MoonHud.film(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics), world -> FxManager.project(world, graphics));
                 FilmTitle.luna(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics), world -> FxManager.project(world, graphics));
+            });
+        }
+        if (!ProximaFx.active().isEmpty()) {
+            ProximaFx proxima = ProximaFx.active().getLast();
+            // ProximaCosmos documents the deferred space pass; the world camera remains visible.
+            UiApi.overlay(graphics, () -> {
+                ProximaHud.film(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
+                FilmTitle.caption(graphics, ProximaHud.caption(proxima, partial), UiApi.width(graphics), UiApi.height(graphics));
+                FilmTitle.centauri(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
+                FilmTitle.dyson(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
+                FilmTitle.cme(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
+                FilmTitle.proxima(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
             });
         }
         // 26.3: Stellar Convergence's film panels are drawn here (the other versions draw them at the end of the frame)
@@ -301,8 +330,19 @@ public final class StarClientBridge {
         return mapping != null && mapping.matches(new KeyEvent(key, scancode, 0));
     }
 
-    /** A letter key as GLFW's code (upper case), whichever way it came. */
+    /** The plate's letters, digits and punctuation, from SDL scancodes to GLFW codes. */
     private static int glfw(int key) {
-        return key >= 'a' && key <= 'z' ? key - ('a' - 'A') : key;
+        if (key >= InputConstants.KEY_A && key <= InputConstants.KEY_Z) {
+            return 'A' + key - InputConstants.KEY_A;
+        }
+        if (key >= 30 && key <= 38) {
+            return '1' + key - 30;
+        }
+        return switch (key) {
+            case 39 -> '0';
+            case InputConstants.KEY_MINUS -> '-';
+            case InputConstants.KEY_EQUALS -> '=';
+            default -> -1;
+        };
     }
 }

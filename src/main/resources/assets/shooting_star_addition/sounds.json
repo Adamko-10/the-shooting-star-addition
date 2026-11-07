@@ -244,6 +244,30 @@
       }
     ]
   },
+  "proxima_flash": {
+    "subtitle": "subtitles.shooting_star_addition.proxima_flash",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:proxima_flash"
+      }
+    ]
+  },
+  "proxima_impact": {
+    "subtitle": "subtitles.shooting_star_addition.proxima_impact",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:proxima_impact"
+      }
+    ]
+  },
+  "proxima_wave": {
+    "subtitle": "subtitles.shooting_star_addition.proxima_wave",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:proxima_wave"
+      }
+    ]
+  },
   "luna_music": {
     "sounds": [
       {
@@ -257,6 +281,38 @@
       {
         "name": "shooting_star_addition:luna_music_epic",
         "stream": true
+      }
+    ]
+  },
+  "proxima_music": {
+    "sounds": [
+      {
+        "name": "shooting_star_addition:proxima_music",
+        "stream": true
+      }
+    ]
+  },
+  "proxima_film": {
+    "sounds": [
+      {
+        "name": "shooting_star_addition:proxima_film",
+        "stream": true
+      }
+    ]
+  },
+  "proxima_front": {
+    "subtitle": "subtitles.shooting_star_addition.proxima_front",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:proxima_front"
+      }
+    ]
+  },
+  "proxima_inhale": {
+    "subtitle": "subtitles.shooting_star_addition.proxima_inhale",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:proxima_inhale"
       }
     ]
   }

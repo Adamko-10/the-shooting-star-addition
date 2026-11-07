@@ -16,9 +16,9 @@ import net.minecraft.util.Util;
 
 /**
  * The addon's own plate in the Stellar Remote's menu (H, The Shooting Star's "White Space"), in the menu's colours, in
- * its top left corner: six switches - the skills' music (M, Luna's), Luna's Epic mode (Z: a slower fall; G on the other
+ * its top left corner: eight switches - the skills' music (M, Luna's and Proxima's), Luna's Epic mode (Z: a slower fall; G on the other
  * versions, but on 26.3 G is Halley's key), keeping Luna's moon model after it lands (L), the impact frames (F: full,
- * soft, off), where the evac takes you (E: up, or to the edge) and no-cooldown (C) - and what the server allows. The menu holds
+ * soft, off), where the evac takes you (E: up, or to the edge) no-cooldown (C), music stacking (=) and units (-) - and what the server allows. The menu holds
  * the mouse (you pick things in it by looking at them), so these are flipped with their keys, shown on the plate.
  *
  * <p>No-cooldown is the server's to allow ({@code no_cooldown}, and {@code no_cooldown_survival} for survival players);
@@ -37,7 +37,9 @@ public final class AdditionPanel {
     public static final float MIN_SCALE = 0.5F;
     public static final float MAX_SCALE = 0.75F;
     private static final int WIDTH = 236;
-    /** GLFW key codes (The Shooting Star translates SDL scancodes to these before this menu sees them). */
+    /** This plate a little smaller than the remote's other plates (the user, 2026-11-07). */
+    private static final float SIZE = 0.82F;
+    /** GLFW key codes, converted from SDL by StarClientBridge. */
     public static final int KEY_MUSIC = 77;
     public static final int KEY_COOLDOWN = 67;
     public static final int KEY_EVAC = 69;
@@ -45,6 +47,9 @@ public final class AdditionPanel {
     public static final int KEY_FRAMES = 70;
     /** Z, not G as on the other versions: G is Halley's own key on 26.3 (vanilla 26.3 binds O to Friends). */
     public static final int KEY_EPIC = 90;
+    /** - and =: every free letter is taken in the menu (WASD move, Q drops, P is Stellar Quartet's, the rest skills). */
+    public static final int KEY_UNITS = 45;
+    public static final int KEY_STACK = 61;
     private static final float SLIDE_MILLIS = 160.0F;
 
     private static long musicFlippedAt;
@@ -53,6 +58,8 @@ public final class AdditionPanel {
     private static long cooldownFlippedAt;
     private static long evacFlippedAt;
     private static long epicFlippedAt;
+    private static long unitsFlippedAt;
+    private static long stackFlippedAt;
 
     private AdditionPanel() {
     }
@@ -61,7 +68,7 @@ public final class AdditionPanel {
 
     /** A key pressed while the menu is open (from compat/tss/client/StarClientBridge): true if it was one of ours. */
     public static boolean key(int key) {
-        // (Minecraft 26.3's keys are SDL's: a letter is its lower-case character, 'm' = 109; GLFW's 'M' = 77 is taken too)
+        // StarClientBridge converts RimuLib's SDL scancodes to these GLFW key codes.
         if (key == KEY_MUSIC || key == 'm') {
             HalleyClientConfig.setLunaMusic(!HalleyClientConfig.lunaMusic());
             musicFlippedAt = Util.getMillis();
@@ -95,6 +102,18 @@ public final class AdditionPanel {
             HalleyClientConfig.setEvacLift(!HalleyClientConfig.evacLift());
             evacFlippedAt = Util.getMillis();
             sendChoice();
+            click(true);
+            return true;
+        }
+        if (key == KEY_STACK) {
+            HalleyClientConfig.setStackMusic(!HalleyClientConfig.stackMusic());
+            stackFlippedAt = Util.getMillis();
+            click(true);
+            return true;
+        }
+        if (key == KEY_UNITS) {
+            HalleyClientConfig.setImperial(!HalleyClientConfig.imperial());
+            unitsFlippedAt = Util.getMillis();
             click(true);
             return true;
         }
@@ -156,12 +175,12 @@ public final class AdditionPanel {
         }
 
         int w = Math.max(WIDTH, Math.max(font.width(status), font.width(Component.translatable("gui.shooting_star_addition.no_cooldown.disabled"))) + 22);
-        int h = cooldownOff ? 232 : 220;
+        int h = cooldownOff ? 296 : 284;
         // over the menu, in its top left corner
         g.nextStratum();
         g.pose().pushMatrix();
         g.pose().translate(8.0F, 8.0F);
-        float scale = Mth.clamp(g.guiWidth() / 860.0F, MIN_SCALE, MAX_SCALE);
+        float scale = Math.max(Mth.clamp(g.guiWidth() / 860.0F, MIN_SCALE, MAX_SCALE) * SIZE, 1.0F / (float) minecraft.getWindow().getGuiScale());
         g.pose().scale(scale, scale);
         // a soft shadow, the plate, its gold edge and title rule
         plate(g, 2, 3, w + 2, h + 3, 0x26000000);
@@ -175,37 +194,49 @@ public final class AdditionPanel {
         g.text(font, Component.translatable("gui.shooting_star_addition.music.hint"), 11, 38, 0xFF000000 | GREY, false);
         g.fill(11, 51, w - 10, 52, 0xFF000000 | RULE);
 
-        // Luna's Epic mode: a slower fall, for everyone watching
-        row(g, font, 58, Component.translatable("gui.shooting_star_addition.epic"), "Z", HalleyClientConfig.epicMode(), true, epicFlippedAt, w);
-        g.text(font, Component.translatable("gui.shooting_star_addition.epic.hint"), 11, 70, 0xFF000000 | GREY, false);
+        // strikes' music stacking, or the newest taking over
+        row(g, font, 58, Component.translatable("gui.shooting_star_addition.stack_music"), "=", HalleyClientConfig.stackMusic(), true,
+            stackFlippedAt, w);
+        g.text(font, Component.translatable("gui.shooting_star_addition.stack_music.hint"), 11, 70, 0xFF000000 | GREY, false);
         g.fill(11, 83, w - 10, 84, 0xFF000000 | RULE);
 
-        // keep Luna's moon model after it lands
-        row(g, font, 90, Component.translatable("gui.shooting_star_addition.keep_moon"), "L", HalleyClientConfig.keepMoon(), true,
-            keepMoonFlippedAt, w);
-        g.text(font, Component.translatable("gui.shooting_star_addition.keep_moon.hint"), 11, 102, 0xFF000000 | GREY, false);
+        // Luna's Epic mode: a slower fall, for everyone watching
+        row(g, font, 90, Component.translatable("gui.shooting_star_addition.epic"), "Z", HalleyClientConfig.epicMode(), true, epicFlippedAt, w);
+        g.text(font, Component.translatable("gui.shooting_star_addition.epic.hint"), 11, 102, 0xFF000000 | GREY, false);
         g.fill(11, 115, w - 10, 116, 0xFF000000 | RULE);
+
+        // keep Luna's moon model after it lands
+        row(g, font, 122, Component.translatable("gui.shooting_star_addition.keep_moon"), "L", HalleyClientConfig.keepMoon(), true,
+            keepMoonFlippedAt, w);
+        g.text(font, Component.translatable("gui.shooting_star_addition.keep_moon.hint"), 11, 134, 0xFF000000 | GREY, false);
+        g.fill(11, 147, w - 10, 148, 0xFF000000 | RULE);
 
         // the impact frames: full or soft (on), or off
         HalleyClientConfig.ImpactFrames frames = HalleyClientConfig.impactFrames();
-        row(g, font, 122, Component.translatable("gui.shooting_star_addition.frames"), "F", frames != HalleyClientConfig.ImpactFrames.OFF,
+        row(g, font, 154, Component.translatable("gui.shooting_star_addition.frames"), "F", frames != HalleyClientConfig.ImpactFrames.OFF,
             true, framesFlippedAt, w, frames == HalleyClientConfig.ImpactFrames.SOFT ? "gui.shooting_star_addition.frames.soft"
                 : "gui.shooting_star_addition.frames.full", "gui.shooting_star_addition.off");
-        g.text(font, Component.translatable("gui.shooting_star_addition.frames.hint"), 11, 134, 0xFF000000 | GREY, false);
-        g.fill(11, 147, w - 10, 148, 0xFF000000 | RULE);
-
-        // where the evac takes you: up (the switch on) or to the edge
-        row(g, font, 154, Component.translatable("gui.shooting_star_addition.evac"), "E", HalleyClientConfig.evacLift(), true,
-            evacFlippedAt, w, "gui.shooting_star_addition.evac.up", "gui.shooting_star_addition.evac.edge");
-        g.text(font, Component.translatable("gui.shooting_star_addition.evac.hint"), 11, 166, 0xFF000000 | GREY, false);
+        g.text(font, Component.translatable("gui.shooting_star_addition.frames.hint"), 11, 166, 0xFF000000 | GREY, false);
         g.fill(11, 179, w - 10, 180, 0xFF000000 | RULE);
 
+        // where the evac takes you: up (the switch on) or to the edge
+        row(g, font, 186, Component.translatable("gui.shooting_star_addition.evac"), "E", HalleyClientConfig.evacLift(), true,
+            evacFlippedAt, w, "gui.shooting_star_addition.evac.up", "gui.shooting_star_addition.evac.edge");
+        g.text(font, Component.translatable("gui.shooting_star_addition.evac.hint"), 11, 198, 0xFF000000 | GREY, false);
+        g.fill(11, 211, w - 10, 212, 0xFF000000 | RULE);
+
+        // the films' distances: kilometres (off) or miles (on)
+        row(g, font, 218, Component.translatable("gui.shooting_star_addition.units"), "-", HalleyClientConfig.imperial(), true,
+            unitsFlippedAt, w, "gui.shooting_star_addition.units.miles", "gui.shooting_star_addition.units.km");
+        g.text(font, Component.translatable("gui.shooting_star_addition.units.hint"), 11, 230, 0xFF000000 | GREY, false);
+        g.fill(11, 243, w - 10, 244, 0xFF000000 | RULE);
+
         // no cooldown, and what the server allows
-        row(g, font, 186, Component.translatable("gui.shooting_star_addition.no_cooldown"), "C", cooldownOff, allowed, cooldownFlippedAt, w);
-        g.text(font, Component.translatable("gui.shooting_star_addition.no_cooldown.hint"), 11, 198, 0xFF000000 | GREY, false);
-        g.text(font, status, 11, 209, 0xFF000000 | statusColor, false);
+        row(g, font, 250, Component.translatable("gui.shooting_star_addition.no_cooldown"), "C", cooldownOff, allowed, cooldownFlippedAt, w);
+        g.text(font, Component.translatable("gui.shooting_star_addition.no_cooldown.hint"), 11, 262, 0xFF000000 | GREY, false);
+        g.text(font, status, 11, 273, 0xFF000000 | statusColor, false);
         if (cooldownOff) {
-            g.text(font, Component.translatable("gui.shooting_star_addition.no_cooldown.careful"), 11, 220, 0xFF000000 | WARN, false);
+            g.text(font, Component.translatable("gui.shooting_star_addition.no_cooldown.careful"), 11, 284, 0xFF000000 | WARN, false);
         }
         g.pose().popMatrix();
     }

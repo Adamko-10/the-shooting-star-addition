@@ -10,6 +10,7 @@ import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
 import dev.ss05.halley.client.ConvergenceView;
 import dev.ss05.halley.client.HalleyFx;
+import dev.ss05.halley.client.proxima.ProximaFx;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
@@ -45,7 +46,7 @@ public final class CometRenderer {
 
     /** Fabric's {@code LevelRenderEvents.END_MAIN}: the main pass is over and no render pass is open. */
     public static void render(LevelRenderContext context) {
-        if (HalleyFx.active().isEmpty() && !ConvergenceView.any() || ShaderPacks.active()) {
+        if (HalleyFx.active().isEmpty() && !ConvergenceView.any() && ProximaFx.active().isEmpty() || ShaderPacks.active()) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
@@ -74,6 +75,11 @@ public final class CometRenderer {
         for (HalleyFx fx : HalleyFx.active()) {
             if (!fx.finished()) {
                 fx.render(worldBatch, glareBatch, partial, landRange, land);
+            }
+        }
+        for (ProximaFx fx : ProximaFx.active()) {
+            if (!fx.finished(partial)) {
+                fx.render(worldBatch, glareBatch, partial, level);
             }
         }
         // Stellar Convergence's own effect uses the same glow shapes
@@ -112,7 +118,7 @@ public final class CometRenderer {
      * right in front of the camera instead, where nothing stands in front of them.
      */
     public static void submitForShaderPack(LevelRenderContext context) {
-        if (HalleyFx.active().isEmpty() && !ConvergenceView.any() || !ShaderPacks.active() || !GlowAtlas.ready()) {
+        if (HalleyFx.active().isEmpty() && !ConvergenceView.any() && ProximaFx.active().isEmpty() || !ShaderPacks.active() || !GlowAtlas.ready()) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
@@ -138,6 +144,11 @@ public final class CometRenderer {
             for (HalleyFx fx : HalleyFx.active()) {
                 if (!fx.finished()) {
                     fx.render(world, glare, partial, landRange, land);
+                }
+            }
+            for (ProximaFx fx : ProximaFx.active()) {
+                if (!fx.finished(partial)) {
+                    fx.render(world, glare, partial, level);
                 }
             }
             // Stellar Convergence's own effect uses the same glow shapes
