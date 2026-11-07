@@ -68,7 +68,19 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   `372c243`); #159 failed after compiling with no error shown, so `ci.sh` now also prints the pack check's "missing"
   lines and Gradle's summary (main `dev/ci/common`, and the port's copy); re-run. fabric-26.3 and fabric-1.21.11
   helpers hit the usage limit again at ~02:00 and were resumed at 06:31. CurseForge still not signed in (06:35).
-  **Status 2026-11-07 ~08:00: PUSHED and RELEASED on GitHub: main (`b605256`), forge-1.20.1, fabric-1.20.1,
+  **2026-11-07 ~07:25: ALL SEVEN PUSHED AND RELEASED ON GITHUB** (main `b605256` latest, forge-1.21.1 `731310e`,
+  forge-1.20.1 `cf4bb73`, fabric-26.3 `7e8546d`, fabric-1.21.11 `89cd60e`, fabric-1.21.1 `8d781d8`, fabric-1.20.1
+  `e7a6155`; every CI green, client tests on all four Fabric branches and main). Fixed on the way: fabric-1.21.1's
+  test harness (`KeyMapping.getKey()` is NeoForge's), 1.21.11's settings receiver, 26.3's RimuLib range; CI's
+  `client-test.sh` prints Gradle's error. The `wip/*` branches and all `ci-*` drafts are deleted. **Proxima is back
+  on main** (`0028b31`, one revert of `d6d2b5f` + `b3f05a6`; local, not pushed; code as before the hold, not rebuilt).
+  **LEFT: the seven CurseForge uploads + the project description** (`dev/publish/curseforge-description.md`,
+  rewritten for 1.7.0, no Proxima mention): jars in the project folder's `releases\1.7.0\jars\` (release names),
+  changelogs in `releases\1.7.0\changelogs\<branch>.md`; Release, Client + Server, TSS [Demo] + RimuLib required,
+  + Fabric API on Fabric; game versions per branch. Blocked on the user signing in (§0: never enter credentials).
+  The `ports\` worktrees (local `port/<branch>` branches, BRIEF.md/REPORT.md) can go once CurseForge is done.
+  Not pushed: main's commits after `b605256` (github_170.sh path fix, CLAUDE.md, the Proxima revert).
+  Earlier, **Status 2026-11-07 ~08:00: PUSHED and RELEASED on GitHub: main (`b605256`), forge-1.20.1, fabric-1.20.1,
   forge-1.21.1** (tags `v1.7.0`, `v1.7.0+1.20.1`, `v1.7.0+fabric-1.20.1`, `v1.7.0+forge-1.21.1`; jars = their CI
   jars, also in the project folder's `releases\1.7.0\jars\` under release names; changelogs in
   `releases\1.7.0\changelogs\` from `changelog_170.js`, which now says Z for Epic mode on 26.3 and lists the Fabric
@@ -373,7 +385,7 @@ project 1719195, All Rights Reserved). It adds two skills to TSS's Stellar Remot
 
 Mod id `shooting_star_addition`, Java package `dev.ss05.halley` (the "SS-05/SS-06" names in code are the old
 codenames; players see SA-01/SA-02). GitHub `Adamko-10/the-shooting-star-addition`; CurseForge project **1725916**
-(author `adamko_10`). Current version **1.6.0** (in `gradle.properties` on every branch; TSS 1.5.0 only, §16).
+(author `adamko_10`). Current version **1.7.0** (released on GitHub 2026-11-07, all seven branches; TSS 1.5.2 + RimuLib 1.2.2 only; 1.6.0 = TSS 1.5.0, §16).
 Since 2026-11-03 `main` (not released) targets **TSS 1.5.1 only** with RimuLib 1.2.1 (§16, "TSS 1.5.1"); the other six
 branches are still on 1.5.0.
 
