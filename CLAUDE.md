@@ -19,9 +19,9 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   to "three skills" themselves. `wip/*` and `ci-*` cleaned up; port worktrees removed.
 - **Now working on the next update, on local `main` only, NOT pushed** (commits after `b605256`): Proxima back
   (`0028b31`), **Proxima's new film built** (`af100f4`, see "START HERE (2026-11-07, afternoon)" just below: the
-  numbered list there is the to-do, in order: 1. the space-scene bug in the user's game, 2. the Dyson sphere in the
+  numbered list there is the to-do, in order: 1. the space-scene bug (FIXED: legacy film style), 2. the Dyson sphere in the
   real sky for third person/everyone, 3. the Flare's cinematic impact, 4. music stays on the Flare for now, 5. the rest).
-- Test jar of the new film is in the user's Modrinth profile (`(Proxima new film build)`); its sounds are byte-identical
+- Test jar of the new film is in the user's Modrinth profile (`(Proxima film legacy fix build)`); its sounds are byte-identical
   to 1.7.0's (the user wants test builds to match what shipped; no Sonniss swap until they say so).
 - Credits to remember: Luna's AND Proxima's music are by DOM_MusicST and FarzanNB (§15); Stellar Quartet by ikun520.
 - Ponytail is OFF (the user, 2026-11-07). The user is low on usage: keep replies short.
@@ -153,22 +153,17 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   shot from 0.3 Earth radii; re-run `film2` confirms). Test jar `test builds6-11-07 Proxima new film`, in the Modrinth profile (the Sonniss test jar there renamed `(Sonniss sounds build).jar.disabled`; the profile has TSS 1.5.2 + RimuLib 1.2.2). Not yet: the user's own look (test jar), the SA-04A/SA-04B split, SA-04B CME.
   Known: the test client's short render distance fogs the pull up's ground and the last shot (fine in a real game).
 - **The user's test of it (2026-11-07 ~13:15) and what's next, IN ORDER (the user: "be ready for the next session")**:
-  1. **BUG: in the user's game the space scene never shows** ("it zooms out to the sky and stops ... all i see is
-     clouds", with and without shaders): the pull up plays, then the parked camera's clouds; no Dyson sphere. Their log
-     has no shader error (`proxima_space` loaded). In my plain test (TSS + RimuLib only) it draws, so suspect their
-     rendering mods: ImmediatelyFast 1.6.15 (HUD batching: our scene is drawn mid-GUI from TSS's film overlay pass),
-     Sodium 0.8.13 + Sodium Extra, Iris 1.8.14 (shaders off by default), Distant Horizons 3.3.3, BadOptimizations,
-     EntityCulling, ModernFix. Copies of those jars are in the project folder's `other mods\user render mods\`;
-     `test scripts\autotest20.sh` takes `EXTRA=<folder>` (`-PextraMods`) and `NAME=`; the run with all of them is
-     `test builds\2026-11-07 auto test 26 proxima new film\usermods\`. **Result: with all those mods the scene DRAWS**
-     (Dyson sphere, title card, captions), so they are not the cause. Not third person (the user: they cast in first
-     person, 2026-11-07). Next suspects:
-     casting with the remote instead of `/ssa strike` (the test uses the command), their heavy server lag ("Can't keep
-     up! ... 117 ticks behind" with C2ME + DH generating), and their other mods (JEI, Jade, FTB Library/Ultimine,
-     AppleSkin, Architectury, C2ME, Lithium, FerriteCore, CWB, Chunky, mezz_config). Ask the user first: third person
-     or first? did the captions and the PROXIMA CENTAURI card show? Also unknown: whether the film's captions/title
-     cards showed for them (same overlay pass). A robust fix if the overlay
-     pass is the problem: draw the scene from `RenderFrameEvent.Post` (like `FilmPanels`) and our HUD/titles after it.
+  1. **FIXED 2026-11-07 evening: the space scene never showed in the user's game** ("all i see is clouds"). Cause:
+     the user has RimuLib's **legacy film style** on (`config/rimulib.properties` `cutscenes.legacy=true`; the tests
+     had it off). TSS 1.5.2's film overlay pass (`lll1ili11.liiillli1l(GuiGraphics,F)`, our "renderHud") has two
+     endings: legacy style returns early, and `FxManagerMixin` hooked TAIL (the last return only), so with legacy on
+     NONE of our film overlays drew: Proxima's space scene, and Halley's/Luna's/Proxima's letterbox and captions too
+     (title cards are off in legacy on purpose, like TSS's). Now hooked at RETURN (every return; drawn once a frame).
+     Re-tested with legacy on (`autotest20.sh` takes `LEGACY=true`; `test builds\2026-11-07 auto test 26 proxima new
+     film\legacy\` = the bug, `legacy2\` = fixed): Earth, the Dyson sphere, letterbox and captions all draw. Test jar
+     `test builds\2026-11-07 Proxima film, legacy style fix\`, in the Modrinth profile (the new film build there renamed
+     `.disabled`). Port this mixin change to every branch (each branch's TSS build may have the same early return).
+     The user's rendering mods were ruled out on the way (`usermods\` run).
   2. **Third person / everyone not in the film: draw the Dyson sphere in the real sky again, "pretty big"** (the user,
      2026-11-07): the old in-sky intro (`ProximaSpace`, deleted in af100f4: git show af100f4^:src/main/java/dev/ss05/
      halley/client/proxima/ProximaSpace.java) showed it to everyone; bring a sky version back, bigger, matching the

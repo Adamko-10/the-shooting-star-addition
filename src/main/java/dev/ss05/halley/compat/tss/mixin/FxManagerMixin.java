@@ -27,8 +27,9 @@ abstract class FxManagerMixin {
 
     // Both passes: since 1.5 the mapping names them the wrong way round (same shape; by their bodies the film overlays
     // are drawn in "renderHud"), and per loader build. StarClientBridge draws ours once a frame, whichever runs.
+    // Every return, not TAIL: in RimuLib's legacy film style (1.5.2) the film pass returns early, and TAIL missed it.
     @Inject(method = {"renderHud(Lnet/minecraft/client/gui/GuiGraphics;F)V", "renderFilmHud(Lnet/minecraft/client/gui/GuiGraphics;F)V"},
-        at = @At("TAIL"), require = 0, remap = false)
+        at = @At("RETURN"), require = 0, remap = false)
     private static void ss05halley$filmHud(GuiGraphics graphics, float partial, CallbackInfo ci) {
         StarClientBridge.renderFilmHud(graphics, partial);
     }
