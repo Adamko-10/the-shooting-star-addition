@@ -31,6 +31,11 @@ const sounds = sonniss
   ? "- **New sounds for both skills**, built from real recorded sound effects (trailer booms, bass drops, ice, metal, wind, fire) instead of the old synthesised ones, with the same timing: punchier impacts, a rising build-up and a hush before Luna's impact, and more variety for the sounds that repeat."
   : "- **Reworked sounds**: punchier impacts (a sub-bass hit, a crack and a rolling tail), better levels against The Shooting Star's own, more variety for debris and rumbles, and Luna's new build-up: a rising rumble before the fall and a hush before the impact.";
 
+const fixed = b => (b.startsWith("fabric")
+  ? "- On dedicated Fabric servers the addon's server-side hooks never loaded, so no cooldown and the server's slider limits didn't work there.\n" : "")
+  + (b === "fabric-1.21.11"
+  ? "- The remote menu's switches (no cooldown, where a creative caster goes) never reached the server, and the menu said the server didn't run the addon.\n" : "");
+
 const body = b => `
 ### Works with The Shooting Star 1.5.2
 - **Updated for The Shooting Star [Demo] 1.5.2** and **RimuLib 1.2.2** (now needed). On The Shooting Star 1.5.0, keep using The Shooting Star Addition 1.6.0.
@@ -50,7 +55,7 @@ ${unlock(b)}
 ### New
 - **Title cards** in both films: HALLEY streaking in like small comets, LUNA cracking in and breaking away, each with its code name.
 - **Operator command**: \`/ssa strike <skill> [at <x y z>] [power] [damage|inf] [speed]\` fires any remote skill (The Shooting Star's too) as you, aimed where you look or at a point, with no cooldown. It ignores the server's slider limits; values past the remote's own range warn you in chat, as they can freeze or crash a server.
-- **Luna's Epic mode** (G in the remote's menu): the moon falls slower and more ominously (24 s from the alarm to the impact instead of 16), for everyone watching, with a longer cut of her music.
+- **Luna's Epic mode** (${b === "fabric-26.3" ? "Z" : "G"} in the remote's menu): the moon falls slower and more ominously (24 s from the alarm to the impact instead of 16), for everyone watching, with a longer cut of her music.
 - **Keep the moon** (L): Luna's moon model stays where it landed instead of crumbling, cooling down, until you switch it off. For filming.
 - **Impact frames** (F): full, softer or off, for Halley's and Luna's.
 - **Where a creative caster goes** when standing where their own strike lands (E): straight up, or out to the crater's edge.
@@ -68,11 +73,9 @@ ${sounds}
 - Halley's and Luna's film overlays (the uplink, Luna's letterbox, captions and descent bar) didn't show in The Shooting Star 1.5's films.
 - With two strikes running, their overlays drew over each other: now only the newest shows.
 - "Tried to load a DUMMY block entity" warnings after Luna's strike.
-`;
+${fixed(b)}`;
 
-const EXTRA = {
-  "fabric-26.3": "\nNote for Fabric 26.3: check that The Shooting Star itself starts on 26.3 (its 1.5.0 build had a shader problem of its own).\n",
-};
+const EXTRA = {};
 
 fs.mkdirSync(OUT, { recursive: true });
 for (const [b, head] of Object.entries(HEAD)) {
