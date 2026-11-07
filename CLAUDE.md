@@ -74,10 +74,22 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   test harness (`KeyMapping.getKey()` is NeoForge's), 1.21.11's settings receiver, 26.3's RimuLib range; CI's
   `client-test.sh` prints Gradle's error. The `wip/*` branches and all `ci-*` drafts are deleted. **Proxima is back
   on main** (`0028b31`, one revert of `d6d2b5f` + `b3f05a6`; local, not pushed; code as before the hold, not rebuilt).
-  **LEFT: the seven CurseForge uploads + the project description** (`dev/publish/curseforge-description.md`,
-  rewritten for 1.7.0, no Proxima mention): jars in the project folder's `releases\1.7.0\jars\` (release names),
-  changelogs in `releases\1.7.0\changelogs\<branch>.md`; Release, Client + Server, TSS [Demo] + RimuLib required,
-  + Fabric API on Fabric; game versions per branch. Blocked on the user signing in (§0: never enter credentials). The user picked Chrome (2026-11-07): waiting for the Claude in Chrome extension to connect and the tab suspender to be off.
+  **2026-11-07 ~12:30: ALL SEVEN ON CURSEFORGE** (through the Claude extension in the user's **Edge**, "Browser 1";
+  Chrome's never connected): files 9489853 NeoForge, 9489874 Forge 1.21.1, 9489886 Forge 1.20.1 (approved within
+  minutes), 9489916 Fabric 1.21.1, 9490142 Fabric 1.21.11, 9490173 Fabric 26.3, Fabric 1.20.1 (processing then);
+  Release, Client + Server, the same game versions as 1.6.0's (Forge 1.20.1 = Forge + NeoForge, Java 17), TSS
+  [Demo] + RimuLib required (+ Fabric API on the four Fabric files); display names keep `.jar` like 1.6.0's.
+  Changelogs checked through `/_api/project-files/1725916/files/<id>` (`changelogType` 1 = HTML, 5 = Markdown):
+  all seven have their headings and lists. **The project description is updated** (live top kept: the user had
+  changed the "other mod" line to the Type 95 sniper rifle addon; the repo copy now matches it).
+  **How the upload form was driven (for next time)**: it has no jar file input: inject an `<input type=file>`,
+  fill it with the extension's file_upload (paths must be readable by the session: the jars were copied to the
+  scratchpad), then dispatch dragenter/dragover/drop with a DataTransfer holding that File on the page-wide
+  dropzone `div.css-1x73roo`. The form copies loader/Java/MC/env and the changelog mode from the newest file, but
+  not Fabric API. **Changelog trap**: setting `textarea.mde-text` while the mode select already shows Markdown
+  saved a one-paragraph raw blob (NeoForge's; fixed on its edit page); switching the mode select WYSIWYG ->
+  Markdown first, then setting the textarea (native setter + input event), saves it right. The edit page's
+  Markdown box shows a lossy re-conversion: check the API instead. A 429 on `upload-file-details` = wait a minute.
   The `ports\` worktrees (local `port/<branch>` branches, BRIEF.md/REPORT.md) can go once CurseForge is done.
   Not pushed: main's commits after `b605256` (github_170.sh path fix, CLAUDE.md, the Proxima revert).
   Earlier, **Status 2026-11-07 ~08:00: PUSHED and RELEASED on GitHub: main (`b605256`), forge-1.20.1, fabric-1.20.1,
