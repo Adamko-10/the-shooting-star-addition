@@ -57,6 +57,14 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   `net.SpellFxPayload`). Both pushed to `wip/` (CI runs 153, 154). Antigravity's agent ran out of quota after 12 min
   having only touched build.gradle/gradle.properties, so a Claude helper (Sonnet) took over `fabric-1.21.1`. Claude's
   three helpers hit the 5-hour usage limit at ~23:00 mid-merge and were resumed at 01:31 (their work was saved).
+  **The user, 2026-11-07 ~01:45: "once you're done push everything to github and publish all of it on curseforge,
+  dont wait for confirmation just publish it"** = standing OK for the push, the seven GitHub releases and the seven
+  CurseForge uploads once all seven pass CI (no user test first: their call). Sounds: the current (2026-11-04) ones
+  ship; the user never gave a Sonniss verdict. `wip/main` pushed for CI too. Python isn't on this PC (the
+  `dev/publish/github_160.sh` release script needs it): do the release step with `gh api` from JS or bash instead.
+  After publishing: delete the `wip/*` branches and `ci-*` drafts, `git revert d6d2b5f b3f05a6` on main (Proxima
+  back), and since it'll be past 2 AM, schedule the PC's shutdown with a 10-minute warning (`shutdown /s /t 600`;
+  the user can cancel with `shutdown /a`).
   **Next for Claude**: read the reports, review each
   branch's diff, push each to `wip/<branch>` with `dev/ci/push-wip.sh` (the user OK'd wip pushes), fix from CI.
   The README is updated for 1.7.0 (`deb9792`).
