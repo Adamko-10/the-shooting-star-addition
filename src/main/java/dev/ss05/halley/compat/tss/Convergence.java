@@ -16,6 +16,8 @@ import dev.ss05.halley.EpicMode;
 import dev.ss05.halley.StellarQuartet;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.NoCooldown;
+import dev.ss05.halley.ProximaParams;
+import dev.ss05.halley.ProximaPlan;
 import dev.ss05.halley.compat.StarBridge;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -319,6 +321,10 @@ public final class Convergence {
         if (skill == TssLink.MOON) {
             return MoonParams.of(MoonConfig.tuning(), 64, Vec3.ZERO, tuning.power()).craterRadius();
         }
+        if (skill == TssLink.PROXIMA) {
+            // its flash burns out to a quarter past the scorch
+            return ProximaParams.of(tuning.power()).scorchRadius() * 1.25;
+        }
         double base = TSS_REACH.getOrDefault(skill.id(), 48.0);
         cyou.rimuru.rimulib.mc1211.skill.Power power = skill.power();
         double times = power != null && power.initial() > 0.0F ? tuning.power() / power.initial() : 1.0;
@@ -334,6 +340,8 @@ public final class Convergence {
         } else if (skill == TssLink.MOON) {
             // the caster's Epic mode slows Luna's fall
             base = MoonPlan.contactClock(EpicMode.on(caster));
+        } else if (skill == TssLink.PROXIMA) {
+            base = ProximaPlan.IMPACT;
         } else if (SkillSet.of(skill) == SkillSet.of(TssLink.SKILL) && TSS_IMPACT.containsKey(skill.id())) {
             base = TSS_IMPACT.get(skill.id());
         } else {
@@ -354,7 +362,7 @@ public final class Convergence {
      * that isn't loaded don't count). Read from RimuLib's internals; if they move, the finale waits {@link #FINALE_MIN}.
      */
     private static boolean othersDone(ServerLevel level, UUID caster) {
-        if (Spell.busy(TssLink.SKILL, caster) || Spell.busy(TssLink.MOON, caster)) {
+        if (Spell.busy(TssLink.SKILL, caster) || Spell.busy(TssLink.MOON, caster) || Spell.busy(TssLink.PROXIMA, caster)) {
             return false;
         }
         try {

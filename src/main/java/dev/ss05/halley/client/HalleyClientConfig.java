@@ -38,7 +38,7 @@ public final class HalleyClientConfig {
     private static final ModConfigSpec.BooleanValue CONVERGENCE_PLATE_OLD;
     private static final ModConfigSpec.EnumValue<ConvergenceShake> CONVERGENCE_SHAKE;
     /** What Stellar Convergence fires out of the box: every weapon but Gravitia (which only the menu chooses). */
-    private static final List<String> CONVERGENCE_DEFAULT = List.of("the_shooting_star", "gungnir", "seven_stars", "tesseract", "halley", "luna");
+    private static final List<String> CONVERGENCE_DEFAULT = List.of("the_shooting_star", "gungnir", "seven_stars", "tesseract", "halley", "luna", "proxima");
 
     /** How strong Halley's and Luna's impact frames are (F on the addon's plate cycles them). */
     public enum ImpactFrames {
@@ -88,7 +88,7 @@ public final class HalleyClientConfig {
         b.pop();
 
         b.comment("Your switches in the Stellar Remote's menu (H). They are saved here when you flip them there.").push("stellar_remote");
-        LUNA_MUSIC = b.comment("Play Luna's music as the moon comes down (M in the remote's menu).")
+        LUNA_MUSIC = b.comment("Play the skills' music: Luna's as the moon comes down, Proxima's as the flare comes in (M in the remote's menu).")
             .define("luna_music", true);
         NO_COOLDOWN = b.comment("Cast without cooldowns where the server allows it (its no_cooldown setting; C in the remote's",
                 "menu). Has no effect on a server that doesn't allow it.")

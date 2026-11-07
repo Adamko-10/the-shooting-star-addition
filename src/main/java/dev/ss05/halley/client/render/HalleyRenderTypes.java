@@ -141,6 +141,30 @@ public final class HalleyRenderTypes extends RenderType {
             .createCompositeState(false));
     }
 
+    // ---- Proxima's Earth (client/proxima/EarthSphere): a backdrop in the film's space shot. ------------------------------
+
+    /** Earth's day side: opaque, drawn over whatever is behind it (it hangs in space, nothing of the world is in front). */
+    public static final RenderType EARTH_DAY = earth("shooting_star_addition_earth_day", "textures/proxima/earth_day.png", NO_TRANSPARENCY);
+    /** Its night side's city lights, added on. */
+    public static final RenderType EARTH_LIGHTS = earth("shooting_star_addition_earth_lights", "textures/proxima/earth_lights.png", PACK_ADDITIVE);
+    /** Its clouds, blended over by their cover. */
+    public static final RenderType EARTH_CLOUDS = earth("shooting_star_addition_earth_clouds", "textures/proxima/earth_clouds.png", TRANSLUCENT_TRANSPARENCY);
+    /** The blue rim of its air, added on (a flat colour: Luna's soft glow texture sampled at its middle). */
+    public static final RenderType EARTH_AIR = earth("shooting_star_addition_earth_air", "textures/luna/glow.png", PACK_ADDITIVE);
+
+    /** Unlit (texture times vertex colour), no depth test or write, no fog. */
+    private static RenderType earth(String name, String texture, TransparencyStateShard blend) {
+        return create(name, DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 1 << 16, false, false, CompositeState.builder()
+            .setShaderState(RENDERTYPE_EYES_SHADER)
+            .setTextureState(new TextureStateShard(ResourceLocation.fromNamespaceAndPath("shooting_star_addition", texture), true, false))
+            .setTransparencyState(blend)
+            .setDepthTestState(NO_DEPTH_TEST)
+            .setWriteMaskState(COLOR_WRITE)
+            .setCullState(NO_CULL)
+            .setTexturingState(NO_FOG)
+            .createCompositeState(false));
+    }
+
     public static void setShader(@Nullable ShaderInstance loaded) {
         shader = loaded;
     }
