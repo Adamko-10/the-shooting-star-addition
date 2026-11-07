@@ -19,11 +19,13 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   to "three skills" themselves. `wip/*` and `ci-*` cleaned up; port worktrees removed.
 - **Now working on the next update, on local `main` only, NOT pushed** (commits after `b605256`): Proxima back
   (`0028b31`), **Proxima's new film built** (`af100f4`, see "START HERE (2026-11-07, afternoon)" just below: the
-  numbered list there is the to-do, in order: 1. the space-scene bug (FIXED: legacy film style), 2. the Dyson sphere in the
+  numbered list there is the to-do, in order: 1. the space-scene bug (FIXED: legacy film style), 1b. the film's polish
+  (Earth + sound, BUILT, waits for the user's look and ears), 2. the Dyson sphere in the
   real sky for third person/everyone, 3. the Flare's cinematic impact, 4. music stays on the Flare for now, 5. the rest).
-- Test jar of the new film is in the user's Modrinth profile (`(Proxima film legacy fix build)`); its sounds are byte-identical
+- Test jar of the new film is in the user's Modrinth profile (`(Proxima film polish build)`); its sounds are byte-identical
   to 1.7.0's (the user wants test builds to match what shipped; no Sonniss swap until they say so).
-- Credits to remember: Luna's AND Proxima's music are by DOM_MusicST and FarzanNB (§15); Stellar Quartet by ikun520.
+- Credits to remember: Luna's AND Proxima's music are by DOM_MusicST and FarzanNB (§15); Stellar Quartet by ikun520;
+  Proxima's Earth: NASA (Blue Marble, Black Marble) and **Solar System Scope (CC BY 4.0: must be credited)**.
 - Ponytail is OFF (the user, 2026-11-07). The user is low on usage: keep replies short.
 - Reminders owed (§0): idea #16 (Mrityu mod), Proxima's "Extra content" film ideas, SA-05+ candidates and the free
   SA-03 slot, the Solar Residue economy (when Proxima ships).
@@ -164,6 +166,25 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
      `test builds\2026-11-07 Proxima film, legacy style fix\`, in the Modrinth profile (the new film build there renamed
      `.disabled`). Port this mixin change to every branch (each branch's TSS build may have the same early return).
      The user's rendering mods were ruled out on the way (`usermods\` run).
+  1b. **The film's polish, BUILT 2026-11-07 evening (the user: "polish the cutscene first, the earth looks a lil scuffed
+     and the sfx sound pretty bad")**, details in docs/SS-07-PROXIMA.md "Polish after the user's first look". The user's
+     answers: the sounds were "wrong for the shot" and "cheap", "all of them are kinda bad and it also feels empty like
+     theres silence", lens/beam/gate the worst, "overhaul the whole thing"; Earth: the four faults Claude listed (blurry
+     close-up, fake clouds, a dark ring round the edge, a grey sun smudge) "but the earth doesnt look the same like it
+     does in the railgun". The user OK'd the downloads ("download anything and everything u need to make it look as
+     similar as possible to the railgun version of the earth"): Solar System Scope's 8k clouds, normal and specular
+     maps and day map from Wikimedia Commons (CC BY 4.0), in the project folder's `art sources\solar system scope\`.
+     **Earth**: `art/make_earth.sh` -> `earth_day.png` (NASA day + water mask, 4096) and `earth_detail.png` (relief,
+     city lights, clouds); shader modes 5-7 redone (haze, glowing rim, relief, glint, terminator band). Jar now 23 MB.
+     Game-tested (`test builds\2026-11-07 auto test 26 proxima new film\earth2\`, `polish1\`); the last terminator
+     tweak is not re-shot. **Sound**: one stereo soundtrack `proxima_film.ogg` (`art/make_proxima_film.sh`, 118
+     layers) replaces the 12 one-shots (removed with their events, subtitles and files; `proxima_radio` too, the radio
+     burst is in `proxima_front`); the land's world sounds are cut from it; `art/sonniss_sounds.sh` no longer makes
+     Proxima's. Played by `StrikeMusic.film` (Players slider), the land's world sounds skipped for the player hearing
+     it. No sound errors in the game run; whether it plays and how it sounds: only the user can tell. Test jar
+     `test builds\2026-11-07 Proxima film polish, Earth and sound\` (with `proxima_film.ogg` to listen outside the
+     game), in the Modrinth profile (the legacy-fix build there renamed `.disabled`). **Next: the user's verdict**,
+     then item 2.
   2. **Third person / everyone not in the film: draw the Dyson sphere in the real sky again, "pretty big"** (the user,
      2026-11-07): the old in-sky intro (`ProximaSpace`, deleted in af100f4: git show af100f4^:src/main/java/dev/ss05/
      halley/client/proxima/ProximaSpace.java) showed it to everyone; bring a sky version back, bigger, matching the

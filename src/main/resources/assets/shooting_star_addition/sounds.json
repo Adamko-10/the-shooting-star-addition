@@ -244,22 +244,6 @@
       }
     ]
   },
-  "proxima_radio": {
-    "subtitle": "subtitles.shooting_star_addition.proxima_radio",
-    "sounds": [
-      {
-        "name": "shooting_star_addition:proxima_radio"
-      }
-    ]
-  },
-  "proxima_beam": {
-    "subtitle": "subtitles.shooting_star_addition.proxima_beam",
-    "sounds": [
-      {
-        "name": "shooting_star_addition:proxima_beam"
-      }
-    ]
-  },
   "proxima_flash": {
     "subtitle": "subtitles.shooting_star_addition.proxima_flash",
     "sounds": [
@@ -308,75 +292,11 @@
       }
     ]
   },
-  "proxima_uplink": {
-    "subtitle": "subtitles.shooting_star_addition.proxima_uplink",
+  "proxima_film": {
     "sounds": [
       {
-        "name": "shooting_star_addition:proxima_uplink"
-      }
-    ]
-  },
-  "proxima_ascent": {
-    "subtitle": "subtitles.shooting_star_addition.proxima_ascent",
-    "sounds": [
-      {
-        "name": "shooting_star_addition:proxima_ascent"
-      }
-    ]
-  },
-  "proxima_space": {
-    "subtitle": "subtitles.shooting_star_addition.proxima_space",
-    "sounds": [
-      {
-        "name": "shooting_star_addition:proxima_space"
-      }
-    ]
-  },
-  "proxima_star": {
-    "subtitle": "subtitles.shooting_star_addition.proxima_star",
-    "sounds": [
-      {
-        "name": "shooting_star_addition:proxima_star"
-      }
-    ]
-  },
-  "proxima_creak": {
-    "subtitle": "subtitles.shooting_star_addition.proxima_creak",
-    "sounds": [
-      {
-        "name": "shooting_star_addition:proxima_creak"
-      }
-    ]
-  },
-  "proxima_iris": {
-    "subtitle": "subtitles.shooting_star_addition.proxima_iris",
-    "sounds": [
-      {
-        "name": "shooting_star_addition:proxima_iris"
-      }
-    ]
-  },
-  "proxima_reconnect": {
-    "subtitle": "subtitles.shooting_star_addition.proxima_reconnect",
-    "sounds": [
-      {
-        "name": "shooting_star_addition:proxima_reconnect"
-      }
-    ]
-  },
-  "proxima_lens": {
-    "subtitle": "subtitles.shooting_star_addition.proxima_lens",
-    "sounds": [
-      {
-        "name": "shooting_star_addition:proxima_lens"
-      }
-    ]
-  },
-  "proxima_gate": {
-    "subtitle": "subtitles.shooting_star_addition.proxima_gate",
-    "sounds": [
-      {
-        "name": "shooting_star_addition:proxima_gate"
+        "name": "shooting_star_addition:proxima_film",
+        "stream": true
       }
     ]
   },
@@ -393,14 +313,6 @@
     "sounds": [
       {
         "name": "shooting_star_addition:proxima_inhale"
-      }
-    ]
-  },
-  "proxima_after": {
-    "subtitle": "subtitles.shooting_star_addition.proxima_after",
-    "sounds": [
-      {
-        "name": "shooting_star_addition:proxima_after"
       }
     ]
   }

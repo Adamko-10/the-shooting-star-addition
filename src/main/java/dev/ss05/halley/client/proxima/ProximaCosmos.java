@@ -16,11 +16,16 @@ import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
+import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
+import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
+import org.lwjgl.opengl.GL30;
 
 /**
  * SA-04 Proxima's film, its space and Earth shots (the approved previz; docs/SS-07-PROXIMA.md): a scene of its own,
@@ -33,12 +38,12 @@ import org.lwjgl.opengl.GL11;
  * the gate unfolding in orbit, catching the beam and spreading it into the coronal mass ejection falling to the planet.
  *
  * <p>In the scene's own units: the star's radius is 1 (its Dyson sphere 1.55), Earth's is 1. One shader
- * ({@code proxima_space}), a material per draw (its {@code Mode}). Earth is NASA's imagery (art/make_earth.sh).
+ * ({@code proxima_space}), a material per draw (its {@code Mode}). Earth is NASA's and Solar System Scope's imagery (art/make_earth.sh).
  */
 public final class ProximaCosmos {
     private static final ResourceLocation EARTH_DAY = HalleyAddon.id("textures/proxima/earth_day.png");
-    private static final ResourceLocation EARTH_LIGHTS = HalleyAddon.id("textures/proxima/earth_lights.png");
-    private static final ResourceLocation EARTH_CLOUDS = HalleyAddon.id("textures/proxima/earth_clouds.png");
+    /** The land's relief, the city lights and the clouds, packed (art/make_earth.sh). */
+    private static final ResourceLocation EARTH_DETAIL = HalleyAddon.id("textures/proxima/earth_detail.png");
 
     // the materials (proxima_space.fsh)
     private static final int BACKDROP = 0;
@@ -90,7 +95,8 @@ public final class ProximaCosmos {
     private static VertexBuffer airMesh;
     @Nullable
     private static VertexBuffer dynamic;
-    private static boolean filtered;
+    /** The texture ids given mipmaps, so a reload (new ids) gets them again. */
+    private static final int[] mipmapped = {-1, -1};
 
     private ProximaCosmos() {
     }
@@ -101,7 +107,7 @@ public final class ProximaCosmos {
 
     /** How high over Earth (in its radii) the orbit shot is, {@code q} of the way through it. */
     public static double altitude(double q) {
-        return 0.3 * Math.pow(7.0, q);
+        return 0.5 * Math.pow(4.2, q);
     }
 
     /** Whether the film is in its space and Earth shots at film tick {@code ct}: the scene covers the world then. */
@@ -131,7 +137,7 @@ public final class ProximaCosmos {
         boolean earthScene;
         if (ct < ProximaPlan.SPACE) {
             // shot 2's second half: from over the caster's spot on Earth pulling back until its curve fills the frame
-            // (from 0.3 of its radius up: any closer and its images are blurred)
+            // (from half its radius up: any closer and its images are blurred)
             double k = (t - 1.6) / 3.8;
             double q = clamp((k - 0.36) / 0.64);
             double alt = altitude(q);
@@ -388,8 +394,8 @@ public final class ProximaCosmos {
 
         opaque();
         RenderSystem.setShaderTexture(0, EARTH_DAY);
-        RenderSystem.setShaderTexture(1, EARTH_LIGHTS);
-        set(program, p, EARTH, 0.0F, 0.0F, 0.0F, 0.0F);
+        RenderSystem.setShaderTexture(1, EARTH_DETAIL);
+        set(program, p, EARTH, 1.0F, 0.0F, 0.0F, 0.0F);
         draw(program, p, earthMesh());
 
         // the gate: a ring of panels unfolding in orbit, turning slowly
@@ -442,7 +448,7 @@ public final class ProximaCosmos {
 
         // the clouds over it, then its air
         blended();
-        RenderSystem.setShaderTexture(0, EARTH_CLOUDS);
+        RenderSystem.setShaderTexture(1, EARTH_DETAIL);
         set(program, p, CLOUDS, 0.0F, 0.0F, 0.0F, 0.0F);
         draw(program, p, cloudMesh());
         additive();
@@ -683,12 +689,23 @@ public final class ProximaCosmos {
         return buffer;
     }
 
-    /** Earth's images, smoothed (they're seen close up). */
+    /** Earth's images, smoothed close up and mipmapped from afar (4096 wide: unfiltered, the whole disc shimmers). */
     private static void textures() {
-        if (!filtered) {
-            filtered = true;
-            for (ResourceLocation image : new ResourceLocation[]{EARTH_DAY, EARTH_LIGHTS, EARTH_CLOUDS}) {
-                Minecraft.getInstance().getTextureManager().getTexture(image).setFilter(true, false);
+        ResourceLocation[] images = {EARTH_DAY, EARTH_DETAIL};
+        for (int i = 0; i < images.length; i++) {
+            AbstractTexture texture = Minecraft.getInstance().getTextureManager().getTexture(images[i]);
+            int id = texture.getId();
+            if (mipmapped[i] == id) {
+                continue;
+            }
+            mipmapped[i] = id;
+            RenderSystem.bindTexture(id);
+            GlStateManager._texParameter(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 12);
+            GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D);
+            GlStateManager._texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_LINEAR);
+            GlStateManager._texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+            if (GL.getCapabilities().GL_EXT_texture_filter_anisotropic) {
+                GL11.glTexParameterf(GL11.GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0F);
             }
         }
     }

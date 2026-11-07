@@ -195,13 +195,41 @@ at 23 s. Built on main 2026-11-07:
   PANELS"), CORONAL MASS EJECTION (flickering plasma torn apart as the beam fires), SA-04 PROXIMA at the flash
   (bigger, letters flaring in white-hot and settling, "SOLAR FLARE · CLASS <class>").
 - **Captions** per shot as the previz's (UPLINK; ASCENDING with the altitude in m, then km; ...; the radio blackout).
-- **Sounds**: the 12 film sounds made from Sonniss (art/sonniss_sounds.sh, docs/SOUNDS.md) are in: the uplink under
+- **Sounds** (first version; replaced the same evening by one soundtrack, see "Polish" below): the 12 film sounds made
+  from Sonniss (art/sonniss_sounds.sh, docs/SOUNDS.md) are in: the uplink under
   the press, the ascent's wind (recut to the 1.35 s rise), space's drone, the star's roar, the shell's creaks, the iris
   (a clank per ring), the loops' snap on the crossing, the lens locking, the beam (charge, discharge on BEAM), the gate,
   the front's roar (recut to the 5.6 s front; it and the radio burst are cut off for the hush), the inhale, the wind
   coming back afterwards. Film sounds are played as the film's own (no falling off as its camera climbs).
 - **Music** recut (`art/make_proxima_music.sh`): the draft from 2.35 s so its entry lands on FLASH 300, silent through
   the hush, its main section on IMPACT 460. By DOM_MusicST and FarzanNB (as Luna's): credit them when Proxima ships.
+
+### Polish after the user's first look (2026-11-07 evening)
+
+- **The space scene never showed in the user's game**: they have RimuLib's legacy film style on, and TSS 1.5.2's film
+  overlay pass returns early in that style, before the TAIL our `FxManagerMixin` hooked. Now hooked at every RETURN.
+- **Earth like the Railgun's** (the user: "the earth doesn't look the same like it does in the railgun"; the reference:
+  `test builds\2026-11-06 auto test 23 railgun reference\other_film_04.50.png`): a blue haze over the whole disc,
+  thicker toward the edge; a glowing rim of air (the air shell's front, lit by where the line of sight passes closest
+  to Earth; the old one drew a dark ring); real clouds; the land's relief lit by the sun; a small sun glint on water
+  only; a thin warm band on the terminator. Images: NASA's Blue Marble at 4096 (was 2048) with Solar System Scope's
+  water mask in its alpha, and one packed `earth_detail.png` (relief normal map boosted 5x, Black Marble city lights,
+  Solar System Scope's clouds), both mipmapped with anisotropic filtering (`art/make_earth.sh`; the downloads, the
+  user's OK, are in the project folder's `art sources\solar system scope\`, CC BY 4.0: credit "Solar System Scope"
+  when Proxima ships). The orbit shot starts at half Earth's radius up (was 0.3), past which the images blur.
+- **Sound overhauled** (the user: "wrong for the shot", "cheap", "feels empty like there's silence", the lens, beam and
+  gate worst): the 12 one-shots are replaced by one continuous stereo soundtrack for the whole film,
+  `proxima_film.ogg`, made by `art/make_proxima_film.sh` (118 layers from the Sonniss bundle plus three synthesised:
+  the lens's charging whine, the radio burst falling, the ringing after the flash), laid out on the film's timeline
+  (the script's header lists every moment): a bed that never drops out, a swell or whoosh into every cut, a boom and
+  braam on every title card, servos and clamps for the iris and the gate, the tiles locking faster and faster, the
+  charge, the discharge and its shock rings, the gate catching the beam, the flash, the front building to the hush,
+  the impact as the loudest moment, the shock wave, the fade. Played by `StrikeMusic.film` (kept in step with the
+  film like the music, on the Players slider); stops when the film ends or is skipped. While it plays, the land's world
+  sounds (flash, front, inhale, impact, wave) are skipped for that player; everyone else hears those, now cut from the
+  soundtrack's land part (mono). The front's radio burst is part of `proxima_front` (no `proxima_radio` any more).
+  Levelled by measurement only (-16 LUFS over the film; momentary: the beds -20 to -25, the hits -11 to -13, the hush
+  -35); the user's ears decide.
 
 ## Timeline (`ProximaPlan`, ticks at speed 1)
 

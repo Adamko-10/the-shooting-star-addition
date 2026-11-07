@@ -65,8 +65,13 @@ public final class ProximaFx {
     private double frontSide = Double.NaN;
     private double lastWave;
     private StrikeMusic music;
-    /** The front's radio burst and roar, cut off for the hush. */
-    private SoundInstance radio;
+    /**
+     * The film's soundtrack (art/make_proxima_film.sh: every shot's sounds, the land's included), while this client
+     * watches the film; the land's own sounds make way for it. Asked for once, on the film's first tick.
+     */
+    private StrikeMusic soundtrack;
+    private boolean soundtrackAsked;
+    /** The coronal front's radio burst and roar, cut off for the hush. */
     private SoundInstance roar;
 
     public ProximaFx(MoonFx.Host host, int casterId, Vec3 target, long seed, int[] data) {
@@ -199,6 +204,10 @@ public final class ProximaFx {
             Minecraft.getInstance().getSoundManager().stop(this.music);
             this.music = null;
         }
+        if (this.soundtrack != null) {
+            Minecraft.getInstance().getSoundManager().stop(this.soundtrack);
+            this.soundtrack = null;
+        }
     }
 
     /** The strike's clock (ticks since the cast, at the remote's speed slider). */
@@ -229,41 +238,28 @@ public final class ProximaFx {
             if (press != null) {
                 this.play(press, camera, 0.06F, 1.0F);
             }
-            this.film(HalleyContent.PROXIMA_UPLINK.get(), 0.9F);
         }
         if (t == MUSIC_AT && HalleyClientConfig.lunaMusic() && (this.mine || camera.distanceTo(target) <= MUSIC_RANGE)) {
             this.music = StrikeMusic.play("proxima_music", this.host, MUSIC_AT, () -> this.time(0.0F), () -> !ACTIVE.contains(this));
         }
-        // the film's way out to Proxima Centauri and back (only while the film shows; ProximaCosmos draws it)
-        if (this.host.filmWeight() > 0.5F) {
-            if (t == ProximaPlan.ASCENT) {
-                this.film(HalleyContent.PROXIMA_ASCENT.get(), 1.0F);
-            } else if (t == ProximaPlan.ORBIT) {
-                this.film(HalleyContent.PROXIMA_SPACE.get(), 1.0F);
-            } else if (t == ProximaPlan.SPACE) {
-                this.film(HalleyContent.PROXIMA_STAR.get(), 1.0F);
-            } else if (t == ProximaPlan.SPACE + 8) {
-                this.film(HalleyContent.PROXIMA_CREAK.get(), 0.8F);
-            } else if (t == ProximaPlan.IRIS + 5) {
-                // a clank per ring of panels as the iris opens from the middle out
-                this.film(HalleyContent.PROXIMA_IRIS.get(), 1.0F);
-            } else if (t == ProximaPlan.LOOPS) {
-                // its snap lands where the loops cross (COLLAPSE)
-                this.film(HalleyContent.PROXIMA_RECONNECT.get(), 1.0F);
-            } else if (t == ProximaPlan.LENS) {
-                this.film(HalleyContent.PROXIMA_LENS.get(), 1.0F);
-            } else if (t == ProximaPlan.BEAM - 10) {
-                // the charge whines up, the discharge is on BEAM
-                this.film(HalleyContent.PROXIMA_BEAM.get(), 1.0F);
-            } else if (t == ProximaPlan.EARTH) {
-                this.film(HalleyContent.PROXIMA_GATE.get(), 1.0F);
-            } else if (t == ProximaPlan.IMPACT + 92) {
-                this.film(HalleyContent.PROXIMA_AFTER.get(), 0.9F);
+        // the film's soundtrack, from its first tick (a stream only plays from its start: a film already well under way, as
+        // for a player who joined late, goes without it); it stops when the film ends or is skipped
+        if (!this.soundtrackAsked) {
+            float film = this.host.filmTime(0.0F);
+            if (!Float.isNaN(film)) {
+                this.soundtrackAsked = true;
+                if (film < 10.0F) {
+                    this.soundtrack = StrikeMusic.film("proxima_film", this.host, 0, () -> this.host.filmTime(0.0F),
+                        () -> !ACTIVE.contains(this) || Float.isNaN(this.host.filmTime(0.0F)));
+                }
             }
         }
+        boolean scored = this.scored();
         // the flare's light arrives: a searing burst, and everything under the open sky starts to smoke
         if (t == ProximaPlan.FLASH) {
-            this.play(HalleyContent.PROXIMA_FLASH.get(), camera, this.plan.params.burns() ? 0.06F : 0.03F, 1.0F);
+            if (!scored) {
+                this.play(HalleyContent.PROXIMA_FLASH.get(), camera, this.plan.params.burns() ? 0.06F : 0.03F, 1.0F);
+            }
             if (!cme) {
                 // a flare's magnetic storm, without a front: the auroras still come
                 long now = level.getGameTime();
@@ -278,23 +274,17 @@ public final class ProximaFx {
                     0.0, 0.03 + this.random.nextFloat() * 0.05, 0.0);
             }
         }
-        // the coronal front: its radio burst whining down as it comes on, and a deep roar rolling across the sky, both
-        // cut off for the hush
-        if (cme && t == ProximaPlan.FRONT) {
-            this.radio = this.play(HalleyContent.PROXIMA_RADIO.get(), camera, 0.06F, 1.0F);
+        // the coronal front: its radio burst whining down as it comes on over a deep roar rolling across the sky (one
+        // sound), cut off for the hush
+        if (cme && t == ProximaPlan.FRONT && !scored) {
             this.roar = this.play(HalleyContent.PROXIMA_FRONT.get(), camera, 0.06F, 1.0F);
         }
-        if (t == ProximaPlan.HUSH) {
-            for (SoundInstance sound : new SoundInstance[]{this.radio, this.roar}) {
-                if (sound != null) {
-                    minecraft.getSoundManager().stop(sound);
-                }
-            }
-            this.radio = null;
+        if (t == ProximaPlan.HUSH && this.roar != null) {
+            minecraft.getSoundManager().stop(this.roar);
             this.roar = null;
         }
         // the air drawn in just before the plasma lands
-        if (cme && t == ProximaPlan.IMPACT - 13) {
+        if (cme && t == ProximaPlan.IMPACT - 13 && !scored) {
             this.play(HalleyContent.PROXIMA_INHALE.get(), target, 1.0F, 1.0F);
         }
         if (cme && t == ProximaPlan.IMPACT) {
@@ -307,7 +297,9 @@ public final class ProximaFx {
                 ZONES.add(new Zone(level, target, this.plan.params.bowlRadius() * 1.3, now,
                     radiation == ProximaParams.PERMANENT ? Long.MAX_VALUE : now + radiation));
             }
-            this.play(HalleyContent.PROXIMA_IMPACT.get(), target, 1.0F, 1.0F);
+            if (!scored) {
+                this.play(HalleyContent.PROXIMA_IMPACT.get(), target, 1.0F, 1.0F);
+            }
             this.host.shake(target, 0.6F, scorch * 3.0);
             level.addParticle(ParticleTypes.EXPLOSION_EMITTER, true, target.x, target.y + 1.0, target.z, 0.0, 0.0, 0.0);
             // a ring of fire running out from the bowl
@@ -324,7 +316,9 @@ public final class ProximaFx {
         if (cme && t >= ProximaPlan.FRONT && t <= ProximaPlan.IMPACT) {
             double side = camera.distanceTo(this.plan.frontCentre(t)) - ProximaPlan.FRONT_RADIUS;
             if (this.frontSide > 0.0 && side <= 0.0) {
-                this.play(HalleyContent.PROXIMA_WAVE.get(), camera, 0.07F, 0.8F);
+                if (!scored) {
+                    this.play(HalleyContent.PROXIMA_WAVE.get(), camera, 0.07F, 0.8F);
+                }
                 this.host.shake(camera, 0.35F, 80.0);
             }
             this.frontSide = side;
@@ -677,10 +671,9 @@ public final class ProximaFx {
         return sound;
     }
 
-    /** A sound of the film itself: heard as it is wherever the film's camera goes (it climbs out of hearing range). */
-    private void film(SoundEvent event, float volume) {
-        Minecraft.getInstance().getSoundManager().play(new SimpleSoundInstance(event.getLocation(), SoundSource.PLAYERS, volume,
-            this.host.speed(), SoundInstance.createUnseededRandom(), false, 0, SoundInstance.Attenuation.NONE, 0.0, 0.0, 0.0, true));
+    /** Whether this client hears the film's soundtrack, which carries the land's sounds too. */
+    private boolean scored() {
+        return this.soundtrack != null && Minecraft.getInstance().getSoundManager().isActive(this.soundtrack);
     }
 
     private int count(int n) {

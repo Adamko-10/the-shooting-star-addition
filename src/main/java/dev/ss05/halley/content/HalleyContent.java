@@ -192,9 +192,7 @@ public final class HalleyContent {
     /** The air drawn in, after the hush and just before the impact. */
     public static final DeferredHolder<SoundEvent, SoundEvent> MOON_INHALE = sound("luna_inhale");
     /** Proxima's coronal front coming in: its Type II radio burst, a whine drifting down (art/make_proxima_sounds.sh). */
-    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_RADIO = sound("proxima_radio");
     /** Proxima's lens firing, its flash, ground zero and a shock front passing (art/make_proxima_sounds.sh). */
-    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_BEAM = sound("proxima_beam");
     public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_FLASH = sound("proxima_flash");
     public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_IMPACT = sound("proxima_impact");
     public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_WAVE = sound("proxima_wave");
@@ -203,18 +201,8 @@ public final class HalleyContent {
      * space's drone, the star's roar, the shell's creaks, the iris, the loops snapping, the lens locking, the gate, the
      * front's roar, the air drawn in before the impact, the wind coming back after.
      */
-    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_UPLINK = sound("proxima_uplink");
-    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_ASCENT = sound("proxima_ascent");
-    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_SPACE = sound("proxima_space");
-    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_STAR = sound("proxima_star");
-    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_CREAK = sound("proxima_creak");
-    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_IRIS = sound("proxima_iris");
-    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_RECONNECT = sound("proxima_reconnect");
-    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_LENS = sound("proxima_lens");
-    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_GATE = sound("proxima_gate");
     public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_FRONT = sound("proxima_front");
     public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_INHALE = sound("proxima_inhale");
-    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_AFTER = sound("proxima_after");
 
     /** Damage from the shock wave outside the crater (inside it, things are erased the way the other skills erase). */
     public static final ResourceKey<DamageType> WAKE = ResourceKey.create(Registries.DAMAGE_TYPE, HalleyAddon.id("halley_wake"));

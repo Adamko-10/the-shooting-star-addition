@@ -7,7 +7,8 @@
 //  3 a soft round glow (uv across it; Color: its colour, Color.a: how strong; Param.x: a gain past 1), added
 //  4 a band of light (uv.x across it, uv.y along it; Param.x: gain, Param.y: flowing noise along it, Param.z: dashes
 //    along it), added
-//  5 Earth (Sampler0: the day side, Sampler1: the city lights; SunDir), 6 its clouds (Sampler0), 7 its air, added
+//  5 Earth (Sampler0: earth_day, Sampler1: earth_detail, art/make_earth.sh; SunDir; Param.x: the relief), 6 its clouds
+//    (Sampler1), 7 its air, added
 // (the spheres, the star's and Earth's, sit on the scene's origin: their normal is their position)
 //  8 the gate's disc of plasma (uv: -1..1 across it; Param.x: how strong), added
 //  9 the coronal mass ejection streaming from the gate (uv.x round it, uv.y along it; Param.x: strength, Param.y: how
@@ -130,32 +131,58 @@ void main() {
         }
         fragColor = vec4(color.rgb * color.a * k * Param.x, 1.0);
     } else if (mode == 5) {
+        // Sampler0: the day side (rgb) and its water (a); Sampler1: the land's relief (rg), city lights (b), clouds (a)
         vec3 n = normalize(pos);
+        vec4 surface = texture(Sampler0, uv);
+        vec4 detail = texture(Sampler1, uv);
+        float water = surface.a;
+        // the relief: the normal map's slopes along east and north, on land only (Param.x: how strong)
+        vec3 east = normalize(vec3(n.z, 0.0, -n.x) + vec3(0.00001, 0.0, 0.0));
+        vec3 north = cross(n, east);
+        vec2 slope = (detail.rg * 2.0 - 1.0) * (1.0 - water) * Param.x;
+        vec3 nb = normalize(n + east * slope.x + north * slope.y);
         float ndl = dot(n, SunDir);
-        float day = smoothstep(-0.12, 0.25, ndl);
-        vec3 d = texture(Sampler0, uv).rgb;
-        float lights = texture(Sampler1, uv).r;
-        vec3 c = d * (0.025 + 1.15 * day);
-        c += vec3(1.0, 0.72, 0.38) * lights * 1.8 * (1.0 - smoothstep(-0.25, 0.05, ndl));
-        float ocean = smoothstep(0.02, -0.04, d.g - d.b) * smoothstep(0.35, 0.1, d.r);
+        float dayside = smoothstep(-0.15, 0.2, ndl);
+        // sunlight on the ground, a little sky light, and under the clouds a touch of their shade
+        vec3 c = surface.rgb * (1.3 * max(dot(nb, SunDir), 0.0) + 0.1 * dayside) * (1.0 - 0.18 * detail.a * dayside);
+        // the sun's glint on the water: a sharp core in a broad sheen
         vec3 h = normalize(SunDir + view);
-        c += vec3(1.0, 0.92, 0.8) * pow(max(dot(n, h), 0.0), 140.0) * ocean * day * 0.45;
-        float rim = pow(1.0 - max(dot(n, view), 0.0), 3.0);
-        c = mix(c, vec3(0.35, 0.6, 1.0), rim * 0.55 * smoothstep(-0.3, 0.3, ndl));
-        fragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
+        float nh = max(dot(n, h), 0.0);
+        c += vec3(1.0, 0.94, 0.84) * (pow(nh, 1500.0) * 1.1 + pow(nh, 70.0) * 0.06) * water * dayside;
+        // the cities at night
+        c += vec3(1.0, 0.7, 0.36) * detail.b * 1.6 * (1.0 - smoothstep(-0.22, 0.04, ndl));
+        // the air: a blue haze over everything, thicker toward the edge (a longer way through it), lit by the sun, with a
+        // warm band along the terminator
+        float mu = max(dot(n, view), 0.0);
+        float haze = 1.0 - exp(-0.3 / (mu + 0.1));
+        vec3 sky = vec3(0.47, 0.68, 1.0) * smoothstep(-0.1, 0.3, ndl) + vec3(0.2, 0.07, 0.02) * exp(-pow((ndl - 0.02) / 0.05, 2.0));
+        c = mix(c, sky, haze * 0.9);
+        fragColor = vec4(tone(c * 1.35), 1.0);
     } else if (mode == 6) {
-        float a = texture(Sampler0, uv).a;
-        float day = smoothstep(-0.12, 0.25, dot(normalize(pos), SunDir));
-        fragColor = vec4(vec3(0.04 + 0.96 * day), a * (0.2 + 0.8 * day));
-    } else if (mode == 7) {
+        // the clouds (Sampler1's a): white in the sun, a bluish grey where it slants, dark at night, hazed toward the edge
         vec3 n = normalize(pos);
-        float z = dot(n, view);
-        if (z > 0.0) {
+        float a = texture(Sampler1, uv).a;
+        float ndl = dot(n, SunDir);
+        float dayside = smoothstep(-0.12, 0.3, ndl);
+        vec3 c = mix(vec3(0.55, 0.62, 0.78), vec3(1.0, 0.99, 0.97), smoothstep(0.0, 0.5, ndl)) * dayside;
+        c = mix(c, vec3(1.0, 0.6, 0.4), (1.0 - smoothstep(0.0, 0.12, ndl)) * dayside * 0.25);
+        float mu = max(dot(n, view), 0.0);
+        c = mix(c, vec3(0.6, 0.76, 1.0) * dayside, (1.0 - exp(-0.12 / (mu + 0.1))) * 0.7);
+        fragColor = vec4(tone(c * 1.6) + vec3(0.015), a * (0.45 + 0.5 * dayside));
+    } else if (mode == 7) {
+        // the air round Earth's edge, seen side on: drawn on the front of a shell a little bigger than Earth; by where the
+        // line of sight passes closest to Earth, a glow that is brightest at the edge and fades out over the shell
+        vec3 n = normalize(pos);
+        if (dot(n, view) < 0.0) {
             discard;
         }
-        float i = pow(clamp(0.72 + z, 0.0, 1.0), 4.0);
-        float lit = smoothstep(-0.4, 0.4, dot(n, SunDir));
-        fragColor = vec4(vec3(0.22, 0.45, 1.0) * i * 0.75 * (0.12 + 0.88 * lit), 1.0);
+        vec3 d = -view;
+        vec3 closest = CamPos + d * max(-dot(CamPos, d), 0.0);
+        float hgt = length(closest);
+        float g = hgt < 1.0 ? exp(-(1.0 - hgt) / 0.03) * 0.5 : exp(-(hgt - 1.0) / 0.012);
+        float sun = dot(normalize(closest), SunDir);
+        vec3 tint = mix(vec3(1.0, 0.45, 0.2), vec3(0.42, 0.68, 1.0), smoothstep(-0.1, 0.3, sun));
+        fragColor = vec4(tint * g * smoothstep(-0.3, 0.3, sun) * 1.2, 1.0);
     } else if (mode == 8) {
         vec2 p = uv;
         float r = length(p);

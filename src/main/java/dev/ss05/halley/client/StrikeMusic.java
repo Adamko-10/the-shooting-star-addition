@@ -16,7 +16,8 @@ import net.minecraft.util.Mth;
  * game's clock and the sound card's drift apart (a slow frame, a stutter while land loads), so every tick it compares how
  * much of the track has played with the strike's clock and nudges its speed by up to 5% until they agree again. It plays
  * on the game's Music volume slider, pitched with the remote's speed slider, while the music switch (M in the remote's
- * menu) is on; the game's own background music makes way for it.
+ * menu) is on; the game's own background music makes way for it. A film's own soundtrack ({@link #film}: Proxima's) is
+ * kept in step the same way, on the Players volume slider, whatever the music switch says.
  */
 public final class StrikeMusic extends AbstractTickableSoundInstance {
     private final MoonFx.Host host;
@@ -25,6 +26,8 @@ public final class StrikeMusic extends AbstractTickableSoundInstance {
     /** The strike's clock, in ticks. */
     private final DoubleSupplier clock;
     private final BooleanSupplier over;
+    /** Whether it is music (the music switch stops it), not a film's soundtrack. */
+    private final boolean music;
     /** The track's own pitch: the remote's speed slider, as far as the game lets a sound go. */
     private final float base;
     private long last;
@@ -32,14 +35,16 @@ public final class StrikeMusic extends AbstractTickableSoundInstance {
     private double played;
     private boolean started;
 
-    private StrikeMusic(String name, MoonFx.Host host, int from, DoubleSupplier clock, BooleanSupplier over) {
-        super(SoundEvent.createVariableRangeEvent(HalleyAddon.id(name)), SoundSource.MUSIC, SoundInstance.createUnseededRandom());
+    private StrikeMusic(String name, MoonFx.Host host, int from, DoubleSupplier clock, BooleanSupplier over, boolean music) {
+        super(SoundEvent.createVariableRangeEvent(HalleyAddon.id(name)), music ? SoundSource.MUSIC : SoundSource.PLAYERS,
+            SoundInstance.createUnseededRandom());
+        this.music = music;
         this.host = host;
         this.from = from;
         this.clock = clock;
         this.over = over;
         this.base = Mth.clamp(host.speed(), 0.5F, 2.0F);
-        this.volume = 0.85F;
+        this.volume = music ? 0.85F : 1.0F;
         this.pitch = this.base;
         this.relative = true;
         this.attenuation = SoundInstance.Attenuation.NONE;
@@ -50,14 +55,21 @@ public final class StrikeMusic extends AbstractTickableSoundInstance {
     public static StrikeMusic play(String name, MoonFx.Host host, int from, DoubleSupplier clock, BooleanSupplier over) {
         Minecraft minecraft = Minecraft.getInstance();
         minecraft.getMusicManager().stopPlaying();
-        StrikeMusic music = new StrikeMusic(name, host, from, clock, over);
+        StrikeMusic music = new StrikeMusic(name, host, from, clock, over, true);
         minecraft.getSoundManager().play(music);
         return music;
     }
 
+    /** Starts a film's soundtrack {@code name}, whose time 0 is film tick {@code from}; it stops once {@code over} is true. */
+    public static StrikeMusic film(String name, MoonFx.Host host, int from, DoubleSupplier clock, BooleanSupplier over) {
+        StrikeMusic track = new StrikeMusic(name, host, from, clock, over, false);
+        Minecraft.getInstance().getSoundManager().play(track);
+        return track;
+    }
+
     @Override
     public void tick() {
-        if (this.over.getAsBoolean() || !HalleyClientConfig.lunaMusic()) {
+        if (this.over.getAsBoolean() || this.music && !HalleyClientConfig.lunaMusic()) {
             this.stop();
             return;
         }
