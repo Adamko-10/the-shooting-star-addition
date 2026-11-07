@@ -3,7 +3,7 @@
   "id": "shooting_star_addition",
   "version": "${version}",
   "name": "The Shooting Star Addition",
-  "description": "An unofficial addon for The Shooting Star. Adds three skills to the Stellar Remote: SA-01 · Halley, SA-02 · Luna and SA-00 · Stellar Convergence, which fires every selected weapon together. Halley: a comet called down onto your crosshair. It comes in low over the horizon, ploughs a frozen trench toward your mark and detonates on it, leaving an icy crater with the comet's glowing heart standing in it. Luna: the moon itself falls on your crosshair, blasts out a huge crater and drives deep into it, and stays there, a moon of edible moon cheese with a molten heart. Power, damage and speed sliders like the original's skills. Optional: no cooldowns for every skill on the remote. Works with The Shooting Star (Demo) 1.5.2 and RimuLib 1.2.2 on Fabric 1.20.1.",
+  "description": "An unofficial addon for The Shooting Star. Halley calls a comet down onto your crosshair, leaving an icy crater with a glowing heart. Luna brings down the moon and leaves it buried in a crater, made of edible moon cheese with a molten heart. Proxima fires a solar flare and a coronal mass ejection, leaving a glassy bowl and scorched land. Stellar Convergence fires every selected weapon together. The skills join the Stellar Remote with power, damage and speed sliders. Works with The Shooting Star (Demo) 1.5.2 and RimuLib 1.2.2 on Fabric 1.20.1.",
   "authors": [
     "adamko_10"
   ],

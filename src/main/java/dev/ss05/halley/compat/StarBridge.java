@@ -150,6 +150,18 @@ public final class StarBridge {
         link().startMoon(caster, target, seed, params, tuning);
     }
 
+    public static void startProxima(ServerPlayer caster, Vec3 target, long seed, dev.ss05.halley.ProximaParams params, CastTuning tuning) {
+        link().startProxima(caster, target, seed, params, tuning);
+    }
+
+    public static void startFlare(ServerPlayer near, Vec3 target, long seed, dev.ss05.halley.ProximaParams params, CastTuning tuning) {
+        link().startFlare(near, target, seed, params, tuning);
+    }
+
+    public static boolean proximaRunning(ServerPlayer player) {
+        return link().proximaRunning(player);
+    }
+
     public static boolean alreadyFlying(ServerPlayer player) {
         return link().alreadyFlying(false, player);
     }

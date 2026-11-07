@@ -33,6 +33,8 @@ public final class HalleyClientConfig {
     private static final ConfigFile.BoolValue EVAC_LIFT;
     private static final ConfigFile.BoolValue KEEP_MOON;
     private static final ConfigFile.BoolValue EPIC_MODE;
+    private static final ConfigFile.BoolValue IMPERIAL;
+    private static final ConfigFile.BoolValue STACK_MUSIC;
     private static final ConfigFile.EnumValue<ImpactFrames> IMPACT_FRAMES;
     private static final ConfigFile.StringListValue CONVERGENCE;
     private static final ConfigFile.BoolValue CONVERGENCE_RING;
@@ -40,7 +42,7 @@ public final class HalleyClientConfig {
     private static final ConfigFile.BoolValue CONVERGENCE_PLATE_OLD;
     private static final ConfigFile.EnumValue<ConvergenceShake> CONVERGENCE_SHAKE;
     /** What Stellar Convergence fires out of the box: every weapon but Gravitia (which only the menu chooses). */
-    private static final List<String> CONVERGENCE_DEFAULT = List.of("the_shooting_star", "gungnir", "seven_stars", "tesseract", "halley", "luna");
+    private static final List<String> CONVERGENCE_DEFAULT = List.of("the_shooting_star", "gungnir", "seven_stars", "tesseract", "halley", "luna", "proxima");
 
     /** How strong Halley's and Luna's impact frames are (F on the addon's plate cycles them). */
     public enum ImpactFrames {
@@ -85,7 +87,7 @@ public final class HalleyClientConfig {
             "shader pack on, the comet and the sky then won't show).");
 
         b.section("stellar_remote", "Your switches in the Stellar Remote's menu (H). They are saved here when you flip them there.");
-        LUNA_MUSIC = b.define("luna_music", true, "Play Luna's music as the moon comes down (M in the remote's menu).");
+        LUNA_MUSIC = b.define("luna_music", true, "Play the skills' music: Luna's as the moon comes down, Proxima's as the flare comes in (M in the remote's menu).");
         NO_COOLDOWN = b.define("no_cooldown", true, "Cast without cooldowns where the server allows it (its no_cooldown setting; C in the remote's",
                 "menu). Has no effect on a server that doesn't allow it.");
         EVAC_LIFT = b.define("evac_lift", true, "In creative, standing where your own strike lands: true lifts you straight up above it, false",
@@ -94,6 +96,10 @@ public final class HalleyClientConfig {
                 "this off or leave the world (for filming). L in the remote's menu.");
         EPIC_MODE = b.define("epic_mode", false, "Luna's Epic mode: the moon you call down falls slower and more ominously (24 s from the alarm to the",
                 "impact instead of 16; everyone watching sees it), with the long cut of her music. G in the remote's menu.");
+        IMPERIAL = b.define("imperial_units", false, "Distances in the films' readouts (altitude, the flare's front, the shock wave): false for kilometres",
+            "and metres, true for miles and feet. The - key in the remote's menu.");
+        STACK_MUSIC = b.define("stack_music", false, "Strikes cast one after another each keep their own music playing (true), or the newest one's music",
+            "takes over (false). The = key in the remote's menu.");
         IMPACT_FRAMES = b.defineEnum("impact_frames", ImpactFrames.FULL, "Halley's and Luna's impact frames (the screen flashing to negative at an impact): FULL, SOFT",
                 "(fainter) or OFF. F in the remote's menu.");
         CONVERGENCE = b.defineList("convergence", CONVERGENCE_DEFAULT, "SA-00 Stellar Convergence: the remote's skills it fires, by id (ticked with 1-9 on its plate in the",
@@ -164,6 +170,24 @@ public final class HalleyClientConfig {
 
     public static void setEpicMode(boolean on) {
         set(EPIC_MODE, on);
+    }
+
+    /** Your units for the films' readouts: miles and feet (true) or kilometres and metres. */
+    public static boolean imperial() {
+        return get(IMPERIAL);
+    }
+
+    public static void setImperial(boolean on) {
+        set(IMPERIAL, on);
+    }
+
+    /** Whether strikes' music stacks (each keeps playing) or the newest takes over. */
+    public static boolean stackMusic() {
+        return get(STACK_MUSIC);
+    }
+
+    public static void setStackMusic(boolean on) {
+        set(STACK_MUSIC, on);
     }
 
     /** Your keep-the-moon switch: Luna's moon model stays after it lands. */

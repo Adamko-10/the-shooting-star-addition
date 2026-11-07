@@ -1,10 +1,10 @@
 # The Shooting Star Addition
 
 An **unofficial**, fan-made addon for [The Shooting Star [Demo]](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-demo)
-by rimuru_dev. It adds three skills to the Stellar Remote: **SA-01 · Halley**, a comet called down onto your
-crosshair, and **SA-02 · Luna**, which brings the moon itself down, leaving a moon of edible moon cheese with a
-molten heart in a huge crater; and **SA-00 · Stellar Convergence**, which fires every weapon you tick at once. On the
-remote they come after The Shooting Star's own skills. Their codenames are
+by rimuru_dev. It adds four skills to the Stellar Remote. **SA-01 · Halley** calls a comet down onto your crosshair.
+**SA-02 · Luna** brings down the moon, leaving edible moon cheese and a molten heart in a huge crater.
+**SA-04 · Proxima** fires a solar flare and a coronal mass ejection. **SA-00 · Stellar Convergence** fires every
+weapon you tick at once. On the remote they come after The Shooting Star's own skills. Their codenames are
 their own series, SA (Shooting star Addition), so they never clash with the SS numbers of The Shooting Star's own
 skills, whatever it adds.
 
@@ -12,7 +12,7 @@ skills, whatever it adds.
 
 ![Halley in game](docs/screenshots/overview.jpg)
 
-> **Compatibility:** this is the **Fabric, Minecraft 1.20.1** version, for **The Shooting Star [Demo] 1.5.2** with
+> **Compatibility** — Version **1.8.0** is for **Fabric, Minecraft 1.20.1**, with **The Shooting Star [Demo] 1.5.2**,
 > **RimuLib 1.2.2** or newer and **Fabric API** (on The Shooting Star 1.5.0, use version 1.6.0 of this addon).
 > Other builds: NeoForge 1.21.1 (`main`), Forge and NeoForge 1.20.1 (`forge-1.20.1`), Forge 1.21.1
 > (`forge-1.21.1`), Fabric 26.3 (`fabric-26.3`), Fabric 1.21.11 (`fabric-1.21.11`) and Fabric 1.21.1
@@ -97,10 +97,23 @@ drives deep into it, the crust buckling up against it, and comes to rest there w
 |---|---|---|
 | ![EARTH SYSTEM SHUT DOWN](docs/screenshots/13-luna-alarm.jpg) | ![The moon burning in](docs/screenshots/14-luna-fall.jpg) | ![The moon in its crater](docs/screenshots/15-luna-crater.jpg) |
 
+## SA-04 · Proxima
+
+Proxima Centauri fires from inside its Dyson sphere. The flare's light burns exposed creatures first. Then the
+coronal front hits your crosshair, leaving a glassy bowl with **Solar Residue**, scorched ground and **Flare Ash**.
+The bowl remains radioactive for a time.
+
+- **Z** selects Proxima by default. Its skippable 36-second film follows the shot from Proxima Centauri to Earth.
+  Players outside the film see the gate catch and focus the shot in the world sky.
+- **M** in the remote's menu toggles strike music, **=** toggles music stacking, and **-** switches between metric
+  and imperial units in the film.
+- Random solar flares are off by default. The common config's `[proxima]`, `[proxima_size]`, `[proxima_world]` and
+  `[proxima_flares]` sections control the strike and its aftermath. [Proxima's timeline and effects](docs/SS-07-PROXIMA.md)
+
 ## SA-00 · Stellar Convergence
 
 A remote skill of its own that fires every weapon you tick, all at once, timed so every impact lands on the same
-tick: Halley, Luna and The Shooting Star's Railgun, Gungnir and Seven Stars (Tesseract fires along with them).
+tick: Halley, Luna, Proxima and The Shooting Star's Railgun, Gungnir and Seven Stars (Tesseract fires along with them).
 Gravitia, if ticked, comes last, once the others are done. Other addons' remote skills can be ticked too; they fire
 straight away, as their timing isn't known.
 
@@ -120,11 +133,11 @@ straight away, as their timing isn't known.
 
 ## Sliders
 
-Halley and Luna have the same three sliders as The Shooting Star's own skills, under them in the remote's menu
+Halley, Luna and Proxima have the same three sliders as The Shooting Star's own skills, under them in the remote's menu
 (**H**), and they work the same way:
 
 - **Power**: the whole strike from **0.1× to 10×** as big. For Halley that's the comet, its trench and the crater; for
-  Luna, the moon and its crater (the config's sizes are 1×). The cutscene scales with it.
+  Luna, the moon and its crater. For Proxima it widens the flare and deepens the bowl. The config's sizes are 1×.
 - **Damage**: each hit from **2 up to ∞**. At ∞ (the default), whatever it hits is erased.
 - **Speed**: the whole skill, cutscene and all, from **0.3× to 3×** as fast.
 
@@ -156,6 +169,9 @@ the skill's defaults. It ignores the server's slider limits: values past the rem
 they can freeze or crash a server. `/ssa` alone shows the help. From the console:
 `/execute as <player> run ssa strike ...`.
 
+`/ssa flare <minor|major|cataclysm> [seconds]` schedules a solar flare near the player running the command. It
+announces the flare to the world first and uses the configured warning time if you omit the delay.
+
 ## Protected blocks
 
 Blocks in the tag `shooting_star_addition:unbreakable` are never carved by Halley or Luna: bedrock, barriers, command
@@ -170,13 +186,13 @@ the remote's menu and in Controls, unbound until you set it.
 ## Installing
 
 1. Minecraft **1.20.1** with **Fabric Loader** and **Fabric API** for 1.20.1.
-2. **The Shooting Star [Demo] 1.5.2** (its Fabric file) and **RimuLib 1.2.2** or newer, which it needs anyway.
+2. **The Shooting Star [Demo] 1.5.2** and **RimuLib 1.2.2** or newer, both for Fabric.
 3. This addon's jar ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
 
-In game: hold the Stellar Remote, press **O** for Halley, **N** for Luna or **B** for Stellar Convergence (or pick them
-in the remote's menu, **H**),
-aim at the ground and right-click. The keys can be changed in Controls or from the remote's menu like the others.
+Hold the Stellar Remote and select a skill with **O** for Halley, **N** for Luna, **Z** for Proxima or **B** for Stellar
+Convergence. You can also select it in the remote's menu (**H**). Aim at the ground and right-click. Change the keys
+in Controls or in the remote's menu.
 
 ## Settings — `config/shooting_star_addition-common.toml`
 
@@ -247,7 +263,9 @@ And your switches from the remote's menu (**H**), in the `[stellar_remote]` sect
 
 | Setting          | Default | What it does |
 |------------------|---------|--------------|
-| `luna_music`     | true    | Luna's music while the moon comes down (**M** in the menu). It follows Minecraft's Music volume. |
+| `luna_music`     | true    | Luna's and Proxima's music (**M**). It follows Minecraft's Music volume. |
+| `stack_music`   | false   | Play overlapping strikes' music together (**=**). |
+| `imperial_units` | false  | Show miles and feet in film readouts (**-**). |
 | `epic_mode`      | false   | Luna falls slower, 24 s instead of 16, for everyone watching (**G**). |
 | `keep_moon`      | false   | Luna's moon model stays after it lands (**L**). |
 | `impact_frames`  | FULL    | Halley's and Luna's impact frames: `FULL`, `SOFT` or `OFF` (**F**). |
@@ -283,7 +301,7 @@ Shooting Star it knows, and uses the one for the version you have:
 
 ## Plans
 
-This is version 1.7. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
+This is version 1.8.0. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
 Shooting Star and keep improving it: more skills for the Stellar Remote, balancing and polish from your feedback,
 and versions for other loaders and Minecraft versions if there's demand. Bug reports, ideas and feedback are very
 welcome in the issues.

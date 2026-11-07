@@ -7,6 +7,8 @@ import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.content.HalleyContent;
 import dev.ss05.halley.net.AddonNetwork;
 import dev.ss05.halley.world.MoonStrike;
+import dev.ss05.halley.world.ProximaStrike;
+import dev.ss05.halley.world.SolarFlares;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -54,10 +56,14 @@ public final class HalleyAddon implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             StarBridge.tick(server);
             MoonStrike.tickLingering();
+            ProximaStrike.tickLingering(server);
+            SolarFlares.tick(server);
         });
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             StarBridge.clear();
             MoonStrike.clearLingering();
+            ProximaStrike.clearLingering();
+            SolarFlares.clear();
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             warnIfDetached(handler.player);

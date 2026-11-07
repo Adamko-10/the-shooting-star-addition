@@ -30,6 +30,9 @@ public record SkyLook(float night, float stars, float aurora, float veil, float 
     /** SS-06 Luna's: a sick red-orange night under the alarm, a warm dusty haze in the aftermath. */
     public static final int PALETTE_LUNA = 1;
 
+    /** SA-04 Proxima's: the red of the flare, with a hot dusty haze after the impact. */
+    public static final int PALETTE_PROXIMA = 2;
+
     /** How much of the vanilla sky this covers. */
     public float cover() {
         return 1.0F - (1.0F - this.night) * (1.0F - this.veil * 0.75F);

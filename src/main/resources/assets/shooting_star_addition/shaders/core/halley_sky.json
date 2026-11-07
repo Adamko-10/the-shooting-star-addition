@@ -14,6 +14,7 @@
     { "name": "NightHorizon", "type": "float", "count": 3, "values": [ 0.055, 0.110, 0.215 ] },
     { "name": "VeilHorizon", "type": "float", "count": 3, "values": [ 0.56, 0.76, 0.90 ] },
     { "name": "VeilTop", "type": "float", "count": 3, "values": [ 0.30, 0.50, 0.76 ] },
+    { "name": "AuroraTop", "type": "float", "count": 3, "values": [ 0.72, 0.36, 1.0 ] },
     { "name": "SkyClock", "type": "float", "count": 1, "values": [ 0.0 ] },
     { "name": "Night", "type": "float", "count": 1, "values": [ 0.0 ] },
     { "name": "Stars", "type": "float", "count": 1, "values": [ 0.0 ] },

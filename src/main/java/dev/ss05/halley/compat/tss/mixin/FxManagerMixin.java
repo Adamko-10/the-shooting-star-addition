@@ -27,8 +27,9 @@ abstract class FxManagerMixin {
 
     // Both passes: since 1.5 the mapping names them the wrong way round (same shape; by their bodies the film overlays
     // are drawn in "renderHud"), and per loader build. StarClientBridge draws ours once a frame, whichever runs.
+    // Use every return so the legacy film pass's early exit also draws the overlay.
     @Inject(method = {"renderHud(Lnet/minecraft/client/gui/GuiGraphics;F)V", "liiillli1l(Lnet/minecraft/client/gui/GuiGraphics;F)V"},
-        at = @At("TAIL"), require = 0, remap = false)
+        at = @At("RETURN"), require = 0, remap = false)
     private static void ss05halley$filmHud(GuiGraphics graphics, float partial, CallbackInfo ci) {
         StarClientBridge.renderFilmHud(graphics, partial);
     }
