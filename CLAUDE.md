@@ -62,6 +62,16 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   CurseForge uploads once all seven pass CI (no user test first: their call). Sounds: the current (2026-11-04) ones
   ship; the user never gave a Sonniss verdict. `wip/main` pushed for CI too. Python isn't on this PC (the
   `dev/publish/github_160.sh` release script needs it): do the release step with `gh api` from JS or bash instead.
+  **CI so far (01:50)**: `wip/forge-1.20.1` #153 ok; `wip/fabric-1.20.1` #154 failed to compile (1.20.1's
+  FriendlyByteBuf has no writeVec3/readVec3 in `ConvergenceFx`; fixed `e7a6155`, re-pushed); `wip/main` #155 and
+  `wip/fabric-1.21.1` #156 running. The CI key isn't on Adam's PC: read failures from the Actions job log
+  (`gh run view <run id> --log`), `summary.txt` from the draft release. `fabric-1.21.1` port done by a Claude helper
+  (`9c1bc01`); it and Codex's fabric-1.20.1 both made the Fabric mixin configs apply on servers too (`environment`
+  "client" -> "*"/none; the json's client/common lists are split right, so it's a real fix: in 1.6.0 the server-side
+  mixins never applied on a dedicated Fabric server). **CurseForge**: Claude in Chrome isn't connected and the app's
+  browser pane isn't signed in to CurseForge ("Unauthorized"): asked the user to sign in there (or import its
+  curseforge cookies from Chrome via the pane's menu) or reconnect the Chrome extension. GitHub releases:
+  `dev/publish/github_170.sh` (no Python needed).
   After publishing: delete the `wip/*` branches and `ci-*` drafts, `git revert d6d2b5f b3f05a6` on main (Proxima
   back), and since it'll be past 2 AM, schedule the PC's shutdown with a 10-minute warning (`shutdown /s /t 600`;
   the user can cancel with `shutdown /a`).
