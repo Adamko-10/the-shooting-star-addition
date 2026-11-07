@@ -105,10 +105,10 @@ public final class HalleyClientConfig {
                 "impact instead of 16; everyone watching sees it), with the long cut of her music. G in the remote's menu.")
             .define("epic_mode", false);
         IMPERIAL = b.comment("Distances in the films' readouts (altitude, the flare's front, the shock wave): false for kilometres",
-                "and metres, true for miles and feet. D in the remote's menu.")
+                "and metres, true for miles and feet. The - key in the remote's menu.")
             .define("imperial_units", false);
         STACK_MUSIC = b.comment("Strikes cast one after another each keep their own music playing (true), or the newest one's music",
-                "takes over (false). S in the remote's menu.")
+                "takes over (false). The = key in the remote's menu.")
             .define("stack_music", false);
         IMPACT_FRAMES = b.comment("Halley's and Luna's impact frames (the screen flashing to negative at an impact): FULL, SOFT",
                 "(fainter) or OFF. F in the remote's menu.")

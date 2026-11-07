@@ -311,7 +311,15 @@ and the impact", then "work on the non cutscene version"
   the front comes from (`skyDirection`), turned so its iris faces the viewer, on the strike's clock: it appears in a
   flash at ORBIT + 7, the iris opens, the lens gathers and absorbs, the beam fires straight at the viewer, gone in the
   shot's flash. Drawn before the land (land and clouds hide it) with its own depth, cleared before and after. Shader
-  packs: not checked. Test: `test scriptsautotest21.sh` (the harness's new view `proximasky`).
+  packs: not checked. Test: `test scripts\autotest21.sh` (the harness's new view `proximasky`).
+- **Then the sky shows only the gate** (the user: "make only the lens visible in the sky, not proxima centauri itself,
+  like the thing that the energy passes through"): `ProximaCosmos.renderSky` (AFTER_PARTICLES, the world's own depth)
+  draws `skyGate`: a real object at `gatePosition` (360 blocks over the mark, 180 out toward the front's side), its ring
+  70 blocks in radius, facing the mark: it appears in a flash at the lens shot (T_LENS), unfolds, its ring brightening
+  with the charge; the shot streaks in from deep space (a bolt) and is caught at CATCH (the plasma disc); refocused into
+  a narrow beam down onto the mark, landing at LANDS (a flash there); gone after the flare's flash. The harness's
+  `proximasky` view now looks at it from the side. **Later** (the user): the gate visible like TSS's Gravitia (bigger,
+  longer), the Dyson sphere's inside redesigned completely, the arrival at Proxima Centauri feeling like a massive star.
 
 ## Timeline (`ProximaPlan`, ticks at speed 1)
 

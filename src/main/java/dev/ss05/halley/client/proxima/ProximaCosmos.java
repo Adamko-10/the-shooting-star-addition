@@ -23,7 +23,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
 import org.lwjgl.opengl.GL;
@@ -90,11 +89,10 @@ public final class ProximaCosmos {
     /** The gate catching the shot, and its refocused wave reaching the caster's spot. */
     private static final double CATCH = T_EARTH + 0.75;
     private static final double LANDS = T_EARTH + 1.5;
-    /** The Dyson sphere in the real sky (for everyone not watching the film): this far off (blocks), this wide (degrees). */
-    private static final double SKY_DISTANCE = 100.0;
-    private static final double SKY_WIDTH = 28.0;
-    /** Whether the scene is being drawn into the real sky (no backdrop, no flying bolt). */
-    private static boolean skyMode;
+    /** The gate in the real sky (for everyone not watching the film): its ring's radius (blocks), and how its own units scale. */
+    private static final double SKY_GATE_RADIUS = 70.0;
+    private static final double SKY_SCALE = SKY_GATE_RADIUS / 0.34;
+    private static final double T_FLASH = ProximaPlan.FLASH / 20.0;
     /** This frame's warp (stars drawn out into streaks, 0-1) and the camera's heading, for the backdrop. */
     private static double warp;
     private static Vec3 heading = UP;
@@ -147,15 +145,15 @@ public final class ProximaCosmos {
 
     /**
      * For everyone not watching the film (the caster in third person or with films off, and everyone near the mark): the
-     * Dyson sphere big in the real sky (the user, 2026-11-07: "pretty big"), high over the land on the side the front
-     * will come from, played on the strike's own clock: it appears in a flash as the film reaches space, its iris opens,
-     * the lens gathers and draws the star's power in, and it fires (the beam coming straight at the viewer), the sphere
-     * gone in the shot's flash. The film's own scene (proxima), drawn at the sky's place with the game's camera, before
-     * the land (so the land and the clouds hide it), with its own depth (cleared before and after). Not for random
-     * flares. Shader packs: not checked (they may not show a custom shader drawn here).
+     * gate (the ring the shot passes through on its way) high over the land, in the world (the user, 2026-11-07: "only the
+     * lens ... the thing that the energy passes through", not the star). On the strike's clock: it appears in a flash as
+     * the film reaches the lens, unfolds, its ring glowing brighter as the star's power gathers far away; the shot
+     * streaks in from deep space, the gate catches it and refocuses it into a narrow beam down onto the mark, landing
+     * just before the flare's flash, when it's gone. Drawn after the particles with the world's own depth (land and
+     * clouds in front hide it). Not for random flares. Shader packs: not checked.
      */
     public static void renderSky(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_SKY) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
             return;
         }
         ShaderInstance program = shader;
@@ -165,48 +163,24 @@ public final class ProximaCosmos {
         }
         ProximaFx fx = ProximaFx.active().getLast();
         float partial = event.getPartialTick().getGameTimeDeltaPartialTick(true);
-        double ct = fx.time(partial);
-        if (fx.plan.params.natural() || fx.filmWeight() > 0.5F || ct < ProximaPlan.ORBIT || ct > ProximaPlan.BEAM + 14) {
+        double t = fx.time(partial) / 20.0;
+        if (fx.plan.params.natural() || fx.filmWeight() > 0.5F || t < T_LENS - 0.3 || t > T_FLASH + 0.5) {
             return;
         }
-        double t = ct / 20.0;
-        Vec3 dir = skyDirection(fx.plan);
-        double k = SKY_DISTANCE * Math.tan(Math.toRadians(SKY_WIDTH / 2.0)) / 1.55;
-        // the scene turned so its iris (and the lens, and the shot) face the viewer
-        Quaternionf turn = new Quaternionf().rotationTo(new Vector3f((float) AXIS.x, (float) AXIS.y, (float) AXIS.z),
-            new Vector3f((float) -dir.x, (float) -dir.y, (float) -dir.z));
-        Quaternionf back = new Quaternionf(turn).conjugate();
-        Matrix4f model = new Matrix4f().translate((float) (dir.x * SKY_DISTANCE), (float) (dir.y * SKY_DISTANCE),
-            (float) (dir.z * SKY_DISTANCE)).rotate(turn).scale((float) k);
-        Matrix4f view = new Matrix4f(event.getModelViewMatrix()).mul(model);
+        Vec3 gate = gatePosition(fx.plan);
         Camera camera = event.getCamera();
-        Vector3f right = back.transform(new Vector3f(camera.getLeftVector()).negate());
-        Vector3f up = back.transform(new Vector3f(camera.getUpVector()));
-        Pass pass = new Pass(view, new Matrix4f(event.getProjectionMatrix()), AXIS.scale(SKY_DISTANCE / k),
-            new Vec3(right.x, right.y, right.z), new Vec3(up.x, up.y, up.z), (float) t);
-        double appear = ProximaPlan.ORBIT / 20.0 + 0.35;
-        double gone = FIRE + 0.4;
-        RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
+        Vec3 eye = camera.getPosition();
+        Matrix4f model = new Matrix4f().translate((float) (gate.x - eye.x), (float) (gate.y - eye.y), (float) (gate.z - eye.z))
+            .scale((float) SKY_SCALE);
+        Matrix4f view = new Matrix4f(event.getModelViewMatrix()).mul(model);
+        Vector3f left = camera.getLeftVector();
+        Vector3f up = camera.getUpVector();
+        Pass pass = new Pass(view, new Matrix4f(event.getProjectionMatrix()), eye.subtract(gate).scale(1.0 / SKY_SCALE),
+            new Vec3(-left.x, -left.y, -left.z), new Vec3(up.x, up.y, up.z), (float) t);
         RenderSystem.disableCull();
-        skyMode = true;
         try {
-            if (t > appear && t < gone) {
-                proxima(program, pass, t);
-            }
-            // a flash hiding it coming and going
-            double flash = Math.max(smooth((t - appear + 0.3) / 0.3) * (1.0 - smooth((t - appear) / 0.6)),
-                smooth((t - FIRE + 0.05) / 0.1) * (1.0 - smooth((t - gone) / 0.3)));
-            if (flash > 0.01) {
-                additive();
-                BufferBuilder b = begin(VertexFormat.Mode.QUADS);
-                glow(b, pass, Vec3.ZERO, 6.0, 0xFFE6EE, (float) flash);
-                glow(b, pass, Vec3.ZERO, 2.5, 0xFFFFFF, (float) flash);
-                set(program, pass, GLOW, 1.6F, 0.0F, 0.0F, 0.0F);
-                draw(program, pass, b);
-            }
+            skyGate(program, pass, t, fx.plan.target.subtract(gate).scale(1.0 / SKY_SCALE));
         } finally {
-            skyMode = false;
-            RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
             RenderSystem.enableCull();
             RenderSystem.depthMask(true);
             RenderSystem.enableDepthTest();
@@ -215,13 +189,116 @@ public final class ProximaCosmos {
         }
     }
 
-    /** Where in the sky the Dyson sphere hangs: 48 degrees up, on the side the coronal front will come from. */
-    public static Vec3 skyDirection(ProximaPlan plan) {
+    /** Where the gate hangs over the land: 360 blocks up, 180 out toward the side the coronal front will come from. */
+    public static Vec3 gatePosition(ProximaPlan plan) {
         Vec3 from = plan.frontDirection().scale(-1.0);
         Vec3 flat = new Vec3(from.x, 0.0, from.z);
         flat = flat.lengthSqr() < 1.0E-6 ? new Vec3(0.0, 0.0, 1.0) : flat.normalize();
-        double elevation = Math.toRadians(48.0);
-        return flat.scale(Math.cos(elevation)).add(0.0, Math.sin(elevation), 0.0);
+        return plan.target.add(flat.scale(180.0)).add(0.0, 360.0, 0.0);
+    }
+
+    /** The gate in the sky, in its own units (its ring 0.34 across), {@code ground}: the mark from it. */
+    private static void skyGate(ShaderInstance program, Pass p, double t, Vec3 ground) {
+        double open = smooth((t - T_LENS - 0.35) / 0.6);
+        double charge = clamp((t - POWER) / (FIRE - POWER));
+        Vec3 z = ground.normalize();
+        Vec3 x = UP.cross(z).normalize();
+        Vec3 y = z.cross(x).normalize();
+        double spin = t * 0.15;
+        // its panels unfolding into a ring, facing the land
+        opaque();
+        set(program, p, SOLID, 0.0F, 0.0F, 0.0F, 0.0F);
+        BufferBuilder b = begin(VertexFormat.Mode.QUADS);
+        Vec3[][] seamLines = new Vec3[16][];
+        for (int i = 0; i < 16; i++) {
+            double grow = smooth((t - T_LENS - 0.1 - i * 0.02) / 0.3);
+            if (grow <= 0.001) {
+                continue;
+            }
+            double a = i / 16.0 * Math.PI * 2.0 + spin;
+            Vec3 out = x.scale(Math.cos(a)).add(y.scale(Math.sin(a)));
+            Vec3 along = y.scale(Math.cos(a)).subtract(x.scale(Math.sin(a)));
+            double fold = (1.0 - open) * 1.4;
+            Vec3 radial = out.scale(Math.cos(fold)).add(z.scale(-Math.sin(fold)));
+            Vec3 centre = out.scale(0.39 + 0.12 * (1.0 - open));
+            Vec3 hx = radial.scale(0.065 * grow);
+            Vec3 hy = along.scale(0.025 * grow);
+            Vec3 n = radial.cross(along).normalize();
+            vertex(b, centre.subtract(hx).subtract(hy), 0.0F, 0.0F, 0x1C1A1F, 1.0F, n);
+            vertex(b, centre.add(hx).subtract(hy), 1.0F, 0.0F, 0x1C1A1F, 1.0F, n);
+            vertex(b, centre.add(hx).add(hy), 1.0F, 1.0F, 0x1C1A1F, 1.0F, n);
+            vertex(b, centre.subtract(hx).add(hy), 0.0F, 1.0F, 0x1C1A1F, 1.0F, n);
+            seamLines[i] = new Vec3[]{centre.subtract(hx).subtract(hy), centre.add(hx).subtract(hy)};
+        }
+        draw(program, p, b);
+        additive();
+        b = begin(VertexFormat.Mode.QUADS);
+        for (Vec3[] line : seamLines) {
+            if (line != null) {
+                band(b, p, line, 0.006, 0xFF6090, 1.0F, 1.0);
+            }
+        }
+        // its ring, glowing brighter as the star's power gathers far away
+        band(b, p, circle(Vec3.ZERO, x, y, 0.34, 128), 0.024, 0xFF4D80, (float) (open * (0.55 + 0.45 * charge)), 1.0);
+        set(program, p, BAND, (float) (1.3 + 1.7 * charge), 0.0F, 0.0F, 0.0F);
+        draw(program, p, b);
+        // its disc of plasma once the shot is in
+        double disc = smooth((t - CATCH) / 0.25) * (1.0 - smooth((t - T_FLASH - 0.2) / 0.3));
+        if (disc > 0.002) {
+            b = begin(VertexFormat.Mode.QUADS);
+            double r = 0.33;
+            vertex(b, x.scale(-r).subtract(y.scale(r)), -1.0F, -1.0F, 0xFFFFFF, 1.0F, z);
+            vertex(b, x.scale(r).subtract(y.scale(r)), 1.0F, -1.0F, 0xFFFFFF, 1.0F, z);
+            vertex(b, x.scale(r).add(y.scale(r)), 1.0F, 1.0F, 0xFFFFFF, 1.0F, z);
+            vertex(b, x.scale(-r).add(y.scale(r)), -1.0F, 1.0F, 0xFFFFFF, 1.0F, z);
+            set(program, p, GATE_DISC, (float) (0.6 * disc), 0.0F, 0.0F, 0.0F);
+            draw(program, p, b);
+        }
+        // the shot streaking in from deep space, from above and behind it
+        Vec3 from = x.scale(0.45).add(y.scale(0.35)).subtract(z).normalize().scale(30.0);
+        if (t > CATCH - 0.6 && t < CATCH + 0.6) {
+            double arrive = smooth((t - CATCH + 0.55) / 0.55);
+            float fade = (float) (1.0 - smooth((t - CATCH - 0.3) / 0.3));
+            Vec3[] line = new Vec3[25];
+            for (int s = 0; s <= 24; s++) {
+                line[s] = from.scale(1.0 - arrive * s / 24.0);
+            }
+            b = begin(VertexFormat.Mode.QUADS);
+            band(b, p, line, 0.12, 0xB31A33, fade, 1.0);
+            band(b, p, line, 0.03, 0xFFD5E6, fade, 1.0);
+            set(program, p, BAND, 1.5F, 3.0F, 0.0F, 0.0F);
+            draw(program, p, b);
+            if (t < CATCH + 0.05) {
+                bolt(program, p, from.scale(1.0 - arrive), from.scale(-1.0).normalize(), 0.35, t);
+            }
+        }
+        // refocused into a narrow beam down onto the mark, its bolt racing ahead, a flash where it lands
+        double refocus = smooth((t - CATCH - 0.15) / 0.12) * (1.0 - smooth((t - T_FLASH - 0.2) / 0.3));
+        if (refocus > 0.0) {
+            double reach = smooth((t - CATCH - 0.15) / (LANDS - CATCH - 0.15));
+            Vec3[] line = new Vec3[25];
+            for (int s = 0; s <= 24; s++) {
+                line[s] = ground.scale(reach * s / 24.0);
+            }
+            b = begin(VertexFormat.Mode.QUADS);
+            band(b, p, line, 0.05, 0xB31A33, (float) refocus, 1.0);
+            band(b, p, line, 0.015, 0xFFE0EE, (float) refocus, 1.0);
+            set(program, p, BAND, 2.0F, 3.0F, 0.0F, 0.0F);
+            draw(program, p, b);
+            if (reach < 0.999) {
+                bolt(program, p, ground.scale(reach), z, 0.2, t);
+            }
+        }
+        b = begin(VertexFormat.Mode.QUADS);
+        double landed = pulse(t, LANDS, 0.4);
+        if (t > LANDS - 0.05) {
+            glow(b, p, ground, 0.2 + 1.2 * landed, 0xFFE6F0, (float) (0.3 + 0.7 * landed));
+        }
+        // appearing in a flash
+        double flash = smooth((t - T_LENS + 0.3) / 0.3) * (1.0 - smooth((t - T_LENS) / 0.6));
+        glow(b, p, Vec3.ZERO, 1.2, 0xFFE6EE, (float) flash);
+        set(program, p, GLOW, 1.6F, 0.0F, 0.0F, 0.0F);
+        draw(program, p, b);
     }
 
     /** The scene's camera for one frame, and what it needs to turn things to face it. */
@@ -365,9 +442,7 @@ public final class ProximaCosmos {
         // how far through drawing the star's power in, and its heartbeat, quickening as the lens fills
         double drawn = clamp((t - POWER) / (FIRE - POWER));
         double beat = t > POWER && t < FIRE ? 0.5 + 0.5 * Math.sin(Math.PI * 2.0 * (2.0 * (t - POWER) + 3.0 * (t - POWER) * drawn)) : 0.0;
-        if (!skyMode) {
-            backdrop(program, p, 1.0F, 1.0F);
-        }
+        backdrop(program, p, 1.0F, 1.0F);
 
         // the star: boiling, dimming a little as the lens drains it, flaring as it fires
         opaque();
@@ -542,8 +617,7 @@ public final class ProximaCosmos {
         if (t >= FIRE) {
             double since = t - FIRE;
             double on = smooth(since / 0.06);
-            // (in the sky the beam comes straight at the viewer: kept short of them)
-            Vec3 head = LENS_CENTRE.add(AXIS.scale(skyMode ? Math.min(since * SPEED, 3.5) : since * SPEED));
+            Vec3 head = LENS_CENTRE.add(AXIS.scale(since * SPEED));
             Vec3[] line = new Vec3[25];
             for (int k = 0; k <= 24; k++) {
                 line[k] = LENS_CENTRE.lerp(head, k / 24.0);
@@ -560,9 +634,7 @@ public final class ProximaCosmos {
             glow(b, p, LENS_CENTRE, 1.6 + 2.5 * fire, 0xFFD6E8, (float) (0.9 * fire));
             set(program, p, GLOW, 1.4F, 0.0F, 0.0F, 0.0F);
             draw(program, p, b);
-            if (!skyMode) {
-                bolt(program, p, head, AXIS, 0.5, t);
-            }
+            bolt(program, p, head, AXIS, 0.5, t);
         }
     }
 

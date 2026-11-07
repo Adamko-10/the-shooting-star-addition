@@ -20,7 +20,7 @@ import net.minecraft.util.Mth;
  * on the game's Music volume slider, pitched with the remote's speed slider, while the music switch (M in the remote's
  * menu) is on; the game's own background music makes way for it. A film's own soundtrack ({@link #film}: Proxima's) is
  * kept in step the same way, on the Players volume slider, whatever the music switch says. Unless the player lets music
- * stack (S in the remote's menu), a new strike's music takes over from any still playing.
+ * stack (the = key in the remote's menu), a new strike's music takes over from any still playing.
  */
 public final class StrikeMusic extends AbstractTickableSoundInstance {
     private final MoonFx.Host host;

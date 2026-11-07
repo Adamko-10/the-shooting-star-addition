@@ -12,23 +12,52 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-07, ~14:00, Adam's PC; written before a compact) <<<
+### >>> RESUME HERE (2026-11-07, ~22:40, Adam's PC) <<<
 
-- **1.7.0 is RELEASED everywhere** (GitHub: 7 releases; CurseForge: 7 files, description updated; details in the
-  RELEASE PLAN block below). The user pasted the new summary (246 chars, §8 step 6) and changed the description's intro
-  to "three skills" themselves. `wip/*` and `ci-*` cleaned up; port worktrees removed.
-- **Now working on the next update, on local `main` only, NOT pushed** (commits after `b605256`): Proxima back
-  (`0028b31`), **Proxima's new film built** (`af100f4`, see "START HERE (2026-11-07, afternoon)" just below: the
-  numbered list there is the to-do, in order: 1. the space-scene bug (FIXED: legacy film style), 1b. the film's polish
-  (Earth + sound, BUILT, waits for the user's look and ears), 2. the Dyson sphere in the
-  real sky for third person/everyone, 3. the Flare's cinematic impact, 4. music stays on the Flare for now, 5. the rest).
-- Test jar of the new film is in the user's Modrinth profile (`(Proxima film 36s build)`); its sounds are byte-identical
-  to 1.7.0's (the user wants test builds to match what shipped; no Sonniss swap until they say so).
-- Credits to remember: Luna's AND Proxima's music are by DOM_MusicST and FarzanNB (§15); Stellar Quartet by ikun520;
-  Proxima's Earth: NASA (Blue Marble, Black Marble) and **Solar System Scope (CC BY 4.0: must be credited)**.
-- Ponytail is OFF (the user, 2026-11-07). The user is low on usage: keep replies short.
-- Reminders owed (§0): idea #16 (Mrityu mod), Proxima's "Extra content" film ideas, SA-05+ candidates and the free
-  SA-03 slot, the Solar Residue economy (when Proxima ships).
+- **1.7.0 is RELEASED everywhere** (7 GitHub releases, 7 CurseForge files; RELEASE PLAN block below).
+- **The next update = Proxima (SA-04), on local `main` only, NOT pushed** (all commits after `b605256`). The user wants
+  it out **"today/tmr"** (said 2026-11-07 evening), ported by **their GPT (the Codex app)**. The user approved the film:
+  **"its very good"** (2026-11-07 night) after these rounds, all in docs/SS-07-PROXIMA.md ("The new film", "Polish ...",
+  "Second polish round", "Third round", "Fourth round"):
+  legacy-film-style overlay fix (`f3c9d6d`); Earth like the Railgun's + one soundtrack (`127df8d`); lens power-up,
+  focused wave, captions in smooth type, SOLAR FLARE INBOUND, km/miles (`63f922e`); the 36 s film: zoom out into a warp to
+  Proxima, no infinity loops, new star surface, 3 s lens absorption, cooler bolt with a tracking shot, slow shock wave
+  (WAVE_TICKS 130) with a pull-back shot and trees bursting, music stacking switch (`5a54f07`); new approach and impact
+  sounds and the first sky version (`3b8303e`); then (this turn, see below) the keys moved and the sky version became
+  the gate only.
+- **Done this turn (2026-11-07 ~22:30)**: the stack-music and units switches moved off S and D (the user: "S is for
+  moving backwards", same for D): now **=** (stack music) and **-** (units): every free letter is taken in the menu (WASD
+  move, Q drops, P is Stellar Quartet's, U I K Y O N B Z skills, M G L F E C ours, R X V T Convergence's, H the menu,
+  J films). The sky version now shows **only the gate** (the user: "make only the lens visible in the sky, not proxima
+  centauri itself, like the thing that the energy passes through"; the user calls the gate near Earth "the lens"):
+  `ProximaCosmos.renderSky`/`skyGate`, a real object 360 blocks over the land, 180 out toward the front's side,
+  ~140 blocks across, drawn after the particles with the world's depth; appears at the lens shot, ring brightening with
+  the charge, catches the shot, refocuses it down onto the mark, gone at the flash.
+- **The user asked again what was said about the "legacy fullscreen ui"** (answered again 2026-11-07 night): no revert
+  was made; the floating "White Space" menu is RimuLib 1.2.2's own new menu (not ours, not safely replaceable); RimuLib's
+  "Legacy mode" switch (cutscenes.legacy) only changes how films and warnings show their text.
+- **For later (the user, 2026-11-07 night; not now)**: (1) **redesign the inside of the Dyson sphere completely**; (2) the
+  arrival at Proxima Centauri should **feel like a massive star** (scale: it fills the view, the camera dwarfed);
+  (3) **the gate ("the lens that's above the earth") visible in the sky like Gravitia** (TSS's Gravitia shows its huge
+  structure for everyone: a bigger, longer-lasting world version of the gate, beyond today's sky gate).
+- **Porting: WAIT for the user's word** ("then i will tell u when to give gpt the prompts for porting"). Plan when they
+  say go: like 1.7.0's (RELEASE PLAN block): squash main's commits since `b605256` onto `origin/main` as one commit
+  (`port-1.8.0`?), six worktrees in the project folder's `ports\<branch>\` on `port/<branch>`, one `BRIEF.md` each
+  (`ports\make-briefs.js`, update it for Proxima: new files to port: ProximaCosmos + the `proxima_space` core shader,
+  ProximaFx/Hud/Storyboard, FilmTitle captions, StrikeMusic.film, the plate's new rows, HalleyClientConfig, the Earth
+  textures, sounds, WAVE_TICKS; the render code for fabric-1.21.11/26.3 must be rewritten for their pipeline). Odds
+  given: 1.21.1 Forge/Fabric ~85%, 1.20.1 ~60%, 1.21.11/26.3 ~25% by the next day; recommended two release waves (the
+  1.21.1s + whichever 1.20.1s pass CI first; 1.21.11/26.3 later, keeping 1.7.0 meanwhile).
+- **Before release, besides the ports**: version (1.8.0), changelog (`dev/publish/changelog_170.js` as the model),
+  README, CurseForge description + summary (add Proxima), credits: Proxima's music by **DOM_MusicST and FarzanNB**;
+  Earth imagery **NASA** (Blue Marble, Black Marble) and **Solar System Scope (CC BY 4.0: must be credited)**; Stellar
+  Quartet by ikun520. Proxima's sounds are built from the **Sonniss GDC 2026** bundle (the licence grey area the user
+  knows about). One CI round. Not checked yet: the sky gate with shader packs, at night; any sound by ear (Claude can't).
+- The crash the user saw (2026-11-07 22:01) was **FTB Ultimine's** (NullPointerException in its player data), not ours.
+- Test jar in the user's Modrinth profile: `(Proxima sky gate build)` (`test builds\2026-11-07 Proxima sky gate\`).
+- Ponytail is OFF. The user is budget-conscious: keep replies short.
+- Reminders owed (§0): idea #16 (Mrityu mod), Proxima's "Extra content" film ideas (§15; mention when it ships),
+  SA-05+ candidates and the free SA-03 slot, the Solar Residue economy (when Proxima ships).
 
 ### RELEASE PLAN (decided 2026-11-06 evening; the user: "what can we do to push it out today? either this session or the one after")
 
@@ -210,7 +239,7 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
      the non-cutscene version (item 2, BUILT the same night, below) and whether to start porting; they want Proxima out
      "today/tmr" with GPT (Codex) porting. Claude's odds given: sky sphere ~80% this session; ports by the next day:
      1.21.1 Forge/Fabric ~85%, 1.20.1 ~60%, 1.21.11/26.3 ~25% (rendering rewrite); recommended two waves.
-  2. **DONE 2026-11-07 night: the Dyson sphere in the real sky** for everyone not in the film (docs/SS-07-PROXIMA.md
+  2. **DONE 2026-11-07 night: the sky version** (first the Dyson sphere, then, the user's pick, only the gate; docs/SS-07-PROXIMA.md
      "Fourth round"; `ProximaCosmos.renderSky`). Earlier note:
      **Third person / everyone not in the film: draw the Dyson sphere in the real sky again, "pretty big"** (the user,
      2026-11-07): the old in-sky intro (`ProximaSpace`, deleted in af100f4: git show af100f4^:src/main/java/dev/ss05/

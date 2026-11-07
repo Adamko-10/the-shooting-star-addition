@@ -47,8 +47,9 @@ public final class AdditionPanel {
     public static final int KEY_KEEP_MOON = 76;
     public static final int KEY_FRAMES = 70;
     public static final int KEY_EPIC = 71;
-    public static final int KEY_UNITS = 68;
-    public static final int KEY_STACK = 83;
+    /** - and =: every free letter is taken in the menu (WASD move, Q drops, P is Stellar Quartet's, the rest skills). */
+    public static final int KEY_UNITS = 45;
+    public static final int KEY_STACK = 61;
     private static final float SLIDE_MILLIS = 160.0F;
 
     private static long musicFlippedAt;
@@ -194,7 +195,7 @@ public final class AdditionPanel {
         g.fill(11, 51, w - 10, 52, 0xFF000000 | RULE);
 
         // strikes' music stacking, or the newest taking over
-        row(g, font, 58, Component.translatable("gui.shooting_star_addition.stack_music"), "S", HalleyClientConfig.stackMusic(), true,
+        row(g, font, 58, Component.translatable("gui.shooting_star_addition.stack_music"), "=", HalleyClientConfig.stackMusic(), true,
             stackFlippedAt, w);
         g.drawString(font, Component.translatable("gui.shooting_star_addition.stack_music.hint"), 11, 70, 0xFF000000 | GREY, false);
         g.fill(11, 83, w - 10, 84, 0xFF000000 | RULE);
@@ -225,7 +226,7 @@ public final class AdditionPanel {
         g.fill(11, 211, w - 10, 212, 0xFF000000 | RULE);
 
         // the films' distances: kilometres (off) or miles (on)
-        row(g, font, 218, Component.translatable("gui.shooting_star_addition.units"), "D", HalleyClientConfig.imperial(), true,
+        row(g, font, 218, Component.translatable("gui.shooting_star_addition.units"), "-", HalleyClientConfig.imperial(), true,
             unitsFlippedAt, w, "gui.shooting_star_addition.units.miles", "gui.shooting_star_addition.units.km");
         g.drawString(font, Component.translatable("gui.shooting_star_addition.units.hint"), 11, 230, 0xFF000000 | GREY, false);
         g.fill(11, 243, w - 10, 244, 0xFF000000 | RULE);
