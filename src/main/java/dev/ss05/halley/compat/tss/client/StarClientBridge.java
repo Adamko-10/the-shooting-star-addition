@@ -17,6 +17,7 @@ import dev.ss05.halley.client.HalleyHud;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.MoonHud;
 import dev.ss05.halley.client.proxima.ProximaFx;
+import dev.ss05.halley.client.proxima.ProximaCosmos;
 import dev.ss05.halley.client.proxima.ProximaHud;
 import dev.ss05.halley.compat.tss.ConvergenceFx;
 import dev.ss05.halley.compat.tss.StrikeFx;
@@ -152,12 +153,15 @@ public final class StarClientBridge {
             });
         }
         if (!ProximaFx.active().isEmpty()) {
+            ProximaFx proxima = ProximaFx.active().getLast();
+            // its film's space and Earth shots: a scene of their own over the world, under the captions
+            ProximaCosmos.render(graphics, proxima, partial);
             UiApi.overlay(graphics, () -> {
-                ProximaFx fx = ProximaFx.active().getLast();
-                ProximaHud.film(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics));
-                FilmTitle.proxima(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics));
-                FilmTitle.dyson(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics));
-                FilmTitle.cme(graphics, fx, partial, UiApi.width(graphics), UiApi.height(graphics));
+                ProximaHud.film(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
+                FilmTitle.centauri(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
+                FilmTitle.dyson(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
+                FilmTitle.cme(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
+                FilmTitle.proxima(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
             });
         }
     }

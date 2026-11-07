@@ -163,23 +163,65 @@ asa` (Blue Marble NG June 2004 topo+bathy
      front, no crater, no radiation; cataclysm = the whole strike from the flash, hits held to 60 damage (no erasing).
      Operators: `/ssa flare <minor|major|cataclysm> [seconds]` near themselves.
 
+## The new film (2026-11-07: the approved previz, built in game)
+
+The user asked for much higher quality (2026-11-06: "this won't do quality wise") and approved a three.js previz
+(https://claude.ai/artifact/HavGduihZs5GjdHR74yqsc, source in the project folder's `previz\`): 13 shots, 31 s, impact
+at 23 s. Built on main 2026-11-07:
+
+- **The timeline** moved to the previz's (table below; FLASH 300, IMPACT 460, the film 620 ticks = 31 s). Stellar
+  Convergence, the music and every effect follow `ProximaPlan`.
+- **The space and Earth shots are a scene of their own** (`client/proxima/ProximaCosmos`, shader `proxima_space`, one
+  program with a material per draw): drawn over the world in the film's overlay pass (`StarClientBridge.renderFilmHud`,
+  before the captions), so shader packs never touch it, with its own camera run by the film's clock, the previz's
+  camera moves shot by shot. Earth from orbit (NASA's day and night imagery, our clouds, a blue rim of air, a sun
+  glint on the oceans); Proxima Centauri (a boiling red surface with granules and dark starspots, limb-darkened, a
+  corona and halo, nine prominences); the Dyson sphere (an icosphere's 980 dark panels with glowing seams, lit red
+  inside, a few lit hatches; two collector rings with running lights and 160 satellites); the iris opening panel by
+  panel from the middle out; two faint plasma loops drawn on into an infinity sign, flaring where they cross and
+  collapsing; 127 hex tiles flying off the shell into a lens that charges white and fires a beam (a white core in a red
+  sheath, two shock rings); the gate unfolding in orbit before Earth (16 panels, a ring, a disc of plasma), the beam
+  streaking in, the coronal mass ejection streaming from it down to Earth. The deep sky is a starfield with a faint red
+  nebula. Replaces `ProximaSpace` (the old intro, drawn as glow in the real sky for everyone) and `EarthSphere`.
+- **The zoom-out, the Railgun's way** (`ProximaStoryboard`): a whip turn to look straight down (0.15 s), then the pull
+  straight up off the caster's shoulder to 480 blocks (easing in, exponential, through the clouds, a little sideways
+  drift, the FOV 70 to 64) in 1.35 s, then a white punch through the cloud layer (`ProximaHud`) hides the cut to Earth
+  from orbit, pulling back until its curve fills the frame. While the scene covers the screen the film's camera waits
+  where the pull up ended.
+- **The land shots** retimed: the flash beside the caster looking up the way the front comes; the front low by the
+  mark, then the slow high turn; the hush; ground zero; the wave; afterwards.
+- **Title cards** (`FilmTitle`, low on the frame like the previz's): PROXIMA CENTAURI (new: glowing in out of a red
+  blur, "RED DWARF · M5.5 Ve · 4.24 LIGHT YEARS"), DYSON SPHERE (steel letters sliding in, "STELLAR ENGINE · 980
+  PANELS"), CORONAL MASS EJECTION (flickering plasma torn apart as the beam fires), SA-04 PROXIMA at the flash
+  (bigger, letters flaring in white-hot and settling, "SOLAR FLARE · CLASS <class>").
+- **Captions** per shot as the previz's (UPLINK; ASCENDING with the altitude in m, then km; ...; the radio blackout).
+- **Sounds**: the 12 film sounds made from Sonniss (art/sonniss_sounds.sh, docs/SOUNDS.md) are in: the uplink under
+  the press, the ascent's wind (recut to the 1.35 s rise), space's drone, the star's roar, the shell's creaks, the iris
+  (a clank per ring), the loops' snap on the crossing, the lens locking, the beam (charge, discharge on BEAM), the gate,
+  the front's roar (recut to the 5.6 s front; it and the radio burst are cut off for the hush), the inhale, the wind
+  coming back afterwards. Film sounds are played as the film's own (no falling off as its camera climbs).
+- **Music** recut (`art/make_proxima_music.sh`): the draft from 2.35 s so its entry lands on FLASH 300, silent through
+  the hush, its main section on IMPACT 460.
+
 ## Timeline (`ProximaPlan`, ticks at speed 1)
 
 | | tick | |
 |---|---|---|
 | PRESS | 7 | the remote's button |
 | MUSIC_AT | 10 | the music starts (`ProximaFx`) |
-| SPACE | 30 | the film leaves for space: the star in its Dyson sphere |
-| IRIS, LOOPS, COLLAPSE | 60, 100, 118 | the iris opens; the infinity loops; they collapse to a point |
-| LENS, BEAM | 125, 135 | the lens folds, fires |
-| EARTH, GATE | 140, 160 | the film's Earth shot; the gate before it opens and catches the beam |
-| FLASH | 190 | phase 1: the flare's light arrives; exposed things burn (the music's entry) |
-| FRONT | 200 | phase 2: the coronal front crosses the sky |
-| HUSH | 360 | near-silence: everyone thinks it's over (the music too) |
-| IMPACT | 370 | phase 3: ground zero (the music's main section) |
-| DURATION | 700 | the effects end; the film ends at 560 |
+| ASCENT, ORBIT | 32, 59 | the pull up off the caster's shoulder; the cut to Earth from orbit |
+| SPACE | 108 | Proxima Centauri in its Dyson sphere |
+| IRIS | 156 | the Dyson sphere, square on (the iris opens 161-195) |
+| LOOPS, COLLAPSE | 200, 219 | the infinity loops; their flare and collapse |
+| LENS, BEAM | 228, 249 | the lens gathers and charges; it fires |
+| EARTH, GATE | 260, 267 | Earth and the gate; the gate open (the CME spreads from 281) |
+| FLASH | 300 | phase 1: the flare's light arrives; exposed things burn (the music's entry) |
+| FRONT | 336 | phase 2: the coronal front crosses the sky |
+| HUSH | 448 | near-silence: everyone thinks it's over (the music too) |
+| IMPACT | 460 | phase 3: ground zero (the music's main section) |
+| DURATION | 790 | the effects end; the film ends at 620 |
 
-The space intro (stage 3) runs from SPACE to FLASH. Stellar Convergence uses `IMPACT` to land it with the others.
+The space part (ORBIT to FLASH) is the caster's film only. Stellar Convergence uses `IMPACT` to land it with the others.
 
 ## The Railgun reference (for the new film's zoom-out; recorded 2026-11-06)
 

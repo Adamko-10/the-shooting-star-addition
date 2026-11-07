@@ -12,34 +12,33 @@ public final class ProximaPlan {
     /** The remote's button (as for the other skills). */
     public static final int PRESS = 7;
     /**
-     * The film's space intro (2026-11-05: the timeline moved 60 ticks later for it; 2026-11-06 another 40 for Earth, so
-     * the impact is at 370): the camera rises into a sky gone to space; the Dyson sphere's iris opens on the star; two
-     * plasma loops twist into an infinity sign, flare and collapse; the panels fold into a lens and focus the flare into a
-     * beam; Earth, and the gate before it catching the beam. The star and the gate are seen by anyone looking at that part
-     * of the sky; Earth only in the film (client/proxima/EarthSphere).
+     * The film's way out to Proxima Centauri and back (2026-11-07: the approved previz, 31 s, impact at 23 s): the camera
+     * pulls straight up off the caster's shoulder through the clouds ({@link #ASCENT}) and cuts to Earth from orbit
+     * ({@link #ORBIT}); Proxima Centauri in its Dyson sphere ({@link #SPACE}); the iris opening ({@link #IRIS}); the
+     * infinity loops ({@link #LOOPS}, flaring and collapsing at {@link #COLLAPSE}); the lens gathering and firing
+     * ({@link #LENS}, {@link #BEAM}); Earth and the gate catching the beam ({@link #EARTH}, open at {@link #GATE}). All of
+     * that is the caster's film only (client/proxima/ProximaCosmos draws it as a scene of its own).
      */
-    public static final int SPACE = 30;
-    public static final int IRIS = 60;
-    public static final int LOOPS = 100;
-    public static final int COLLAPSE = 118;
-    public static final int LENS = 125;
-    public static final int BEAM = 135;
-    /** The film's Earth shot: Earth from space, the beam coming in, the gate before it opening and catching it. */
-    public static final int EARTH = 140;
-    public static final int GATE = 160;
+    public static final int ASCENT = 32;
+    public static final int ORBIT = 59;
+    public static final int SPACE = 108;
+    public static final int IRIS = 156;
+    public static final int LOOPS = 200;
+    public static final int COLLAPSE = 219;
+    public static final int LENS = 228;
+    public static final int BEAM = 249;
+    public static final int EARTH = 260;
+    public static final int GATE = 267;
     /** Phase 1, the flash burn: the flare's light arrives first, the sky goes white-red, exposed things burn. */
-    public static final int FLASH = 190;
+    public static final int FLASH = 300;
     /** Phase 2, the coronal front sweeping across the sky (looks only: no damage). */
-    public static final int FRONT = 200;
+    public static final int FRONT = 336;
     /** Near-silence: everyone thinks it's over. */
-    public static final int HUSH = 360;
+    public static final int HUSH = 448;
     /** Phase 3, ground zero: the bowl, the scorch, the blast. */
-    public static final int IMPACT = 370;
+    public static final int IMPACT = 460;
     /** The effects' end (the aftermath fades out by then). */
-    public static final int DURATION = 700;
-    /** The star in the intro: its radius and how far off it is drawn (far parts are pulled in, so only the angle matters). */
-    public static final double STAR_RADIUS = 1400.0;
-    public static final double STAR_DISTANCE = 20000.0;
+    public static final int DURATION = IMPACT + 330;
     /** Ground zero's shock wave runs out over the land, burning and throwing as it goes: at the scorch's edge this long after the impact. */
     public static final int WAVE_TICKS = 70;
     /** The coronal front: a shell of plasma this big (radius, blocks), its nose this far from the mark when it appears. */
@@ -103,23 +102,6 @@ public final class ProximaPlan {
     public double frontDistance(double t) {
         double k = Mth.clamp((t - FRONT) / (double) (IMPACT - FRONT), 0.0, 1.0);
         return FRONT_START * (1.0 - k) * (1.0 + 0.4 * k);
-    }
-
-    /** Where the star hangs in the intro: high in the sky on the side the front will come from. */
-    public Vec3 starDirection() {
-        Vec3 front = this.frontDirection();
-        Vec3 from = new Vec3(-front.x, 0.0, -front.z).normalize();
-        double up = Math.toRadians(50.0);
-        return from.scale(Math.cos(up)).add(0.0, Math.sin(up), 0.0);
-    }
-
-    public Vec3 starCentre() {
-        return this.target.add(this.starDirection().scale(STAR_DISTANCE));
-    }
-
-    /** The gate that catches the beam and spreads it into the front: where the front's nose starts. */
-    public Vec3 gate() {
-        return this.target.subtract(this.frontDirection().scale(FRONT_START));
     }
 
     /** The centre of the front's shell at {@code t} (its nose is {@link #FRONT_RADIUS} from it, toward the mark). */

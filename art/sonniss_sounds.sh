@@ -506,8 +506,8 @@ if want proxima_wave; then   # a front passing (3.5 s): a roar coming on high an
 fi
 
 # ======================================================================================================================
-# Proxima's new film (the approved previz, docs/SOUNDS.md): not played by the game yet (new sounds.json entries and
-# code come with the film). Lengths follow the previz's shots.
+# Proxima's film (the approved previz, docs/SOUNDS.md; played by client/proxima/ProximaFx since 2026-11-07). Lengths
+# follow the film's shots.
 # ======================================================================================================================
 if want proxima_uplink; then   # shot 1, the press: a low uplink hum starting under the remote's own click
   L "$REACTOR" 10 3 0 0 "lowpass=f=900"
@@ -516,11 +516,11 @@ if want proxima_uplink; then   # shot 1, the press: a low uplink hum starting un
   make proxima_uplink 3.0 -16 "afade=t=in:d=0.15,afade=t=out:st=1.8:d=1.2"
 fi
 
-if want proxima_ascent; then   # shot 2, the pull up to orbit (3.8 s): wind rising and rushing, cut to near-silence at 3 s
-  L "$BLASTOFF" 4.9 3.8 0 0
-  L "$WIND_WHIP" 0 3.8 -3 0
-  L "$WIND_RUSH" 0 1.05 -2 2.0
-  make proxima_ascent 3.8 -16 "volume='if(lt(t,3.0),0.3+0.7*pow(t/3.0,2),max(0.02,exp(-(t-3.0)*30)))':eval=frame"
+if want proxima_ascent; then   # shot 2, the Railgun-paced pull up (1.35 s to the cut to orbit): wind rising and rushing, cut off there
+  L "$BLASTOFF" 4.9 2.2 0 0
+  L "$WIND_WHIP" 0 2.2 -3 0
+  L "$WIND_RUSH" 0 1.05 -2 0.45
+  make proxima_ascent 2.2 -16 "volume='if(lt(t,1.35),0.3+0.7*pow(t/1.35,2),max(0.02,exp(-(t-1.35)*30)))':eval=frame"
 fi
 
 if want proxima_space; then   # shots 3-7, space: a deep sub drone
@@ -585,12 +585,12 @@ if want proxima_gate; then   # shot 7: a far whoosh of the beam arriving, the ga
   make proxima_gate 2.5 -15 "afade=t=out:st=1.8:d=0.7"
 fi
 
-if want proxima_front; then   # FRONT to HUSH (8 s): a rolling roar building under the radio burst, then the hush
-  L "$STORM_EYE" 100 8 0 0 "lowpass=f=1200"
-  L "$THUNDER" 4 8 -3 0
+if want proxima_front; then   # FRONT to HUSH (5.6 s): a rolling roar building under the radio burst, then the hush
+  L "$STORM_EYE" 100 5.6 0 0 "lowpass=f=1200"
+  L "$THUNDER" 4 5.6 -3 0
   L "$TRAIN_ELEC" 12 4.8 -6 0 "$(rate 0.6),lowpass=f=600"
-  L "$RADIO_STATIC" 5 8 -16 0 "highpass=f=2000,tremolo=f=9:d=0.7"
-  make proxima_front 8.0 -15 "volume='if(lt(t,7.85),0.25+0.75*pow(t/7.85,2),max(0.05,1-(t-7.85)/0.1))':eval=frame"
+  L "$RADIO_STATIC" 5 5.6 -16 0 "highpass=f=2000,tremolo=f=9:d=0.7"
+  make proxima_front 5.6 -15 "volume='if(lt(t,5.45),0.25+0.75*pow(t/5.45,2),max(0.05,1-(t-5.45)/0.1))':eval=frame"
 fi
 
 if want proxima_inhale; then   # 0.65 s ending on IMPACT: the air drawn in, a fire whoosh and a rush played backwards

@@ -35,7 +35,6 @@ public final class HalleyClient {
         NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, CometRenderer::render);
         NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, MoonRenderer::render);
         NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, MoonSphere::renderSolid);
-        NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, dev.ss05.halley.client.proxima.EarthSphere::render);
         NeoForge.EVENT_BUS.addListener(RenderFrameEvent.Pre.class, HalleyClient::frameStart);
         // Proxima's hot bowls shimmer and hum after their strikes
         NeoForge.EVENT_BUS.addListener(net.neoforged.neoforge.client.event.ClientTickEvent.Post.class,
@@ -88,6 +87,13 @@ public final class HalleyClient {
         } catch (IOException failed) {
             HalleyAddon.LOG.error("SS-05 Halley's sky shader didn't load, so the sky won't change during a strike", failed);
             HalleySky.setShader(null);
+        }
+        try {
+            event.registerShader(new ShaderInstance(event.getResourceProvider(), HalleyAddon.id("proxima_space"),
+                DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL), dev.ss05.halley.client.proxima.ProximaCosmos::setShader);
+        } catch (IOException failed) {
+            HalleyAddon.LOG.error("SA-04 Proxima's space shader didn't load, so its film's space shots will be empty", failed);
+            dev.ss05.halley.client.proxima.ProximaCosmos.setShader(null);
         }
     }
 }

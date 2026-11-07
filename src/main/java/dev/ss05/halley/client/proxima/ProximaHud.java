@@ -2,6 +2,7 @@ package dev.ss05.halley.client.proxima;
 
 import dev.ss05.halley.ProximaParams;
 import dev.ss05.halley.ProximaPlan;
+import dev.ss05.halley.client.film.ProximaStoryboard;
 import java.util.Locale;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -37,6 +38,11 @@ public final class ProximaHud {
         int ink = a << 24 | CRIMSON;
         int dim = (int) (a * 0.6F) << 24 | PALE;
 
+        // the white punch through the cloud layer that hides the cut to orbit
+        float punch = smooth((ct - (ProximaPlan.ORBIT - 6)) / 5.0F) * (1.0F - smooth((ct - (ProximaPlan.ORBIT + 1)) / 8.0F));
+        if (punch > 0.01F) {
+            g.fill(0, 0, w, h, (int) (punch * fade * 255.0F) << 24 | 0xFFFFFF);
+        }
         int bar = (int) (h * 0.055F * Mth.clamp(ct / 12.0F, 0.0F, 1.0F) * fade);
         if (bar > 0) {
             g.fill(0, 0, w, bar, (int) (a * 0.92F) << 24);
@@ -50,9 +56,17 @@ public final class ProximaHud {
 
         String caption;
         String detail;
-        if (ct < ProximaPlan.SPACE) {
+        if (ct < ProximaPlan.ASCENT) {
             caption = "UPLINK";
-            detail = "PROXIMA CENTAURI";
+            detail = "STELLAR REMOTE · SA-04";
+        } else if (ct < ProximaPlan.SPACE) {
+            caption = "ASCENDING";
+            if (ct < ProximaPlan.ORBIT) {
+                detail = String.format(Locale.ROOT, "ALTITUDE  %d m", Math.round(ProximaStoryboard.riseHeight(ct)));
+            } else {
+                double q = Mth.clamp(((ct / 20.0 - 1.6) / 3.8 - 0.36) / 0.64, 0.0, 1.0);
+                detail = String.format(Locale.ROOT, "ALTITUDE  %,d km", Math.round(ProximaCosmos.altitude(q) * 6371.0));
+            }
         } else if (ct < ProximaPlan.IRIS) {
             caption = "PROXIMA CENTAURI";
             detail = "4.24 LIGHT YEARS";
@@ -64,10 +78,10 @@ public final class ProximaHud {
             detail = "CLASS " + ProximaParams.flareClass(p.params.power());
         } else if (ct < ProximaPlan.EARTH) {
             caption = "LENS ARRAY";
-            detail = "BEAM FOCUSED";
+            detail = ct < ProximaPlan.BEAM ? "CHARGING" : "BEAM FOCUSED";
         } else if (ct < ProximaPlan.FLASH) {
             caption = "EARTH";
-            detail = ct < ProximaPlan.GATE ? "BEAM INBOUND" : "GATE OPEN";
+            detail = ct < ProximaPlan.GATE + 8 ? "BEAM INBOUND" : "GATE OPEN";
         } else if (ct < ProximaPlan.FRONT) {
             caption = "FLARE DETECTED";
             detail = "CLASS " + ProximaParams.flareClass(p.params.power());
@@ -77,7 +91,7 @@ public final class ProximaHud {
         } else if (ct < ProximaPlan.IMPACT) {
             caption = "· · ·";
             detail = "";
-        } else if (ct < ProximaPlan.IMPACT + 34) {
+        } else if (ct < ProximaPlan.IMPACT + 32) {
             caption = "IMPACT";
             detail = "GROUND ZERO";
         } else {
@@ -108,6 +122,11 @@ public final class ProximaHud {
             out.append(c != ' ' && hash(frame, i) < amount ? NOISE.charAt((int) (hash(frame, i + 31) * NOISE.length())) : c);
         }
         return out.toString();
+    }
+
+    private static float smooth(float x) {
+        float k = Mth.clamp(x, 0.0F, 1.0F);
+        return k * k * (3.0F - 2.0F * k);
     }
 
     private static float hash(int a, int b) {

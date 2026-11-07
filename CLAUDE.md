@@ -125,6 +125,18 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   branch's diff, push each to `wip/<branch>` with `dev/ci/push-wip.sh` (the user OK'd wip pushes), fix from CI.
   The README is updated for 1.7.0 (`deb9792`).
 
+### START HERE (2026-11-07, afternoon, Adam's PC): the next update, after 1.7.0's release
+
+- **Proxima's new film is BUILT on main (2026-11-07, the user: "Proxima's new film")**, as the approved previz:
+  docs/SS-07-PROXIMA.md "The new film" (what, where, how). The timeline moved to the previz's (FLASH 300, IMPACT 460,
+  film 620 ticks = 31 s); the space and Earth shots are `client/proxima/ProximaCosmos` (shader `proxima_space`), drawn
+  in the film's overlay pass; `ProximaSpace` and `EarthSphere` are gone; the zoom-out is Railgun-paced; four title
+  cards; 12 Sonniss film sounds wired (`art/sonniss_sounds.sh`, ascent and front recut to the new timing); music recut.
+  Game-tested (`test scripts\autotest20.sh`, frames by film time in `test builds\2026-11-07 auto test 26 proxima new
+  film\`): every shot draws, no shader errors; tweaked after (loops fainter, beam stronger, smaller sun glint, orbit
+  shot from 0.3 Earth radii). Not yet: the user's own look (test jar), the SA-04A/SA-04B split, SA-04B CME.
+  Known: the test client's short render distance fogs the pull up's ground and the last shot (fine in a real game).
+
 ### START HERE (2026-11-06, late evening, Adam's PC)
 
 - **Doing right now: the sound overhaul from Sonniss: ALL 52 SOUNDS MADE, waiting for the user's ears** (status,

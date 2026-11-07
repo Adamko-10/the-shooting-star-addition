@@ -3,8 +3,8 @@
 #   bash art/make_proxima_music.sh [source]   (default: the project folder's music/Video Project 49.m4a)
 # The game starts it at tick MUSIC_AT (10, ProximaFx) and keeps it in step, so the file's own time 0 is tick 10:
 #   1. the track from A0 for (HUSH - 10) ticks, chosen so that the track's gap-and-entry (ENTRY, 16.85 s in the draft)
-#      lands on the flash (FLASH 150): its pulses play under the space intro, its calmer middle under the coronal front;
-#   2. half a second of silence: the hush (HUSH 320 to IMPACT 330);
+#      lands on the flash (FLASH 300, since 2026-11-07): its pulses play under the space intro, its calmer middle under the coronal front;
+#   2. half a second of silence: the hush (HUSH 448 to IMPACT 460);
 #   3. the main section from its downbeat (DROP, 28.85 s in the draft), hard on the impact, faded out by FADE_END ticks.
 # Then levelled like luna_music.ogg (-18 LUFS integrated, peaks held under -0.5 dBFS).
 # For a new version of the track, find its moments again (a spectrogram and a loudness curve, 50 ms steps) and set
@@ -16,7 +16,7 @@ OUT="$HERE/../src/main/resources/assets/shooting_star_addition/sounds/proxima_mu
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 
-MUSIC_AT=10; FLASH=190; HUSH=360; IMPACT=370; FADE_END=600
+MUSIC_AT=10; FLASH=300; HUSH=448; IMPACT=460; FADE_END=690
 ENTRY=16.85; DROP=28.85
 A0=$(awk "BEGIN{print $ENTRY - ($FLASH - $MUSIC_AT) / 20}")
 ALEN=$(awk "BEGIN{print ($HUSH - $MUSIC_AT) / 20}")

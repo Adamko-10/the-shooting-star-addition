@@ -198,6 +198,23 @@ public final class HalleyContent {
     public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_FLASH = sound("proxima_flash");
     public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_IMPACT = sound("proxima_impact");
     public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_WAVE = sound("proxima_wave");
+    /**
+     * Proxima's film (art/sonniss_sounds.sh, cut to its shots): the uplink under the press, the pull up through the air,
+     * space's drone, the star's roar, the shell's creaks, the iris, the loops snapping, the lens locking, the gate, the
+     * front's roar, the air drawn in before the impact, the wind coming back after.
+     */
+    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_UPLINK = sound("proxima_uplink");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_ASCENT = sound("proxima_ascent");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_SPACE = sound("proxima_space");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_STAR = sound("proxima_star");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_CREAK = sound("proxima_creak");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_IRIS = sound("proxima_iris");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_RECONNECT = sound("proxima_reconnect");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_LENS = sound("proxima_lens");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_GATE = sound("proxima_gate");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_FRONT = sound("proxima_front");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_INHALE = sound("proxima_inhale");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PROXIMA_AFTER = sound("proxima_after");
 
     /** Damage from the shock wave outside the crater (inside it, things are erased the way the other skills erase). */
     public static final ResourceKey<DamageType> WAKE = ResourceKey.create(Registries.DAMAGE_TYPE, HalleyAddon.id("halley_wake"));

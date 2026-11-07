@@ -61,12 +61,13 @@ public final class ProximaFx {
     private final float particles;
     /** Ticks to wind the sky's clock on to sunset: with a shader pack on, the red sky is the pack's own sunset (as Halley and Luna wind it on to night). */
     private final long toSunset;
-    /** Ticks to wind the sky's clock on to the middle of the night, for the space intro under a shader pack. */
-    private final long toNight;
     /** Where the camera was against the coronal front last tick (above 0: still ahead of it), and how far out the shock wave had run. */
     private double frontSide = Double.NaN;
     private double lastWave;
     private StrikeMusic music;
+    /** The front's radio burst and roar, cut off for the hush. */
+    private SoundInstance radio;
+    private SoundInstance roar;
 
     public ProximaFx(MoonFx.Host host, int casterId, Vec3 target, long seed, int[] data) {
         this.host = host;
@@ -78,7 +79,6 @@ public final class ProximaFx {
         this.particles = status == ParticleStatus.ALL ? 1.0F : status == ParticleStatus.DECREASED ? 0.45F : 0.12F;
         long day = minecraft.level == null ? 6000L : Math.floorMod(minecraft.level.getDayTime(), 24000L);
         this.toSunset = day >= 12200L && day < 13200L ? 0L : Math.floorMod(12700L - day, 24000L);
-        this.toNight = day >= 13000L && day < 23000L ? 0L : Math.floorMod(18000L - day, 24000L);
         ACTIVE.add(this);
     }
 
@@ -229,13 +229,37 @@ public final class ProximaFx {
             if (press != null) {
                 this.play(press, camera, 0.06F, 1.0F);
             }
+            this.film(HalleyContent.PROXIMA_UPLINK.get(), 0.9F);
         }
         if (t == MUSIC_AT && HalleyClientConfig.lunaMusic() && (this.mine || camera.distanceTo(target) <= MUSIC_RANGE)) {
             this.music = StrikeMusic.play("proxima_music", this.host, MUSIC_AT, () -> this.time(0.0F), () -> !ACTIVE.contains(this));
         }
-        // in the film's space intro, the lens firing: its charge whines up from LENS, the discharge is on BEAM
-        if (t == ProximaPlan.LENS && this.host.filmWeight() > 0.5F) {
-            this.play(HalleyContent.PROXIMA_BEAM.get(), camera, 0.06F, 1.0F);
+        // the film's way out to Proxima Centauri and back (only while the film shows; ProximaCosmos draws it)
+        if (this.host.filmWeight() > 0.5F) {
+            if (t == ProximaPlan.ASCENT) {
+                this.film(HalleyContent.PROXIMA_ASCENT.get(), 1.0F);
+            } else if (t == ProximaPlan.ORBIT) {
+                this.film(HalleyContent.PROXIMA_SPACE.get(), 1.0F);
+            } else if (t == ProximaPlan.SPACE) {
+                this.film(HalleyContent.PROXIMA_STAR.get(), 1.0F);
+            } else if (t == ProximaPlan.SPACE + 8) {
+                this.film(HalleyContent.PROXIMA_CREAK.get(), 0.8F);
+            } else if (t == ProximaPlan.IRIS + 5) {
+                // a clank per ring of panels as the iris opens from the middle out
+                this.film(HalleyContent.PROXIMA_IRIS.get(), 1.0F);
+            } else if (t == ProximaPlan.LOOPS) {
+                // its snap lands where the loops cross (COLLAPSE)
+                this.film(HalleyContent.PROXIMA_RECONNECT.get(), 1.0F);
+            } else if (t == ProximaPlan.LENS) {
+                this.film(HalleyContent.PROXIMA_LENS.get(), 1.0F);
+            } else if (t == ProximaPlan.BEAM - 10) {
+                // the charge whines up, the discharge is on BEAM
+                this.film(HalleyContent.PROXIMA_BEAM.get(), 1.0F);
+            } else if (t == ProximaPlan.EARTH) {
+                this.film(HalleyContent.PROXIMA_GATE.get(), 1.0F);
+            } else if (t == ProximaPlan.IMPACT + 92) {
+                this.film(HalleyContent.PROXIMA_AFTER.get(), 0.9F);
+            }
         }
         // the flare's light arrives: a searing burst, and everything under the open sky starts to smoke
         if (t == ProximaPlan.FLASH) {
@@ -254,14 +278,24 @@ public final class ProximaFx {
                     0.0, 0.03 + this.random.nextFloat() * 0.05, 0.0);
             }
         }
-        // the coronal front: its radio burst whining down as it comes on, and a deep roar rolling across the sky
+        // the coronal front: its radio burst whining down as it comes on, and a deep roar rolling across the sky, both
+        // cut off for the hush
         if (cme && t == ProximaPlan.FRONT) {
-            this.play(HalleyContent.PROXIMA_RADIO.get(), camera, 0.06F, 1.0F);
-            this.play(HalleyContent.MOON_RUMBLE.get(), camera, 0.06F, 0.55F);
+            this.radio = this.play(HalleyContent.PROXIMA_RADIO.get(), camera, 0.06F, 1.0F);
+            this.roar = this.play(HalleyContent.PROXIMA_FRONT.get(), camera, 0.06F, 1.0F);
+        }
+        if (t == ProximaPlan.HUSH) {
+            for (SoundInstance sound : new SoundInstance[]{this.radio, this.roar}) {
+                if (sound != null) {
+                    minecraft.getSoundManager().stop(sound);
+                }
+            }
+            this.radio = null;
+            this.roar = null;
         }
         // the air drawn in just before the plasma lands
         if (cme && t == ProximaPlan.IMPACT - 13) {
-            this.play(HalleyContent.MOON_INHALE.get(), target, 1.0F, 1.1F);
+            this.play(HalleyContent.PROXIMA_INHALE.get(), target, 1.0F, 1.0F);
         }
         if (cme && t == ProximaPlan.IMPACT) {
             long now = level.getGameTime();
@@ -390,12 +424,6 @@ public final class ProximaFx {
     public SkyLook sky(float partial, Vec3 camera) {
         float t = Math.min(this.host.clock(partial), ProximaPlan.DURATION);
         float w = 1.0F - smooth((this.plan.horizontal(camera.x, camera.z) - 1400.0) / 1600.0);
-        // the space intro: a deep starry night (a shader pack's own, wound on to), gone again for the flash
-        float space = smooth((t - ProximaPlan.SPACE) / 15.0) * (1.0F - smooth((t - (ProximaPlan.FLASH - 3.0)) / 3.0));
-        if (space > 0.003F && t < ProximaPlan.FLASH) {
-            return new SkyLook(space * w, space * w, 0.0F, 0.0F, 0.0F, 0.0F, new Vec3(0.0, 1.0, 0.0), 0.0F, 0.0F, Vec3.ZERO,
-                space * w * 0.7F, (float) (this.plan.seed & 1023L), (float) (this.toNight * space * w), SkyLook.PALETTE_HALLEY);
-        }
         if (!this.plan.params.cme()) {
             // a random flare with no front coming: the flash's crimson, gone again within a few seconds
             float k = this.plan.params.burns() ? 1.0F : 0.6F;
@@ -440,7 +468,6 @@ public final class ProximaFx {
     public void render(GlowBatch world, GlowBatch glare, float partial, ClientLevel level) {
         float t = Math.min(this.host.clock(partial), ProximaPlan.DURATION);
         Vec3 camera = world.camera();
-        ProximaSpace.render(world, glare, this.plan, t);
         if (!this.plan.params.cme()) {
             return;
         }
@@ -643,9 +670,17 @@ public final class ProximaFx {
     // ---- Helpers. --------------------------------------------------------------------------------------------------
 
     /** {@code volume} as for the addon's other skills' sounds: heard far off, falling off with distance. */
-    private void play(SoundEvent event, Vec3 at, float volume, float pitch) {
-        Minecraft.getInstance().getSoundManager().play(new SimpleSoundInstance(event.getLocation(), SoundSource.PLAYERS,
-            volume * 16.0F, pitch, SoundInstance.createUnseededRandom(), false, 0, SoundInstance.Attenuation.LINEAR, at.x, at.y, at.z, false));
+    private SoundInstance play(SoundEvent event, Vec3 at, float volume, float pitch) {
+        SoundInstance sound = new SimpleSoundInstance(event.getLocation(), SoundSource.PLAYERS, volume * 16.0F, pitch,
+            SoundInstance.createUnseededRandom(), false, 0, SoundInstance.Attenuation.LINEAR, at.x, at.y, at.z, false);
+        Minecraft.getInstance().getSoundManager().play(sound);
+        return sound;
+    }
+
+    /** A sound of the film itself: heard as it is wherever the film's camera goes (it climbs out of hearing range). */
+    private void film(SoundEvent event, float volume) {
+        Minecraft.getInstance().getSoundManager().play(new SimpleSoundInstance(event.getLocation(), SoundSource.PLAYERS, volume,
+            this.host.speed(), SoundInstance.createUnseededRandom(), false, 0, SoundInstance.Attenuation.NONE, 0.0, 0.0, 0.0, true));
     }
 
     private int count(int n) {
