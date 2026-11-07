@@ -144,8 +144,14 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
      Sodium 0.8.13 + Sodium Extra, Iris 1.8.14 (shaders off by default), Distant Horizons 3.3.3, BadOptimizations,
      EntityCulling, ModernFix. Copies of those jars are in the project folder's `other mods\user render mods\`;
      `test scripts\autotest20.sh` takes `EXTRA=<folder>` (`-PextraMods`) and `NAME=`; the run with all of them is
-     `test builds\2026-11-07 auto test 26 proxima new film\usermods\` (see its result below). Bisect from there. Also
-     unknown: whether the film's captions/title cards showed for them (same overlay pass). A robust fix if the overlay
+     `test builds\2026-11-07 auto test 26 proxima new film\usermods\`. **Result: with all those mods the scene DRAWS**
+     (Dyson sphere, title card, captions), so they are not the cause. Next suspects: **third person** (the user
+     mentioned it: were they in F5 when casting? RimuLib's `CutsceneDirector.weight/time(subject)` may differ then),
+     casting with the remote instead of `/ssa strike` (the test uses the command), their heavy server lag ("Can't keep
+     up! ... 117 ticks behind" with C2ME + DH generating), and their other mods (JEI, Jade, FTB Library/Ultimine,
+     AppleSkin, Architectury, C2ME, Lithium, FerriteCore, CWB, Chunky, mezz_config). Ask the user first: third person
+     or first? did the captions and the PROXIMA CENTAURI card show? Also unknown: whether the film's captions/title
+     cards showed for them (same overlay pass). A robust fix if the overlay
      pass is the problem: draw the scene from `RenderFrameEvent.Post` (like `FilmPanels`) and our HUD/titles after it.
   2. **Third person / everyone not in the film: draw the Dyson sphere in the real sky again, "pretty big"** (the user,
      2026-11-07): the old in-sky intro (`ProximaSpace`, deleted in af100f4: git show af100f4^:src/main/java/dev/ss05/
