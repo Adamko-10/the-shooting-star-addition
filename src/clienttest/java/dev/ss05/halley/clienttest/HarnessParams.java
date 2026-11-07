@@ -82,6 +82,18 @@ final class HarnessParams {
             case "rim" -> new double[] {-40, 30, 115, 0, 5, 0};
             // straight down from high above
             case "top" -> new double[] {0.5, 230, 0.6, 0, 0, 0};
+            // off to the side of Proxima's gate in the sky (ProximaCosmos.gatePosition), the gate and its beam down to the
+            // mark in frame
+            case "proximasky" -> {
+                java.util.List<dev.ss05.halley.client.proxima.ProximaFx> fx = dev.ss05.halley.client.proxima.ProximaFx.active();
+                if (fx.isEmpty()) {
+                    yield new double[] {-160, 25, 0, 0, 120, 0};
+                }
+                dev.ss05.halley.ProximaPlan plan = fx.get(fx.size() - 1).plan;
+                net.minecraft.world.phys.Vec3 g = dev.ss05.halley.client.proxima.ProximaCosmos.gatePosition(plan).subtract(plan.target);
+                net.minecraft.world.phys.Vec3 flat = new net.minecraft.world.phys.Vec3(g.x, 0.0, g.z).normalize();
+                yield new double[] {-flat.x * 150.0 - flat.z * 80.0, 75, -flat.z * 150.0 + flat.x * 80.0, g.x * 0.5, g.y * 0.5, g.z * 0.5};
+            }
             // close up on the moon's side, to see the cheese itself
             case "cheese" -> new double[] {-25, 40, 62, 0, 25, 0};
             default -> null;

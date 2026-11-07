@@ -84,14 +84,19 @@ public final class HalleyAddon {
         });
         MinecraftForge.EVENT_BUS.addListener((TickEvent.ServerTickEvent event) -> {
             if (event.phase == TickEvent.Phase.END) {
-                StarBridge.tick(ServerLifecycleHooks.getCurrentServer());
+                var server = ServerLifecycleHooks.getCurrentServer();
+                StarBridge.tick(server);
                 MoonStrike.tickLingering();
+                dev.ss05.halley.world.ProximaStrike.tickLingering(server);
+                dev.ss05.halley.world.SolarFlares.tick(server);
             }
         });
         MinecraftForge.EVENT_BUS.addListener((RegisterCommandsEvent event) -> StarBridge.registerCommands(event.getDispatcher()));
         MinecraftForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> {
             StarBridge.clear();
             MoonStrike.clearLingering();
+            dev.ss05.halley.world.ProximaStrike.clearLingering();
+            dev.ss05.halley.world.SolarFlares.clear();
         });
         MinecraftForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedOutEvent event) -> {
             if (event.getEntity() instanceof ServerPlayer player) {

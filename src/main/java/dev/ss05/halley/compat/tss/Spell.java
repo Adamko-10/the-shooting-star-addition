@@ -48,6 +48,25 @@ abstract class Spell {
         this.yaw = caster.getYRot();
     }
 
+    /**
+     * A strike nobody cast (a random solar flare): it has no caster (nobody is warded, none of its spells counts as a
+     * player's), {@code near} only stands in for one in the effect packet; its clock starts at {@code startTick}.
+     */
+    Spell(Skill skill, ServerPlayer near, Vec3 target, long seed, CastTuning tuning, int startTick) {
+        this.skill = skill;
+        this.level = near.serverLevel();
+        this.casterId = UUID.randomUUID();
+        this.caster = null;
+        this.fxCaster = near.getId();
+        this.origin = target;
+        this.target = target;
+        this.seed = seed;
+        this.tuning = tuning;
+        this.yaw = near.getYRot();
+        this.age = startTick;
+        this.clock = startTick;
+    }
+
     protected abstract void onTick(int t);
 
     protected abstract boolean finished();

@@ -15,6 +15,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SnowLayerBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -98,6 +99,32 @@ public final class HalleyContent {
     public static final RegistryObject<BlockItem> COMET_TRAIL_ITEM =
         ITEMS.register("comet_trail", () -> new BlockItem(COMET_TRAIL.get(), new Item.Properties()));
 
+    /** What SA-04 Proxima's plasma leaves in its glassy bowl: glowing, crackling, minable (a pickaxe), drops itself. */
+    public static final RegistryObject<SolarResidueBlock> SOLAR_RESIDUE = BLOCKS.register("solar_residue", () -> new SolarResidueBlock(
+        BlockBehaviour.Properties.of()
+            .strength(3.0F, 9.0F)
+            .mapColor(MapColor.COLOR_MAGENTA)
+            .sound(SoundType.AMETHYST)
+            .lightLevel(state -> 12)
+            .emissiveRendering((state, level, pos) -> true)
+            .requiresCorrectToolForDrops()
+            .isValidSpawn((state, level, pos, type) -> false)));
+    public static final RegistryObject<BlockItem> SOLAR_RESIDUE_ITEM =
+        ITEMS.register("solar_residue", () -> new BlockItem(SOLAR_RESIDUE.get(), new Item.Properties()));
+
+    /** The thin ash SA-04 Proxima leaves over the land it scorched: a layer like snow that never melts. Drops nothing. */
+    public static final RegistryObject<SnowLayerBlock> PROXIMA_ASH = BLOCKS.register("proxima_ash", () -> new SnowLayerBlock(
+        BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_GRAY)
+            .replaceable()
+            .forceSolidOff()
+            .strength(0.1F)
+            .sound(SoundType.SAND)
+            .isViewBlocking((state, level, pos) -> state.getValue(SnowLayerBlock.LAYERS) >= 8)
+            .pushReaction(PushReaction.DESTROY)));
+    public static final RegistryObject<BlockItem> PROXIMA_ASH_ITEM =
+        ITEMS.register("proxima_ash", () -> new BlockItem(PROXIMA_ASH.get(), new Item.Properties()));
+
     /** Cheese, so eating any of it first clears your effects like milk does ({@link CheeseItem}). */
     public static final RegistryObject<BlockItem> MOON_CHEESE_ITEM =
         ITEMS.register("moon_cheese", () -> new CheeseItem(MOON_CHEESE.get(), new Item.Properties().food(Foods.GOLDEN_CARROT)));
@@ -165,6 +192,18 @@ public final class HalleyContent {
     public static final RegistryObject<SoundEvent> MOON_BUILDUP = sound("luna_buildup");
     /** The air drawn in, after the hush and just before the impact. */
     public static final RegistryObject<SoundEvent> MOON_INHALE = sound("luna_inhale");
+    /** Proxima's coronal front coming in: its Type II radio burst, a whine drifting down (art/make_proxima_sounds.sh). */
+    /** Proxima's lens firing, its flash, ground zero and a shock front passing (art/make_proxima_sounds.sh). */
+    public static final RegistryObject<SoundEvent> PROXIMA_FLASH = sound("proxima_flash");
+    public static final RegistryObject<SoundEvent> PROXIMA_IMPACT = sound("proxima_impact");
+    public static final RegistryObject<SoundEvent> PROXIMA_WAVE = sound("proxima_wave");
+    /**
+     * Proxima's film (art/sonniss_sounds.sh, cut to its shots): the uplink under the press, the pull up through the air,
+     * space's drone, the star's roar, the shell's creaks, the iris, the loops snapping, the lens locking, the gate, the
+     * front's roar, the air drawn in before the impact, the wind coming back after.
+     */
+    public static final RegistryObject<SoundEvent> PROXIMA_FRONT = sound("proxima_front");
+    public static final RegistryObject<SoundEvent> PROXIMA_INHALE = sound("proxima_inhale");
 
     /** Damage from the shock wave outside the crater (inside it, things are erased the way the other skills erase). */
     public static final ResourceKey<DamageType> WAKE = ResourceKey.create(Registries.DAMAGE_TYPE, HalleyAddon.id("halley_wake"));
@@ -197,6 +236,8 @@ public final class HalleyContent {
         } else if (event.getTabKey() == CreativeModeTabs.NATURAL_BLOCKS) {
             event.accept(COMET_HEART_ITEM);
             event.accept(COMET_TRAIL_ITEM);
+            event.accept(SOLAR_RESIDUE_ITEM);
+            event.accept(PROXIMA_ASH_ITEM);
             event.accept(MOON_CHEESE_ITEM);
             event.accept(HOLEY_MOON_CHEESE_ITEM);
             event.accept(MOLTEN_MOON_CHEESE_ITEM);

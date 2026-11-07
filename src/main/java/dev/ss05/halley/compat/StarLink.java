@@ -52,6 +52,13 @@ public interface StarLink {
 
     void startMoon(ServerPlayer caster, Vec3 target, long seed, MoonParams params, CastTuning tuning);
 
+    void startProxima(ServerPlayer caster, Vec3 target, long seed, dev.ss05.halley.ProximaParams params, CastTuning tuning);
+
+    boolean proximaRunning(ServerPlayer player);
+
+    /** A random solar flare near {@code near} (nobody cast it; see world/SolarFlares). */
+    void startFlare(ServerPlayer near, Vec3 target, long seed, dev.ss05.halley.ProximaParams params, CastTuning tuning);
+
     boolean alreadyFlying(boolean moon, ServerPlayer player);
 
     /** The caster's currently running strike (its origin, target and seed), or null (the test harness only). */

@@ -27,8 +27,9 @@ abstract class FxManagerMixin {
 
     // Both HUD passes remain obfuscated on Forge 1.20.1 (verified against the readable 1.5.2 jar).
     // StarClientBridge draws ours once a frame, whichever runs.
+    // Legacy films return early, so hook every RETURN.
     @Inject(method = {"i1Ii11l(Lnet/minecraft/client/gui/GuiGraphics;F)V", "liiillli1l(Lnet/minecraft/client/gui/GuiGraphics;F)V"},
-        at = @At("TAIL"), require = 0, remap = false)
+        at = @At("RETURN"), require = 0, remap = false)
     private static void ss05halley$filmHud(GuiGraphics graphics, float partial, CallbackInfo ci) {
         StarClientBridge.renderFilmHud(graphics, partial);
     }

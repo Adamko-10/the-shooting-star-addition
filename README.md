@@ -1,9 +1,9 @@
 # The Shooting Star Addition
 
 An **unofficial**, fan-made addon for [The Shooting Star [Demo]](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-demo)
-by rimuru_dev. It adds two new skills to the Stellar Remote: **SA-01 · Halley**, a comet called down onto your
-crosshair, and **SA-02 · Luna**, which brings the moon itself down, leaving a moon of edible moon cheese with a
-molten heart in a huge crater; and **SA-00 · Stellar Convergence**, which fires every weapon you tick at once. On the
+by rimuru_dev. It adds **SA-01 · Halley**, a comet called down onto your crosshair, **SA-02 · Luna**, which brings
+the moon itself down and leaves edible moon cheese in a huge crater, and **SA-04 · Proxima**, a flare star that
+fires at your crosshair. **SA-00 · Stellar Convergence** fires every weapon you tick at once. On the
 remote they come after The Shooting Star's own skills. Their codenames are
 their own series, SA (Shooting star Addition), so they never clash with the SS numbers of The Shooting Star's own
 skills, whatever it adds.
@@ -97,10 +97,21 @@ drives deep into it, the crust buckling up against it, and comes to rest there w
 |---|---|---|
 | ![EARTH SYSTEM SHUT DOWN](docs/screenshots/13-luna-alarm.jpg) | ![The moon burning in](docs/screenshots/14-luna-fall.jpg) | ![The moon in its crater](docs/screenshots/15-luna-crater.jpg) |
 
+## SA-04 · Proxima
+
+Select Proxima with **Z**. A red dwarf inside a Dyson sphere fires through a gate above your target. The flash
+burns exposed ground, then a coronal mass ejection hits and sends a shock wave across the land. The strike leaves
+Solar Residue, Flare Ash and a radiation zone.
+
+- The 36-second film follows the shot from space to ground zero. Outside the film, the gate appears in the sky.
+- In the remote's menu (**H**), **M** toggles strike music, **=** lets tracks play together, and **-** switches
+  Proxima's captions between metric and imperial units.
+- Random flares are off by default. Operators can start one with `/ssa flare <minor|major|cataclysm> [seconds]`.
+
 ## SA-00 · Stellar Convergence
 
 A remote skill of its own that fires every weapon you tick, all at once, timed so every impact lands on the same
-tick: Halley, Luna and The Shooting Star's Railgun, Gungnir and Seven Stars (Tesseract fires along with them).
+tick: Halley, Luna, Proxima and The Shooting Star's Railgun, Gungnir and Seven Stars (Tesseract fires along with them).
 Gravitia, if ticked, comes last, once the others are done. Other addons' remote skills can be ticked too; they fire
 straight away, as their timing isn't known.
 
@@ -119,11 +130,12 @@ straight away, as their timing isn't known.
 
 ## Sliders
 
-Halley and Luna have the same three sliders as The Shooting Star's own skills, under them in the remote's menu
+Halley, Luna and Proxima have the same three sliders as The Shooting Star's own skills, under them in the remote's menu
 (**H**), and they work the same way:
 
 - **Power**: the whole strike from **0.1× to 10×** as big. For Halley that's the comet, its trench and the crater; for
-  Luna, the moon and its crater (the config's sizes are 1×). The cutscene scales with it.
+  Luna, the moon and its crater. For Proxima, it sets the flare class and the size of the bowl and scorch.
+  The config's sizes are 1×. The cutscene scales with it.
 - **Damage**: each hit from **2 up to ∞**. At ∞ (the default), whatever it hits is erased.
 - **Speed**: the whole skill, cutscene and all, from **0.3× to 3×** as fast.
 
@@ -157,9 +169,9 @@ they can freeze or crash a server. `/ssa` alone shows the help. From the console
 
 ## Protected blocks
 
-Blocks in the tag `shooting_star_addition:unbreakable` are never carved by Halley or Luna: bedrock, barriers, command
+Blocks in the tag `shooting_star_addition:unbreakable` are never carved by Halley, Luna or Proxima: bedrock, barriers, command
 and structure blocks, jigsaws, end portals and their frames, and reinforced deepslate. Servers can add more with a data
-pack (`data/shooting_star_addition/tags/block/unbreakable.json`).
+pack (`data/shooting_star_addition/tags/blocks/unbreakable.json`).
 
 ## A key for Gravitia
 
@@ -169,7 +181,7 @@ the remote's menu and in Controls, unbound until you set it.
 ## Installing
 
 1. Minecraft **1.20.1** with **Forge 47.1 or newer** (the same jar also runs on **NeoForge 1.20.1**).
-2. **The Shooting Star [Demo] 1.5.2** (its Forge file, also used on NeoForge 1.20.1) and **RimuLib 1.2.2** or newer, which it needs anyway.
+2. **The Shooting Star [Demo] 1.5.2** and **RimuLib 1.2.2** or newer. Use their Forge files on both loaders.
 3. This addon's jar ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
 
@@ -392,3 +404,6 @@ with or endorsed by them, and contains none of the original mod's code or assets
 installed for it to do anything.
 
 Stellar Convergence is inspired by **Stellar Quartet** by ikun520. On this 1.20.1 build it is open to everyone.
+
+Luna's and Proxima's music is by [DOM_MusicST](https://www.youtube.com/@DOM_MusicST) and [FarzanNB](https://www.youtube.com/@FarzanNB).
+Proxima's Earth imagery uses NASA data and assets from [Solar System Scope](https://www.solarsystemscope.com/textures/).

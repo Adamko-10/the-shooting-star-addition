@@ -5,6 +5,8 @@ import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.render.MoonRenderer;
 import dev.ss05.halley.client.luna.render.MoonSphere;
+import dev.ss05.halley.client.proxima.ProximaCosmos;
+import dev.ss05.halley.client.proxima.ProximaFx;
 import dev.ss05.halley.client.render.CometRenderer;
 import dev.ss05.halley.client.render.GlowAtlas;
 import dev.ss05.halley.client.render.HalleyRenderTypes;
@@ -39,13 +41,22 @@ public final class HalleyClient {
         MinecraftForge.EVENT_BUS.addListener(MoonRenderer::render);
         MinecraftForge.EVENT_BUS.addListener(MoonSphere::renderSolid);
         MinecraftForge.EVENT_BUS.addListener(HalleyClient::frameStart);
+        // Proxima's hot bowls shimmer and hum after their strikes.
+        MinecraftForge.EVENT_BUS.addListener((TickEvent.ClientTickEvent event) -> {
+            if (event.phase == TickEvent.Phase.END) {
+                ProximaFx.tickZones();
+            }
+        });
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, (TickEvent.RenderTickEvent event) -> {
             if (event.phase == TickEvent.Phase.END) {
                 FilmPanels.endOfFrame();
             }
         });
         MinecraftForge.EVENT_BUS.addListener(HalleySky::render);
+        MinecraftForge.EVENT_BUS.addListener(ProximaCosmos::renderSky);
         MinecraftForge.EVENT_BUS.addListener(HalleySky::fog);
+        // Load Proxima's Earth textures before the film needs them.
+        MinecraftForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingIn event) -> ProximaCosmos.preload());
         MinecraftForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
@@ -70,7 +81,8 @@ public final class HalleyClient {
         ShaderPacks.update();
         HalleySky.update(event);
         if (ShaderPacks.active() && Minecraft.getInstance().level != null
-            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty() || ConvergenceView.any())) {
+            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty() || !ProximaFx.active().isEmpty()
+                || ProximaFx.auroras() || ConvergenceView.any())) {
             GlowAtlas.paint(HalleyRenderTypes.shader());
             HalleySky.paint(event.renderTickTime);
         }
@@ -96,6 +108,13 @@ public final class HalleyClient {
         } catch (IOException failed) {
             HalleyAddon.LOG.error("SS-05 Halley's sky shader didn't load, so the sky won't change during a strike", failed);
             HalleySky.setShader(null);
+        }
+        try {
+            event.registerShader(new ShaderInstance(event.getResourceProvider(), HalleyAddon.id("proxima_space"),
+                DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL), ProximaCosmos::setShader);
+        } catch (IOException failed) {
+            HalleyAddon.LOG.error("SA-04 Proxima's space shader didn't load, so its film's space shots will be empty", failed);
+            ProximaCosmos.setShader(null);
         }
     }
 }
