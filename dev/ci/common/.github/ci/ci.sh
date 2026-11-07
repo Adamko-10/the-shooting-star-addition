@@ -76,7 +76,7 @@ else
   grep -E '\.java:[0-9]+: error:' "$SECRET/build.log" | grep -v 'cyou/rimuru' | sort -u | head -60 || true
   # a failure after compiling (the TSS pack check's "missing" lines, Gradle's own summary): names only, no TSS code
   grep -iE 'missing|What went wrong|^> ' "$SECRET/build.log" | grep -v '\.java:[0-9]*: error:' | sort -u | head -40 || true
-  awk '/^> Task :tssPack/{on=1} on{print} /^> Task :tssPack FAILED/{exit}' "$SECRET/build.log" | head -60 || true
+  awk '/^> Task :tssPack/{on=1} on{print} /^> Task :tssPack FAILED/{exit}' "$SECRET/build.log" | grep -v 'unknown invokedynamic' | head -60 || true
 fi
 
 # ---- The readable The Shooting Star's skill interface (the method names Halley and Luna override; logs only) ----
