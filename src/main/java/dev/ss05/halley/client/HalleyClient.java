@@ -9,9 +9,11 @@ import dev.ss05.halley.client.render.ShaderPacks;
 import dev.ss05.halley.client.sky.HalleySky;
 import dev.ss05.halley.compat.StarBridge;
 import dev.ss05.halley.net.ServerSettings;
+import dev.ss05.halley.net.SettingsPayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -47,6 +49,9 @@ public final class HalleyClient implements ClientModInitializer {
             HalleySky.release();
             ServerSettings.forget();
         });
+        // (missing on this branch since 1.5.0: the plate never heard the server, so its switches never reached it)
+        ClientPlayNetworking.registerGlobalReceiver(SettingsPayload.TYPE, (payload, context) ->
+            ServerSettings.received(payload.noCooldown(), payload.survival()));
         // once the server has said what it allows, tell it this player's own no-cooldown switch
         ServerSettings.onReceived = AdditionPanel::sendChoice;
     }
