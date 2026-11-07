@@ -40,6 +40,19 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   arrival at Proxima Centauri should **feel like a massive star** (scale: it fills the view, the camera dwarfed);
   (3) **the gate ("the lens that's above the earth") visible in the sky like Gravitia** (TSS's Gravitia shows its huge
   structure for everyone: a bigger, longer-lasting world version of the gate, beyond today's sky gate).
+- **PORTING STARTED 2026-11-08 ~00:02 (the user: "alright write the prompts and send them to gpt")**: main is version
+  **1.8.0** (`86196f1`); the port commit `604fb06` (local branch `port-1.8.0`) = main's whole tree at `86196f1` on top
+  of `b605256` (1.7.0); six worktrees in the project folder's `ports\<branch>\` on `port/<branch>` (reset to
+  `origin/<branch>`, each branch's 1.7.0); one `BRIEF.md` each from `ports\make-briefs.js` (1.7.0's generator kept as
+  `make-briefs-1.7.0.js`; BRIEF.md/REPORT.md are in `.git/info/exclude`). Sent through computer use to the **Codex app
+  ("ChatGPT")**, one project per folder ("TSSA port <branch>", folders trusted), prompt "Read BRIEF.md in this folder
+  and do exactly what it says ...": **GPT-6.1 Sol, High** for forge-1.21.1, fabric-1.21.1, forge-1.20.1, fabric-1.20.1
+  (Sol = "latest model for coding"; it did 1.7.0's 1.20.1 ports well); **GPT-6 Astra, High** for fabric-1.21.11 and
+  fabric-26.3 ("frontier intelligence for your most demanding tasks": their Proxima rendering must be rewritten for
+  RenderPipelines; the brief says gameplay first, the space scene last, `TODO(port)` rather than half-working drawing).
+  **Next for Claude**: as each finishes, read its `REPORT.md`, review its diff (grep `mc1211`, `net.neoforged`, conflict
+  markers), build the Forge ones here, push each to `wip/<branch>` with `dev/ci/push-wip.sh` for CI, fix from CI; then
+  the release (two waves), as listed below. Earlier plan:
 - **Porting: WAIT for the user's word** ("then i will tell u when to give gpt the prompts for porting"). Plan when they
   say go: like 1.7.0's (RELEASE PLAN block): squash main's commits since `b605256` onto `origin/main` as one commit
   (`port-1.8.0`?), six worktrees in the project folder's `ports\<branch>\` on `port/<branch>`, one `BRIEF.md` each
