@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Pseudo
 @Mixin(targets = "cyou.rimuru.shootingstardemo.client.fx.FxManager", remap = false)
 abstract class FxManagerMixin {
-    @Inject(method = {"renderHud(Lnet/minecraft/client/gui/GuiGraphics;F)V", "renderFilmHud(Lnet/minecraft/client/gui/GuiGraphics;F)V"},
+    @Inject(method = {"renderHud(Lnet/minecraft/client/gui/GuiGraphics;F)V", "liiillli1l(Lnet/minecraft/client/gui/GuiGraphics;F)V"},
         at = @At("HEAD"), require = 0, remap = false)
     private static void ss05halley$newestOnly(GuiGraphics graphics, float partial, CallbackInfo ci) {
         StarClientBridge.newestHudsOnly();
@@ -27,13 +27,13 @@ abstract class FxManagerMixin {
 
     // Both passes: since 1.5 the mapping names them the wrong way round (same shape; by their bodies the film overlays
     // are drawn in "renderHud"), and per loader build. StarClientBridge draws ours once a frame, whichever runs.
-    @Inject(method = {"renderHud(Lnet/minecraft/client/gui/GuiGraphics;F)V", "renderFilmHud(Lnet/minecraft/client/gui/GuiGraphics;F)V"},
+    @Inject(method = {"renderHud(Lnet/minecraft/client/gui/GuiGraphics;F)V", "liiillli1l(Lnet/minecraft/client/gui/GuiGraphics;F)V"},
         at = @At("TAIL"), require = 0, remap = false)
     private static void ss05halley$filmHud(GuiGraphics graphics, float partial, CallbackInfo ci) {
         StarClientBridge.renderFilmHud(graphics, partial);
     }
 
-    @Inject(method = {"renderHud(Lnet/minecraft/client/gui/GuiGraphics;F)V", "renderFilmHud(Lnet/minecraft/client/gui/GuiGraphics;F)V"},
+    @Inject(method = {"renderHud(Lnet/minecraft/client/gui/GuiGraphics;F)V", "liiillli1l(Lnet/minecraft/client/gui/GuiGraphics;F)V"},
         at = @At("RETURN"), require = 0, remap = false)
     private static void ss05halley$allBack(GuiGraphics graphics, float partial, CallbackInfo ci) {
         StarClientBridge.allHuds();
