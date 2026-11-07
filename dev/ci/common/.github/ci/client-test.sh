@@ -27,6 +27,8 @@ client_test() {
     ok "client test $name ($(ls "$dir"/screenshots/*.png | wc -l) screenshots)"
   else
     fail "client test $name (no screenshots)"
+    # a Gradle failure before the game starts (compile errors, Gradle's summary): names only, no TSS code
+    grep -a -E '\.java:[0-9]+: error:|What went wrong|^> |^  [a-z]' "$SECRET/client-$name.log" | grep -a -v cyou/rimuru | head -30 || true
   fi
   grep -a -E 'never attached|Exception|ERROR' "$SECRET/client-$name.log" | grep -a -v -E 'Realms|authlib|Yggdrasil|profile|OpenAL|SoundSystem|telemetry' | head -5 || true
 }
