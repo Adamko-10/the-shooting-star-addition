@@ -201,7 +201,7 @@ at 23 s. Built on main 2026-11-07:
   the front's roar (recut to the 5.6 s front; it and the radio burst are cut off for the hush), the inhale, the wind
   coming back afterwards. Film sounds are played as the film's own (no falling off as its camera climbs).
 - **Music** recut (`art/make_proxima_music.sh`): the draft from 2.35 s so its entry lands on FLASH 300, silent through
-  the hush, its main section on IMPACT 460.
+  the hush, its main section on IMPACT 460. By DOM_MusicST and FarzanNB (as Luna's): credit them when Proxima ships.
 
 ## Timeline (`ProximaPlan`, ticks at speed 1)
 

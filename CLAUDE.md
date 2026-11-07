@@ -1262,6 +1262,9 @@ apart, ambient sound returns slowly; smoke columns, drifting ash, steam.
 ("Space weather alert: X-class flare incoming"), give time to reach shelter, respect the protected tag, cooldowns and
 frequency in config.
 
+**Music credit (the user, 2026-11-07)**: Proxima's music is by **DOM_MusicST** (https://www.youtube.com/@DOM_MusicST)
+and **FarzanNB** (https://www.youtube.com/@FarzanNB), as Luna's is: credit both in the README, the changelog, the
+CurseForge description (Proxima's section and Credits) and the docs when Proxima ships.
 **Music**: the user has **full permission to use the OST** they picked (the G-Man / Drillman track, the part where
 Drillman shields everyone, remixed; 2026-10-20). They will send the file; cut it so its drop lands on IMPACT, as with
 Luna (§6).
