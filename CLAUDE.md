@@ -90,7 +90,10 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   saved a one-paragraph raw blob (NeoForge's; fixed on its edit page); switching the mode select WYSIWYG ->
   Markdown first, then setting the textarea (native setter + input event), saves it right. The edit page's
   Markdown box shows a lossy re-conversion: check the API instead. A 429 on `upload-file-details` = wait a minute.
-  The `ports\` worktrees (local `port/<branch>` branches, BRIEF.md/REPORT.md) can go once CurseForge is done.
+  The six `ports\` worktrees are removed (the user's OK, 2026-11-07; all clean and pushed). Left: the local
+  `port/<branch>` branches (same commits as origin), `ports\make-briefs.js`, and an empty `ports\fabric-1.20.1`
+  folder another program holds open (likely the Codex app's project): delete it once that's closed.
+  **Ponytail**: on resume the session hook reported level **full** (the user had set lite); told the user.
   Not pushed: main's commits after `b605256` (github_170.sh path fix, CLAUDE.md, the Proxima revert).
   Earlier, **Status 2026-11-07 ~08:00: PUSHED and RELEASED on GitHub: main (`b605256`), forge-1.20.1, fabric-1.20.1,
   forge-1.21.1** (tags `v1.7.0`, `v1.7.0+1.20.1`, `v1.7.0+fabric-1.20.1`, `v1.7.0+forge-1.21.1`; jars = their CI
