@@ -158,6 +158,7 @@ public final class StarClientBridge {
             ProximaCosmos.render(graphics, proxima, partial);
             UiApi.overlay(graphics, () -> {
                 ProximaHud.film(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
+                FilmTitle.caption(graphics, ProximaHud.caption(proxima, partial), UiApi.width(graphics), UiApi.height(graphics));
                 FilmTitle.centauri(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
                 FilmTitle.dyson(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
                 FilmTitle.cme(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));

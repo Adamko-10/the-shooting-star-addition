@@ -31,6 +31,7 @@ public final class HalleyClientConfig {
     private static final ModConfigSpec.BooleanValue EVAC_LIFT;
     private static final ModConfigSpec.BooleanValue KEEP_MOON;
     private static final ModConfigSpec.BooleanValue EPIC_MODE;
+    private static final ModConfigSpec.BooleanValue IMPERIAL;
     private static final ModConfigSpec.EnumValue<ImpactFrames> IMPACT_FRAMES;
     private static final ModConfigSpec.ConfigValue<List<? extends String>> CONVERGENCE;
     private static final ModConfigSpec.BooleanValue CONVERGENCE_RING;
@@ -102,6 +103,9 @@ public final class HalleyClientConfig {
         EPIC_MODE = b.comment("Luna's Epic mode: the moon you call down falls slower and more ominously (24 s from the alarm to the",
                 "impact instead of 16; everyone watching sees it), with the long cut of her music. G in the remote's menu.")
             .define("epic_mode", false);
+        IMPERIAL = b.comment("Distances in the films' readouts (altitude, the flare's front, the shock wave): false for kilometres",
+                "and metres, true for miles and feet. D in the remote's menu.")
+            .define("imperial_units", false);
         IMPACT_FRAMES = b.comment("Halley's and Luna's impact frames (the screen flashing to negative at an impact): FULL, SOFT",
                 "(fainter) or OFF. F in the remote's menu.")
             .defineEnum("impact_frames", ImpactFrames.FULL);
@@ -180,6 +184,15 @@ public final class HalleyClientConfig {
 
     public static void setEpicMode(boolean on) {
         set(EPIC_MODE, on);
+    }
+
+    /** Your units for the films' readouts: miles and feet (true) or kilometres and metres. */
+    public static boolean imperial() {
+        return get(IMPERIAL);
+    }
+
+    public static void setImperial(boolean on) {
+        set(IMPERIAL, on);
     }
 
     /** Your keep-the-moon switch: Luna's moon model stays after it lands. */

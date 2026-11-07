@@ -22,7 +22,7 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   numbered list there is the to-do, in order: 1. the space-scene bug (FIXED: legacy film style), 1b. the film's polish
   (Earth + sound, BUILT, waits for the user's look and ears), 2. the Dyson sphere in the
   real sky for third person/everyone, 3. the Flare's cinematic impact, 4. music stays on the Flare for now, 5. the rest).
-- Test jar of the new film is in the user's Modrinth profile (`(Proxima film polish build)`); its sounds are byte-identical
+- Test jar of the new film is in the user's Modrinth profile (`(Proxima film polish 2 build)`); its sounds are byte-identical
   to 1.7.0's (the user wants test builds to match what shipped; no Sonniss swap until they say so).
 - Credits to remember: Luna's AND Proxima's music are by DOM_MusicST and FarzanNB (§15); Stellar Quartet by ikun520;
   Proxima's Earth: NASA (Blue Marble, Black Marble) and **Solar System Scope (CC BY 4.0: must be credited)**.
@@ -185,6 +185,20 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
      `test builds\2026-11-07 Proxima film polish, Earth and sound\` (with `proxima_film.ogg` to listen outside the
      game), in the Modrinth profile (the legacy-fix build there renamed `.disabled`). **Next: the user's verdict**,
      then item 2.
+  1c. **Second polish round, BUILT 2026-11-07 night** (the user's look at the polish build; details in docs/SS-07-PROXIMA.md
+     "Second polish round"). The user said: the music "kinda like pauses"; the bottom caption should say "solar flare
+     inbound" not CME; the readout "kinda buggy like the kilometers"; "add a settings for miles and kilometers in the H
+     menu also make that ui in the top left a bit smaller"; "the sfx are still kinda eh"; the lens should get "a proper
+     sound effect and shakes the screen then shoots a proper more focused wave towards the earth and wherever you shot
+     it"; they LIKE the text bugging out from the wave (kept); "the infinity sign and inside of the dyson sphere look a
+     bit low quality". All done (lens power-up + shake + focused wave + refocus onto the caster's spot, sound re-cut,
+     braided loops, plated interior, smooth captions, SOLAR FLARE INBOUND, D = km/miles on the plate, plate 0.82x,
+     Earth preloaded on join). Music pausing: the file has no gaps; likely the user's server lag (336 ticks behind in
+     their log) or the mid-film texture load (fixed). They also asked "did u make a reversion for the old ui that took
+     up the whole screen rather then the floating ui": answered no: the floating White Space menu is RimuLib's own (its
+     "Legacy mode" switch only changes how films and warnings show text); we can't swap their menu. Game-tested
+     (`polish2\`, `polish3\` in auto test 26). "SFX still eh": only the lens/beam/gate part was redone this round;
+     ask which other moments sound wrong. Test jar `test builds\2026-11-07 Proxima film polish 2\`.
   2. **Third person / everyone not in the film: draw the Dyson sphere in the real sky again, "pretty big"** (the user,
      2026-11-07): the old in-sky intro (`ProximaSpace`, deleted in af100f4: git show af100f4^:src/main/java/dev/ss05/
      halley/client/proxima/ProximaSpace.java) showed it to everyone; bring a sky version back, bigger, matching the

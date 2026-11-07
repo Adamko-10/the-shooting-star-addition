@@ -55,7 +55,6 @@ public final class ProximaCosmos {
     private static final int CLOUDS = 6;
     private static final int AIR = 7;
     private static final int GATE_DISC = 8;
-    private static final int CME = 9;
     private static final int SOLID = 10;
     private static final int TILE = 11;
 
@@ -67,7 +66,16 @@ public final class ProximaCosmos {
     private static final Vec3 SUN = new Vec3(-1.0, 0.28, 0.55).normalize();
     /** Where the gate hangs before Earth, and where the beam comes in from. */
     private static final Vec3 GATE = new Vec3(0.62, 0.46, 2.15);
-    private static final Vec3 BEAM_FROM = GATE.add(new Vec3(-1.5, 1.9, 1.3).normalize().scale(30.0));
+    /** Where the wave streaks in from: high on the right, so the refocused beam (down to the left) reads apart from it. */
+    private static final Vec3 BEAM_FROM = GATE.add(new Vec3(1.5, 1.7, 0.2).normalize().scale(30.0));
+    /** The caster's spot on Earth (the orbit shot starts over it; the gate's refocused wave lands on it). */
+    private static final Vec3 SPOT = new Vec3(-0.62, 0.62, 0.48).normalize();
+    /** The lens's moments, in film seconds: power arriving from the star, the beam firing. */
+    private static final double POWER = 12.0;
+    private static final double FIRE = 12.45;
+    /** The gate catching the beam, and its refocused wave reaching the caster's spot. */
+    private static final double CATCH = 13.75;
+    private static final double LANDS = 14.5;
     /** Earth's turn, so the Atlantic, Europe and Africa face the camera (as in the previz). */
     private static final double EARTH_TURN = -1.95;
 
@@ -141,9 +149,8 @@ public final class ProximaCosmos {
             double k = (t - 1.6) / 3.8;
             double q = clamp((k - 0.36) / 0.64);
             double alt = altitude(q);
-            Vec3 spot = new Vec3(-0.62, 0.62, 0.48).normalize();
-            eye = spot.scale(1.0 + alt).add(new Vec3(0.06, -0.03, 0.05).scale(alt));
-            look = spot.scale(1.0 - smooth(q * 1.25));
+            eye = SPOT.scale(1.0 + alt).add(new Vec3(0.06, -0.03, 0.05).scale(alt));
+            look = SPOT.scale(1.0 - smooth(q * 1.25));
             fov = lerp(62.0, 42.0, smooth(q));
             near = 0.0005;
             far = 200.0;
@@ -191,6 +198,15 @@ public final class ProximaCosmos {
             earthScene = true;
         }
 
+        double shake = shake(t);
+        if (shake > 0.001) {
+            Vec3 ahead = look.subtract(eye);
+            Vec3 across = ahead.normalize().cross(UP).normalize();
+            Vec3 upward = across.cross(ahead.normalize());
+            double jx = Math.sin(t * 71.0) + 0.6 * Math.sin(t * 113.0 + 1.3) + 0.3 * Math.sin(t * 197.0 + 4.1);
+            double jy = Math.sin(t * 89.0 + 0.7) + 0.6 * Math.sin(t * 131.0 + 2.1) + 0.3 * Math.sin(t * 173.0 + 0.4);
+            look = look.add(across.scale(jx * shake * ahead.length() * 0.008)).add(upward.scale(jy * shake * ahead.length() * 0.008));
+        }
         Window window = Minecraft.getInstance().getWindow();
         float aspect = (float) window.getWidth() / Math.max(1, window.getHeight());
         Matrix4f proj = new Matrix4f().perspective((float) Math.toRadians(fov), aspect, (float) near, (float) far);
@@ -223,7 +239,7 @@ public final class ProximaCosmos {
     private static void proxima(ShaderInstance program, Pass p, double t) {
         double open = smooth((t - 8.05) / 1.7);
         double reconnect = pulse(t, 10.85, 0.18);
-        double fire = pulse(t, 12.45, 0.35);
+        double fire = pulse(t, FIRE, 0.35);
         backdrop(program, p, 1.0F, 1.0F);
 
         // the star: boiling, brighter at the reconnection and as the lens fires
@@ -271,8 +287,8 @@ public final class ProximaCosmos {
         draw(program, p, b);
 
         // the lens: hex tiles flying off the shell into a disc before the iris, charging white
-        double gather = t < 11.4 ? -1.0 : (t - 11.4) / 0.85;
-        double charge = smooth((t - 12.1) / 0.35) * (1.0 - smooth((t - 12.9) / 0.4));
+        double gather = t < 11.4 ? -1.0 : (t - 11.4) / 0.65;
+        double charge = smooth((t - POWER) / (FIRE - POWER)) * (1.0 - smooth((t - 12.9) / 0.4));
         if (gather > 0.0) {
             set(program, p, TILE, (float) charge, 0.0F, 0.0F, 0.0F);
             b = begin(VertexFormat.Mode.TRIANGLES);
@@ -341,10 +357,27 @@ public final class ProximaCosmos {
                     loop[s] = centre.add(x.scale(scale * Math.cos(a) / den)).add(y.scale(scale * Math.sin(a) * Math.cos(a) / den))
                         .add(AXIS.scale(scale * 0.08 * Math.sin(a * 2.0)));
                 }
-                // thin and dim against the star (the user: the infinity sign fainter)
+                // a braided rope of plasma: a soft sheath, three strands twisting round the figure eight, flowing; still
+                // faint against the star (the user, 2026-11-06: fainter; 2026-11-07: it looked low quality)
+                float fadeOut = (float) (1.0 - collapse);
+                double k = scale / 0.62;
                 b = begin(VertexFormat.Mode.QUADS);
-                band(b, p, loop, 0.014 * scale / 0.62, 0xFF80CC, (float) (0.2 * (1.0 - collapse)), 1.0);
-                set(program, p, BAND, 1.0F, 0.0F, 0.0F, 0.0F);
+                band(b, p, loop, 0.075 * k, 0xFF5AA8, 0.16F * fadeOut, 1.0);
+                set(program, p, BAND, 1.0F, 14.0F, 0.0F, 0.0F);
+                draw(program, p, b);
+                b = begin(VertexFormat.Mode.QUADS);
+                for (int strand = 0; strand < 3; strand++) {
+                    Vec3[] twist = new Vec3[n + 1];
+                    for (int s = 0; s <= n; s++) {
+                        Vec3 along = loop[Math.min(n, s + 1)].subtract(loop[Math.max(0, s - 1)]).normalize();
+                        Vec3 side = along.cross(AXIS).normalize();
+                        Vec3 lift = side.cross(along).normalize();
+                        double a = s / 240.0 * Math.PI * 2.0 * 7.0 + strand * Math.PI * 2.0 / 3.0 + t * 5.0;
+                        twist[s] = loop[s].add(side.scale(Math.cos(a) * 0.02 * k)).add(lift.scale(Math.sin(a) * 0.02 * k));
+                    }
+                    band(b, p, twist, 0.011 * k, strand == 0 ? 0xFFE6F2 : 0xFF9AD0, 0.5F * fadeOut, 1.0);
+                }
+                set(program, p, BAND, 1.6F, 30.0F, 0.0F, 0.0F);
                 draw(program, p, b);
             }
             b = begin(VertexFormat.Mode.QUADS);
@@ -353,35 +386,76 @@ public final class ProximaCosmos {
             draw(program, p, b);
         }
 
-        // the beam: a white core in a red sheath, two shock rings racing out along it
-        if (t >= 12.45) {
-            double on = smooth((t - 12.45) / 0.12);
-            double length = Math.max(0.001, 60.0 * smooth((t - 12.45) / 0.35));
+        // the power arriving: arcs of plasma pulled from the star through the open iris onto the lens's rim, then rings
+        // closing in on its centre as it charges
+        if (t > POWER - 0.05 && t < FIRE + 0.1) {
+            double on = smooth((t - POWER + 0.05) / 0.12) * (1.0 - smooth((t - FIRE) / 0.1));
+            Vec3 u = AXIS.cross(UP).normalize();
+            Vec3 v = u.cross(AXIS).normalize();
+            b = begin(VertexFormat.Mode.QUADS);
+            for (int i = 0; i < 6; i++) {
+                double a = i / 6.0 * Math.PI * 2.0 + t * 0.8;
+                Vec3 radial = u.scale(Math.cos(a)).add(v.scale(Math.sin(a)));
+                Vec3 from = AXIS.scale(1.05).add(radial.scale(0.35));
+                Vec3 to = LENS_CENTRE.add(radial.scale(1.15));
+                Vec3[] arc = new Vec3[17];
+                for (int k = 0; k <= 16; k++) {
+                    double q = k / 16.0;
+                    double wobble = 0.06 * Math.sin(q * 9.0 + t * 23.0 + i * 1.7) * Math.sin(q * Math.PI);
+                    arc[k] = from.lerp(to, q).add(radial.scale(Math.sin(q * Math.PI) * 0.35 + wobble))
+                        .add(radial.cross(AXIS).normalize().scale(wobble));
+                }
+                band(b, p, arc, 0.035, 0xFFB0D8, (float) (0.8 * on), 1.0);
+            }
+            set(program, p, BAND, 2.0F, 40.0F, 0.0F, 0.0F);
+            draw(program, p, b);
+            b = begin(VertexFormat.Mode.QUADS);
+            for (int i = 0; i < 3; i++) {
+                double k = ((t - POWER) * 2.2 + i / 3.0) % 1.0;
+                double radius = 1.35 * (1.0 - k);
+                band(b, p, circle(LENS_CENTRE.add(AXIS.scale(0.02)), u, v, Math.max(0.02, radius), 96), 0.03,
+                    0xFFE0F0, (float) (on * k * 0.9), 1.0);
+            }
+            set(program, p, BAND, 1.8F, 0.0F, 0.0F, 0.0F);
+            draw(program, p, b);
+        }
+
+        // the beam: a narrow white core in a thin red sheath, a wave packet racing down it, tight rings round the packet
+        if (t >= FIRE) {
+            double since = t - FIRE;
+            double on = smooth(since / 0.08);
+            double length = Math.max(0.001, 80.0 * smooth(since / 0.25));
             Vec3[] line = new Vec3[25];
             for (int s = 0; s <= 24; s++) {
                 line[s] = LENS_CENTRE.add(AXIS.scale(length * s / 24.0));
             }
             b = begin(VertexFormat.Mode.QUADS);
-            band(b, p, line, 0.5, 0xB31A33, (float) on, 1.0);
-            set(program, p, BAND, 1.8F, 3.0F, 0.0F, 0.0F);
+            band(b, p, line, 0.2, 0xB31A33, (float) on, 1.0);
+            set(program, p, BAND, 2.0F, 3.0F, 0.0F, 0.0F);
             draw(program, p, b);
             b = begin(VertexFormat.Mode.QUADS);
-            band(b, p, line, 0.12, 0xFFD5E6, (float) on, 1.0);
-            set(program, p, BAND, 2.5F, 3.0F, 0.0F, 0.0F);
+            band(b, p, line, 0.055, 0xFFE0EE, (float) on, 1.0);
+            set(program, p, BAND, 3.0F, 3.0F, 0.0F, 0.0F);
             draw(program, p, b);
-            b = begin(VertexFormat.Mode.QUADS);
             Vec3 u = AXIS.cross(UP).normalize();
             Vec3 v = u.cross(AXIS).normalize();
-            for (int i = 0; i < 2; i++) {
-                double since = t - 12.45 - i * 0.18;
-                if (since <= 0.0) {
+            b = begin(VertexFormat.Mode.QUADS);
+            for (int i = 0; i < 3; i++) {
+                double at = since * 26.0 - i * 0.9;
+                if (at <= 0.0) {
                     continue;
                 }
-                double radius = 0.3 + since * 6.0;
-                band(b, p, circle(LENS_CENTRE.add(AXIS.scale(0.2 + since * 2.0)), u, v, radius, 96), 0.04 * radius,
-                    0xFF73A6, (float) (Math.max(0.0, 1.0 - since / 0.6) * 0.9), 1.0);
+                double radius = 0.16 + 0.05 * i;
+                band(b, p, circle(LENS_CENTRE.add(AXIS.scale(at)), u, v, radius, 64), 0.035, 0xFF8AB8,
+                    (float) (0.9 - 0.25 * i), 1.0);
             }
-            set(program, p, BAND, 1.6F, 0.0F, 0.0F, 0.0F);
+            set(program, p, BAND, 2.0F, 0.0F, 0.0F, 0.0F);
+            draw(program, p, b);
+            b = begin(VertexFormat.Mode.QUADS);
+            // the packet's head, and the muzzle flash at the lens
+            glow(b, p, LENS_CENTRE.add(AXIS.scale(since * 26.0)), 0.9, 0xFFF0F6, 0.9F);
+            glow(b, p, LENS_CENTRE, 1.6 + 2.5 * fire, 0xFFD6E8, (float) (0.9 * fire));
+            set(program, p, GLOW, 1.4F, 0.0F, 0.0F, 0.0F);
             draw(program, p, b);
         }
     }
@@ -472,13 +546,13 @@ public final class ProximaCosmos {
             vertex(b, GATE.add(x.scale(r)).subtract(y.scale(r)), 1.0F, -1.0F, 0xFFFFFF, 1.0F, n);
             vertex(b, GATE.add(x.scale(r)).add(y.scale(r)), 1.0F, 1.0F, 0xFFFFFF, 1.0F, n);
             vertex(b, GATE.subtract(x.scale(r)).add(y.scale(r)), -1.0F, 1.0F, 0xFFFFFF, 1.0F, n);
-            set(program, p, GATE_DISC, (float) disc, 0.0F, 0.0F, 0.0F);
+            set(program, p, GATE_DISC, (float) (0.6 * disc), 0.0F, 0.0F, 0.0F);
             draw(program, p, b);
         }
 
-        // the beam streaking in from deep space onto the gate
+        // the wave streaking in from deep space onto the gate, its bright head first
         if (t > 13.2 && t < 14.9) {
-            double arrive = smooth((t - 13.25) / 0.55);
+            double arrive = smooth((t - 13.25) / (CATCH - 13.25));
             Vec3 dir = GATE.subtract(BEAM_FROM);
             double length = dir.length();
             dir = dir.normalize();
@@ -495,30 +569,52 @@ public final class ProximaCosmos {
             band(b, p, line, 0.036, 0xFFD5E6, a, 1.0);
             set(program, p, BAND, 1.5F, 3.0F, 0.0F, 0.0F);
             draw(program, p, b);
+            if (t < CATCH + 0.05) {
+                b = begin(VertexFormat.Mode.QUADS);
+                glow(b, p, BEAM_FROM.add(dir.scale(length * arrive)), 0.35, 0xFFF0F6, 0.9F);
+                set(program, p, GLOW, 1.4F, 0.0F, 0.0F, 0.0F);
+                draw(program, p, b);
+            }
         }
 
-        // the coronal mass ejection: the gate spreads the beam into a red cloud streaming down onto Earth
-        double spread = smooth((t - 14.05) / 0.9);
-        if (spread > 0.0) {
-            double toEarth = GATE.length() - 1.0;
-            double width = 0.12 + 0.55 * spread;
-            b = begin(VertexFormat.Mode.QUADS);
-            int around = 96;
-            int rows = 24;
-            for (int i = 0; i < rows; i++) {
-                for (int j = 0; j < around; j++) {
-                    int[][] corners = {{i, j}, {i + 1, j}, {i + 1, j + 1}, {i, j + 1}};
-                    for (int[] c : corners) {
-                        double along = c[0] / (double) rows;
-                        double a = c[1] / (double) around * Math.PI * 2.0;
-                        double r = lerp(0.02, 1.0, along) * width;
-                        Vec3 radial = x.scale(Math.cos(a)).add(y.scale(Math.sin(a)));
-                        Vec3 at = GATE.add(z.scale(toEarth * along)).add(radial.scale(r));
-                        vertex(b, at, c[1] / (float) around, (float) along, 0xFFFFFF, 1.0F, radial);
-                    }
-                }
+        // the gate refocuses it: a narrow beam from the gate down onto the caster's spot, its wave racing ahead, a flash
+        // where it lands and a ring of light running out across the land from there
+        double refocus = smooth((t - (CATCH + 0.15)) / 0.12) * (1.0 - smooth((t - 14.85) / 0.15));
+        if (refocus > 0.0) {
+            Vec3 ground = SPOT.scale(1.002);
+            Vec3 down = ground.subtract(GATE);
+            double reach = smooth((t - (CATCH + 0.15)) / (LANDS - CATCH - 0.15));
+            Vec3[] line = new Vec3[25];
+            for (int s = 0; s <= 24; s++) {
+                line[s] = GATE.add(down.scale(reach * s / 24.0));
             }
-            set(program, p, CME, (float) (0.9 * (1.0 - smooth((t - 14.9) / 0.2))), (float) spread, 0.0F, 0.0F);
+            b = begin(VertexFormat.Mode.QUADS);
+            band(b, p, line, 0.05, 0xB31A33, (float) refocus, 1.0);
+            set(program, p, BAND, 1.6F, 3.0F, 0.0F, 0.0F);
+            draw(program, p, b);
+            b = begin(VertexFormat.Mode.QUADS);
+            band(b, p, line, 0.014, 0xFFE0EE, (float) refocus, 1.0);
+            set(program, p, BAND, 2.4F, 3.0F, 0.0F, 0.0F);
+            draw(program, p, b);
+            b = begin(VertexFormat.Mode.QUADS);
+            if (reach < 0.999) {
+                glow(b, p, GATE.add(down.scale(reach)), 0.12, 0xFFF0F6, 0.9F);
+            }
+            double landed = pulse(t, LANDS, 0.4);
+            glow(b, p, ground, 0.06 + 0.5 * landed + 0.08 * smooth((t - LANDS) / 0.4), 0xFFE6F0, (float) (0.3 + 0.7 * landed));
+            set(program, p, GLOW, 1.4F, 0.0F, 0.0F, 0.0F);
+            draw(program, p, b);
+        }
+        if (t > LANDS) {
+            // the ring on the ground: a circle on the sphere round the spot, its angle growing
+            double k = smooth((t - LANDS) / 0.5);
+            double angle = 0.02 + 0.22 * k;
+            Vec3 u = SPOT.cross(UP).normalize();
+            Vec3 v = u.cross(SPOT).normalize();
+            Vec3 centre = SPOT.scale(Math.cos(angle) * 1.003);
+            b = begin(VertexFormat.Mode.QUADS);
+            band(b, p, circle(centre, u, v, Math.sin(angle) * 1.003, 96), 0.006 + 0.01 * k, 0xFF5A80, (float) (1.0 - k * 0.7), 1.0);
+            set(program, p, BAND, 1.6F, 0.0F, 0.0F, 0.0F);
             draw(program, p, b);
         }
     }
@@ -689,6 +785,11 @@ public final class ProximaCosmos {
         return buffer;
     }
 
+    /** Loads Earth's images ahead of the film (on joining a world). */
+    public static void preload() {
+        textures();
+    }
+
     /** Earth's images, smoothed close up and mipmapped from afar (4096 wide: unfiltered, the whole disc shimmers). */
     private static void textures() {
         ResourceLocation[] images = {EARTH_DAY, EARTH_DETAIL};
@@ -782,6 +883,13 @@ public final class ProximaCosmos {
 
     private static double lerp(double a, double b, double k) {
         return a + (b - a) * k;
+    }
+
+    /** How hard the camera shakes at film second {@code t}: building as the lens charges, kicks as things hit. */
+    private static double shake(double t) {
+        double charging = t > POWER && t < FIRE ? 0.25 + 0.75 * Math.pow((t - POWER) / (FIRE - POWER), 2.0) : 0.0;
+        return 0.7 * charging + 0.5 * pulse(t, POWER, 0.2) + 2.2 * pulse(t, FIRE, 0.3) + 0.9 * pulse(t, CATCH, 0.25)
+            + 1.3 * pulse(t, LANDS, 0.35);
     }
 
     private static double pulse(double t, double at, double decay) {

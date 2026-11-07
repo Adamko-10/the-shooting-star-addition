@@ -5,6 +5,7 @@ import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.render.MoonRenderer;
 import dev.ss05.halley.client.luna.render.MoonSphere;
+import dev.ss05.halley.client.proxima.ProximaCosmos;
 import dev.ss05.halley.client.render.CometRenderer;
 import dev.ss05.halley.client.render.GlowAtlas;
 import dev.ss05.halley.client.render.HalleyRenderTypes;
@@ -43,6 +44,9 @@ public final class HalleyClient {
         NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, RenderFrameEvent.Post.class, event -> FilmPanels.endOfFrame());
         NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, HalleySky::render);
         NeoForge.EVENT_BUS.addListener(ViewportEvent.ComputeFogColor.class, HalleySky::fog);
+        // Proxima's Earth images (two 4096 maps, mipmapped) loaded as the world is joined, not mid-film (that stall made the
+        // film's music and soundtrack stutter)
+        NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingIn.class, event -> ProximaCosmos.preload());
         NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingOut.class, event -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
@@ -90,10 +94,10 @@ public final class HalleyClient {
         }
         try {
             event.registerShader(new ShaderInstance(event.getResourceProvider(), HalleyAddon.id("proxima_space"),
-                DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL), dev.ss05.halley.client.proxima.ProximaCosmos::setShader);
+                DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL), ProximaCosmos::setShader);
         } catch (IOException failed) {
             HalleyAddon.LOG.error("SA-04 Proxima's space shader didn't load, so its film's space shots will be empty", failed);
-            dev.ss05.halley.client.proxima.ProximaCosmos.setShader(null);
+            ProximaCosmos.setShader(null);
         }
     }
 }

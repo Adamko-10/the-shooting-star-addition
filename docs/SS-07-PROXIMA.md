@@ -231,6 +231,30 @@ at 23 s. Built on main 2026-11-07:
   Levelled by measurement only (-16 LUFS over the film; momentary: the beds -20 to -25, the hits -11 to -13, the hush
   -35); the user's ears decide.
 
+### Second polish round (2026-11-07, night; the user's look at the polish build)
+
+- **The lens powered up, a focused wave** (the user: "when the lens thing receives power it plays a proper sound effect
+  and shakes the screen then shoots a proper more focused wave towards the earth and wherever you shot it"): tiles in by
+  12.05 s; power arrives at 12.0 (`ProximaCosmos.POWER`): six arcs of plasma pulled from the star through the iris onto
+  the lens's rim, rings closing in on its centre, the camera shaking harder as it charges (`shake(t)`: on the scene's
+  own look direction); the shot at 12.45 (`FIRE`): a narrow core in a thin sheath, a wave packet racing down it with
+  tight rings, a muzzle flash, a hard kick. Earth: the wave's bright head streaks onto the gate, caught at 13.75
+  (`CATCH`, a jolt), refocused into a narrow beam onto the caster's spot (`SPOT`, where the orbit shot starts), landing
+  at 14.5 (`LANDS`: a flash, a ring of light racing out across the land, a jolt). The CME cone (shader mode 9) is gone.
+  Sound re-cut to match (`art/make_proxima_film.sh` sections 7-9: a power-on thunk, arcs, the charge screaming up, the
+  shot and its wave whooshing away, the catch, a refocusing whine, the hit on Earth).
+- **The infinity loops** (looked low quality): a braided rope of plasma, three strands twisting round the figure eight
+  in a soft sheath, flowing; still faint. **The Dyson sphere's inside**: each panel split into smaller plates with their
+  own seams, each its own heat-stained shade with grime, a few venting a hot glow, starlight glancing off edge-on.
+- **Captions** in the title cards' smooth type (`FilmTitle.caption`; the readout in RimuLib's fixed-width face), drawn
+  from `ProximaHud.caption`; the pixel font at the overlay's scale broke up and the numbers shuffled. "CORONAL MASS
+  EJECTION INBOUND" is now **"SOLAR FLARE INBOUND"**. Distances in kilometres/metres or miles/feet: the plate's new
+  **D** switch (client config `imperial_units`; D because the remote's skill keys, U among them, go to the menu first).
+  The addon's plate is drawn at 0.82 of its old size (never below one screen pixel per font pixel).
+- **Music pausing**: the music file has no gaps (the hush only); the user's server ran up to 336 ticks behind that
+  session, and the first Earth shot loaded two 4096 maps mid-film. Earth's images now load when a world is joined
+  (`ProximaCosmos.preload` on `ClientPlayerNetworkEvent.LoggingIn`). If it still pauses, look at the server lag.
+
 ## Timeline (`ProximaPlan`, ticks at speed 1)
 
 | | tick | |

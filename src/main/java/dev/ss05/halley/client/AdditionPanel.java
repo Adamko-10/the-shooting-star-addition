@@ -38,6 +38,8 @@ public final class AdditionPanel {
     public static final float MIN_SCALE = 0.5F;
     public static final float MAX_SCALE = 0.75F;
     private static final int WIDTH = 236;
+    /** This plate a little smaller than the remote's other plates (the user, 2026-11-07). */
+    private static final float SIZE = 0.82F;
     /** GLFW key codes. */
     public static final int KEY_MUSIC = 77;
     public static final int KEY_COOLDOWN = 67;
@@ -45,6 +47,7 @@ public final class AdditionPanel {
     public static final int KEY_KEEP_MOON = 76;
     public static final int KEY_FRAMES = 70;
     public static final int KEY_EPIC = 71;
+    public static final int KEY_UNITS = 68;
     private static final float SLIDE_MILLIS = 160.0F;
 
     private static long musicFlippedAt;
@@ -53,6 +56,7 @@ public final class AdditionPanel {
     private static long cooldownFlippedAt;
     private static long evacFlippedAt;
     private static long epicFlippedAt;
+    private static long unitsFlippedAt;
 
     private AdditionPanel() {
     }
@@ -94,6 +98,12 @@ public final class AdditionPanel {
             HalleyClientConfig.setEvacLift(!HalleyClientConfig.evacLift());
             evacFlippedAt = Util.getMillis();
             sendChoice();
+            click(true);
+            return true;
+        }
+        if (key == KEY_UNITS) {
+            HalleyClientConfig.setImperial(!HalleyClientConfig.imperial());
+            unitsFlippedAt = Util.getMillis();
             click(true);
             return true;
         }
@@ -156,11 +166,12 @@ public final class AdditionPanel {
         }
 
         int w = Math.max(WIDTH, Math.max(font.width(status), font.width(Component.translatable("gui.shooting_star_addition.no_cooldown.disabled"))) + 22);
-        int h = cooldownOff ? 232 : 220;
+        int h = cooldownOff ? 264 : 252;
         g.pose().pushPose();
         // over the menu, in its top left corner
         g.pose().translate(8.0F, 8.0F, 400.0F);
-        float scale = Mth.clamp(g.guiWidth() / 860.0F, MIN_SCALE, MAX_SCALE);
+        // never below one screen pixel per font pixel (smaller text turns to mush)
+        float scale = Math.max(Mth.clamp(g.guiWidth() / 860.0F, MIN_SCALE, MAX_SCALE) * SIZE, 1.0F / (float) minecraft.getWindow().getGuiScale());
         g.pose().scale(scale, scale, 1.0F);
         // a soft shadow, the plate, its gold edge and title rule
         plate(g, 2, 3, w + 2, h + 3, 0x26000000);
@@ -199,12 +210,18 @@ public final class AdditionPanel {
         g.drawString(font, Component.translatable("gui.shooting_star_addition.evac.hint"), 11, 166, 0xFF000000 | GREY, false);
         g.fill(11, 179, w - 10, 180, 0xFF000000 | RULE);
 
+        // the films' distances: kilometres (off) or miles (on)
+        row(g, font, 186, Component.translatable("gui.shooting_star_addition.units"), "D", HalleyClientConfig.imperial(), true,
+            unitsFlippedAt, w, "gui.shooting_star_addition.units.miles", "gui.shooting_star_addition.units.km");
+        g.drawString(font, Component.translatable("gui.shooting_star_addition.units.hint"), 11, 198, 0xFF000000 | GREY, false);
+        g.fill(11, 211, w - 10, 212, 0xFF000000 | RULE);
+
         // no cooldown, and what the server allows
-        row(g, font, 186, Component.translatable("gui.shooting_star_addition.no_cooldown"), "C", cooldownOff, allowed, cooldownFlippedAt, w);
-        g.drawString(font, Component.translatable("gui.shooting_star_addition.no_cooldown.hint"), 11, 198, 0xFF000000 | GREY, false);
-        g.drawString(font, status, 11, 209, 0xFF000000 | statusColor, false);
+        row(g, font, 218, Component.translatable("gui.shooting_star_addition.no_cooldown"), "C", cooldownOff, allowed, cooldownFlippedAt, w);
+        g.drawString(font, Component.translatable("gui.shooting_star_addition.no_cooldown.hint"), 11, 230, 0xFF000000 | GREY, false);
+        g.drawString(font, status, 11, 241, 0xFF000000 | statusColor, false);
         if (cooldownOff) {
-            g.drawString(font, Component.translatable("gui.shooting_star_addition.no_cooldown.careful"), 11, 220, 0xFF000000 | WARN, false);
+            g.drawString(font, Component.translatable("gui.shooting_star_addition.no_cooldown.careful"), 11, 252, 0xFF000000 | WARN, false);
         }
         g.pose().popPose();
     }

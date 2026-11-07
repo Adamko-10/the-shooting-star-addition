@@ -10,6 +10,7 @@ import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.proxima.ProximaFx;
+import dev.ss05.halley.client.proxima.ProximaHud;
 import dev.ss05.halley.world.Codenames;
 import javax.annotation.Nullable;
 import net.minecraft.client.gui.GuiGraphics;
@@ -25,6 +26,22 @@ import net.minecraft.world.phys.Vec3;
 final class FilmTitle {
     /** The display face's cap height at scale 1 (RimuLib: its size 16 x 0.7). */
     private static final float CAP = 11.2F;
+
+    /**
+     * Proxima's caption and readout over its lower letterbox bar (client/proxima/ProximaHud builds them): the caption
+     * tracked wide, the readout in the fixed-width face, so changing numbers don't make it shuffle.
+     */
+    static void caption(GuiGraphics g, @Nullable ProximaHud.Caption c, int w, int h) {
+        if (c == null || c.alpha() <= 0.01F) {
+            return;
+        }
+        float scale = h * 0.0145F / CAP;
+        float y = h * 0.895F;
+        TessType.draw(g, TessType.Face.LABEL, c.caption(), w * 0.5F, y, 0.5F, scale, 2.5F,
+            TessType.Paint.flat(0xFF000000 | ProximaHud.CRIMSON), c.alpha(), 1.0F);
+        TessType.draw(g, TessType.Face.MONO, c.detail(), w * 0.5F, y + h * 0.026F, 0.5F, scale * 0.8F, 1.0F,
+            TessType.Paint.flat(0xFF000000 | ProximaHud.PALE), c.alpha() * 0.8F, 1.0F);
+    }
 
     // Halley: shot 4 (ticks 64-122), the telephoto of the comet over the horizon.
     static final float HALLEY_IN = 74.0F;

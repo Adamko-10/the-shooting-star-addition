@@ -11,8 +11,6 @@
 //    (Sampler1), 7 its air, added
 // (the spheres, the star's and Earth's, sit on the scene's origin: their normal is their position)
 //  8 the gate's disc of plasma (uv: -1..1 across it; Param.x: how strong), added
-//  9 the coronal mass ejection streaming from the gate (uv.x round it, uv.y along it; Param.x: strength, Param.y: how
-//    far it has run), added
 // 10 plain colour (Color), 11 a lens tile (uv across it; Param.x: its charge)
 uniform sampler2D Sampler0;
 uniform sampler2D Sampler1;
@@ -111,8 +109,20 @@ void main() {
             float hatch = step(0.965, seed) * step(0.3, fract(Time * 0.3 + seed * 7.0));
             c += vec3(1.4, 0.55, 0.25) * hatch * (1.0 - smoothstep(0.08, 0.25, edge));
         } else {
-            // the inside, lit by the star
-            c = vec3(0.9, 0.18, 0.06) * (0.45 + 0.4 * seed);
+            // the inside, lit by the star: each panel split into smaller plates (their own seams), each plate its own
+            // shade of heat-stained metal with grime over it, a few venting a hot glow, starlight glancing off edge-on
+            vec3 bary = vec3(uv.x, uv.y, 1.0 - uv.x - uv.y);
+            vec3 sub = fract(bary * 4.0);
+            float subEdge = min(min(sub.x, sub.y), sub.z);
+            float subSeam = 1.0 - smoothstep(0.0, 0.07, subEdge);
+            vec3 cell = floor(bary * 4.0);
+            float shade = hash31(cell + vec3(seed * 37.0, seed * 11.0, 3.0));
+            float grime = fbm(pos * 16.0);
+            c = mix(vec3(0.28, 0.06, 0.03), vec3(0.85, 0.24, 0.08), shade) * (0.55 + 0.7 * grime);
+            c *= 1.0 - 0.65 * subSeam;
+            float vent = step(0.9, hash31(cell * 1.7 + vec3(seed * 13.0))) * (0.7 + 0.3 * sin(Time * 2.5 + shade * 20.0));
+            c += vec3(1.5, 0.6, 0.22) * vent * smoothstep(0.08, 0.3, subEdge);
+            c += vec3(1.0, 0.4, 0.16) * pow(1.0 - abs(facing), 4.0) * 0.5;
         }
         c += vec3(1.2, 0.32, 0.12) * seam * (0.35 + 0.2 * sin(Time * 1.7 + seed * 30.0));
         fragColor = vec4(tone(c), 1.0);
@@ -191,17 +201,6 @@ void main() {
         float edge = smoothstep(1.0, 0.85, r);
         vec3 c = mix(vec3(0.9, 0.12, 0.25), vec3(1.3, 1.0, 1.15), pow(swirl, 3.0) * 2.0) * swirl * edge * (0.25 + 0.75 * r);
         fragColor = vec4(c * Param.x, 1.0);
-    } else if (mode == 9) {
-        float along = uv.y;
-        if (along > Param.y) {
-            discard;
-        }
-        float streak = pow(fbm(vec3(uv.x * 26.0, along * 5.0 - Time * 3.0, 0.0)), 2.2);
-        float rim = pow(1.0 - abs(dot(normalize(normal), view)), 1.5);
-        float head = smoothstep(Param.y - 0.08, Param.y, along);
-        float fade = smoothstep(0.0, 0.08, along) * (1.0 - smoothstep(0.85, 1.0, along));
-        vec3 c = mix(vec3(0.8, 0.07, 0.22), vec3(1.4, 0.9, 1.0), head) * (0.15 + 1.6 * streak) * (0.35 + rim) * fade * Param.x;
-        fragColor = vec4(c, 1.0);
     } else if (mode == 11) {
         float r = length(uv * 2.0 - 1.0);
         float rim = smoothstep(0.62, 0.95, r);
