@@ -25,6 +25,7 @@ tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 cp "$jar" "$tmp/$name.jar"
 # GitHub turns spaces and brackets in asset names into dots; the label keeps the proper name
-gh release create "$tag" "$tmp/$name.jar#$name.jar" --repo "$repo" --target "$sha" --title "$name" \
+asset="$tmp/$name.jar"; command -v cygpath > /dev/null && asset=$(cygpath -w "$asset")  # gh on Windows cannot read Git Bash paths
+gh release create "$tag" "$asset#$name.jar" --repo "$repo" --target "$sha" --title "$name" \
   --notes-file "$notes" --latest="$latest"
 echo "$b: released $tag at ${sha:0:7}"
