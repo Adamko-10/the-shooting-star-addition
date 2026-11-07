@@ -8,7 +8,7 @@ import cyou.rimuru.rimulib.client.net.RimuNetClient;
 import cyou.rimuru.rimulib.skill.Skill;
 import cyou.rimuru.rimulib.skill.SkillSet;
 import cyou.rimuru.shootingstardemo.client.fx.FxManager;
-import cyou.rimuru.shootingstardemo.il11ill1iil;
+import cyou.rimuru.shootingstardemo.net.SpellFxPayload;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.AdditionPanel;
 import dev.ss05.halley.client.FilmPanels;
@@ -92,8 +92,8 @@ public final class StarClientBridge {
      * Fabric 26.3 it read as {@code net.SpellFxPayload} in 1.5.0; in 1.5.2 Fabric names it {@code il11ill1iil} (found by CI
      * on Fabric 1.21.1; not checked on 26.3).
      */
-    static il11ill1iil payload(StrikeFx s) {
-        return new il11ill1iil(s.skill(), s.casterId(), s.origin().x, s.origin().y, s.origin().z, s.target().x, s.target().y,
+    static SpellFxPayload payload(StrikeFx s) {
+        return new SpellFxPayload(s.skill(), s.casterId(), s.origin().x, s.origin().y, s.origin().z, s.target().x, s.target().y,
             s.target().z, s.yaw(), s.seed(), s.targets(), s.flags(), s.power(), s.speed(), 1.0F);
     }
 
