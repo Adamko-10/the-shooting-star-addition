@@ -5,9 +5,12 @@ import com.mojang.math.Axis;
 import cyou.rimuru.rimulib.mc1211.client.cinematic.CutsceneDirector;
 import cyou.rimuru.rimulib.mc1211.client.text.TessType;
 import dev.ss05.halley.MoonPlan;
+import dev.ss05.halley.ProximaPlan;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
 import dev.ss05.halley.client.luna.MoonFx;
+import dev.ss05.halley.client.proxima.ProximaFx;
+import dev.ss05.halley.client.proxima.ProximaHud;
 import dev.ss05.halley.world.Codenames;
 import javax.annotation.Nullable;
 import net.minecraft.client.gui.GuiGraphics;
@@ -23,6 +26,22 @@ import net.minecraft.world.phys.Vec3;
 final class FilmTitle {
     /** The display face's cap height at scale 1 (RimuLib: its size 16 x 0.7). */
     private static final float CAP = 11.2F;
+
+    /**
+     * Proxima's caption and readout over its lower letterbox bar (client/proxima/ProximaHud builds them): the caption
+     * tracked wide, the readout in the fixed-width face, so changing numbers don't make it shuffle.
+     */
+    static void caption(GuiGraphics g, @Nullable ProximaHud.Caption c, int w, int h) {
+        if (c == null || c.alpha() <= 0.01F) {
+            return;
+        }
+        float scale = h * 0.0145F / CAP;
+        float y = h * 0.895F;
+        TessType.draw(g, TessType.Face.LABEL, c.caption(), w * 0.5F, y, 0.5F, scale, 2.5F,
+            TessType.Paint.flat(0xFF000000 | ProximaHud.CRIMSON), c.alpha(), 1.0F);
+        TessType.draw(g, TessType.Face.MONO, c.detail(), w * 0.5F, y + h * 0.026F, 0.5F, scale * 0.8F, 1.0F,
+            TessType.Paint.flat(0xFF000000 | ProximaHud.PALE), c.alpha() * 0.8F, 1.0F);
+    }
 
     // Halley: shot 4 (ticks 64-122), the telephoto of the comet over the horizon.
     static final float HALLEY_IN = 74.0F;
@@ -191,6 +210,178 @@ final class FilmTitle {
         }
     }
 
+    /** Where Proxima's four cards stand: low on the frame, over the captions (the previz's). */
+    private static final float PROXIMA_BASE = 0.72F;
+
+    /**
+     * PROXIMA CENTAURI as the film first sees the star in its shell: wide-tracked, each letter glowing in out of a red
+     * blur, left to right, cooling to a warm white; a rule drawn out under it.
+     */
+    static void centauri(GuiGraphics g, ProximaFx fx, float partial, int w, int h) {
+        float ct = fx.filmTime(partial);
+        float fade = fade(fx.filmWeight());
+        float in = ProximaPlan.SPACE + 6.0F;
+        if (Float.isNaN(ct) || ct < in || ct > in + 41.0F || fade <= 0.01F || CutsceneDirector.legacy()) {
+            return;
+        }
+        float cap = h * 0.07F;
+        float scale = cap / CAP;
+        float cx = w * 0.5F;
+        float base = h * PROXIMA_BASE;
+        String word = "PROXIMA CENTAURI";
+        float[] xs = new float[word.length()];
+        float width = layout(g, word, scale, 3.0F, xs);
+        float shown = fade * window(ct, in, in + 8.0F, in + 32.0F, in + 41.0F);
+        TessType.veil(g, cx, base - cap * 0.5F, width * 0.9F, cap * 1.5F, 0.35F * shown);
+        TessType.draw(g, TessType.Face.LABEL, "RED DWARF \u00B7 M5.5 Ve \u00B7 4.24 LIGHT YEARS", cx, base - cap - h * 0.03F, 0.5F,
+            scale * 0.32F, 3.0F, TessType.Paint.flat(0xFF000000 | 0xE9E1EE), 0.85F * shown, 1.0F);
+        float half = w * 0.21F * smooth((ct - in - 6.0F) / 16.0F);
+        TessType.rule(g, cx - half, cx + half, base + h * 0.02F, Math.max(1.0F, h * 0.003F),
+            (u, v) -> 0xFF000000 | mix(0xFFECE2, 0xFF4A3C, Math.abs(u - 0.5F) * 2.0F), shown);
+        for (int i = 0; i < word.length(); i++) {
+            float q = smooth((ct - in - 0.9F * i) / 9.0F);
+            if (q <= 0.0F || word.charAt(i) == ' ') {
+                continue;
+            }
+            TessType.Paint warm = TessType.Paint.flat(0xFF000000 | mix(0xFF786E, 0xFFECE2, q));
+            // the blur it glows in out of: a soft, larger red copy, fading as the letter sharpens
+            letter(g, word.substring(i, i + 1), cx + xs[i], base + cap * 0.04F, scale * (1.0F + 0.25F * (1.0F - q)), 0.0F,
+                TessType.Paint.flat(0xFF000000 | 0xFF463C), shown * 0.6F * (1.0F - q * 0.7F), 0.0F);
+            letter(g, word.substring(i, i + 1), cx + xs[i], base, scale, 0.0F, warm, shown * q, 1.0F + 2.0F * (1.0F - q));
+        }
+    }
+
+    /** DYSON SPHERE as the iris opens: steel letters sliding in from either side like panels. */
+    static void dyson(GuiGraphics g, ProximaFx fx, float partial, int w, int h) {
+        float ct = fx.filmTime(partial);
+        float fade = fade(fx.filmWeight());
+        float in = ProximaPlan.IRIS + 7.0F;
+        if (Float.isNaN(ct) || ct < in || ct > in + 36.0F || fade <= 0.01F || CutsceneDirector.legacy()) {
+            return;
+        }
+        float cap = h * 0.08F;
+        float scale = cap / CAP;
+        float cx = w * 0.5F;
+        float base = h * PROXIMA_BASE;
+        String word = "DYSON SPHERE";
+        float[] xs = new float[word.length()];
+        float width = layout(g, word, scale, 2.6F, xs);
+        float shown = fade * window(ct, in, in + 5.0F, in + 28.0F, in + 36.0F);
+        TessType.veil(g, cx, base - cap * 0.5F, width * 0.9F, cap * 1.5F, 0.35F * shown);
+        TessType.draw(g, TessType.Face.LABEL, "STELLAR ENGINE \u00B7 980 PANELS", cx, base - cap - h * 0.03F, 0.5F, scale * 0.3F, 3.0F,
+            TessType.Paint.flat(0xFF000000 | 0xE9E1EE), 0.85F * shown, 1.0F);
+        float half = w * 0.15F * smooth((ct - in - 5.0F) / 12.0F);
+        TessType.rule(g, cx - half, cx + half, base + h * 0.02F, Math.max(1.0F, h * 0.003F),
+            (u, v) -> 0xFF000000 | mix(0xE6EAF2, 0xFF8C5A, Math.abs(u - 0.5F) * 2.0F), shown);
+        TessType.Paint steel = (u, v) -> 0xFF000000 | mix(0xE6EAF2, 0x6A7080, v);
+        for (int i = 0; i < word.length(); i++) {
+            float q = 1.0F - cube(1.0F - clamp((ct - in - 0.7F * i) / 8.0F));
+            if (q <= 0.0F) {
+                continue;
+            }
+            float side = i % 2 == 0 ? -1.0F : 1.0F;
+            letter(g, word.substring(i, i + 1), cx + xs[i] + side * (1.0F - q) * cap * 2.5F, base, scale, 0.0F, steel, shown * q, 1.0F);
+        }
+    }
+
+    /** CORONAL MASS EJECTION as the lens charges: half-formed flickering plasma, torn apart as the beam fires. */
+    static void cme(GuiGraphics g, ProximaFx fx, float partial, int w, int h) {
+        float ct = fx.filmTime(partial);
+        float fade = fade(fx.filmWeight());
+        float in = ProximaPlan.BEAM - 18.0F;
+        float tearAt = ProximaPlan.BEAM;
+        if (Float.isNaN(ct) || ct < in || ct > in + 28.0F || fade <= 0.01F || CutsceneDirector.legacy()) {
+            return;
+        }
+        float cap = h * 0.07F;
+        float scale = cap / CAP;
+        float cx = w * 0.5F;
+        float base = h * PROXIMA_BASE;
+        String word = "CORONAL MASS EJECTION";
+        float[] xs = new float[word.length()];
+        layout(g, word, scale, 1.6F, xs);
+        float tear = smooth((ct - tearAt) / 9.0F);
+        float shown = fade * window(ct, in, in + 5.0F, in + 21.0F, in + 28.0F);
+        float mid = (word.length() - 1) * 0.5F;
+        for (int i = 0; i < word.length(); i++) {
+            float since = ct - in - 0.4F * i;
+            if (since < 0.0F || word.charAt(i) == ' ') {
+                continue;
+            }
+            // half-formed: each letter flickers in and out of its filaments
+            float flicker = 0.55F + 0.45F * Mth.sin(ct * 1.1F + i * 1.7F);
+            float side = i < mid ? -1.0F : 1.0F;
+            float x = cx + xs[i] + (i - mid) * tear * tear * cap * 0.9F;
+            float y = base + Mth.sin(i * 2.1F) * tear * cap * 1.2F;
+            float alpha = shown * clamp(since / 3.0F) * flicker * (1.0F - tear);
+            TessType.Paint plasma = (u, v) -> 0xFF000000 | mix(0xFFF0F5, 0xFF5A8C, v * 0.8F + 0.2F * tear);
+            letter(g, word.substring(i, i + 1), x, y, scale, side * tear * 22.0F, plasma, alpha, 1.6F);
+        }
+    }
+
+    /**
+     * SA-04 PROXIMA at the flash, bigger: the code name burns in first, then each letter flares in white-hot and a
+     * little large, left to right, settling and burning down to crimson; a rule drawn out under it.
+     */
+    static void proxima(GuiGraphics g, ProximaFx fx, float partial, int w, int h) {
+        float ct = fx.filmTime(partial);
+        float fade = fade(fx.filmWeight());
+        float in = ProximaPlan.FLASH + 5;
+        if (Float.isNaN(ct) || ct < in || ct > ProximaPlan.FRONT || fade <= 0.01F || CutsceneDirector.legacy()) {
+            return;
+        }
+        float cap = h * 0.12F;
+        float scale = cap / CAP;
+        float cx = w * 0.5F;
+        float base = h * PROXIMA_BASE;
+        String word = "PROXIMA";
+        float tracking = 2.4F;
+        float[] xs = new float[word.length()];
+        float width = layout(g, word, scale, tracking, xs);
+        Line line = new Line(g, Codenames.PROXIMA, scale, cap, width, cx);
+
+        float shown = fade * window(ct, in, in + 4.0F, ProximaPlan.FLASH + 29, ProximaPlan.FRONT);
+        TessType.veil(g, cx, base - cap * 0.5F, line.total * 0.85F, cap * 1.4F, 0.4F * shown);
+        TessType.draw(g, TessType.Face.LABEL, "SOLAR FLARE \u00B7 CLASS " + dev.ss05.halley.ProximaParams.flareClass(fx.plan.params.power()),
+            cx, base - cap - h * 0.035F, 0.5F, scale * 0.28F, 3.0F, TessType.Paint.flat(0xFF000000 | 0xFFC8D2), 0.85F * shown, 1.0F);
+        float half = w * 0.18F * smooth((ct - in - 5.0F) / 12.0F);
+        TessType.rule(g, line.centre - half, line.centre + half, base + h * 0.02F, Math.max(1.0F, h * 0.003F),
+            (u, v) -> 0xFF000000 | mix(0xFFFFFF, FLARE_FOOT, Math.abs(u - 0.5F) * 2.0F), shown);
+        float codeIn = smooth((ct - in) / 6.0F);
+        PoseStack pose = g.pose();
+        pose.pushPose();
+        pose.translate(line.codeLeft, base, 0.0F);
+        TessType.draw(g, TessType.Face.DISPLAY, Codenames.PROXIMA, 0.0F, 0.0F, 0.0F, line.codeScale, Line.CODE_TRACKING,
+            TessType.Paint.flat(0xFF000000 | 0xFFB3C0), shown * codeIn, 1.2F);
+        pose.popPose();
+        cx = line.wordCentre;
+        for (int i = 0; i < word.length(); i++) {
+            float q = smooth((ct - in - 1.0F - i) / 7.0F);
+            if (q <= 0.0F) {
+                continue;
+            }
+            float heat = 1.0F - smooth((ct - in - 6.0F - i) / 12.0F);
+            float alpha = shown * q;
+            String letter = word.substring(i, i + 1);
+            float big = scale * (1.25F - 0.25F * q);
+            if (heat > 0.05F) {
+                letter(g, letter, cx + xs[i], base + cap * 0.03F, big * 1.08F, 0.0F, TessType.Paint.flat(0xFF000000 | FLARE_TOP),
+                    alpha * 0.45F * heat, 0.0F);
+            }
+            letter(g, letter, cx + xs[i], base, big, 0.0F, flare(heat), alpha, 1.0F + heat);
+        }
+    }
+
+    /** Up from {@code a} to {@code b}, held, down from {@code c} to {@code d}, eased. */
+    private static float window(float t, float a, float b, float c, float d) {
+        return smooth((t - a) / (b - a)) * (1.0F - smooth((t - c) / (d - c)));
+    }
+
+    private static float smooth(float x) {
+        float k = clamp(x);
+        return k * k * (3.0F - 2.0F * k);
+    }
+
     // ---- Helpers. ---------------------------------------------------------------------------------------------------
 
     /** The title's line: the code name (smaller, on the same baseline), a gap, then the word, centred together. */
@@ -242,6 +433,15 @@ final class FilmTitle {
         }
         TessType.draw(g, TessType.Face.DISPLAY, letter, 0.0F, middle, 0.5F, scale, 0.0F, paint, alpha, halo);
         pose.popPose();
+    }
+
+    /** Proxima's crimson, top and foot. */
+    private static final int FLARE_TOP = 0xFF4A6A;
+    private static final int FLARE_FOOT = 0x8E0F2A;
+
+    /** White-hot while {@code heat} is 1, burning down to crimson at 0. */
+    private static TessType.Paint flare(float heat) {
+        return (u, v) -> 0xFF000000 | mix(mix(FLARE_TOP, FLARE_FOOT, v), mix(0xFFFFFF, 0xFFD0DA, v), heat);
     }
 
     /** Pale at the top to ice blue at the foot, lifted toward white by {@code flash}. */

@@ -12,6 +12,53 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
+### >>> RESUME HERE (2026-11-07, ~22:40, Adam's PC) <<<
+
+- **1.7.0 is RELEASED everywhere** (7 GitHub releases, 7 CurseForge files; RELEASE PLAN block below).
+- **The next update = Proxima (SA-04), on local `main` only, NOT pushed** (all commits after `b605256`). The user wants
+  it out **"today/tmr"** (said 2026-11-07 evening), ported by **their GPT (the Codex app)**. The user approved the film:
+  **"its very good"** (2026-11-07 night) after these rounds, all in docs/SS-07-PROXIMA.md ("The new film", "Polish ...",
+  "Second polish round", "Third round", "Fourth round"):
+  legacy-film-style overlay fix (`f3c9d6d`); Earth like the Railgun's + one soundtrack (`127df8d`); lens power-up,
+  focused wave, captions in smooth type, SOLAR FLARE INBOUND, km/miles (`63f922e`); the 36 s film: zoom out into a warp to
+  Proxima, no infinity loops, new star surface, 3 s lens absorption, cooler bolt with a tracking shot, slow shock wave
+  (WAVE_TICKS 130) with a pull-back shot and trees bursting, music stacking switch (`5a54f07`); new approach and impact
+  sounds and the first sky version (`3b8303e`); then (this turn, see below) the keys moved and the sky version became
+  the gate only.
+- **Done this turn (2026-11-07 ~22:30)**: the stack-music and units switches moved off S and D (the user: "S is for
+  moving backwards", same for D): now **=** (stack music) and **-** (units): every free letter is taken in the menu (WASD
+  move, Q drops, P is Stellar Quartet's, U I K Y O N B Z skills, M G L F E C ours, R X V T Convergence's, H the menu,
+  J films). The sky version now shows **only the gate** (the user: "make only the lens visible in the sky, not proxima
+  centauri itself, like the thing that the energy passes through"; the user calls the gate near Earth "the lens"):
+  `ProximaCosmos.renderSky`/`skyGate`, a real object 360 blocks over the land, 180 out toward the front's side,
+  ~140 blocks across, drawn after the particles with the world's depth; appears at the lens shot, ring brightening with
+  the charge, catches the shot, refocuses it down onto the mark, gone at the flash.
+- **The user asked again what was said about the "legacy fullscreen ui"** (answered again 2026-11-07 night): no revert
+  was made; the floating "White Space" menu is RimuLib 1.2.2's own new menu (not ours, not safely replaceable); RimuLib's
+  "Legacy mode" switch (cutscenes.legacy) only changes how films and warnings show their text.
+- **For later (the user, 2026-11-07 night; not now)**: (1) **redesign the inside of the Dyson sphere completely**; (2) the
+  arrival at Proxima Centauri should **feel like a massive star** (scale: it fills the view, the camera dwarfed);
+  (3) **the gate ("the lens that's above the earth") visible in the sky like Gravitia** (TSS's Gravitia shows its huge
+  structure for everyone: a bigger, longer-lasting world version of the gate, beyond today's sky gate).
+- **Porting: WAIT for the user's word** ("then i will tell u when to give gpt the prompts for porting"). Plan when they
+  say go: like 1.7.0's (RELEASE PLAN block): squash main's commits since `b605256` onto `origin/main` as one commit
+  (`port-1.8.0`?), six worktrees in the project folder's `ports\<branch>\` on `port/<branch>`, one `BRIEF.md` each
+  (`ports\make-briefs.js`, update it for Proxima: new files to port: ProximaCosmos + the `proxima_space` core shader,
+  ProximaFx/Hud/Storyboard, FilmTitle captions, StrikeMusic.film, the plate's new rows, HalleyClientConfig, the Earth
+  textures, sounds, WAVE_TICKS; the render code for fabric-1.21.11/26.3 must be rewritten for their pipeline). Odds
+  given: 1.21.1 Forge/Fabric ~85%, 1.20.1 ~60%, 1.21.11/26.3 ~25% by the next day; recommended two release waves (the
+  1.21.1s + whichever 1.20.1s pass CI first; 1.21.11/26.3 later, keeping 1.7.0 meanwhile).
+- **Before release, besides the ports**: version (1.8.0), changelog (`dev/publish/changelog_170.js` as the model),
+  README, CurseForge description + summary (add Proxima), credits: Proxima's music by **DOM_MusicST and FarzanNB**;
+  Earth imagery **NASA** (Blue Marble, Black Marble) and **Solar System Scope (CC BY 4.0: must be credited)**; Stellar
+  Quartet by ikun520. Proxima's sounds are built from the **Sonniss GDC 2026** bundle (the licence grey area the user
+  knows about). One CI round. Not checked yet: the sky gate with shader packs, at night; any sound by ear (Claude can't).
+- The crash the user saw (2026-11-07 22:01) was **FTB Ultimine's** (NullPointerException in its player data), not ours.
+- Test jar in the user's Modrinth profile: `(Proxima sky gate build)` (`test builds\2026-11-07 Proxima sky gate\`).
+- Ponytail is OFF. The user is budget-conscious: keep replies short.
+- Reminders owed (§0): idea #16 (Mrityu mod), Proxima's "Extra content" film ideas (§15; mention when it ships),
+  SA-05+ candidates and the free SA-03 slot, the Solar Residue economy (when Proxima ships).
+
 ### RELEASE PLAN (decided 2026-11-06 evening; the user: "what can we do to push it out today? either this session or the one after")
 
 - **1.7.0 = everything on main except Proxima**, for **all seven versions** (the user's pick), one big push. **Proxima
@@ -33,7 +80,180 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
 - Order: (1) hold Proxima, build, game-test main; (2) version 1.7.0, changelog (Python isn't on Adam's PC: write it by
   hand or in JS); (3) port six branches + one CI round; (4) the user's test; (5) push, GitHub releases, CurseForge
   (ask about the tab suspender first, §0). ETA given: main today, all seven next session at the earliest.
-- **Ponytail**: Claude recommended turning it back on for this release/porting work (the user asked, 2026-11-06).
+- **Ponytail**: Claude recommended turning it back on for this release/porting work (the user asked, 2026-11-06); the
+  user set it to **lite**.
+- **The ports run in the user's own agents (the user, 2026-11-06: "start them but via my antigravity or my chatgpt
+  app")**: Claude recommended Antigravity (works on local folders; the ChatGPT app only if it has a local coding mode).
+  Set up: `port-1.7.0` = `4927f36`, main's whole 1.7.0 squashed onto `origin/main` (same tree as main at `deb9792`);
+  six worktrees in the project folder's `ports\<branch>\` on local branches `port/<branch>` (from `origin/<branch>`);
+  `ports\<branch>\BRIEF.md` (made by `ports\make-briefs.js`; `BRIEF.md` and `REPORT.md` are in the repo's
+  `.git/info/exclude`, never committed) = one self-contained brief per branch: cherry-pick
+  `4927f36`, conflict rules, release files (TSS 1.5.1/1.5.2 and RimuLib 1.2.2 ids: Forge 9400022/9438881/9438825,
+  Fabric 9400005/9438887/9438845), `StellarQuartet.REQUIRED` (false on forge-1.20.1, fabric-1.20.1,
+  fabric-1.21.11), the branch's API differences, how to build (Forge: locally with JDK 21; Fabric: not here, CI);
+  reports to `ports\<branch>\REPORT.md`; never push or stash. **Started 2026-11-06 ~21:35** (the user: "just send the
+  prompt yourself"; Antigravity holds about one agent under its limits): Claude typed the one-line prompt ("Read
+  BRIEF.md in this folder and do exactly what it says ...") through computer use into **Antigravity** (Claude Sonnet
+  4.6 Thinking, Turbo) for `fabric-1.21.1`, and the **Codex app** ("ChatGPT"; GPT-6.1 Sol, reasoning High; projects
+  "TSSA port forge-1.20.1" and "TSSA port fabric-1.20.1", folders trusted) for `forge-1.20.1` and `fabric-1.20.1`;
+  Claude's own background helpers took `fabric-26.3`, `fabric-1.21.11` (default model) and `forge-1.21.1` (Sonnet).
+  If Antigravity runs out of quota mid-way, Claude finishes that port.
+  **Status 2026-11-07 01:40**: Codex finished `forge-1.20.1` (`cf4bb73`, built here, tssPack clean; Forge's effect
+  packet is the readable `net.SpellFxPayload`) and `fabric-1.20.1` (`db2770b` + `2178a55`, not buildable here; its
+  REPORT.md lists the TSS names CI must confirm: Fabric 1.5.2's packet record is `il11ill1iil`, kept readable
+  `net.SpellFxPayload`). Both pushed to `wip/` (CI runs 153, 154). Antigravity's agent ran out of quota after 12 min
+  having only touched build.gradle/gradle.properties, so a Claude helper (Sonnet) took over `fabric-1.21.1`. Claude's
+  three helpers hit the 5-hour usage limit at ~23:00 mid-merge and were resumed at 01:31 (their work was saved).
+  **The user, 2026-11-07 ~01:45: "once you're done push everything to github and publish all of it on curseforge,
+  dont wait for confirmation just publish it"** = standing OK for the push, the seven GitHub releases and the seven
+  CurseForge uploads once all seven pass CI (no user test first: their call). Sounds: the current (2026-11-04) ones
+  ship; the user never gave a Sonniss verdict. `wip/main` pushed for CI too. Python isn't on this PC (the
+  `dev/publish/github_160.sh` release script needs it): do the release step with `gh api` from JS or bash instead.
+  **CI at 06:35**: passed `wip/main` #155, `wip/forge-1.20.1` #153, `wip/fabric-1.20.1` #157 (after `e7a6155`),
+  `wip/forge-1.21.1` #158 (port `188d69a` + `731310e` foojay resolver 1.0.0, needed to build on Gradle 9.7.1 here).
+  `fabric-1.21.1`: #156 failed on TSS 1.5.2's renamed Fabric packet record (`llil1ii111` -> `il11ill1iil`, fixed
+  `372c243`); #159 failed after compiling with no error shown, so `ci.sh` now also prints the pack check's "missing"
+  lines and Gradle's summary (main `dev/ci/common`, and the port's copy); re-run. fabric-26.3 and fabric-1.21.11
+  helpers hit the usage limit again at ~02:00 and were resumed at 06:31. CurseForge still not signed in (06:35).
+  **2026-11-07 ~07:25: ALL SEVEN PUSHED AND RELEASED ON GITHUB** (main `b605256` latest, forge-1.21.1 `731310e`,
+  forge-1.20.1 `cf4bb73`, fabric-26.3 `7e8546d`, fabric-1.21.11 `89cd60e`, fabric-1.21.1 `8d781d8`, fabric-1.20.1
+  `e7a6155`; every CI green, client tests on all four Fabric branches and main). Fixed on the way: fabric-1.21.1's
+  test harness (`KeyMapping.getKey()` is NeoForge's), 1.21.11's settings receiver, 26.3's RimuLib range; CI's
+  `client-test.sh` prints Gradle's error. The `wip/*` branches and all `ci-*` drafts are deleted. **Proxima is back
+  on main** (`0028b31`, one revert of `d6d2b5f` + `b3f05a6`; local, not pushed; code as before the hold, not rebuilt).
+  **2026-11-07 ~12:30: ALL SEVEN ON CURSEFORGE** (through the Claude extension in the user's **Edge**, "Browser 1";
+  Chrome's never connected): files 9489853 NeoForge, 9489874 Forge 1.21.1, 9489886 Forge 1.20.1 (approved within
+  minutes), 9489916 Fabric 1.21.1, 9490142 Fabric 1.21.11, 9490173 Fabric 26.3, Fabric 1.20.1 (processing then);
+  Release, Client + Server, the same game versions as 1.6.0's (Forge 1.20.1 = Forge + NeoForge, Java 17), TSS
+  [Demo] + RimuLib required (+ Fabric API on the four Fabric files); display names keep `.jar` like 1.6.0's.
+  Changelogs checked through `/_api/project-files/1725916/files/<id>` (`changelogType` 1 = HTML, 5 = Markdown):
+  all seven have their headings and lists. **The project description is updated** (live top kept: the user had
+  changed the "other mod" line to the Type 95 sniper rifle addon; the repo copy now matches it).
+  **How the upload form was driven (for next time)**: it has no jar file input: inject an `<input type=file>`,
+  fill it with the extension's file_upload (paths must be readable by the session: the jars were copied to the
+  scratchpad), then dispatch dragenter/dragover/drop with a DataTransfer holding that File on the page-wide
+  dropzone `div.css-1x73roo`. The form copies loader/Java/MC/env and the changelog mode from the newest file, but
+  not Fabric API. **Changelog trap**: setting `textarea.mde-text` while the mode select already shows Markdown
+  saved a one-paragraph raw blob (NeoForge's; fixed on its edit page); switching the mode select WYSIWYG ->
+  Markdown first, then setting the textarea (native setter + input event), saves it right. The edit page's
+  Markdown box shows a lossy re-conversion: check the API instead. A 429 on `upload-file-details` = wait a minute.
+  The six `ports\` worktrees are removed (the user's OK, 2026-11-07; all clean and pushed). Left: the local
+  `port/<branch>` branches (same commits as origin), `ports\make-briefs.js`, and an empty `ports\fabric-1.20.1`
+  folder another program holds open (likely the Codex app's project): delete it once that's closed.
+  **Ponytail**: on resume the session hook reported level **full** (the user had set lite); told the user, who then
+  turned it **off** (2026-11-07, after the release).
+  Not pushed: main's commits after `b605256` (github_170.sh path fix, CLAUDE.md, the Proxima revert).
+  Earlier, **Status 2026-11-07 ~08:00: PUSHED and RELEASED on GitHub: main (`b605256`), forge-1.20.1, fabric-1.20.1,
+  forge-1.21.1** (tags `v1.7.0`, `v1.7.0+1.20.1`, `v1.7.0+fabric-1.20.1`, `v1.7.0+forge-1.21.1`; jars = their CI
+  jars, also in the project folder's `releases\1.7.0\jars\` under release names; changelogs in
+  `releases\1.7.0\changelogs\` from `changelog_170.js`, which now says Z for Epic mode on 26.3 and lists the Fabric
+  server-hooks fix and 1.21.11's settings fix). Still in CI: `fabric-1.21.1` (#168: build ok, its three client tests
+  die in ~13 s before the game starts; `client-test.sh` now prints Gradle's error, re-run), `fabric-1.21.11` (#166
+  passed, but its plate said "This server doesn't run the addon": the client's SettingsPayload receiver was never
+  registered on that branch since 1.5.0, fixed `89cd60e`, re-run), `fabric-26.3` (#167 passed, client tests included:
+  TSS 1.5.2's 26.3 build starts now; its jar asked for RimuLib >=1.1.5, fixed to >=1.2.2 in `7e8546d`, re-run).
+  `github_170.sh` needed a Windows path for gh (fixed). `curseforge-description.md` rewritten for 1.7.0 (top kept).
+  CurseForge: the app's browser pane is still "Unauthorized" and Claude in Chrome isn't connected: the user must sign
+  in (never enter credentials for them).
+  **CI so far (01:50)**: `wip/forge-1.20.1` #153 ok; `wip/fabric-1.20.1` #154 failed to compile (1.20.1's
+  FriendlyByteBuf has no writeVec3/readVec3 in `ConvergenceFx`; fixed `e7a6155`, re-pushed); `wip/main` #155 and
+  `wip/fabric-1.21.1` #156 running. The CI key isn't on Adam's PC: read failures from the Actions job log
+  (`gh run view <run id> --log`), `summary.txt` from the draft release. `fabric-1.21.1` port done by a Claude helper
+  (`9c1bc01`); it and Codex's fabric-1.20.1 both made the Fabric mixin configs apply on servers too (`environment`
+  "client" -> "*"/none; the json's client/common lists are split right, so it's a real fix: in 1.6.0 the server-side
+  mixins never applied on a dedicated Fabric server). **CurseForge**: Claude in Chrome isn't connected and the app's
+  browser pane isn't signed in to CurseForge ("Unauthorized"): asked the user to sign in there (or import its
+  curseforge cookies from Chrome via the pane's menu) or reconnect the Chrome extension. GitHub releases:
+  `dev/publish/github_170.sh` (no Python needed).
+  After publishing: delete the `wip/*` branches and `ci-*` drafts, `git revert d6d2b5f b3f05a6` on main (Proxima
+  back), and since it'll be past 2 AM, schedule the PC's shutdown with a 10-minute warning (`shutdown /s /t 600`;
+  the user can cancel with `shutdown /a`).
+  **Next for Claude**: read the reports, review each
+  branch's diff, push each to `wip/<branch>` with `dev/ci/push-wip.sh` (the user OK'd wip pushes), fix from CI.
+  The README is updated for 1.7.0 (`deb9792`).
+
+### START HERE (2026-11-07, afternoon, Adam's PC): the next update, after 1.7.0's release
+
+- **Proxima's new film is BUILT on main (2026-11-07, the user: "Proxima's new film")**, as the approved previz:
+  docs/SS-07-PROXIMA.md "The new film" (what, where, how). The timeline moved to the previz's (FLASH 300, IMPACT 460,
+  film 620 ticks = 31 s); the space and Earth shots are `client/proxima/ProximaCosmos` (shader `proxima_space`), drawn
+  in the film's overlay pass; `ProximaSpace` and `EarthSphere` are gone; the zoom-out is Railgun-paced; four title
+  cards; 12 Sonniss film sounds wired (`art/sonniss_sounds.sh`, ascent and front recut to the new timing); music recut.
+  Game-tested (`test scripts\autotest20.sh`, frames by film time in `test builds\2026-11-07 auto test 26 proxima new
+  film\`): every shot draws, no shader errors; tweaked after (loops fainter, beam stronger, smaller sun glint, orbit
+  shot from 0.3 Earth radii; re-run `film2` confirms). Test jar `test builds6-11-07 Proxima new film`, in the Modrinth profile (the Sonniss test jar there renamed `(Sonniss sounds build).jar.disabled`; the profile has TSS 1.5.2 + RimuLib 1.2.2). Not yet: the user's own look (test jar), the SA-04A/SA-04B split, SA-04B CME.
+  Known: the test client's short render distance fogs the pull up's ground and the last shot (fine in a real game).
+- **The user's test of it (2026-11-07 ~13:15) and what's next, IN ORDER (the user: "be ready for the next session")**:
+  1. **FIXED 2026-11-07 evening: the space scene never showed in the user's game** ("all i see is clouds"). Cause:
+     the user has RimuLib's **legacy film style** on (`config/rimulib.properties` `cutscenes.legacy=true`; the tests
+     had it off). TSS 1.5.2's film overlay pass (`lll1ili11.liiillli1l(GuiGraphics,F)`, our "renderHud") has two
+     endings: legacy style returns early, and `FxManagerMixin` hooked TAIL (the last return only), so with legacy on
+     NONE of our film overlays drew: Proxima's space scene, and Halley's/Luna's/Proxima's letterbox and captions too
+     (title cards are off in legacy on purpose, like TSS's). Now hooked at RETURN (every return; drawn once a frame).
+     Re-tested with legacy on (`autotest20.sh` takes `LEGACY=true`; `test builds\2026-11-07 auto test 26 proxima new
+     film\legacy\` = the bug, `legacy2\` = fixed): Earth, the Dyson sphere, letterbox and captions all draw. Test jar
+     `test builds\2026-11-07 Proxima film, legacy style fix\`, in the Modrinth profile (the new film build there renamed
+     `.disabled`). Port this mixin change to every branch (each branch's TSS build may have the same early return).
+     The user's rendering mods were ruled out on the way (`usermods\` run).
+  1b. **The film's polish, BUILT 2026-11-07 evening (the user: "polish the cutscene first, the earth looks a lil scuffed
+     and the sfx sound pretty bad")**, details in docs/SS-07-PROXIMA.md "Polish after the user's first look". The user's
+     answers: the sounds were "wrong for the shot" and "cheap", "all of them are kinda bad and it also feels empty like
+     theres silence", lens/beam/gate the worst, "overhaul the whole thing"; Earth: the four faults Claude listed (blurry
+     close-up, fake clouds, a dark ring round the edge, a grey sun smudge) "but the earth doesnt look the same like it
+     does in the railgun". The user OK'd the downloads ("download anything and everything u need to make it look as
+     similar as possible to the railgun version of the earth"): Solar System Scope's 8k clouds, normal and specular
+     maps and day map from Wikimedia Commons (CC BY 4.0), in the project folder's `art sources\solar system scope\`.
+     **Earth**: `art/make_earth.sh` -> `earth_day.png` (NASA day + water mask, 4096) and `earth_detail.png` (relief,
+     city lights, clouds); shader modes 5-7 redone (haze, glowing rim, relief, glint, terminator band). Jar now 23 MB.
+     Game-tested (`test builds\2026-11-07 auto test 26 proxima new film\earth2\`, `polish1\`); the last terminator
+     tweak is not re-shot. **Sound**: one stereo soundtrack `proxima_film.ogg` (`art/make_proxima_film.sh`, 118
+     layers) replaces the 12 one-shots (removed with their events, subtitles and files; `proxima_radio` too, the radio
+     burst is in `proxima_front`); the land's world sounds are cut from it; `art/sonniss_sounds.sh` no longer makes
+     Proxima's. Played by `StrikeMusic.film` (Players slider), the land's world sounds skipped for the player hearing
+     it. No sound errors in the game run; whether it plays and how it sounds: only the user can tell. Test jar
+     `test builds\2026-11-07 Proxima film polish, Earth and sound\` (with `proxima_film.ogg` to listen outside the
+     game), in the Modrinth profile (the legacy-fix build there renamed `.disabled`). **Next: the user's verdict**,
+     then item 2.
+  1c. **Second polish round, BUILT 2026-11-07 night** (the user's look at the polish build; details in docs/SS-07-PROXIMA.md
+     "Second polish round"). The user said: the music "kinda like pauses"; the bottom caption should say "solar flare
+     inbound" not CME; the readout "kinda buggy like the kilometers"; "add a settings for miles and kilometers in the H
+     menu also make that ui in the top left a bit smaller"; "the sfx are still kinda eh"; the lens should get "a proper
+     sound effect and shakes the screen then shoots a proper more focused wave towards the earth and wherever you shot
+     it"; they LIKE the text bugging out from the wave (kept); "the infinity sign and inside of the dyson sphere look a
+     bit low quality". All done (lens power-up + shake + focused wave + refocus onto the caster's spot, sound re-cut,
+     braided loops, plated interior, smooth captions, SOLAR FLARE INBOUND, D = km/miles on the plate, plate 0.82x,
+     Earth preloaded on join). Music pausing: the file has no gaps; likely the user's server lag (336 ticks behind in
+     their log) or the mid-film texture load (fixed). They also asked "did u make a reversion for the old ui that took
+     up the whole screen rather then the floating ui": answered no: the floating White Space menu is RimuLib's own (its
+     "Legacy mode" switch only changes how films and warnings show text); we can't swap their menu. Game-tested
+     (`polish2\`, `polish3\` in auto test 26). "SFX still eh": only the lens/beam/gate part was redone this round;
+     ask which other moments sound wrong. Test jar `test builds\2026-11-07 Proxima film polish 2\`.
+  1d. **Third round, BUILT 2026-11-07 late night: the film is 36 s now** (details and the user's words in
+     docs/SS-07-PROXIMA.md "Third round"): music stacking switch (S, default off), infinity loops removed, Proxima
+     Centauri's surface redone, a zoom out from Earth into a warp to Proxima (no hard cut), the lens absorbing for 3 s
+     (energy visibly flowing into the disc, shake, sounds) then blasting, a cooler projectile with a tracking shot, a
+     slower shock wave (WAVE_TICKS 130, for everyone) with a 6 s pull-back shot and trees bursting. Timeline: FLASH 350,
+     IMPACT 510, MUSIC_AT 60 (same music file, same sync). Test jar `test builds\2026-11-07 Proxima film 36s\`.
+  1e. **The user, 2026-11-07 night: the 36 s film "its very good"**; changed the approach's and impact's sounds (done)
+     and the crash they saw was FTB Ultimine's (NullPointerException in its player data), not ours. Then they asked for
+     the non-cutscene version (item 2, BUILT the same night, below) and whether to start porting; they want Proxima out
+     "today/tmr" with GPT (Codex) porting. Claude's odds given: sky sphere ~80% this session; ports by the next day:
+     1.21.1 Forge/Fabric ~85%, 1.20.1 ~60%, 1.21.11/26.3 ~25% (rendering rewrite); recommended two waves.
+  2. **DONE 2026-11-07 night: the sky version** (first the Dyson sphere, then, the user's pick, only the gate; docs/SS-07-PROXIMA.md
+     "Fourth round"; `ProximaCosmos.renderSky`). Earlier note:
+     **Third person / everyone not in the film: draw the Dyson sphere in the real sky again, "pretty big"** (the user,
+     2026-11-07): the old in-sky intro (`ProximaSpace`, deleted in af100f4: git show af100f4^:src/main/java/dev/ss05/
+     halley/client/proxima/ProximaSpace.java) showed it to everyone; bring a sky version back, bigger, matching the
+     film's look as far as the glow pipeline allows (it only adds light: dark panels need the star held dim behind).
+  3. **The Flare's impact made cinematic (decided 2026-11-07)**: at the music's drop the camera pulls back and up in
+     slow motion while a glowing shock ring races out to the horizon, looks only (the damage stays its size). **SA-04B
+     CME gets the real "massive wave that spreads everywhere"** later.
+  4. **Music: the Flare keeps this track for now** (decided; "keep it for now"); the CME's music is decided when it is
+     built (the user's finished track, or a new one; moving this one is just a recut of `art/make_proxima_music.sh`).
+  5. Then the rest of the remaining list below (Sonniss sounds' verdict, SA-04A/04B split, CME design + previz, ...).
+  **Sounds clarified**: the test jar's sounds are byte-identical to 1.7.0's (checked all 37); the "newer" moon sounds the
+  user remembered were the unreleased Sonniss test jar's. The user wants the test builds to match what shipped
+  ("same sfx same everything"): it already does; no Sonniss swap until they say so.
 
 ### START HERE (2026-11-06, late evening, Adam's PC)
 
@@ -311,7 +531,7 @@ project 1719195, All Rights Reserved). It adds two skills to TSS's Stellar Remot
 
 Mod id `shooting_star_addition`, Java package `dev.ss05.halley` (the "SS-05/SS-06" names in code are the old
 codenames; players see SA-01/SA-02). GitHub `Adamko-10/the-shooting-star-addition`; CurseForge project **1725916**
-(author `adamko_10`). Current version **1.6.0** (in `gradle.properties` on every branch; TSS 1.5.0 only, §16).
+(author `adamko_10`). Current version **1.7.0** (released on GitHub 2026-11-07, all seven branches; TSS 1.5.2 + RimuLib 1.2.2 only; 1.6.0 = TSS 1.5.0, §16).
 Since 2026-11-03 `main` (not released) targets **TSS 1.5.1 only** with RimuLib 1.2.1 (§16, "TSS 1.5.1"); the other six
 branches are still on 1.5.0.
 
@@ -541,7 +761,12 @@ the scratchpad, never into the repo. Its own log (`run/clienttest/shooting_star.
    there are no default relations, so add them every time. Upload from the path the file chooser can reach. Ask the
    user to turn off their tab suspender first (Adam's PC only, see §0).
 6. Project description: `dev/publish/curseforge-description.md`. **Keep the top part (title line, Discord, YouTube,
-   other mod links) exactly as it is**; update the rest to match the features.
+   other mod links) exactly as it is**; update the rest to match the features. (2026-11-07: the user changed the intro
+   to "three skills" themselves on CurseForge; the repo copy says three too, maybe not word for word: copy the live
+   top before replacing the rest. The summary is max 256 characters; 1.7.0's is "Unofficial addon for The Shooting
+   Star [Demo]: adds SA-01 Halley (comet strike), SA-02 Luna (moon strike) and SA-00 Stellar Convergence (every
+   weapon at once) to the Stellar Remote. For The Shooting Star 1.5.2 + RimuLib, all loaders and versions."; add
+   Proxima when it ships.)
 7. Delete `wip/*` branches and `ci-*` drafts.
 
 ## 9. Status (2026-11-03)
@@ -1130,6 +1355,9 @@ apart, ambient sound returns slowly; smoke columns, drifting ash, steam.
 ("Space weather alert: X-class flare incoming"), give time to reach shelter, respect the protected tag, cooldowns and
 frequency in config.
 
+**Music credit (the user, 2026-11-07)**: Proxima's music is by **DOM_MusicST** (https://www.youtube.com/@DOM_MusicST)
+and **FarzanNB** (https://www.youtube.com/@FarzanNB), as Luna's is: credit both in the README, the changelog, the
+CurseForge description (Proxima's section and Credits) and the docs when Proxima ships.
 **Music**: the user has **full permission to use the OST** they picked (the G-Man / Drillman track, the part where
 Drillman shields everyone, remixed; 2026-10-20). They will send the file; cut it so its drop lands on IMPACT, as with
 Luna (§6).

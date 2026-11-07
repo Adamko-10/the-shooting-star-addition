@@ -80,6 +80,7 @@ public final class HalleyConfig {
         b.pop();
 
         MoonConfig.define(b);
+        ProximaConfig.define(b);
 
         b.comment("The Stellar Remote itself.").push("stellar_remote");
         NO_COOLDOWN = b.comment("Lets players switch off the cooldown of every skill on the Stellar Remote - The Shooting Star's own",
