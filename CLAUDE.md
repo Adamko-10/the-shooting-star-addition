@@ -134,7 +134,7 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   cards; 12 Sonniss film sounds wired (`art/sonniss_sounds.sh`, ascent and front recut to the new timing); music recut.
   Game-tested (`test scripts\autotest20.sh`, frames by film time in `test builds\2026-11-07 auto test 26 proxima new
   film\`): every shot draws, no shader errors; tweaked after (loops fainter, beam stronger, smaller sun glint, orbit
-  shot from 0.3 Earth radii). Not yet: the user's own look (test jar), the SA-04A/SA-04B split, SA-04B CME.
+  shot from 0.3 Earth radii; re-run `film2` confirms). Test jar `test builds6-11-07 Proxima new film`, in the Modrinth profile (the Sonniss test jar there renamed `(Sonniss sounds build).jar.disabled`; the profile has TSS 1.5.2 + RimuLib 1.2.2). Not yet: the user's own look (test jar), the SA-04A/SA-04B split, SA-04B CME.
   Known: the test client's short render distance fogs the pull up's ground and the last shot (fine in a real game).
 
 ### START HERE (2026-11-06, late evening, Adam's PC)
