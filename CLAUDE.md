@@ -77,7 +77,7 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   **LEFT: the seven CurseForge uploads + the project description** (`dev/publish/curseforge-description.md`,
   rewritten for 1.7.0, no Proxima mention): jars in the project folder's `releases\1.7.0\jars\` (release names),
   changelogs in `releases\1.7.0\changelogs\<branch>.md`; Release, Client + Server, TSS [Demo] + RimuLib required,
-  + Fabric API on Fabric; game versions per branch. Blocked on the user signing in (§0: never enter credentials).
+  + Fabric API on Fabric; game versions per branch. Blocked on the user signing in (§0: never enter credentials). The user picked Chrome (2026-11-07): waiting for the Claude in Chrome extension to connect and the tab suspender to be off.
   The `ports\` worktrees (local `port/<branch>` branches, BRIEF.md/REPORT.md) can go once CurseForge is done.
   Not pushed: main's commits after `b605256` (github_170.sh path fix, CLAUDE.md, the Proxima revert).
   Earlier, **Status 2026-11-07 ~08:00: PUSHED and RELEASED on GitHub: main (`b605256`), forge-1.20.1, fabric-1.20.1,
