@@ -12,6 +12,22 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
+### >>> RESUME HERE (2026-11-07, ~14:00, Adam's PC; written before a compact) <<<
+
+- **1.7.0 is RELEASED everywhere** (GitHub: 7 releases; CurseForge: 7 files, description updated; details in the
+  RELEASE PLAN block below). The user pasted the new summary (246 chars, §8 step 6) and changed the description's intro
+  to "three skills" themselves. `wip/*` and `ci-*` cleaned up; port worktrees removed.
+- **Now working on the next update, on local `main` only, NOT pushed** (commits after `b605256`): Proxima back
+  (`0028b31`), **Proxima's new film built** (`af100f4`, see "START HERE (2026-11-07, afternoon)" just below: the
+  numbered list there is the to-do, in order: 1. the space-scene bug in the user's game, 2. the Dyson sphere in the
+  real sky for third person/everyone, 3. the Flare's cinematic impact, 4. music stays on the Flare for now, 5. the rest).
+- Test jar of the new film is in the user's Modrinth profile (`(Proxima new film build)`); its sounds are byte-identical
+  to 1.7.0's (the user wants test builds to match what shipped; no Sonniss swap until they say so).
+- Credits to remember: Luna's AND Proxima's music are by DOM_MusicST and FarzanNB (§15); Stellar Quartet by ikun520.
+- Ponytail is OFF (the user, 2026-11-07). The user is low on usage: keep replies short.
+- Reminders owed (§0): idea #16 (Mrityu mod), Proxima's "Extra content" film ideas, SA-05+ candidates and the free
+  SA-03 slot, the Solar Residue economy (when Proxima ships).
+
 ### RELEASE PLAN (decided 2026-11-06 evening; the user: "what can we do to push it out today? either this session or the one after")
 
 - **1.7.0 = everything on main except Proxima**, for **all seven versions** (the user's pick), one big push. **Proxima
