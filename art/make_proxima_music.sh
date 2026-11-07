@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # SA-04 Proxima's music: the user's track, cut to Proxima's timeline (ProximaPlan). Usage:
 #   bash art/make_proxima_music.sh [source]   (default: the project folder's music/Video Project 49.m4a)
-# The game starts it at tick MUSIC_AT (10, ProximaFx) and keeps it in step, so the file's own time 0 is tick 10:
-#   1. the track from A0 for (HUSH - 10) ticks, chosen so that the track's gap-and-entry (ENTRY, 16.85 s in the draft)
+# The game starts it at tick MUSIC_AT (60, ProximaFx: as Earth comes into view) and keeps it in step, so the file's own time 0
+# is that tick:
+#   1. the track from A0 for (HUSH - MUSIC_AT) ticks, chosen so that the track's gap-and-entry (ENTRY, 16.85 s in the draft)
 #      lands on the flash (FLASH 300, since 2026-11-07): its pulses play under the space intro, its calmer middle under the coronal front;
 #   2. half a second of silence: the hush (HUSH 448 to IMPACT 460);
 #   3. the main section from its downbeat (DROP, 28.85 s in the draft), hard on the impact, faded out by FADE_END ticks.
@@ -16,7 +17,7 @@ OUT="$HERE/../src/main/resources/assets/shooting_star_addition/sounds/proxima_mu
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 
-MUSIC_AT=10; FLASH=300; HUSH=448; IMPACT=460; FADE_END=690
+MUSIC_AT=60; FLASH=350; HUSH=498; IMPACT=510; FADE_END=740
 ENTRY=16.85; DROP=28.85
 A0=$(awk "BEGIN{print $ENTRY - ($FLASH - $MUSIC_AT) / 20}")
 ALEN=$(awk "BEGIN{print ($HUSH - $MUSIC_AT) / 20}")

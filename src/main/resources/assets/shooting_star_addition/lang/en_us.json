@@ -65,6 +65,8 @@
   "gui.shooting_star_addition.off": "OFF",
   "gui.shooting_star_addition.music": "Music",
   "gui.shooting_star_addition.music.hint": "Luna's and Proxima's. Uses the Music volume.",
+  "gui.shooting_star_addition.stack_music": "Stack music",
+  "gui.shooting_star_addition.stack_music.hint": "Casting again: both play, or the newest takes over.",
   "gui.shooting_star_addition.epic": "Epic mode",
   "gui.shooting_star_addition.epic.hint": "Luna falls slower; everyone sees it.",
   "gui.shooting_star_addition.keep_moon": "Keep the moon",

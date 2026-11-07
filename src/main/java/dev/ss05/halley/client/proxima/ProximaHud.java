@@ -43,6 +43,11 @@ public final class ProximaHud {
         if (punch > 0.01F) {
             g.fill(0, 0, w, h, (int) (punch * fade * 255.0F) << 24 | 0xFFFFFF);
         }
+        // the white of the warp, hiding the arrival at Proxima Centauri
+        float arrive = smooth((ct - (ProximaPlan.SPACE - 6)) / 5.0F) * (1.0F - smooth((ct - (ProximaPlan.SPACE + 1)) / 7.0F));
+        if (arrive > 0.01F) {
+            g.fill(0, 0, w, h, (int) (arrive * 0.85F * fade * 255.0F) << 24 | 0xF2F4FF);
+        }
         int bar = (int) (h * 0.055F * Mth.clamp(ct / 12.0F, 0.0F, 1.0F) * fade);
         if (bar > 0) {
             g.fill(0, 0, w, bar, (int) (a * 0.92F) << 24);
@@ -73,26 +78,34 @@ public final class ProximaHud {
         if (ct < ProximaPlan.ASCENT) {
             caption = "UPLINK";
             detail = "STELLAR REMOTE · SA-04";
-        } else if (ct < ProximaPlan.SPACE) {
+        } else if (ct < ProximaPlan.WARP) {
             caption = "ASCENDING";
             if (ct < ProximaPlan.ORBIT) {
                 detail = "ALTITUDE  " + small(ProximaStoryboard.riseHeight(ct), miles);
             } else {
-                double q = Mth.clamp(((ct / 20.0 - 1.6) / 3.8 - 0.36) / 0.64, 0.0, 1.0);
+                double q = Mth.clamp((ct - ProximaPlan.ORBIT) / (double) (ProximaPlan.WARP - ProximaPlan.ORBIT), 0.0, 1.0);
                 detail = "ALTITUDE  " + large(ProximaCosmos.altitude(q) * 6371000.0, miles, 0);
             }
+        } else if (ct < ProximaPlan.SPACE) {
+            caption = "INTERSTELLAR TRANSIT";
+            double k = Mth.clamp((ct - ProximaPlan.WARP) / (double) (ProximaPlan.SPACE - ProximaPlan.WARP), 0.0, 1.0);
+            detail = String.format(Locale.ROOT, "PROXIMA CENTAURI  %.2f LY", 4.24 * (1.0 - k * k));
         } else if (ct < ProximaPlan.IRIS) {
             caption = "PROXIMA CENTAURI";
             detail = "4.24 LIGHT YEARS";
-        } else if (ct < ProximaPlan.LOOPS) {
+        } else if (ct < ProximaPlan.LENS) {
             caption = "DYSON SPHERE";
             detail = "APERTURE OPENING";
-        } else if (ct < ProximaPlan.LENS) {
-            caption = "MAGNETIC RECONNECTION";
-            detail = "CLASS " + ProximaParams.flareClass(p.params.power());
         } else if (ct < ProximaPlan.EARTH) {
             caption = "LENS ARRAY";
-            detail = ct < ProximaPlan.BEAM ? "CHARGING" : "BEAM FOCUSED";
+            if (ct < ProximaPlan.POWER) {
+                detail = "ASSEMBLING";
+            } else if (ct < ProximaPlan.BEAM) {
+                double k = (ct - ProximaPlan.POWER) / (double) (ProximaPlan.BEAM - ProximaPlan.POWER);
+                detail = String.format(Locale.ROOT, "ABSORBING  %3d%%", Math.round(100.0 * k));
+            } else {
+                detail = "CLASS " + ProximaParams.flareClass(p.params.power()) + "  FIRED";
+            }
         } else if (ct < ProximaPlan.FLASH) {
             caption = "EARTH";
             detail = ct < ProximaPlan.GATE + 8 ? "BEAM INBOUND" : "GATE OPEN";

@@ -8,12 +8,13 @@
 # part is also cut into the world sounds everyone near the strike hears (proxima_flash, _front, _inhale, _impact, _wave,
 # mono). Layers from the Sonniss GDC 2026 bundle (as art/sonniss_sounds.sh; only our mixes ship) plus a few synthesised
 # ones (the lens's charging whine, the radio burst, the flash's ringing).
-# The film's moments, in seconds (ticks / 20): press 0.35, the pull up 1.6-2.95 (white punch 2.65-3.0), Earth from orbit
-# 2.95-5.4, Proxima Centauri 5.4 (its title 5.7), the Dyson sphere 7.8 (title 8.15, the iris opening 8.05-9.75), the
-# loops 10.0 (snap 10.85-10.95), the lens 11.4 (tiles gathering to 12.05, power arriving 12.0, title 11.55), the shot
-# 12.45 (shock rings 12.45, 12.63), Earth and the gate 13.0 (panels 13.1-13.4, opening 13.35-13.95, the wave caught 13.75,
-# refocused onto the caster's spot, landing 14.5), the flash 15.0 (title 15.25), the front 16.8, the hush 22.4, the impact 23.0, the shock
-# wave 24.6, afterwards 27.6, the end 31.0.
+# The film's moments, in seconds (ticks / 20; the timeline lengthened 2026-11-07 night): press 0.35, the pull up 1.6-2.95
+# (white punch 2.65-3.0), Earth from orbit 2.95-5.0 (the music starts at 3.0), the zoom out into the warp 5.0-6.2 (white
+# at the arrival), Proxima Centauri 6.2 (its title 6.5), the Dyson sphere 8.6 (title 8.95, the iris opening 8.85-10.55),
+# the lens 10.8 (tiles gathering to 11.4), its power flowing in 11.5-14.5 (the CME title 13.6), the shot 14.5 (shock
+# rings 14.5, 14.68), riding alongside it 14.65-15.5, Earth and the gate 15.5 (panels 15.6-15.9, opening 15.85-16.45,
+# the shot caught 16.25, refocused onto the caster's spot, landing 17.0), the flash 17.5 (title 17.75), the front 19.3,
+# the hush 24.9, the impact 25.5, the shock wave 27.1-33.1 (passing under the camera ~29.0), afterwards 33.1, the end 36.0.
 #
 # Usage: bash art/make_proxima_film.sh [out dir]   (default: the mod's sounds folder)
 # Needs ffmpeg (with libvorbis) and awk. SONNISS=<the bundle's files folder> to point elsewhere.
@@ -26,7 +27,7 @@ mkdir -p "$OUT"
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 SR=44100
-LEN=31.5
+LEN=36.5
 
 ff() { ffmpeg -hide_banner -loglevel error -y "$@"; }
 loudness() { ffmpeg -hide_banner -nostats -i "$1" -af ebur128 -f null - 2>&1 | awk '/^ *I:/{v=$2} END{print v}'; }
@@ -107,15 +108,22 @@ METALTHUD="The Noisery - Moaning Metal/DSGNImpt_Metal Hit Thud Thump Low Ring Ge
 METALBOW="The Noisery - Moaning Metal/DSGNTonl_Designed Metal Bowed Screech Tonal Reverb 7_The Noisery_Moaning Metal.wav"
 METALSCRAPE="The Noisery - Moaning Metal/DSGNTonl_Metal Scrape Low Tonal LFE 4_The Noisery_Moaning Metal.wav"
 GUSTS="The Noisery - City Rain/WINDTonl_Wind Strong Gusts Hurricane Vents Rattle 06_The Noisery_City Rain.wav"
+WOOD="344 Audio - Haunting Ambiences Vol. 3/WOODImpt_Wooden Hit, Dark, Heavy Hit, Vampire's Prison_344 Audio_Haunting Ambiences Vol 3.wav"
 
 # synthesised: the lens charging (a whine rising from 180 Hz to ~2 kHz, with a growl an octave down), the radio burst (a
 # whine falling from 2.4 kHz to 260 Hz, chopped, as a CME's type II burst drifts down), the ringing after the flash
 synth charge 0.45 "0.5*sin(2*PI*180*(exp(5.4*t)-1)/5.4)+0.3*sin(PI*180*(exp(5.4*t)-1)/5.4)+0.1*(random(0)-0.5)"
 synth radio 5.6 "(0.5*sin(2*PI*(2400*5.6/2.22)*(1-exp(-2.22*t/5.6)))+0.25*(random(0)-0.5))*(0.6+0.4*sin(2*PI*7*t))*(0.7+0.3*sin(2*PI*1.3*t))"
 synth ring 2.6 "0.4*sin(2*PI*3150*t)*exp(-1.6*t)+0.2*sin(2*PI*4720*t)*exp(-2.4*t)"
+# the warp's rising roar (80 Hz to ~720 Hz with rushing noise) and the lens's scream at the end of its charge (300 Hz to
+# 2.4 kHz, with a growl an octave down)
+synth warp 1.3 "(0.4*sin(2*PI*80*(exp(1.69*t)-1)/1.69)+0.3*(random(0)-0.5))*(t/1.3)"
+synth scream 1.0 "0.45*sin(2*PI*300*(exp(2.08*t)-1)/2.08)+0.25*sin(PI*300*(exp(2.08*t)-1)/2.08)+0.1*(random(0)-0.5)"
 CHARGE="$TMP/charge.wav"
 RADIO="$TMP/radio.wav"
 RING="$TMP/ring.wav"
+WARP="$TMP/warp.wav"
+SCREAM="$TMP/scream.wav"
 
 # ---- 1. The press and the uplink (0-1.6) ------------------------------------------------------------------------------
 L "$PINGDOWN" 0 0.8 -5 0.35 "highpass=f=300"
@@ -132,151 +140,185 @@ L "$DEBRIS" 0.25 1.3 -4 2.88 "$(pan 0.2)"
 L "$DROP_FAST" 0 2.0 -5 2.9
 L "$FIREWHOOSH" 0.4 1.0 -11 2.85 "$(rate 0.6),lowpass=f=1200"
 
-# ---- 3. Earth from orbit (2.95-5.4); the space bed runs on to the flash -----------------------------------------------
-L "$INDUSTRIAL" 4 12.6 -11 2.92 "$(rate 0.8),lowpass=f=700,afade=t=in:d=0.5,afade=t=out:st=11.6:d=1.0"
-L "$SHIPROOM" 12 12.4 -17 3.0 "lowpass=f=1200,afade=t=in:d=0.8,afade=t=out:st=11.4:d=1.0"
-L "$ASTRAL" 0 2.6 -4 2.95 "afade=t=in:d=0.3,afade=t=out:st=2.0:d=0.6"
-L "$SPELLBOUND" 0 2.5 -8 3.0 "afade=t=in:d=0.8,$(up 2.5)"
-L "$AMRADIO" 20 2.3 -19 3.1 "highpass=f=400,lowpass=f=3200,afade=t=in:d=0.4,afade=t=out:st=1.5:d=0.8,$(pan 0.5)"
-L "$GLASSWHOOSH" 0 1.5 -12 3.9 "lowpass=f=7000"
+# ---- 3. Earth from orbit (2.95-5.0), then the zoom out: the rush rising faster and faster into the warp's roar, a
+# white whoom at the arrival (6.2); the space bed runs on to the flash -------------------------------------------------
+L "$INDUSTRIAL" 4 12.6 -11 2.92 "$(rate 0.8),lowpass=f=700,afade=t=in:d=0.5,afade=t=out:st=13.6:d=1.0"
+L "$SHIPROOM" 12 14.6 -17 3.0 "lowpass=f=1200,afade=t=in:d=0.8,afade=t=out:st=13.6:d=1.0"
+L "$ASTRAL" 0 2.6 -4 2.95 "afade=t=in:d=0.3,afade=t=out:st=1.6:d=0.5"
+L "$SPELLBOUND" 0 2.1 -8 3.0 "afade=t=in:d=0.8,$(up 2.1)"
+L "$AMRADIO" 20 2.0 -19 3.1 "highpass=f=400,lowpass=f=3200,afade=t=in:d=0.4,afade=t=out:st=1.2:d=0.8,$(pan 0.5)"
+L "$WINDRUSH" 0 1.0 0 4.9 "$(rate 0.6),$(rise 1.6)"
+L "$BLASTOFF" 2 1.25 2 5.0 "$(rise 1.25),highpass=f=120"
+L "$UFO" 25 1.3 -3 5.0 "$(rise 1.3)"
+L "$WARP" 0 1.3 0 4.95 "$(rise 1.3),highpass=f=60"
+L "$CUTSWEEP" 0 1.0 0 5.2 "highpass=f=100"
+L "$BOOM_A" 0.2 3.0 -2 6.15 "afade=t=out:st=1.5:d=1.5"
+L "$GLASSWHOOSH" 1.0 1.5 -9 6.1 "highpass=f=1200"
 
-# ---- 4. Proxima Centauri (5.4-7.8): the star's boiling roar (to the cut to Earth), its title card -------------------
-L "$CAULDRON" 30 7.6 -11 5.4 "$(rate 0.45),lowpass=f=1500,afade=t=in:d=0.25,afade=t=out:st=7.1:d=0.5"
-L "$STORM" 90 7.6 -12 5.4 "$(rate 0.6),lowpass=f=900,afade=t=in:d=0.25,afade=t=out:st=7.1:d=0.5"
-L "$FIREWHOOSH" 0 2.4 -6 5.38 "$(rate 0.5),lowpass=f=2500"
-L "$BOOM_C" 0.15 4.2 -1 5.6 "afade=t=out:st=2.4:d=1.8"
-L "$BRAAM_B" 0 3.8 -6 5.66 "afade=t=out:st=2.2:d=1.6"
-L "$METALSCRAPE" 0 2.4 -10 6.4 "$(pan -0.3)"
-L "$METALBOW" 2 2.6 -15 6.9 "lowpass=f=3000,afade=t=in:d=0.4,afade=t=out:st=1.8:d=0.8,$(pan 0.4)"
+# ---- 4. Proxima Centauri (6.2-8.6): slowing in out of the warp, the star's boiling roar growing as it nears (on till the
+# cut to Earth), its title card 6.5 ----------------------------------------------------------------------------------------
+L "$CAULDRON" 30 7.6 -11 6.2 "$(rate 0.45),lowpass=f=1500,afade=t=in:d=1.5,afade=t=out:st=8.8:d=0.5"
+L "$STORM" 90 7.6 -12 6.2 "$(rate 0.6),lowpass=f=900,afade=t=in:d=1.5,afade=t=out:st=8.8:d=0.5"
+L "$FIREWHOOSH" 0 2.4 -8 6.3 "$(rate 0.5),lowpass=f=2500"
+L "$BOOM_C" 0.15 4.2 -1 6.4 "afade=t=out:st=2.4:d=1.8"
+L "$BRAAM_B" 0 3.8 -6 6.46 "afade=t=out:st=2.2:d=1.6"
+L "$METALSCRAPE" 0 2.4 -10 7.2 "$(pan -0.3)"
+L "$METALBOW" 2 2.6 -15 7.7 "lowpass=f=3000,afade=t=in:d=0.4,afade=t=out:st=1.8:d=0.8,$(pan 0.4)"
 
-# ---- 5. The Dyson sphere and its iris (7.8-10.0): title card 8.15, the iris opening ring by ring 8.05-9.75 ----------
-L "$METALPASS" 0 1.2 -8 7.55
-L "$BRAAM_A" 0 3.6 -6 8.05 "afade=t=out:st=2.0:d=1.6"
-L "$BOOM_B" 0.15 3.2 -6 8.0 "afade=t=out:st=1.6:d=1.6"
-L "$FACTORY" 10 2.4 -13 7.85 "afade=t=in:d=0.3,afade=t=out:st=1.6:d=0.8"
-L "$SERVO" 0 0.9 -8 8.1 "$(rate 0.6),$(pan -0.5)"
-L "$SERVO" 0 0.9 -8 8.5 "$(rate 0.55),$(pan 0.5)"
-L "$SERVO" 0 0.9 -8 8.9 "$(rate 0.5),$(pan -0.3)"
-L "$SERVO" 0 0.9 -8 9.3 "$(rate 0.45),$(pan 0.3)"
-L "$LATCH" 0 0.38 -3 8.55 "$(rate 0.5),$(pan -0.5)"
-L "$LATCH" 0 0.38 -3 8.95 "$(rate 0.5),$(pan 0.5)"
-L "$LATCH" 0 0.38 -3 9.35 "$(rate 0.45),$(pan -0.3)"
-L "$METALTHUD" 0 2.0 -5 9.72 "afade=t=out:st=1.2:d=0.8"
-L "$SWEEPSLIDE" 0 0.5 -15 8.2 "$(rate 0.5)"
-L "$SWEEPSLIDE" 0 0.5 -15 9.0 "$(rate 0.45)"
+# ---- 5. The Dyson sphere and its iris (8.6-10.8): title card 8.95, the iris opening ring by ring 8.85-10.55 ----------
+L "$METALPASS" 0 1.2 -8 8.35
+L "$BRAAM_A" 0 3.6 -6 8.85 "afade=t=out:st=2.0:d=1.6"
+L "$BOOM_B" 0.15 3.2 -6 8.8 "afade=t=out:st=1.6:d=1.6"
+L "$FACTORY" 10 2.4 -13 8.65 "afade=t=in:d=0.3,afade=t=out:st=1.6:d=0.8"
+L "$SERVO" 0 0.9 -8 8.9 "$(rate 0.6),$(pan -0.5)"
+L "$SERVO" 0 0.9 -8 9.3 "$(rate 0.55),$(pan 0.5)"
+L "$SERVO" 0 0.9 -8 9.7 "$(rate 0.5),$(pan -0.3)"
+L "$SERVO" 0 0.9 -8 10.1 "$(rate 0.45),$(pan 0.3)"
+L "$LATCH" 0 0.38 -3 9.35 "$(rate 0.5),$(pan -0.5)"
+L "$LATCH" 0 0.38 -3 9.75 "$(rate 0.5),$(pan 0.5)"
+L "$LATCH" 0 0.38 -3 10.15 "$(rate 0.45),$(pan -0.3)"
+L "$METALTHUD" 0 2.0 -5 10.52 "afade=t=out:st=1.2:d=0.8"
+L "$SWEEPSLIDE" 0 0.5 -15 9.0 "$(rate 0.5)"
+L "$SWEEPSLIDE" 0 0.5 -15 9.8 "$(rate 0.45)"
 
-# ---- 6. The loops (10.0-11.4): crackling, rising to the snap where they cross (10.85-10.95) ------------------------------
-L "$ARCUP" 0 0.95 -8 10.0 "$(up 0.95)"
-L "$BUZZ" 3 0.95 -11 10.0 "highpass=f=800,$(up 0.95)"
-L "$SWELL" 5.2 0.9 -10 10.0 "areverse,highpass=f=200"
-L "$ARC" 0 1.0 1 10.85
-L "$ELECHIT" 0 2.0 0 10.88 "afade=t=out:st=1.2:d=0.8"
-L "$DROP_FAST" 0 2.0 -6 10.9
-L "$THUNDER" 3.0 1.6 -2 10.84 "lowpass=f=5000"
-L "$CHORD" 0 2.5 -11 10.95 "highpass=f=200"
+# ---- 6. The lens (10.8-14.5): tiles flying in and locking, faster and faster (to 11.4); its power arriving (11.5: a heavy
+# thunk, arcs connecting) and flowing in for 3 s: a reactor hum and a power-up swelling, energy rushing in, a throb
+# quickening, arcs crackling, a dark braam rising backwards, the CME title (13.6), the lens screaming up, the air drawn
+# in, the screen shaking harder and harder ---------------------------------------------------------------------------------
+L "$SWEEPSLIDE" 0 0.5 -10 10.75 "$(rate 0.7)"
+L "$METALPASS" 0 1.2 -6 10.8 "$(rate 0.9),$(pan -0.4)"
+L "$METALPASS" 0 1.2 -7 11.0 "$(rate 1.1),$(pan 0.4)"
+L "$SERVO" 0 0.9 -10 10.85 "$(rate 0.8)"
+L "$LATCH" 0 0.38 -6 10.95 "$(rate 0.7),$(pan -0.6)"
+L "$LATCH" 0 0.38 -6 11.07 "$(rate 0.75),$(pan 0.6)"
+L "$LATCH" 0 0.38 -7 11.17 "$(rate 0.8),$(pan -0.3)"
+L "$LATCH" 0 0.38 -7 11.25 "$(rate 0.85),$(pan 0.3)"
+L "$LATCH" 0 0.38 -8 11.31 "$(rate 0.9),$(pan -0.5)"
+L "$LATCH" 0 0.38 -8 11.36 "$(rate 0.95),$(pan 0.5)"
+L "$DROP_FAST" 0 2.0 -1 11.5
+L "$METALTHUD" 0 1.2 -2 11.5 "afade=t=out:st=0.6:d=0.6"
+L "$ELECHIT" 0 1.0 -2 11.5 "afade=t=out:st=0.5:d=0.5"
+L "$ARC" 0 1.0 -3 11.52
+L "$REACTOR" 15 3.0 1 11.5 "$(rise 3.0),lowpass=f=3000"
+L "$ARCUP" 0 3.0 3 11.5 "$(rise 3.0)"
+L "$BUZZ" 2 2.9 -2 11.6 "highpass=f=600,$(rise 2.9)"
+L "$SPELLBOUND" 0 3.0 -3 11.5 "$(rise 3.0)"
+L "$BRAAM_A" 0 3.0 1 11.5 "areverse,$(rise 3.0),lowpass=f=2500"
+L "$GLASSWHOOSH" 0 2.6 -9 11.85 "areverse"
+L "$SWEEPSLIDE" 0 0.5 -12 12.0 "areverse,$(rate 0.8)"
+L "$SWEEPSLIDE" 0 0.5 -11 12.75 "areverse,$(rate 0.8),$(pan 0.5)"
+L "$SWEEPSLIDE" 0 0.5 -10 13.35 "areverse,$(rate 0.8),$(pan -0.5)"
+L "$JUMPDROP" 0 0.4 -5 11.95 "lowpass=f=220,afade=t=out:st=0.25:d=0.15"
+L "$JUMPDROP" 0 0.4 -4 12.55 "lowpass=f=220,afade=t=out:st=0.25:d=0.15"
+L "$JUMPDROP" 0 0.4 -4 13.05 "lowpass=f=220,afade=t=out:st=0.25:d=0.15"
+L "$JUMPDROP" 0 0.4 -3 13.45 "lowpass=f=220,afade=t=out:st=0.25:d=0.15"
+L "$JUMPDROP" 0 0.4 -3 13.75 "lowpass=f=220,afade=t=out:st=0.25:d=0.15"
+L "$JUMPDROP" 0 0.4 -2 13.98 "lowpass=f=220,afade=t=out:st=0.2:d=0.15"
+L "$JUMPDROP" 0 0.4 -2 14.16 "lowpass=f=220,afade=t=out:st=0.15:d=0.1"
+L "$JUMPDROP" 0 0.4 -1 14.3 "lowpass=f=220,afade=t=out:st=0.1:d=0.1"
+L "$ARC" 0 1.0 -10 12.3 "$(rate 1.2),$(pan -0.6)"
+L "$ARC" 0 1.0 -9 12.9 "$(rate 0.9),$(pan 0.6)"
+L "$ARC" 0 1.0 -8 13.5 "$(rate 1.1),$(pan -0.3)"
+L "$ARC" 0 1.0 -7 13.9 "$(rate 1.3),$(pan 0.4)"
+L "$ARC" 0 1.0 -6 14.2 "$(rate 1.0)"
+L "$CHORD" 0 2.0 -9 13.6 "highpass=f=150,afade=t=out:st=0.6:d=0.3"
+L "$SCREAM" 0 1.0 3 13.5 "$(rise 1.0),lowpass=f=7000"
+L "$BOOM_A" 0.25 0.6 -6 13.9 "areverse,$(up 0.6)"
+L "$FIREWHOOSH" 0 0.65 -8 13.85 "areverse,$(up 0.65)"
+L "$CUTSWEEP" 0 1.0 -3 13.5 "highpass=f=100"
 
-# ---- 7. The lens (11.4-12.45): tiles flying in and locking, faster and faster (by 12.05), its title 11.55; power arriving
-# from the star at 12.0 (a heavy thunk, arcs crackling, the screen starting to shake), the charge screaming up to the shot --
-L "$SWEEPSLIDE" 0 0.5 -10 11.35 "$(rate 0.7)"
-L "$METALPASS" 0 1.2 -6 11.4 "$(rate 0.9),$(pan -0.4)"
-L "$METALPASS" 0 1.2 -7 11.62 "$(rate 1.1),$(pan 0.4)"
-L "$SERVO" 0 0.9 -10 11.45 "$(rate 0.8)"
-L "$LATCH" 0 0.38 -6 11.55 "$(rate 0.7),$(pan -0.6)"
-L "$LATCH" 0 0.38 -6 11.67 "$(rate 0.75),$(pan 0.6)"
-L "$LATCH" 0 0.38 -7 11.77 "$(rate 0.8),$(pan -0.3)"
-L "$LATCH" 0 0.38 -7 11.85 "$(rate 0.85),$(pan 0.3)"
-L "$LATCH" 0 0.38 -8 11.91 "$(rate 0.9),$(pan -0.5)"
-L "$LATCH" 0 0.38 -8 11.96 "$(rate 0.95),$(pan 0.5)"
-L "$CHORD" 0 2.0 -9 11.5 "highpass=f=150,afade=t=out:st=1.0:d=0.8"
-L "$DROP_FAST" 0 2.0 -1 12.0
-L "$METALTHUD" 0 1.2 -2 12.0 "afade=t=out:st=0.6:d=0.6"
-L "$ELECHIT" 0 1.0 -2 12.0 "afade=t=out:st=0.5:d=0.5"
-L "$ARC" 0 1.0 -3 12.02
-L "$CHARGE" 0 0.45 -4 12.0 "$(rise 0.45),lowpass=f=7000"
-L "$ARCUP" 1 0.45 -6 12.0 "$(rise 0.45)"
-L "$BUZZ" 0 0.45 -7 12.0 "highpass=f=700,$(rise 0.45)"
-L "$BOOM_A" 0.25 0.45 -7 12.0 "areverse,$(up 0.45)"
-L "$RUMBLE" 2 0.5 -6 12.0 "lowpass=f=300"
-L "$CUTSWEEP" 0 1.0 -4 11.45 "highpass=f=100"
+# ---- 7. The shot (14.5): the blast, the bolt screaming away down its beam, two shock rings; riding alongside it
+# (14.65-15.5): its plasma roaring and sizzling, its helix whirring -----------------------------------------------------
+L "$BOOM_C" 0.2 3.0 5 14.5 "afade=t=out:st=1.5:d=1.5"
+L "$ELECHIT" 0 2.0 0 14.48
+L "$FIREWORKS" 9.05 1.2 -4 14.45 "lowpass=f=6000"
+L "$JUMPDROP" 0 2.5 -3 14.5 "afade=t=out:st=1.5:d=1.0"
+L "$BRAAM_B" 0 2.0 -6 14.5 "afade=t=out:st=1.0:d=1.0"
+L "$FIREWHOOSH" 0 1.0 -3 14.5 "$(rate 1.4)"
+L "$GLASSWHOOSH" 1.0 1.2 -8 14.47 "highpass=f=1500"
+L "$DEBRIS" 0.2 1.0 -9 14.5 "$(pan -0.5)"
+L "$DEBRIS" 0.2 1.0 -10 14.68 "$(pan 0.5)"
+L "$BLASTOFF" 6 1.0 -2 14.5 "afade=t=out:st=0.9:d=0.1"
+L "$BUZZ" 0 1.0 -7 14.5 "highpass=f=600,afade=t=out:st=0.9:d=0.1"
+L "$ARCUP" 4 0.85 -8 14.65 "highpass=f=400,afade=t=out:st=0.75:d=0.1"
+L "$UFO" 30 0.85 -9 14.65 "highpass=f=300,afade=t=out:st=0.75:d=0.1"
 
-# ---- 8. The beam (12.45-13.0): the shot, its wave racing away down the beam, two shock rings --------------------------
-L "$BOOM_C" 0.2 3.0 4 12.45 "afade=t=out:st=1.5:d=1.5"
-L "$ELECHIT" 0 2.0 -1 12.43
-L "$FIREWORKS" 9.05 1.2 -5 12.4 "lowpass=f=6000"
-L "$JUMPDROP" 0 2.5 -4 12.45 "afade=t=out:st=1.5:d=1.0"
-L "$BLASTOFF" 6 0.6 -3 12.45 "afade=t=out:st=0.5:d=0.1"
-L "$BUZZ" 0 0.6 -8 12.45 "highpass=f=600,afade=t=out:st=0.5:d=0.1"
-L "$FIREWHOOSH" 0 1.0 -4 12.45 "$(rate 1.4)"
-L "$GLASSWHOOSH" 1.0 1.2 -9 12.42 "highpass=f=1500"
-L "$DEBRIS" 0.2 1.0 -9 12.45 "$(pan -0.5)"
-L "$DEBRIS" 0.2 1.0 -10 12.63 "$(pan 0.5)"
-
-# ---- 9. Earth and the gate (13.0-15.0): the wave streaking in, the gate unfolding and locking, catching it (13.75) with a
-# jolt, refocusing it (a whine) into a narrow beam onto the caster's spot, the wave landing there (14.5), a swell into
+# ---- 8. Earth and the gate (15.5-17.5): the shot streaking in, the gate unfolding and locking, catching it (16.25) with a
+# jolt, refocusing it (a whine) into a narrow beam onto the caster's spot, the wave landing there (17.0), a swell into
 # the flash -------------------------------------------------------------------------------------------------------------
-L "$UFO" 10 2.2 -10 13.0 "lowpass=f=3000,afade=t=in:d=0.15,afade=t=out:st=1.4:d=0.8"
-L "$BLASTOFF" 7 0.8 -12 13.0 "lowpass=f=1500,afade=t=out:st=0.3:d=0.5"
-L "$WINDRUSH" 0.3 0.75 -5 13.0 "$(up 0.75),highpass=f=300"
-L "$SERVO" 0 0.9 -10 13.1 "$(rate 0.7),$(pan -0.4)"
-L "$SERVO" 0 0.9 -10 13.28 "$(rate 0.65),$(pan 0.4)"
-L "$LATCH" 0 0.38 -6 13.6 "$(rate 0.6),$(pan -0.3)"
-L "$ELECHIT" 0 1.8 -1 13.73
-L "$DROP_MED" 0 2.0 -4 13.75 "afade=t=out:st=1.2:d=0.8"
-L "$THUNDER" 5.8 1.6 -6 13.72 "lowpass=f=4000"
-L "$METALTHUD" 0 1.6 -5 13.75 "afade=t=out:st=0.8:d=0.8"
-L "$CHARGE" 0 0.45 -9 13.85 "$(rate 1.6)"
-L "$FIREWHOOSH" 0 2.4 -5 13.65 "lowpass=f=5000"
-L "$STORM" 50 1.0 -8 14.0 "highpass=f=200,$(up 1.0)"
-L "$BOOM_B" 0.15 3.0 -3 14.4 "afade=t=out:st=1.2:d=1.4"
-L "$FIREWORKS" 4.15 1.2 -8 14.45 "lowpass=f=2500"
-L "$DROP_FAST" 0 2.0 -6 14.5
-L "$CUTSWEEP" 0 1.0 -4 14.0 "highpass=f=100"
+L "$UFO" 10 2.2 -10 15.5 "lowpass=f=3000,afade=t=in:d=0.15,afade=t=out:st=1.4:d=0.8"
+L "$BLASTOFF" 7 0.8 -12 15.5 "lowpass=f=1500,afade=t=out:st=0.3:d=0.5"
+L "$WINDRUSH" 0.3 0.75 -5 15.5 "$(up 0.75),highpass=f=300"
+L "$SERVO" 0 0.9 -10 15.6 "$(rate 0.7),$(pan -0.4)"
+L "$SERVO" 0 0.9 -10 15.78 "$(rate 0.65),$(pan 0.4)"
+L "$LATCH" 0 0.38 -6 16.1 "$(rate 0.6),$(pan -0.3)"
+L "$ELECHIT" 0 1.8 -1 16.23
+L "$DROP_MED" 0 2.0 -4 16.25 "afade=t=out:st=1.2:d=0.8"
+L "$THUNDER" 5.8 1.6 -6 16.22 "lowpass=f=4000"
+L "$METALTHUD" 0 1.6 -5 16.25 "afade=t=out:st=0.8:d=0.8"
+L "$CHARGE" 0 0.45 -9 16.35 "$(rate 1.6)"
+L "$FIREWHOOSH" 0 2.4 -5 16.15 "lowpass=f=5000"
+L "$STORM" 50 1.0 -8 16.5 "highpass=f=200,$(up 1.0)"
+L "$BOOM_B" 0.15 3.0 -3 16.9 "afade=t=out:st=1.2:d=1.4"
+L "$FIREWORKS" 4.15 1.2 -8 16.95 "lowpass=f=2500"
+L "$DROP_FAST" 0 2.0 -6 17.0
+L "$CUTSWEEP" 0 1.0 -4 16.5 "highpass=f=100"
 
-# ---- 10. The flash (15.0): a searing burst, the title card 15.25, ringing ears, the land smoking -----------------------
-L "$BOOM_A" 0.2 3.0 3 14.95 "afade=t=out:st=1.0:d=2.0"
-L "$SWELL" 0 2.2 -5 15.0 "highpass=f=500,afade=t=out:st=1.0:d=1.2"
-L "$RING" 0 2.6 -17 15.05
-L "$BRAAM_A" 0 2.6 -8 15.15 "afade=t=out:st=1.2:d=1.4"
-L "$CAULDRON" 60 6.0 -17 15.2 "afade=t=in:d=0.5,afade=t=out:st=1.2:d=0.4"
-L "$FIRELOOP" 0 1.8 -17 15.4 "afade=t=in:d=0.4,afade=t=out:st=1.2:d=0.6"
+# ---- 9. The flash (17.5): a searing burst, the title card 17.75, ringing ears, the land smoking -----------------------
+L "$BOOM_A" 0.2 3.0 3 17.45 "afade=t=out:st=1.0:d=2.0"
+L "$SWELL" 0 2.2 -5 17.5 "highpass=f=500,afade=t=out:st=1.0:d=1.2"
+L "$RING" 0 2.6 -17 17.55
+L "$BRAAM_A" 0 2.6 -8 17.65 "afade=t=out:st=1.2:d=1.4"
+L "$CAULDRON" 60 6.0 -17 17.7 "afade=t=in:d=0.5,afade=t=out:st=1.2:d=0.4"
+L "$FIRELOOP" 0 1.8 -17 17.9 "afade=t=in:d=0.4,afade=t=out:st=1.2:d=0.6"
 
-# ---- 11. The coronal front (16.8-22.4): the radio burst whining down, a roar building across the sky, sparks, then cut
+# ---- 10. The coronal front (19.3-24.9): the radio burst whining down, a roar building across the sky, sparks, then cut
 # dead for the hush --------------------------------------------------------------------------------------------------------
-L "$RADIO" 0 5.6 -6 16.8 "highpass=f=200,lowpass=f=5000,afade=t=in:d=0.5"
-L "$AMRADIO" 40 5.6 -11 16.8 "highpass=f=300,lowpass=f=4000,afade=t=in:d=0.6"
-L "$STORM" 100 5.6 1 16.8 "$(rise 5.6),lowpass=f=2500"
-L "$BOOM_B" 6.0 5.6 -5 16.8 "$(rise 5.6)"
-L "$RUMBLE" 0 5.4 -4 17.0 "$(rise 5.4)"
-L "$GUSTS" 20 5.6 -5 16.8 "$(rise 5.6)"
-L "$ARC" 0 1.0 -13 18.2 "$(rate 1.2),$(pan -0.6)"
-L "$ARC" 0 1.0 -13 19.6 "$(rate 1.1),$(pan 0.6)"
-L "$ARC" 0 1.0 -12 20.9 "$(rate 1.3),$(pan -0.2)"
-L "$DEBRIS" 0.1 1.6 -6 19.1
-L "$CUTSWEEP" 0 1.0 -6 21.35 "highpass=f=100"
+L "$RADIO" 0 5.6 -6 19.3 "highpass=f=200,lowpass=f=5000,afade=t=in:d=0.5"
+L "$AMRADIO" 40 5.6 -11 19.3 "highpass=f=300,lowpass=f=4000,afade=t=in:d=0.6"
+L "$STORM" 100 5.6 1 19.3 "$(rise 5.6),lowpass=f=2500"
+L "$BOOM_B" 6.0 5.6 -5 19.3 "$(rise 5.6)"
+L "$RUMBLE" 0 5.4 -4 19.5 "$(rise 5.4)"
+L "$GUSTS" 20 5.6 -5 19.3 "$(rise 5.6)"
+L "$ARC" 0 1.0 -13 20.7 "$(rate 1.2),$(pan -0.6)"
+L "$ARC" 0 1.0 -13 22.1 "$(rate 1.1),$(pan 0.6)"
+L "$ARC" 0 1.0 -12 23.4 "$(rate 1.3),$(pan -0.2)"
+L "$DEBRIS" 0.1 1.6 -6 21.6
+L "$CUTSWEEP" 0 1.0 -6 23.85 "highpass=f=100"
 
-# ---- 12. The hush (22.4-23.0): near silence, a low drone, the air drawn in, ending on the impact ------------------------
-L "$TONEDOWN" 1.0 0.6 -18 22.4 "lowpass=f=200"
-L "$FIREWHOOSH" 0 0.65 -13 22.35 "areverse,$(up 0.65)"
-L "$BOOM_A" 0.25 0.6 -14 22.4 "areverse,$(up 0.6)"
+# ---- 11. The hush (24.9-25.5): near silence, a low drone, the air drawn in, ending on the impact ------------------------
+L "$TONEDOWN" 1.0 0.6 -18 24.9 "lowpass=f=200"
+L "$FIREWHOOSH" 0 0.65 -13 24.85 "areverse,$(up 0.65)"
+L "$BOOM_A" 0.25 0.6 -14 24.9 "areverse,$(up 0.6)"
 
-# ---- 13. The impact (23.0) and the shock wave across the land (24.6-27.6) ------------------------------------------------
-L "$BOOM_C" 0.2 7.0 5 22.97 "afade=t=out:st=3.5:d=3.5"
-L "$BRAAM_B" 0 4.0 -5 22.95 "afade=t=out:st=2.0:d=2.0"
-L "$FIREWORKS" 1.35 1.5 1 22.98 "lowpass=f=7000"
-L "$THUNDER" 3.0 4.0 -2 22.95 "afade=t=out:st=2.5:d=1.5"
-L "$DROP_SLOW" 0 6.0 0 23.0 "afade=t=out:st=4.0:d=2.0"
-L "$RATTLEDOWN" 0 4.0 -7 23.0 "afade=t=out:st=2.5:d=1.5"
-L "$ELECHIT" 0 2.5 -6 23.0
-L "$DEBRIS" 0.1 2.0 -4 23.1
-L "$STORM" 140 3.6 -6 24.4 "afade=t=in:d=0.3,afade=t=out:st=2.6:d=1.0"
-L "$DEBRIS" 0 2.2 -6 24.6 "$(rate 0.8),$(pan -0.4)"
-L "$DEBRIS" 0 2.2 -9 25.4 "$(rate 0.9),$(pan 0.4)"
-L "$BOOM_B" 0.2 4.0 -8 24.55 "afade=t=out:st=2.0:d=2.0"
+# ---- 12. The impact (25.5) and the shock wave rolling out over the land (27.1-33.1, passing under the camera ~29.0) ------------------------------------------------
+L "$BOOM_C" 0.2 7.0 5 25.47 "afade=t=out:st=3.5:d=3.5"
+L "$BRAAM_B" 0 4.0 -5 25.45 "afade=t=out:st=2.0:d=2.0"
+L "$FIREWORKS" 1.35 1.5 1 25.48 "lowpass=f=7000"
+L "$THUNDER" 3.0 4.0 -2 25.45 "afade=t=out:st=2.5:d=1.5"
+L "$DROP_SLOW" 0 6.0 0 25.5 "afade=t=out:st=4.0:d=2.0"
+L "$RATTLEDOWN" 0 4.0 -7 25.5 "afade=t=out:st=2.5:d=1.5"
+L "$ELECHIT" 0 2.5 -6 25.5
+L "$DEBRIS" 0.1 2.0 -4 25.6
+L "$RUMBLE" 0 6.0 -5 27.1 "afade=t=in:d=0.5,afade=t=out:st=4.5:d=1.5"
+L "$STORM" 140 2.6 -5 26.5 "$(up 2.6)"
+L "$BOOM_B" 0.15 4.0 -2 29.0 "afade=t=out:st=2.0:d=2.0"
+L "$DEBRIS" 0 2.2 -2 28.9
+L "$DEBRIS" 0 2.2 -5 29.2 "$(rate 0.8),$(pan -0.4)"
+L "$FIREWORKS" 4.15 1.2 -6 29.05 "lowpass=f=5000"
+L "$GUSTS" 20 3.5 -6 29.1 "afade=t=out:st=2.0:d=1.5"
+L "$WOOD" 2.2 0.9 -8 27.8 "$(pan -0.5)"
+L "$WOOD" 10.75 0.9 -7 28.4 "$(pan 0.4)"
+L "$WOOD" 12.2 0.9 -5 28.95
+L "$WOOD" 20.42 0.9 -9 30.2 "$(pan 0.5)"
+L "$WOOD" 22.3 0.9 -11 30.8 "$(pan -0.4)"
+L "$WOOD" 26.17 0.9 -13 31.5 "$(pan 0.3)"
+L "$CAULDRON" 60 5.0 -15 28.2 "afade=t=in:d=1.0,afade=t=out:st=3.5:d=1.5"
 
-# ---- 14. Afterwards (27.6-31.0): fire, wind and far rumbles, fading -----------------------------------------------------
-L "$CAMPFIRE" 5 3.8 -12 27.2 "afade=t=in:d=0.8,afade=t=out:st=2.4:d=1.4"
-L "$GUSTS" 60 4.0 -13 27.0 "afade=t=in:d=1.0,afade=t=out:st=2.6:d=1.4"
-L "$RUMBLE" 8 3.5 -12 27.6 "afade=t=out:st=2.0:d=1.5"
+# ---- 13. Afterwards (33.1-36.0): fire, wind and far rumbles, fading -----------------------------------------------------
+L "$CAMPFIRE" 5 3.8 -12 32.8 "afade=t=in:d=0.8,afade=t=out:st=2.4:d=1.4"
+L "$GUSTS" 60 4.0 -13 32.6 "afade=t=in:d=1.0,afade=t=out:st=2.6:d=1.4"
+L "$RUMBLE" 8 3.5 -12 33.1 "afade=t=out:st=2.0:d=1.5"
 
 # ---- The mix ----------------------------------------------------------------------------------------------------------
 # each distinct cut is one input, split to every layer that uses it; the graph goes through a file (Windows' command line
@@ -325,8 +367,8 @@ cut() {
   ff -i "$TMP/$1.wav" -af "volume=${g}dB,alimiter=limit=0.89:attack=3:release=80:level=0" -ar $SR -c:a libvorbis -q:a 5 "$OUT/$1.ogg"
   printf '%-16s %6s LUFS  %ss\n' "$1" "$(loudness "$OUT/$1.ogg")" "$3"
 }
-cut proxima_flash 14.95 2.6 -14 "afade=t=out:st=2.0:d=0.6"
-cut proxima_front 16.8 5.6 -15
-cut proxima_inhale 22.35 0.65 -17
-cut proxima_impact 22.95 6.8 -12.5 "afade=t=out:st=5.2:d=1.6"
-cut proxima_wave 24.45 3.5 -15 "afade=t=in:d=0.15,afade=t=out:st=2.9:d=0.6"
+cut proxima_flash 17.45 2.6 -14 "afade=t=out:st=2.0:d=0.6"
+cut proxima_front 19.3 5.6 -15
+cut proxima_inhale 24.85 0.65 -17
+cut proxima_impact 25.45 6.8 -12.5 "afade=t=out:st=5.2:d=1.6"
+cut proxima_wave 28.5 3.5 -15 "afade=t=in:d=0.15,afade=t=out:st=2.9:d=0.6"

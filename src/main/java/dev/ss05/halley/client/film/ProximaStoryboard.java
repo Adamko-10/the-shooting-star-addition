@@ -17,7 +17,7 @@ import net.minecraft.world.phys.Vec3;
  */
 public final class ProximaStoryboard {
     /** When the last shot ends: the remote hands the view back to the caster from there. */
-    public static final int END = ProximaPlan.IMPACT + 160;
+    public static final int END = ProximaPlan.IMPACT + 210;
     /** How high the pull up off the caster's shoulder goes (through the clouds) before the cut to orbit. */
     private static final double RISE = 480.0;
 
@@ -105,17 +105,19 @@ public final class ProximaStoryboard {
             return new Pose(x.keep(pos, x.feet(p)), mark.add(0.0, bowl * 0.3, 0.0), (float) l((float) e, 66.0, 74.0), 0.0F);
         }));
 
-        // 12. The wave: on the land ahead of it, low, as the wall of fire rolls out over the land toward and past the camera.
-        takes.add(Take.cut(ProximaPlan.IMPACT + 32, ProximaPlan.IMPACT + 92, (x, p, k) -> {
-            Vec3 pos = mark.add(side.scale(scorch * 0.75)).add(0.0, 3.0, 0.0);
+        // 12. The shock wave (6 s): pulling back and rising, slowly, as the wall of fire rolls out over the land toward
+        //     the camera, blasting the trees it reaches, passes under it and runs on to the scorch's edge.
+        takes.add(Take.cut(ProximaPlan.IMPACT + 32, ProximaPlan.IMPACT + 152, (x, p, k) -> {
+            double e = k * k * (3.0 - 2.0 * k);
             double wave = plan.waveRadius(x.time(p));
-            Vec3 look = mark.add(side.scale(Math.max(0.0, wave - 20.0))).add(0.0, 8.0, 0.0);
-            return new Pose(x.keep(pos, x.feet(p)), look, (float) l(k, 74.0, 84.0), 0.0F);
+            Vec3 pos = mark.add(quarter.scale(l((float) e, scorch * 0.8, scorch * 1.05))).add(0.0, l((float) e, scorch * 0.1, scorch * 0.3), 0.0);
+            Vec3 look = mark.add(quarter.scale(wave * 0.45)).add(0.0, l((float) e, bowl * 0.4, 4.0), 0.0);
+            return new Pose(x.keep(pos, x.feet(p)), look, (float) l((float) e, 76.0, 66.0), (float) (2.0 * Math.sin(k * Math.PI)));
         }));
 
         // 13. Afterwards: rising high over the scorched land, the glassy bowl smoking in the middle.
         Vec3 high = side.scale(-0.6).add(from.scale(0.8)).normalize();
-        takes.add(Take.sweep(ProximaPlan.IMPACT + 92, END, 10, (x, p, k) -> {
+        takes.add(Take.sweep(ProximaPlan.IMPACT + 152, END, 10, (x, p, k) -> {
             double angle = Math.toRadians(l(k, 0.0, 30.0));
             Vec3 around = high.scale(Math.cos(angle)).add(new Vec3(-high.z, 0.0, high.x).scale(Math.sin(angle)));
             // close enough that the bowl stays out of the fog (at 0.5-0.75 x the scorch it was lost in it)

@@ -1,8 +1,10 @@
 #version 150
 
 // SA-04 Proxima's film, its space and Earth shots (client/proxima/ProximaCosmos). One program, a material per Mode:
-//  0 the deep-space backdrop (Param.x: the red nebula, Param.y: how many stars), a cube round the camera
-//  1 Proxima Centauri's surface: boiling granules, dark starspots, darker toward its limb (Param.x: how bright)
+//  0 the deep-space backdrop (Param.x: the red nebula, Param.y: how many stars, Param.z: the warp, the stars drawn out
+//    into streaks away from where the camera heads, SunDir), a cube round the camera
+//  1 Proxima Centauri's surface: great convection cells swirling, fine granules boiling in them, starspots with dark
+//    cores and grey rims, bright faculae, darker toward its limb with a thin hot rim (Param.x: how bright)
 //  2 the Dyson sphere's panels (uv: the corner weights, for the glowing seams; Color.r: each panel's own number)
 //  3 a soft round glow (uv across it; Color: its colour, Color.a: how strong; Param.x: a gain past 1), added
 //  4 a band of light (uv.x across it, uv.y along it; Param.x: gain, Param.y: flowing noise along it, Param.z: dashes
@@ -81,19 +83,49 @@ void main() {
         float a = pow(fbm(d * 2.6), 3.0);
         float b = pow(fbm(d * 1.3 + 5.0), 2.0);
         vec3 c = (vec3(0.10, 0.018, 0.04) * a * 1.4 + vec3(0.03, 0.02, 0.07) * b * 1.1) * Param.x;
-        c += stars(d, 340.0, 0.09 * Param.y, 0.32);
-        c += stars(d, 120.0, 0.03 * Param.y, 0.22) * 1.3;
+        float w = Param.z;
+        if (w > 0.001) {
+            // the warp: each pixel gathers the stars lying between it and the heading, so each star is drawn out into a
+            // streak running away from the heading (longer to the sides), its tail fading; a cold glow round the tunnel
+            vec3 ahead = normalize(SunDir);
+            vec3 side = d - ahead * dot(d, ahead);
+            vec3 streak = vec3(0.0);
+            for (int i = 0; i < 14; i++) {
+                float k = float(i) / 13.0;
+                vec3 dd = normalize(d - side * k * w * 0.45);
+                streak += (stars(dd, 340.0, 0.09 * Param.y, 0.32) + stars(dd, 120.0, 0.03 * Param.y, 0.22) * 1.3) * (1.0 - k);
+            }
+            c += streak * (0.35 + 0.25 * w) * vec3(0.85, 0.9, 1.0);
+            c += vec3(0.25, 0.3, 0.55) * w * 0.12 * smoothstep(0.2, 1.0, length(side));
+        } else {
+            c += stars(d, 340.0, 0.09 * Param.y, 0.32);
+            c += stars(d, 120.0, 0.03 * Param.y, 0.22) * 1.3;
+        }
         fragColor = vec4(c, 1.0);
     } else if (mode == 1) {
-        float g1 = fbm(pos * 3.5 + vec3(0.0, Time * 0.07, Time * 0.05));
-        float g2 = fbm(pos * 13.0 + vec3(Time * 0.22, 0.0, -Time * 0.18));
-        float cells = smoothstep(0.38, 0.78, g2);
-        float spots = smoothstep(0.63, 0.71, fbm(pos * 1.7 + 11.0));
-        vec3 c = mix(vec3(0.45, 0.03, 0.015), vec3(1.0, 0.24, 0.05), smoothstep(0.25, 0.75, g1));
-        c = mix(c, vec3(1.0, 0.72, 0.42), cells * 0.6 * g1);
-        c *= 1.0 - 0.8 * spots;
-        float mu = clamp(dot(normalize(pos), view), 0.0, 1.0);
-        c *= 0.3 + 0.7 * pow(mu, 0.45);
+        vec3 n = normalize(pos);
+        float slow = Time * 0.05;
+        // the great convection cells, their flow swirled by a warp of the space they're drawn in
+        vec3 q = n * 2.2;
+        vec3 flow = vec3(fbm(q + vec3(0.0, slow, 0.0)), fbm(q + vec3(5.2, 1.3 - slow, 2.8)), fbm(q + vec3(1.7, 9.2, slow)));
+        float big = fbm(n * 3.0 + flow * 1.8 + slow);
+        // the granules boiling inside them: bright cell tops, darker lanes between
+        float g1 = fbm(n * 19.0 + flow * 0.7 + vec3(Time * 0.15, 0.0, -Time * 0.12));
+        float g2 = fbm(n * 46.0 + vec3(-Time * 0.3, Time * 0.25, 0.0));
+        float granules = smoothstep(0.4, 0.72, g1) * 0.7 + smoothstep(0.45, 0.78, g2) * 0.3;
+        // starspots: a dark core, a grey rim, bright faculae just round them
+        float spot = fbm(n * 1.6 + 11.0 + flow * 0.15);
+        float penumbra = smoothstep(0.6, 0.655, spot);
+        float umbra = smoothstep(0.665, 0.705, spot);
+        float faculae = smoothstep(0.54, 0.6, spot) * (1.0 - penumbra);
+        vec3 c = mix(vec3(0.5, 0.04, 0.015), vec3(1.0, 0.27, 0.06), smoothstep(0.25, 0.75, big));
+        c = mix(c, vec3(1.0, 0.6, 0.3), granules * 0.55 * (0.4 + big));
+        c += vec3(1.0, 0.45, 0.18) * faculae * 0.5;
+        c *= 1.0 - 0.5 * penumbra - 0.45 * umbra;
+        // darker toward the limb, then a thin hot rim (the chromosphere)
+        float mu = clamp(dot(n, view), 0.0, 1.0);
+        c *= 0.22 + 0.78 * pow(mu, 0.5);
+        c += vec3(1.0, 0.22, 0.08) * pow(1.0 - mu, 7.0) * 0.9;
         fragColor = vec4(tone(c * Param.x), 1.0);
     } else if (mode == 2) {
         float edge = min(min(uv.x, uv.y), 1.0 - uv.x - uv.y);

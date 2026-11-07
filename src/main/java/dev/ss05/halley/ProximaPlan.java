@@ -12,35 +12,37 @@ public final class ProximaPlan {
     /** The remote's button (as for the other skills). */
     public static final int PRESS = 7;
     /**
-     * The film's way out to Proxima Centauri and back (2026-11-07: the approved previz, 31 s, impact at 23 s): the camera
-     * pulls straight up off the caster's shoulder through the clouds ({@link #ASCENT}) and cuts to Earth from orbit
-     * ({@link #ORBIT}); Proxima Centauri in its Dyson sphere ({@link #SPACE}); the iris opening ({@link #IRIS}); the
-     * infinity loops ({@link #LOOPS}, flaring and collapsing at {@link #COLLAPSE}); the lens gathering and firing
-     * ({@link #LENS}, {@link #BEAM}); Earth and the gate catching the beam ({@link #EARTH}, open at {@link #GATE}). All of
-     * that is the caster's film only (client/proxima/ProximaCosmos draws it as a scene of its own).
+     * The film's way out to Proxima Centauri and back (the approved previz, 2026-11-07; lengthened the same night: a
+     * zoom out from Earth into a warp instead of a cut, no infinity loops, the lens absorbing for 3 s): the camera pulls
+     * straight up off the caster's shoulder through the clouds ({@link #ASCENT}) and cuts to Earth from orbit
+     * ({@link #ORBIT}), pulling back faster and faster into a warp ({@link #WARP}) that lands at Proxima Centauri in its
+     * Dyson sphere ({@link #SPACE}); the iris opening ({@link #IRIS}); the lens gathering ({@link #LENS}), drawing the
+     * star's power in ({@link #POWER}) and firing ({@link #BEAM}); Earth and the gate catching the shot and refocusing it
+     * onto the caster's spot ({@link #EARTH}, open at {@link #GATE}). All of that is the caster's film only
+     * (client/proxima/ProximaCosmos draws it as a scene of its own).
      */
     public static final int ASCENT = 32;
     public static final int ORBIT = 59;
-    public static final int SPACE = 108;
-    public static final int IRIS = 156;
-    public static final int LOOPS = 200;
-    public static final int COLLAPSE = 219;
-    public static final int LENS = 228;
-    public static final int BEAM = 249;
-    public static final int EARTH = 260;
-    public static final int GATE = 267;
+    public static final int WARP = 100;
+    public static final int SPACE = 124;
+    public static final int IRIS = 172;
+    public static final int LENS = 216;
+    public static final int POWER = 230;
+    public static final int BEAM = 290;
+    public static final int EARTH = 310;
+    public static final int GATE = 317;
     /** Phase 1, the flash burn: the flare's light arrives first, the sky goes white-red, exposed things burn. */
-    public static final int FLASH = 300;
+    public static final int FLASH = 350;
     /** Phase 2, the coronal front sweeping across the sky (looks only: no damage). */
-    public static final int FRONT = 336;
+    public static final int FRONT = 386;
     /** Near-silence: everyone thinks it's over. */
-    public static final int HUSH = 448;
+    public static final int HUSH = 498;
     /** Phase 3, ground zero: the bowl, the scorch, the blast. */
-    public static final int IMPACT = 460;
+    public static final int IMPACT = 510;
     /** The effects' end (the aftermath fades out by then). */
     public static final int DURATION = IMPACT + 330;
     /** Ground zero's shock wave runs out over the land, burning and throwing as it goes: at the scorch's edge this long after the impact. */
-    public static final int WAVE_TICKS = 70;
+    public static final int WAVE_TICKS = 130;
     /** The coronal front: a shell of plasma this big (radius, blocks), its nose this far from the mark when it appears. */
     public static final double FRONT_RADIUS = 2600.0;
     public static final double FRONT_START = 2600.0;

@@ -32,6 +32,7 @@ public final class HalleyClientConfig {
     private static final ModConfigSpec.BooleanValue KEEP_MOON;
     private static final ModConfigSpec.BooleanValue EPIC_MODE;
     private static final ModConfigSpec.BooleanValue IMPERIAL;
+    private static final ModConfigSpec.BooleanValue STACK_MUSIC;
     private static final ModConfigSpec.EnumValue<ImpactFrames> IMPACT_FRAMES;
     private static final ModConfigSpec.ConfigValue<List<? extends String>> CONVERGENCE;
     private static final ModConfigSpec.BooleanValue CONVERGENCE_RING;
@@ -106,6 +107,9 @@ public final class HalleyClientConfig {
         IMPERIAL = b.comment("Distances in the films' readouts (altitude, the flare's front, the shock wave): false for kilometres",
                 "and metres, true for miles and feet. D in the remote's menu.")
             .define("imperial_units", false);
+        STACK_MUSIC = b.comment("Strikes cast one after another each keep their own music playing (true), or the newest one's music",
+                "takes over (false). S in the remote's menu.")
+            .define("stack_music", false);
         IMPACT_FRAMES = b.comment("Halley's and Luna's impact frames (the screen flashing to negative at an impact): FULL, SOFT",
                 "(fainter) or OFF. F in the remote's menu.")
             .defineEnum("impact_frames", ImpactFrames.FULL);
@@ -193,6 +197,15 @@ public final class HalleyClientConfig {
 
     public static void setImperial(boolean on) {
         set(IMPERIAL, on);
+    }
+
+    /** Whether strikes' music stacks (each keeps playing) or the newest takes over. */
+    public static boolean stackMusic() {
+        return get(STACK_MUSIC);
+    }
+
+    public static void setStackMusic(boolean on) {
+        set(STACK_MUSIC, on);
     }
 
     /** Your keep-the-moon switch: Luna's moon model stays after it lands. */

@@ -17,6 +17,7 @@ import net.minecraft.client.ParticleStatus;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvent;
@@ -26,6 +27,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -46,11 +48,11 @@ public final class ProximaFx {
     private static final int FLASH = 0xFFD8C8;
     private static final int CRIMSON = 0xB3122E;
     /**
-     * When Proxima's music starts: proxima_music.ogg is the user's track cut to this timeline from here
+     * When Proxima's music starts (as Earth comes into view): proxima_music.ogg is the user's track cut to this timeline from here
      * (art/make_proxima_music.sh): its pulses under the space intro, its entry on the flash, silent through the hush, its
      * main section on the impact.
      */
-    private static final int MUSIC_AT = 10;
+    private static final int MUSIC_AT = 60;
     /** How far from the mark (in blocks) a player outside the film still hears it. */
     private static final double MUSIC_RANGE = 1500.0;
 
@@ -338,14 +340,34 @@ public final class ProximaFx {
             this.host.shake(camera, 0.5F, 60.0);
         }
         this.lastWave = wave;
-        if (wave > 0.0 && wave < this.plan.waveReach() && Math.abs(wave - away) < 90.0) {
+        // in the film's wide shot of it, all along the front in view: the trees it reaches blasted apart, leaves and wood
+        // flung out ahead of it, and the land rumbling under the camera
+        boolean wide = this.host.filmWeight() > 0.5F && t >= ProximaPlan.IMPACT + 32 && t < ProximaPlan.IMPACT + 152;
+        if (cme && wide && t % 4 == 0) {
+            this.host.shake(camera, 0.18F, 400.0);
+        }
+        if (wave > 0.0 && wave < this.plan.waveReach() && (wide || Math.abs(wave - away) < 90.0)) {
             double facing = Math.atan2(camera.z - target.z, camera.x - target.x);
-            double spread = Math.min(1.0, 60.0 / Math.max(1.0, wave));
-            for (int i = 0; i < this.count(14); i++) {
+            double spread = wide ? 1.1 : Math.min(1.0, 60.0 / Math.max(1.0, wave));
+            for (int i = 0; i < this.count(wide ? 36 : 14); i++) {
                 double a = facing + this.gauss(spread);
-                double x = target.x + Math.cos(a) * wave;
-                double z = target.z + Math.sin(a) * wave;
-                Vec3 at = new Vec3(x, groundAt(level, x, z, target.y) + 0.5, z);
+                double x = target.x + Math.cos(a) * (wave + 3.0);
+                double z = target.z + Math.sin(a) * (wave + 3.0);
+                double ground = groundAt(level, x, z, target.y);
+                BlockState tree = this.treeTop(level, x, z, ground);
+                if (tree != null) {
+                    BlockParticleOption bits = new BlockParticleOption(ParticleTypes.BLOCK, tree);
+                    Vec3 top = new Vec3(x, ground + 1.0 + this.random.nextDouble() * 5.0, z);
+                    for (int k = 0; k < 6; k++) {
+                        double fling = 0.6 + this.random.nextDouble() * 0.9;
+                        this.particle(level, bits, top.add(this.gauss(1.5), this.gauss(1.0), this.gauss(1.5)), Math.cos(a) * fling,
+                            0.25 + this.random.nextDouble() * 0.5, Math.sin(a) * fling);
+                    }
+                    this.particle(level, ParticleTypes.FLAME, top, Math.cos(a) * 0.4, 0.2, Math.sin(a) * 0.4);
+                    this.particle(level, ParticleTypes.LARGE_SMOKE, top, Math.cos(a) * 0.3, 0.25, Math.sin(a) * 0.3);
+                    continue;
+                }
+                Vec3 at = new Vec3(x, ground + 0.5, z);
                 float pick = this.random.nextFloat();
                 this.particle(level, pick < 0.45F ? ParticleTypes.CAMPFIRE_COSY_SMOKE : pick < 0.8F ? ParticleTypes.FLAME : ParticleTypes.LAVA, at,
                     Math.cos(a) * 0.3, 0.15 + this.random.nextDouble() * 0.35, Math.sin(a) * 0.3);
@@ -598,6 +620,21 @@ public final class ProximaFx {
             world.corner(base[j + 1], 0xFF8A4C, 0.6F * fade);
             world.corner(base[j], 0xFF8A4C, 0.6F * fade);
         }
+    }
+
+    /** The leaves or log at the top of a tree standing at (x, z), or null when no tree stands there. */
+    private BlockState treeTop(ClientLevel level, double x, double z, double ground) {
+        int bx = Mth.floor(x);
+        int bz = Mth.floor(z);
+        if (!level.hasChunk(bx >> 4, bz >> 4)) {
+            return null;
+        }
+        int top = level.getHeight(Heightmap.Types.WORLD_SURFACE, bx, bz) - 1;
+        if (top < ground - 1.0) {
+            return null;
+        }
+        BlockState state = level.getBlockState(new BlockPos(bx, top, bz));
+        return state.is(BlockTags.LEAVES) || state.is(BlockTags.LOGS) ? state : null;
     }
 
     private static double groundAt(ClientLevel level, double x, double z, double fallback) {

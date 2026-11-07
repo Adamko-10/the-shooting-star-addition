@@ -2,6 +2,8 @@ package dev.ss05.halley.client;
 
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.luna.MoonFx;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import net.minecraft.client.Minecraft;
@@ -17,7 +19,8 @@ import net.minecraft.util.Mth;
  * much of the track has played with the strike's clock and nudges its speed by up to 5% until they agree again. It plays
  * on the game's Music volume slider, pitched with the remote's speed slider, while the music switch (M in the remote's
  * menu) is on; the game's own background music makes way for it. A film's own soundtrack ({@link #film}: Proxima's) is
- * kept in step the same way, on the Players volume slider, whatever the music switch says.
+ * kept in step the same way, on the Players volume slider, whatever the music switch says. Unless the player lets music
+ * stack (S in the remote's menu), a new strike's music takes over from any still playing.
  */
 public final class StrikeMusic extends AbstractTickableSoundInstance {
     private final MoonFx.Host host;
@@ -25,6 +28,8 @@ public final class StrikeMusic extends AbstractTickableSoundInstance {
     private final int from;
     /** The strike's clock, in ticks. */
     private final DoubleSupplier clock;
+    /** The strikes' music now playing (not the films' soundtracks), oldest first. */
+    private static final List<StrikeMusic> PLAYING = new ArrayList<>();
     private final BooleanSupplier over;
     /** Whether it is music (the music switch stops it), not a film's soundtrack. */
     private final boolean music;
@@ -55,7 +60,15 @@ public final class StrikeMusic extends AbstractTickableSoundInstance {
     public static StrikeMusic play(String name, MoonFx.Host host, int from, DoubleSupplier clock, BooleanSupplier over) {
         Minecraft minecraft = Minecraft.getInstance();
         minecraft.getMusicManager().stopPlaying();
+        PLAYING.removeIf(playing -> !minecraft.getSoundManager().isActive(playing));
+        if (!HalleyClientConfig.stackMusic()) {
+            for (StrikeMusic playing : PLAYING) {
+                minecraft.getSoundManager().stop(playing);
+            }
+            PLAYING.clear();
+        }
         StrikeMusic music = new StrikeMusic(name, host, from, clock, over, true);
+        PLAYING.add(music);
         minecraft.getSoundManager().play(music);
         return music;
     }

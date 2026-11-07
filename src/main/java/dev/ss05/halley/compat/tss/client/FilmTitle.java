@@ -220,8 +220,8 @@ final class FilmTitle {
     static void centauri(GuiGraphics g, ProximaFx fx, float partial, int w, int h) {
         float ct = fx.filmTime(partial);
         float fade = fade(fx.filmWeight());
-        float in = 114.0F;
-        if (Float.isNaN(ct) || ct < in || ct > 155.0F || fade <= 0.01F || CutsceneDirector.legacy()) {
+        float in = ProximaPlan.SPACE + 6.0F;
+        if (Float.isNaN(ct) || ct < in || ct > in + 41.0F || fade <= 0.01F || CutsceneDirector.legacy()) {
             return;
         }
         float cap = h * 0.07F;
@@ -231,11 +231,11 @@ final class FilmTitle {
         String word = "PROXIMA CENTAURI";
         float[] xs = new float[word.length()];
         float width = layout(g, word, scale, 3.0F, xs);
-        float shown = fade * window(ct, in, 122.0F, 146.0F, 155.0F);
+        float shown = fade * window(ct, in, in + 8.0F, in + 32.0F, in + 41.0F);
         TessType.veil(g, cx, base - cap * 0.5F, width * 0.9F, cap * 1.5F, 0.35F * shown);
         TessType.draw(g, TessType.Face.LABEL, "RED DWARF \u00B7 M5.5 Ve \u00B7 4.24 LIGHT YEARS", cx, base - cap - h * 0.03F, 0.5F,
             scale * 0.32F, 3.0F, TessType.Paint.flat(0xFF000000 | 0xE9E1EE), 0.85F * shown, 1.0F);
-        float half = w * 0.21F * smooth((ct - 120.0F) / 16.0F);
+        float half = w * 0.21F * smooth((ct - in - 6.0F) / 16.0F);
         TessType.rule(g, cx - half, cx + half, base + h * 0.02F, Math.max(1.0F, h * 0.003F),
             (u, v) -> 0xFF000000 | mix(0xFFECE2, 0xFF4A3C, Math.abs(u - 0.5F) * 2.0F), shown);
         for (int i = 0; i < word.length(); i++) {
@@ -255,8 +255,8 @@ final class FilmTitle {
     static void dyson(GuiGraphics g, ProximaFx fx, float partial, int w, int h) {
         float ct = fx.filmTime(partial);
         float fade = fade(fx.filmWeight());
-        float in = 163.0F;
-        if (Float.isNaN(ct) || ct < in || ct > 199.0F || fade <= 0.01F || CutsceneDirector.legacy()) {
+        float in = ProximaPlan.IRIS + 7.0F;
+        if (Float.isNaN(ct) || ct < in || ct > in + 36.0F || fade <= 0.01F || CutsceneDirector.legacy()) {
             return;
         }
         float cap = h * 0.08F;
@@ -266,11 +266,11 @@ final class FilmTitle {
         String word = "DYSON SPHERE";
         float[] xs = new float[word.length()];
         float width = layout(g, word, scale, 2.6F, xs);
-        float shown = fade * window(ct, in, 168.0F, 191.0F, 199.0F);
+        float shown = fade * window(ct, in, in + 5.0F, in + 28.0F, in + 36.0F);
         TessType.veil(g, cx, base - cap * 0.5F, width * 0.9F, cap * 1.5F, 0.35F * shown);
         TessType.draw(g, TessType.Face.LABEL, "STELLAR ENGINE \u00B7 980 PANELS", cx, base - cap - h * 0.03F, 0.5F, scale * 0.3F, 3.0F,
             TessType.Paint.flat(0xFF000000 | 0xE9E1EE), 0.85F * shown, 1.0F);
-        float half = w * 0.15F * smooth((ct - 168.0F) / 12.0F);
+        float half = w * 0.15F * smooth((ct - in - 5.0F) / 12.0F);
         TessType.rule(g, cx - half, cx + half, base + h * 0.02F, Math.max(1.0F, h * 0.003F),
             (u, v) -> 0xFF000000 | mix(0xE6EAF2, 0xFF8C5A, Math.abs(u - 0.5F) * 2.0F), shown);
         TessType.Paint steel = (u, v) -> 0xFF000000 | mix(0xE6EAF2, 0x6A7080, v);
@@ -288,9 +288,9 @@ final class FilmTitle {
     static void cme(GuiGraphics g, ProximaFx fx, float partial, int w, int h) {
         float ct = fx.filmTime(partial);
         float fade = fade(fx.filmWeight());
-        float in = 231.0F;
+        float in = ProximaPlan.BEAM - 18.0F;
         float tearAt = ProximaPlan.BEAM;
-        if (Float.isNaN(ct) || ct < in || ct > 259.0F || fade <= 0.01F || CutsceneDirector.legacy()) {
+        if (Float.isNaN(ct) || ct < in || ct > in + 28.0F || fade <= 0.01F || CutsceneDirector.legacy()) {
             return;
         }
         float cap = h * 0.07F;
@@ -301,7 +301,7 @@ final class FilmTitle {
         float[] xs = new float[word.length()];
         layout(g, word, scale, 1.6F, xs);
         float tear = smooth((ct - tearAt) / 9.0F);
-        float shown = fade * window(ct, in, 236.0F, 252.0F, 259.0F);
+        float shown = fade * window(ct, in, in + 5.0F, in + 21.0F, in + 28.0F);
         float mid = (word.length() - 1) * 0.5F;
         for (int i = 0; i < word.length(); i++) {
             float since = ct - in - 0.4F * i;

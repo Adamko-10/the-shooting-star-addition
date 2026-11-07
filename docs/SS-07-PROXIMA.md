@@ -251,27 +251,68 @@ at 23 s. Built on main 2026-11-07:
   EJECTION INBOUND" is now **"SOLAR FLARE INBOUND"**. Distances in kilometres/metres or miles/feet: the plate's new
   **D** switch (client config `imperial_units`; D because the remote's skill keys, U among them, go to the menu first).
   The addon's plate is drawn at 0.82 of its old size (never below one screen pixel per font pixel).
-- **Music pausing**: the music file has no gaps (the hush only); the user's server ran up to 336 ticks behind that
+- (Second round, continued below.) **Music pausing**: the music file has no gaps (the hush only); the user's server ran up to 336 ticks behind that
   session, and the first Earth shot loaded two 4096 maps mid-film. Earth's images now load when a world is joined
   (`ProximaCosmos.preload` on `ClientPlayerNetworkEvent.LoggingIn`). If it still pauses, look at the server lag.
+
+### Third round (2026-11-07, late night): a longer film (36 s)
+
+The user: "add a setting in the H menu to toggle stacking music when u spam smth with music"; "remove the infinity sign";
+"make proxima centauri look better ... and do a better transition ... like a zoom out to proxima centauri rather than
+teleporting there"; "make the lens actually take longer to absorb ... cool noises like its absorbing it and then it
+blasts it out"; "if all of this makes the cutscene longer its fine but just do it and keep it synced"; "properly zoom
+out and have a cinematic shot of the shockwave slowly moving and blasting trees with a bit of screenshake"; "when the
+dyson sphere is charging up the shot also take longer and feel cooler ... like its actually putting energy into the
+disc"; "the projectile itself also should look cooler".
+
+- **Timeline** (table above): +50 ticks before the flash (the warp +24, the loops' 28 gone, the lens +46 with its 3 s
+  absorption and a 1 s tracking shot of the shot), +50 after the impact (a 6 s shock-wave shot). Everything keyed to
+  `ProximaPlan` moved with it (server phases, captions, title cards: now relative to the plan). The music starts at 60
+  (was 10), so its cut file is unchanged and still lands its entry on the flash and its drop on the impact
+  (`art/make_proxima_music.sh` updated to the same numbers).
+- **The zoom out**: the orbit shot pulls back faster and faster (`ProximaCosmos` Earth scene to ~300 Earth radii), the
+  stars drawn out into streaks (backdrop mode 0's warp: each pixel gathers the stars between it and the heading),
+  white at the arrival (`ProximaHud`), then slowing in to Proxima Centauri from 46 units out, the streaks settling.
+  Caption: INTERSTELLAR TRANSIT, the light years counting down.
+- **Proxima Centauri** (mode 1): great convection cells swirled by a warped flow, fine granules in them, starspots with
+  dark cores, grey rims and bright faculae, limb darkening and a thin hot rim. No infinity loops (removed with their
+  shot; the braided version of the second round is gone too).
+- **The lens absorbing (3 s)**: streams of plasma pulled off the star through the iris into its rim (4 to 12 of them,
+  thickening), motes riding them in, rings closing on its centre faster and faster, sparks crackling across its face,
+  the tiles pulsing with a quickening heartbeat, the star dimming as it is drained, a bright ring snapping shut as it
+  fires; the camera closing in and shaking harder. Caption: ABSORBING 0-100%.
+- **The shot** (`ProximaCosmos.bolt`): a white-hot core stretched back in a pink corona, a spinning double helix, a cone
+  of rings, sparks shed behind; ridden alongside for a second (stars streaking); the same bolt, smaller, streaking onto
+  the gate and from the gate onto the caster's spot.
+- **The shock wave**: slower for everyone (`WAVE_TICKS` 70 -> 130); the film's shot 12 (6 s) pulls back and rises from
+  0.8 to 1.05 scorch radii out (kept in for short render distances), the wave passing under the camera ~3.5 s after the impact; along the front in view,
+  trees it reaches burst apart (the leaves' or logs' own block particles flung outward, flame, smoke); the camera
+  rumbles (a small shake every 4 ticks).
+- **Music stacking**: off by default: a new strike's music (Luna's, Proxima's) stops any still playing (`StrikeMusic`);
+  **S** on the plate lets them stack (client config `stack_music`).
+- **Sound** re-laid on the new timeline (`art/make_proxima_film.sh`, 160 layers, 36.5 s): a rising rush and warp roar
+  (a new synth) into a white whoom at the arrival; the absorption: a power-on thunk, a reactor hum and power-up swelling,
+  energy rushing in (reversed whooshes), a quickening throb, arcs, a reversed braam, the lens screaming up (a new synth),
+  the air drawn in; the blast and the bolt roaring away; the long wave: a rolling rumble, the pass under the camera,
+  trees snapping (wood hits), fire.
 
 ## Timeline (`ProximaPlan`, ticks at speed 1)
 
 | | tick | |
 |---|---|---|
 | PRESS | 7 | the remote's button |
-| MUSIC_AT | 10 | the music starts (`ProximaFx`) |
 | ASCENT, ORBIT | 32, 59 | the pull up off the caster's shoulder; the cut to Earth from orbit |
-| SPACE | 108 | Proxima Centauri in its Dyson sphere |
-| IRIS | 156 | the Dyson sphere, square on (the iris opens 161-195) |
-| LOOPS, COLLAPSE | 200, 219 | the infinity loops; their flare and collapse |
-| LENS, BEAM | 228, 249 | the lens gathers and charges; it fires |
-| EARTH, GATE | 260, 267 | Earth and the gate; the gate open (the CME spreads from 281) |
-| FLASH | 300 | phase 1: the flare's light arrives; exposed things burn (the music's entry) |
-| FRONT | 336 | phase 2: the coronal front crosses the sky |
-| HUSH | 448 | near-silence: everyone thinks it's over (the music too) |
-| IMPACT | 460 | phase 3: ground zero (the music's main section) |
-| DURATION | 790 | the effects end; the film ends at 620 |
+| MUSIC_AT | 60 | the music starts (`ProximaFx`; was 10 before the film was lengthened: same cut, same sync) |
+| WARP | 100 | the zoom out from Earth into the warp (white at the arrival) |
+| SPACE | 124 | Proxima Centauri in its Dyson sphere, slowing in out of the warp |
+| IRIS | 172 | the Dyson sphere, square on (the iris opens 177-211) |
+| LENS, POWER, BEAM | 216, 230, 290 | the lens gathers; draws the star's power in for 3 s; fires (then 3 s riding alongside the shot) |
+| EARTH, GATE | 310, 317 | Earth and the gate; the shot caught at 325, refocused onto the caster's spot, landing at 340 |
+| FLASH | 350 | phase 1: the flare's light arrives; exposed things burn (the music's entry) |
+| FRONT | 386 | phase 2: the coronal front crosses the sky |
+| HUSH | 498 | near-silence: everyone thinks it's over (the music too) |
+| IMPACT | 510 | phase 3: ground zero (the music's main section); the shock wave reaches the scorch's edge 130 ticks later (`WAVE_TICKS`, was 70) |
+| DURATION | 840 | the effects end; the film ends at 720 (36 s) |
 
 The space part (ORBIT to FLASH) is the caster's film only. Stellar Convergence uses `IMPACT` to land it with the others.
 

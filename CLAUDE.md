@@ -22,7 +22,7 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   numbered list there is the to-do, in order: 1. the space-scene bug (FIXED: legacy film style), 1b. the film's polish
   (Earth + sound, BUILT, waits for the user's look and ears), 2. the Dyson sphere in the
   real sky for third person/everyone, 3. the Flare's cinematic impact, 4. music stays on the Flare for now, 5. the rest).
-- Test jar of the new film is in the user's Modrinth profile (`(Proxima film polish 2 build)`); its sounds are byte-identical
+- Test jar of the new film is in the user's Modrinth profile (`(Proxima film 36s build)`); its sounds are byte-identical
   to 1.7.0's (the user wants test builds to match what shipped; no Sonniss swap until they say so).
 - Credits to remember: Luna's AND Proxima's music are by DOM_MusicST and FarzanNB (§15); Stellar Quartet by ikun520;
   Proxima's Earth: NASA (Blue Marble, Black Marble) and **Solar System Scope (CC BY 4.0: must be credited)**.
@@ -199,6 +199,12 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
      "Legacy mode" switch only changes how films and warnings show text); we can't swap their menu. Game-tested
      (`polish2\`, `polish3\` in auto test 26). "SFX still eh": only the lens/beam/gate part was redone this round;
      ask which other moments sound wrong. Test jar `test builds\2026-11-07 Proxima film polish 2\`.
+  1d. **Third round, BUILT 2026-11-07 late night: the film is 36 s now** (details and the user's words in
+     docs/SS-07-PROXIMA.md "Third round"): music stacking switch (S, default off), infinity loops removed, Proxima
+     Centauri's surface redone, a zoom out from Earth into a warp to Proxima (no hard cut), the lens absorbing for 3 s
+     (energy visibly flowing into the disc, shake, sounds) then blasting, a cooler projectile with a tracking shot, a
+     slower shock wave (WAVE_TICKS 130, for everyone) with a 6 s pull-back shot and trees bursting. Timeline: FLASH 350,
+     IMPACT 510, MUSIC_AT 60 (same music file, same sync). Test jar `test builds\2026-11-07 Proxima film 36s\`.
   2. **Third person / everyone not in the film: draw the Dyson sphere in the real sky again, "pretty big"** (the user,
      2026-11-07): the old in-sky intro (`ProximaSpace`, deleted in af100f4: git show af100f4^:src/main/java/dev/ss05/
      halley/client/proxima/ProximaSpace.java) showed it to everyone; bring a sky version back, bigger, matching the
