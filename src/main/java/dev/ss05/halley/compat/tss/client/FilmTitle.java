@@ -112,7 +112,7 @@ final class FilmTitle {
      * LUNA: the letters crack in from the middle outward, glowing molten and shuddering as the moon does, cool to the
      * moon's grey, then drop away and burn up as it tears loose and falls.
      */
-    static void luna(GuiGraphics g, MoonFx fx, float partial, int w, int h, @Nullable HalleyHud.Projector project) {
+    static void luna(GuiGraphics g, MoonFx fx, float partial, int w, int h, HalleyHud.@Nullable Projector project) {
         float ct = fx.filmTime(partial);
         float fade = fade(fx.filmWeight());
         if (Float.isNaN(ct) || ct < LUNA_IN || ct > LUNA_END || fade <= 0.01F || CutsceneDirector.legacy()) {

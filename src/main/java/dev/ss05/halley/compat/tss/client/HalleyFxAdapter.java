@@ -7,7 +7,7 @@ import cyou.rimuru.shootingstardemo.client.fx.FxManager;
 import cyou.rimuru.rimulib.client.api.UiApi;
 import cyou.rimuru.shootingstardemo.client.fx.SpellFx;
 import cyou.rimuru.rimulib.client.render.ScreenFx;
-import cyou.rimuru.shootingstardemo.il11ill1iil;
+import cyou.rimuru.shootingstardemo.net.SpellFxPayload;
 import dev.ss05.halley.HalleyPlan;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.HalleyHud;
