@@ -75,6 +75,16 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   branch's own `dev/ci/branches/<branch>.sh` after its port (`node ports\addtest.js <script> prodClientTest`).
   Codex's limit hit again ~16:00 and reset ~17:00 (the user): fabric-1.20.1 (committed `b3e2a6a`, report left) and
   fabric-1.21.11 (rendering left) resumed.
+  **~17:50**: fabric-1.20.1 DONE (`b3e2a6a` + CI test line, pushed to wip); fabric-1.21.1's agent checking its CI
+  frames (found: Luna's opening shot lacks the caster on Fabric = the test harness's camera entity, fixing the harness;
+  Proxima's terrain "inconclusive"); fabric-1.21.11 finishing its RenderPipeline space scene (`ProximaRenderer`). Limit hit
+  again, the user reset it, both resumed. fabric-26.3 still waits.
+  **Release texts made (the user asked for "a prompt to an ai to publish all of this on curseforge")**:
+  `dev/publish/changelog_180.js` -> the project folder's `releases\1.8.0\changelogs\<branch>.md` (Proxima's key says Z
+  on every branch: check fabric-26.3's report, Z is its Epic key); `curseforge-description.md` updated for Proxima
+  (four skills, SA-04 section, = and - keys, credits NASA + Solar System Scope); the prompt is
+  `releases\1.8.0\CURSEFORGE-PROMPT.md` (per-jar table, Markdown-first changelog trap, relations, summary 235 chars).
+  It expects the jars in `releases\1.8.0\jars\` (not there yet: stage the CI jars of the final commits first).
 - **Porting: WAIT for the user's word** ("then i will tell u when to give gpt the prompts for porting"). Plan when they
   say go: like 1.7.0's (RELEASE PLAN block): squash main's commits since `b605256` onto `origin/main` as one commit
   (`port-1.8.0`?), six worktrees in the project folder's `ports\<branch>\` on `port/<branch>`, one `BRIEF.md` each
