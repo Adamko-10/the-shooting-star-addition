@@ -1,6 +1,6 @@
 # The Shooting Star Addition
 
-An **unofficial**, fan-made addon for **[The Shooting Star \[Demo\]](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-demo)** by rimuru\_dev. It adds three skills to the Stellar Remote: **SA-01 · Halley**, a comet called down onto your crosshair, **SA-02 · Luna**, which brings the moon itself down, and **SA-00 · Stellar Convergence**, which fires every weapon at once.
+An **unofficial**, fan-made addon for **[The Shooting Star \[Demo\]](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-demo)** by rimuru\_dev. It adds four skills to the Stellar Remote: **SA-01 · Halley**, a comet called down onto your crosshair, **SA-02 · Luna**, which brings the moon itself down, **SA-04 · Proxima**, a solar flare fired from a star 4.2 light years away, and **SA-00 · Stellar Convergence**, which fires every weapon at once.
 
 ### My discord server is now open! join for leaks on upcoming updates and projects!
 
@@ -14,7 +14,7 @@ An **unofficial**, fan-made addon for **[The Shooting Star \[Demo\]](https://www
 
 ## ⚠️ Compatibility — please read
 
-Version **1.7.0** works with **The Shooting Star \[Demo\] 1.5.2** and needs **RimuLib 1.2.2** or newer (The Shooting Star needs it too). On The Shooting Star 1.5.0, keep version 1.6.0 of this addon; on 1.4.x, version 1.5.1.
+Version **1.8.0** works with **The Shooting Star \[Demo\] 1.5.2** and needs **RimuLib 1.2.2** or newer (The Shooting Star needs it too). On The Shooting Star 1.5.0, keep version 1.6.0 of this addon; on 1.4.x, version 1.5.1.
 
 ### Available builds
 
@@ -30,7 +30,7 @@ Download the build that matches your Minecraft version and mod loader:
 
 The Fabric builds also need **Fabric API**. Install it on the **server and every client**.
 
-Like the original mod's skills, Halley and Luna **permanently change the land**. Back up worlds you care about.
+Like the original mod's skills, Halley, Luna and Proxima **permanently change the land**. Back up worlds you care about.
 
 ## SA-01 · Halley
 
@@ -61,9 +61,22 @@ The fallen moon is made of it.
 *   **Moon cheese** and **holey moon cheese**: right-click a block to place it, right-click the air to eat it. It's as good as a golden carrot, and being cheese, it clears your effects like milk.
 *   **Molten moon cheese**, one block at the moon's very centre: **500 hearts** and **Strength 255** for 10 minutes (Molten Might), and a full hunger bar.
 
+## SA-04 · Proxima
+
+Proxima Centauri, a red dwarf locked inside a Dyson sphere 4.2 light years away, charges a giant lens and fires a solar flare at Earth. A gate high above the land catches the shot and focuses it onto your crosshair.
+
+*   **Flash burn**: the sky turns white-red, leaves and plants burn, shallow water steams, exposed players and mobs catch fire. Then the coronal front sweeps across the sky, a hush, and **ground zero**: a wide, shallow, glassy bowl, charred trees and ground round it, a scorched zone out to 220 blocks, and a slow shock wave rolling out to the horizon.
+*   **Shelter works**: three solid blocks over your head keep you safe from the burn. Underground you still feel it.
+*   **Space weather**: compasses spin, redstone sparks, a radio burst, and auroras for a while afterwards.
+*   **Aftermath**: **Solar Residue** (a glowing, minable block left in the bowl), **Flare Ash** over the scorched land, and a **radiation zone** in the crater that fades after about 10 minutes.
+*   **Its own 36-second film**: up through the clouds and out of the world, a warp to Proxima Centauri, the Dyson sphere opening, the lens charging, the shot crossing to Earth, the gate catching it, and back on the land for the flash and the shock wave. Everyone else sees the gate in the sky.
+*   **Power sets the flare's class**, like real ones: 0.1× is about C1, 1× M5, 3× X3, 10× X25.
+*   **Its own music** by [DOM\_MusicST](https://www.youtube.com/@DOM_MusicST) and [FarzanNB](https://www.youtube.com/@FarzanNB). Its own key (**Z** by default), sliders and cooldown.
+*   **Random solar flares** (off by default): servers can turn on flares that arrive by themselves, announced in chat first: minor, major, or a full cataclysm if the server allows it. Operators can call one with `/ssa flare <minor|major|cataclysm> [seconds]`.
+
 ## SA-00 · Stellar Convergence
 
-A remote skill that fires every weapon you tick, all at once, timed so every impact lands on the same tick: Halley, Luna and The Shooting Star's Railgun, Gungnir and Seven Stars (Tesseract fires along with them). Gravitia, if ticked, comes last, once the others are done. Other addons' remote skills can be ticked too.
+A remote skill that fires every weapon you tick, all at once, timed so every impact lands on the same tick: Halley, Luna, Proxima and The Shooting Star's Railgun, Gungnir and Seven Stars (Tesseract fires along with them). Gravitia, if ticked, comes last, once the others are done. Other addons' remote skills can be ticked too.
 
 *   **Its panel**: select SA-00 in the remote's menu (**H**): **1-9** tick the weapons, **R** switches where they land (on the crosshair, or spread in a ring with room for each weapon's size), **X** the camera shake, **V** folds the panel.
 *   **Its own film**: quick cuts to each weapon's moment, frozen into comic-style panels that shatter as everything hits.
@@ -77,7 +90,7 @@ Halley and Luna have The Shooting Star's three sliders, under them in the remote
 
 ## The remote's menu
 
-A small plate in the corner of the remote's menu (**H**) holds your own switches: **M** Luna's music, **G** Epic mode (**Z** on 26.3), **L** keep the moon, **F** impact frames (full, softer or off), **E** where a creative caster goes when standing where their own strike lands (straight up, or out to the crater's edge), **C** no cooldown.
+A small plate in the corner of the remote's menu (**H**) holds your own switches: **M** Luna's and Proxima's music, **=** music stacking (off: casting again doesn't start a second copy), **G** Epic mode (**Z** on 26.3), **L** keep the moon, **F** impact frames (full, softer or off), **E** where a creative caster goes when standing where their own strike lands (straight up, or out to the crater's edge), **-** kilometres or miles, **C** no cooldown.
 
 ## ⏱️ No cooldown (optional)
 
@@ -95,7 +108,7 @@ Off by default. Set `no_cooldown = true` in the `[stellar_remote]` section of `c
 
 ## Settings
 
-*   `config/shooting_star_addition-common.toml` (the server's): both skills' sizes, blast reach and cooldowns, whether they carve the land, `no_cooldown`, and the slider limits.
+*   `config/shooting_star_addition-common.toml` (the server's): each skill's sizes, blast reach and cooldown, whether they carve the land, `no_cooldown`, the slider limits, and Proxima's shelter depth, knockback, radiation and random flares.
 *   `config/shooting_star_addition-client.toml` (each player's own): the dark sky, the extra effects, the world-lighting flashes (turn them off if flashing light bothers you), and the menu plate's switches.
 
 ## Will it work with future versions of The Shooting Star?
@@ -108,11 +121,11 @@ Not without an update of this addon. The Shooting Star has no official way for o
 
 ## Plans
 
-This is version **1.7.0**. More skills for the Stellar Remote are planned, along with balancing and polish. Comments, bug reports and ideas are very welcome!
+This is version **1.8.0**. More skills for the Stellar Remote are planned, along with balancing and polish. Comments, bug reports and ideas are very welcome!
 
 ## Credits
 
-The Shooting Star and the Stellar Remote are by **rimuru\_dev**. Luna's music is by **[DOM\_MusicST](https://www.youtube.com/@DOM_MusicST)** and **[FarzanNB](https://www.youtube.com/@FarzanNB)**. This addon is **not affiliated with or endorsed by** them, and contains none of the original mod's code or assets — you need the original mod installed for it to do anything.
+The Shooting Star and the Stellar Remote are by **rimuru\_dev**. Luna's and Proxima's music is by **[DOM\_MusicST](https://www.youtube.com/@DOM_MusicST)** and **[FarzanNB](https://www.youtube.com/@FarzanNB)**. Earth in Proxima's film uses NASA's Blue Marble and Black Marble imagery and textures from [Solar System Scope](https://www.solarsystemscope.com/textures/) (CC BY 4.0). This addon is **not affiliated with or endorsed by** them, and contains none of the original mod's code or assets — you need the original mod installed for it to do anything.
 
 Stellar Convergence is inspired by **Stellar Quartet** by **ikun520**, which unlocks it.
 
