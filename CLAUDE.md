@@ -93,6 +93,15 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   `ports\check-prompt.txt` now carries both lessons for the next checks. **fabric-26.3 started on Astra** (told to keep
   Epic mode on Z and give Proxima a free key if Z clashes; read its REPORT.md for the key, then fix `changelog_180.js`
   `KEY` and the description). Running: fabric-1.21.11 (port), fabric-26.3 (port); fabric-1.20.1 CI #179 running.
+  **~23:10**: CI green: fabric-1.20.1 #179 (all four client tests, proxima 76 frames), fabric-1.21.1 #180 (the harness
+  fix works: the caster is back in Luna's opening shot). **fabric-1.21.11 DONE** (`822a8a6`, REPORT.md: the space scene
+  and sky gate fully rewritten for RenderPipelines in `client/proxima/ProximaRender`, no TODO(port)); its harness has no
+  film recorder, so its CI proxima test takes shots by ticks from the cast (0,40,...,900); pushed to wip. **fabric-26.3**
+  hit the limit again, resumed (the user: "go resume the one agent"); its agent said it is **deferring the space/Earth
+  scene and the sky gate under TODO(port)** (26.3 lacks the immediate shader draws, GUI flush and GL texture ids it
+  needs): on 26.3 the film keeps its world shots, captions and music only; **Proxima's key there is ] (right bracket)**,
+  Epic stays Z: set `changelog_180.js` KEY for 26.3 and the description once its REPORT.md confirms. fabric-1.20.1's
+  agent is doing its screenshot check (ci-fabric-1.20.1-179).
 - **Porting: WAIT for the user's word** ("then i will tell u when to give gpt the prompts for porting"). Plan when they
   say go: like 1.7.0's (RELEASE PLAN block): squash main's commits since `b605256` onto `origin/main` as one commit
   (`port-1.8.0`?), six worktrees in the project folder's `ports\<branch>\` on `port/<branch>`, one `BRIEF.md` each
