@@ -53,6 +53,13 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   **Next for Claude**: as each finishes, read its `REPORT.md`, review its diff (grep `mc1211`, `net.neoforged`, conflict
   markers), build the Forge ones here, push each to `wip/<branch>` with `dev/ci/push-wip.sh` for CI, fix from CI; then
   the release (two waves), as listed below. Earlier plan:
+  **2026-11-08 ~12:35**: all six Codex tasks had stopped on **Codex's usage limit** ("You've hit your usage limit"), each
+  mid cherry-pick, except **forge-1.21.1: DONE** (`e3bd2f0`, REPORT.md fine, built, tssPack 40 refs clean; pushed to
+  `wip/forge-1.21.1` for CI, with `wip/main` too). The user ("for now run 2 of them", "with astra it should be better":
+  1.7.0's Sol ports were buggy): **fabric-1.21.1 and forge-1.20.1 resumed on GPT-6 Astra, High** in their chats
+  ("continue where you left off ..."); fabric-1.20.1, fabric-1.21.11, fabric-26.3 wait (cherry-pick in progress,
+  untouched) until those two finish, then resume them the same way on Astra, two at a time. Push wip from the port
+  worktree (its `dev/ci/branches/<branch>.sh` has TSS 1.5.2; main's copies of the other branches' scripts are stale).
 - **Porting: WAIT for the user's word** ("then i will tell u when to give gpt the prompts for porting"). Plan when they
   say go: like 1.7.0's (RELEASE PLAN block): squash main's commits since `b605256` onto `origin/main` as one commit
   (`port-1.8.0`?), six worktrees in the project folder's `ports\<branch>\` on `port/<branch>`, one `BRIEF.md` each
