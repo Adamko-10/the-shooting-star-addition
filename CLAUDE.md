@@ -85,6 +85,14 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   (four skills, SA-04 section, = and - keys, credits NASA + Solar System Scope); the prompt is
   `releases\1.8.0\CURSEFORGE-PROMPT.md` (per-jar table, Markdown-first changelog trap, relations, summary 235 chars).
   It expects the jars in `releases\1.8.0\jars\` (not there yet: stage the CI jars of the final commits first).
+  **~18:00**: fabric-1.21.1's screenshot check DONE (`ports\fabric-1.21.1\CHECK.md`, 208 images compared): the film's
+  space part, overlays and title cards match main; one real fault, in the Fabric test harness (its marker stayed the
+  camera entity in films, so the caster was missing from Luna's opening shot), fixed `4d8a980`, pushed to wip for a
+  re-run; Proxima's wave shots show little land on Fabric, but the test world's seed is random (main's last shots sit in
+  rock instead): not a port bug by itself; a fixed seed in the harness would make the comparisons cleaner (not done).
+  `ports\check-prompt.txt` now carries both lessons for the next checks. **fabric-26.3 started on Astra** (told to keep
+  Epic mode on Z and give Proxima a free key if Z clashes; read its REPORT.md for the key, then fix `changelog_180.js`
+  `KEY` and the description). Running: fabric-1.21.11 (port), fabric-26.3 (port); fabric-1.20.1 CI #179 running.
 - **Porting: WAIT for the user's word** ("then i will tell u when to give gpt the prompts for porting"). Plan when they
   say go: like 1.7.0's (RELEASE PLAN block): squash main's commits since `b605256` onto `origin/main` as one commit
   (`port-1.8.0`?), six worktrees in the project folder's `ports\<branch>\` on `port/<branch>`, one `BRIEF.md` each
