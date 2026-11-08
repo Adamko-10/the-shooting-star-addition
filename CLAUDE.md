@@ -102,6 +102,10 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   needs): on 26.3 the film keeps its world shots, captions and music only; **Proxima's key there is ] (right bracket)**,
   Epic stays Z: set `changelog_180.js` KEY for 26.3 and the description once its REPORT.md confirms. fabric-1.20.1's
   agent is doing its screenshot check (ci-fabric-1.20.1-179).
+  **~23:30**: fabric-26.3's port committed (`be16496` port + `f93a92f` "handoff", which also edited CLAUDE.md on that
+  branch: check it) with the space scene deferred; **the user: "Yes, port it"** = give 26.3 the space/Earth scene and sky
+  gate from fabric-1.21.11's rewrite (`822a8a6`: `ProximaRender`, `HalleyPipelines`, `ProximaCosmos`, shaders). Sent
+  to its Codex agent (Astra), running; then add the CI proxima test to fabric-26.3 and push wip.
 - **Porting: WAIT for the user's word** ("then i will tell u when to give gpt the prompts for porting"). Plan when they
   say go: like 1.7.0's (RELEASE PLAN block): squash main's commits since `b605256` onto `origin/main` as one commit
   (`port-1.8.0`?), six worktrees in the project folder's `ports\<branch>\` on `port/<branch>`, one `BRIEF.md` each
