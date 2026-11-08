@@ -64,6 +64,17 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   DONE, reports clean (no TODO(port), nothing left out; Codex ran its ponytail skill: fine, both list every feature);
   pushed to wip (CI #176, #175). forge-1.21.1 CI #173 ok (mappings + build); wip/main #174 running. **fabric-1.20.1
   and fabric-1.21.11 resumed on Astra**; fabric-26.3 waits for one of them.
+  **~17:05, testing (the user picked "Add to CI, GPT checks")**: CI's client tests now include **proxima** (main `f13e74e`,
+  fabric-1.21.1 `8c1d044`: `skill=other world=normal filmlog=true command="ssa strike proxima at 150 ~ 0"`, 76 frames
+  `other_film_<s>.png`, ~30 MB zip; software GL renders the whole film fine: Earth, Dyson sphere, lens, gate, titles).
+  Green: main #177, fabric-1.21.1 #178 (all four client tests), forge-1.21.1 #173, forge-1.20.1 #175 (re-run: the first
+  try lost the network on the 1.4.0 mapping). Forge branches have no game run in CI: one Forge jar needs a person's
+  test before release. Next: each finished Fabric port's Codex agent compares its CI frames with main's (#177) and
+  writes `CHECK.md` (in `.git/info/exclude`), fixing clear port bugs; the prompt is the project folder's
+  `ports\check-prompt.txt` (change the run numbers per branch). Add the proxima test line to each remaining Fabric
+  branch's own `dev/ci/branches/<branch>.sh` after its port (`node ports\addtest.js <script> prodClientTest`).
+  Codex's limit hit again ~16:00 and reset ~17:00 (the user): fabric-1.20.1 (committed `b3e2a6a`, report left) and
+  fabric-1.21.11 (rendering left) resumed.
 - **Porting: WAIT for the user's word** ("then i will tell u when to give gpt the prompts for porting"). Plan when they
   say go: like 1.7.0's (RELEASE PLAN block): squash main's commits since `b605256` onto `origin/main` as one commit
   (`port-1.8.0`?), six worktrees in the project folder's `ports\<branch>\` on `port/<branch>`, one `BRIEF.md` each
