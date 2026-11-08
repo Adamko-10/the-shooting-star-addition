@@ -545,6 +545,14 @@ public final class Harness {
         if (cam == null) {
             return;
         }
+        if (finalView < 0 && CutsceneDirector.active()) {
+            // Vanilla hides the local player when a marker owns the camera; the film moves the player's camera itself.
+            if (mc.getCameraEntity() != mc.player) {
+                mc.setCameraEntity(mc.player);
+            }
+            mc.options.hideGui = !HarnessParams.HUD;
+            return;
+        }
         // round the strike's real mark once it has one (the land can have put it somewhere else than aimed at)
         net.minecraft.world.phys.Vec3 mark = strikeMark();
         double markX = mark != null ? mark.x : SPAWN_X + HarnessParams.DISTANCE;
