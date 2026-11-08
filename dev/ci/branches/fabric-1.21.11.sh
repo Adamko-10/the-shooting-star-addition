@@ -10,4 +10,6 @@ ci_tests() {
   client_test halley prodClientTest -Dss05.clienttest.skill=halley -Dss05.clienttest.shots=0,100,250,300,330,345,400,500 -Dss05.clienttest.view=wide
   client_test moon prodClientTest -Dss05.clienttest.skill=moon -Dss05.clienttest.shots=20,70,140,215,290,320,340,370,430,480 -Dss05.clienttest.view=aerial -Dss05.clienttest.film=true -Dss05.clienttest.hud=true -Dss05.clienttest.final=aerial,rim,cheese,menu -Dss05.clienttest.time=6000
   client_test tuned prodClientTest -Dss05.clienttest.skill=moon -Dss05.clienttest.shots=150,324,342,380 -Dss05.clienttest.view=aerial -Dss05.clienttest.final=rim,skills -Dss05.clienttest.time=6000 -Dss05.clienttest.power=0.4 -Dss05.clienttest.speed=3 -Dss05.clienttest.damage=20
+  # SA-04 Proxima's whole film on real land, shots by ticks from the cast (no film recorder on this branch)
+  client_test proxima prodClientTest -Dss05.clienttest.skill=other -Dss05.clienttest.world=normal -Dss05.clienttest.time=6000 -Dss05.clienttest.shots=0,40,80,110,150,200,250,290,320,350,400,450,520,600,700,900 -Dss05.clienttest.film=true -Dss05.clienttest.hud=true "-Dss05.clienttest.command=ssa strike proxima at 150 ~ 0"
 }
