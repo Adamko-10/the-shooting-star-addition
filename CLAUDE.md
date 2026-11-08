@@ -2,6 +2,24 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+### Fabric 26.3 port handoff (2026-11-08)
+
+The local `port/fabric-26.3` branch now carries 1.8.0 from `604fb06`, ported in `be16496`.
+The historical main-branch notes below remain design references; this branch uses Fabric, Minecraft 26.3,
+TSS 1.5.2 and RimuLib 1.2.2. `BRIEF.md` governed this port; the ignored `REPORT.md` records its checks and limitations.
+
+- Gameplay, blocks/items, config, commands, flares, music, film camera/text and world glows have been ported.
+- **Proxima defaults to ] (right bracket); Epic mode stays Z; stack music is =; units is -.** RimuLib 1.2.2's
+  26.3 skill registration only translates A-Z defaults, so `SkillKeysMixin` supplies Proxima's SDL right-bracket
+  default. `StarClientBridge` translates SDL menu keys for the plates, after checking the remote's own bindings.
+- The space/Earth scene, world sky gate and Earth texture preload/mipmaps are deferred under three `TODO(port)`
+  comments. The film shows its world camera during that portion. Original assets remain unchanged; no incomplete
+  immediate-mode renderer is registered. Finish these with 26.3 pipelines and GUI extraction, not `ShaderInstance`.
+- No mod build or game run was attempted: this PC lacks JDK 25, and the brief assigns builds to CI. Source syntax,
+  JSON, key translation cases, asset hashes and API signatures were checked; these do not establish runtime success.
+  CI must compile against the branch's mapped TSS names and check mixin application, casting, save/reload,
+  Controls reset, the four keys above, legacy-film text and shader-pack rendering.
+
 **The Shooting Star Addition** - handoff notes for whoever (human or Claude) works on this next. Written 2026-10-14 at
 the end of the 1.4.0 work, updated 2026-10-17 for 1.5.0 (§12) and 2026-10-18 for the user's 1.5.0 test round (§13; status in §9),
 and 2026-10-29 with the agreed plan for the next updates and Proxima (§14, §15; SA-04 since 2026-11-05).
