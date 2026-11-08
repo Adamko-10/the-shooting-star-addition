@@ -60,6 +60,10 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   ("continue where you left off ..."); fabric-1.20.1, fabric-1.21.11, fabric-26.3 wait (cherry-pick in progress,
   untouched) until those two finish, then resume them the same way on Astra, two at a time. Push wip from the port
   worktree (its `dev/ci/branches/<branch>.sh` has TSS 1.5.2; main's copies of the other branches' scripts are stale).
+  **~12:50**: fabric-1.21.1 (`846024b`, not buildable here: CI) and forge-1.20.1 (`1d75fda`, built here, tssPack clean)
+  DONE, reports clean (no TODO(port), nothing left out; Codex ran its ponytail skill: fine, both list every feature);
+  pushed to wip (CI #176, #175). forge-1.21.1 CI #173 ok (mappings + build); wip/main #174 running. **fabric-1.20.1
+  and fabric-1.21.11 resumed on Astra**; fabric-26.3 waits for one of them.
 - **Porting: WAIT for the user's word** ("then i will tell u when to give gpt the prompts for porting"). Plan when they
   say go: like 1.7.0's (RELEASE PLAN block): squash main's commits since `b605256` onto `origin/main` as one commit
   (`port-1.8.0`?), six worktrees in the project folder's `ports\<branch>\` on `port/<branch>`, one `BRIEF.md` each
