@@ -4,6 +4,7 @@ import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.render.MoonRenderer;
 import dev.ss05.halley.client.luna.render.MoonSphere;
 import dev.ss05.halley.client.proxima.ProximaFx;
+import dev.ss05.halley.client.proxima.ProximaCosmos;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import dev.ss05.halley.client.render.CometRenderer;
 import dev.ss05.halley.client.render.GlowAtlas;
@@ -35,6 +36,7 @@ public final class HalleyClient implements ClientModInitializer {
         LevelRenderEvents.END_MAIN.register(MoonSphere::renderSolid);
         LevelRenderEvents.END_MAIN.register(CometRenderer::render);
         LevelRenderEvents.END_MAIN.register(MoonRenderer::render);
+        LevelRenderEvents.END_MAIN.register(ProximaCosmos::renderSky);
         // a film's panels: the shot being cut away from is copied once the world is drawn (see FilmPanels)
         LevelRenderEvents.END_MAIN.register(context -> FilmPanels.copyPending());
         LevelRenderEvents.COLLECT_SUBMITS.register(context -> {
@@ -46,12 +48,15 @@ public final class HalleyClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> ProximaFx.tickZones());
         // once every mod's client has started, The Shooting Star's effect handling is in place to be hooked
         ClientLifecycleEvents.CLIENT_STARTED.register(client -> StarBridge.installClient());
-        // TODO(port): Restore Proxima Earth texture preload with mipmapped GPU textures when its scene is ported.
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> HalleyClientConfig.SPEC.load());
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            HalleyClientConfig.SPEC.load();
+            ProximaCosmos.preload();
+        });
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
             ProximaFx.clearAll();
+            ProximaCosmos.release();
             ConvergenceView.clearAll();
             CometRenderer.release();
             MoonRenderer.release();

@@ -11,8 +11,8 @@ import net.minecraft.world.phys.Vec3;
 /**
  * SA-04 Proxima's film (the approved previz, 36 s; docs/SS-07-PROXIMA.md), its shots in the world, on the strike's
  * clock, in Luna's film types (see {@link MoonStoryboard} for how {@code k} and {@code stage} work). From
- * {@link ProximaPlan#ORBIT} to the flash the camera waits high over the caster: this port defers ProximaCosmos's space
- * scene and keeps that world view visible. Every camera is kept over land this
+ * {@link ProximaPlan#ORBIT} to the flash ProximaCosmos's space scene covers the world, while the camera waits high
+ * over the caster. Every camera is kept over land this
  * game has loaded and out of the ground ({@link Stage#keep}).
  */
 public final class ProximaStoryboard {
@@ -58,7 +58,7 @@ public final class ProximaStoryboard {
             Vec3 look = pos.add(fw.scale(Math.cos(pitch))).add(0.0, -Math.sin(pitch), 0.0);
             return new Pose(x.keep(pos, feet), look, (float) l((float) rise, 70.0, 64.0), 0.0F);
         }));
-        // World-camera fallback while ProximaCosmos is deferred: wait where the pull up ended.
+        // Behind ProximaCosmos's space scene: wait where the pull up ended.
         takes.add(Take.cut(ProximaPlan.ORBIT, ProximaPlan.FLASH, (x, p, k) -> {
             Vec3 feet = x.feet(p);
             Vec3 fw = x.forward();

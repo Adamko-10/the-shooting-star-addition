@@ -18,6 +18,7 @@ import dev.ss05.halley.client.HalleyHud;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.luna.MoonHud;
 import dev.ss05.halley.client.proxima.ProximaFx;
+import dev.ss05.halley.client.proxima.ProximaCosmos;
 import dev.ss05.halley.client.proxima.ProximaHud;
 import dev.ss05.halley.compat.tss.ConvergenceFx;
 import dev.ss05.halley.compat.tss.StrikeFx;
@@ -169,7 +170,8 @@ public final class StarClientBridge {
         }
         if (!ProximaFx.active().isEmpty()) {
             ProximaFx proxima = ProximaFx.active().getLast();
-            // ProximaCosmos documents the deferred space pass; the world camera remains visible.
+            ProximaCosmos.render(graphics, proxima, partial);
+            // The extracted scene image is below these captions and title cards.
             UiApi.overlay(graphics, () -> {
                 ProximaHud.film(graphics, proxima, partial, UiApi.width(graphics), UiApi.height(graphics));
                 FilmTitle.caption(graphics, ProximaHud.caption(proxima, partial), UiApi.width(graphics), UiApi.height(graphics));

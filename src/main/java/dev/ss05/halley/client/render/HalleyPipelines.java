@@ -64,6 +64,33 @@ public final class HalleyPipelines {
     /** The dome painted onto textures for shader packs. */
     public static final RenderPipeline SKY_PAINT = sky("sky_paint", REPLACE);
 
+    private static final BindGroupLayout PROXIMA_UNIFORMS = BindGroupLayout.builder()
+        .withUniform("ProximaScene", UniformType.UNIFORM_BUFFER).build();
+    private static final ColorTargetState PROXIMA_ADD = new ColorTargetState(
+        Optional.of(new BlendFunction(BlendFactor.ONE, BlendFactor.ONE)), GpuFormat.RGBA8_UNORM, ColorTargetState.WRITE_COLOR);
+    private static final RenderPipeline[][] PROXIMA = new RenderPipeline[4][2];
+
+    /** Proxima's opaque, premultiplied additive, translucent and backdrop passes, for quads or triangles. */
+    public static RenderPipeline proxima(int blend, PrimitiveTopology topology) {
+        int shape = topology == PrimitiveTopology.TRIANGLES ? 1 : 0;
+        if (PROXIMA[blend][shape] == null) {
+            PROXIMA[blend][shape] = RenderPipeline.builder()
+                .withLocation(HalleyAddon.id("pipeline/proxima_" + blend + "_" + shape))
+                .withVertexShader(HalleyAddon.id("core/proxima_space"))
+                .withFragmentShader(HalleyAddon.id("core/proxima_space"))
+                .withBindGroupLayout(BindGroupLayouts.PROJECTION)
+                .withBindGroupLayout(PROXIMA_UNIFORMS)
+                .withBindGroupLayout(BindGroupLayouts.SAMPLER0_SAMPLER1)
+                .withVertexBinding(0, DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL)
+                .withPrimitiveTopology(topology)
+                .withColorTargetState(blend == 1 ? PROXIMA_ADD : blend == 2 ? BLEND : OPAQUE)
+                .withDepthStencilState(blend == 3 ? Optional.empty() : Optional.of(blend == 0 ? TEST_AND_WRITE : TEST_ONLY))
+                .withCull(false)
+                .build();
+        }
+        return PROXIMA[blend][shape];
+    }
+
     private HalleyPipelines() {
     }
 

@@ -1,4 +1,5 @@
-#version 150
+#version 330
+#extension GL_ARB_separate_shader_objects : require
 
 // SA-04 Proxima's film, its space and Earth shots (client/proxima/ProximaCosmos). One program, a material per Mode:
 //  0 the deep-space backdrop (Param.x: the red nebula, Param.y: how many stars, Param.z: the warp, the stars drawn out
@@ -16,18 +17,23 @@
 // 10 plain colour (Color), 11 a lens tile (uv across it; Param.x: its charge)
 uniform sampler2D Sampler0;
 uniform sampler2D Sampler1;
-uniform float Mode;
-uniform float Time;
-uniform vec3 CamPos;
-uniform vec3 SunDir;
-uniform vec4 Param;
+layout(std140) uniform ProximaScene {
+    mat4 ModelViewMat;
+    vec4 CameraTime;
+    vec4 SunMode;
+    vec4 Param;
+};
+#define CamPos CameraTime.xyz
+#define Time CameraTime.w
+#define SunDir SunMode.xyz
+#define Mode SunMode.w
 
-in vec3 pos;
-in vec2 uv;
-in vec4 color;
-in vec3 normal;
+layout(location = 0) in vec3 pos;
+layout(location = 1) in vec2 uv;
+layout(location = 2) in vec4 color;
+layout(location = 3) in vec3 normal;
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
 
 float hash31(vec3 p) {
     p = fract(p * 0.3183099 + 0.1);

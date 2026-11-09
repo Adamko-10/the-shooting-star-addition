@@ -105,8 +105,9 @@ front then hits the mark, leaving a glassy bowl, charred ground, Solar Residue a
 overhead shelter you from the flash and the outer blast. Radiation lingers in the bowl and is saved with the world.
 Power scales the strike, and the common config controls terrain changes, radiation and optional random solar flares.
 
-On this Fabric 26.3 port the 36-second film has its world camera, captions, title cards and soundtrack. The separate
-space/Earth scene and sky gate are deferred: the world camera stays visible during the space portion.
+The 36-second film rises from the world into Earth orbit, travels to Proxima's Dyson sphere and follows its shot back
+to the gate above Earth, with captions, title cards and its soundtrack. Outside the film, the gate appears above the
+strike and refocuses the incoming beam onto the mark.
 Epic mode remains **Z**; **=** switches music stacking and **-** switches kilometres/metres to miles/feet.
 
 ## SA-00 · Stellar Convergence
