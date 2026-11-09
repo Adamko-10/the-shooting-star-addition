@@ -31,9 +31,12 @@ The user moved to a new conversation here (2026-11-09: "write claude md since im
 | forge-1.20.1 | `1d75fda` | #175 green (build only) | none possible |
 | fabric-1.21.1 | `4d8a980` | #180 green | DONE (CHECK.md): film matches main |
 | fabric-1.20.1 | `29e6989` | #183 running (harness fix) | DONE (CHECK.md): film matches main |
-| fabric-1.21.11 | `59a0f73` | #182 running (#181 failed to compile, fixed by Claude) | not yet |
-| fabric-26.3 | CI test line on `096b883` | #184 running | not yet |
+| fabric-1.21.11 | `59a0f73` | #182 green (proxima: 16 shots by tick) | not yet |
+| fabric-26.3 | CI test line `81fb8b3` on `096b883` | #184 FAILED to compile (3 errors: `HalleyContent:116` Flare Ash properties, `ProximaLand:52` `new ChunkPos(BlockPos)`, `ProximaStrike:314` `hurtMarked`), sent to its Codex agent to fix | not yet |
 
+- **2026-11-09 ~13:25**: the user ran `RELEASE-PROMPT.md` in Codex (a new chat "Find the requested task" in the
+  "TSSA port fabric-26.3" project); it **stopped correctly at the readiness check** (fabric-1.20.1's newest finished CI
+  was #179, before the harness fix; #183 still running) and changed nothing. Run it again once every branch is green.
 - **Left before the release, in order**: (1) #182, #183, #184 green (read `summary.txt` of the draft `ci-<branch>-<n>`;
   failures from `gh run view <id> --log`); fix small compile slips here, bigger ones back to the branch's Codex agent;
   (2) the screenshot checks for fabric-1.21.11 and fabric-26.3 by their Codex agents (prompt: the project folder's
