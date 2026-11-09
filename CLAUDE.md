@@ -30,9 +30,9 @@ The user moved to a new conversation here (2026-11-09: "write claude md since im
 | forge-1.21.1 | `e3bd2f0` | #173 green (build only: Forge has no game run) | none possible |
 | forge-1.20.1 | `1d75fda` | #175 green (build only) | none possible |
 | fabric-1.21.1 | `4d8a980` | #180 green | DONE (CHECK.md): film matches main |
-| fabric-1.20.1 | `29e6989` | #183 running (harness fix) | DONE (CHECK.md): film matches main |
-| fabric-1.21.11 | `59a0f73` | #182 green (proxima: 16 shots by tick) | running (its Codex agent, 2026-11-09 ~13:30) |
-| fabric-26.3 | `e02112a` (its agent's fix of #184's 3 compile errors: `PushReaction.POPPED`, `new ChunkPos(x>>4, z>>4)`, `entity.syncVelocity`) | #185 running | after its CI |
+| fabric-1.20.1 | `29e6989` | #183 green (harness fix) | DONE (CHECK.md): film matches main |
+| fabric-1.21.11 | `59a0f73` + its check's fixes (harness camera/HUD; Luna's seam blending back to main's, `147ba82`) | #182 green, **needs one more CI run with the check's fixes** | running (it hit the limit, resumed ~21:20) |
+| fabric-26.3 | `e02112a` (fixes of #184's 3 compile errors) | #185 green | running (started ~21:20) |
 
 - **2026-11-09 ~13:25**: the user ran `RELEASE-PROMPT.md` in Codex (a new chat "Find the requested task" in the
   "TSSA port fabric-26.3" project); it **stopped correctly at the readiness check** (fabric-1.20.1's newest finished CI
