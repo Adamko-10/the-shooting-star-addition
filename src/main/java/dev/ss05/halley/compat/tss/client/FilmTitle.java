@@ -30,7 +30,7 @@ final class FilmTitle {
      * Proxima's caption and readout over its lower letterbox bar (client/proxima/ProximaHud builds them): the caption
      * tracked wide, the readout in the fixed-width face, so changing numbers don't make it shuffle.
      */
-    static void caption(GuiGraphics g, @Nullable ProximaHud.Caption c, int w, int h) {
+    static void caption(GuiGraphics g, ProximaHud.@Nullable Caption c, int w, int h) {
         if (c == null || c.alpha() <= 0.01F) {
             return;
         }

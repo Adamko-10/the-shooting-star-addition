@@ -398,7 +398,7 @@ public final class ProximaFx {
                     for (int k = 0; k < 3; k++) {
                         this.particle(level, ParticleTypes.ELECTRIC_SPARK, spark, this.gauss(0.15), this.random.nextDouble() * 0.15, this.gauss(0.15));
                     }
-                    this.particle(level, new DustParticleOptions(new Vector3f(1.0F, 0.1F, 0.05F), 1.2F), spark, 0.0, 0.05, 0.0);
+                    this.particle(level, new DustParticleOptions(0xFF1A0D, 1.2F), spark, 0.0, 0.05, 0.0);
                 }
             }
         }

@@ -153,8 +153,8 @@ public final class ProximaCosmos {
         Matrix4f model = new Matrix4f().translate((float) (gate.x - eye.x), (float) (gate.y - eye.y), (float) (gate.z - eye.z))
             .scale((float) SKY_SCALE);
         Matrix4f view = Gfx.viewRotation().mul(model);
-        Vector3f left = camera.leftVector();
-        Vector3f up = camera.upVector();
+        Vector3f left = new Vector3f(camera.leftVector());
+        Vector3f up = new Vector3f(camera.upVector());
         Pass pass = new Pass(view, RenderSystem.getProjectionMatrixBuffer(), eye.subtract(gate).scale(1.0 / SKY_SCALE),
             new Vec3(-left.x, -left.y, -left.z), new Vec3(up.x, up.y, up.z), (float) t);
         program.beginWorld();
