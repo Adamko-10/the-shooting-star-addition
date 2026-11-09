@@ -106,6 +106,13 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   branch: check it) with the space scene deferred; **the user: "Yes, port it"** = give 26.3 the space/Earth scene and sky
   gate from fabric-1.21.11's rewrite (`822a8a6`: `ProximaRender`, `HalleyPipelines`, `ProximaCosmos`, shaders). Sent
   to its Codex agent (Astra), running; then add the CI proxima test to fabric-26.3 and push wip.
+  **2026-11-09 ~13:00** ("go resume one more time"): fabric-26.3 had stopped on the limit mid-way through the space scene
+  (9 files changed, uncommitted), resumed. fabric-1.20.1's screenshot check DONE (`CHECK.md`): the same harness bug as
+  1.21.1 (caster missing from Luna's opening), fixed `29e6989`; Proxima matches main; the last aftermath shot is fog vs
+  main's dark terrain (random world, inconclusive). Pushed to wip. fabric-1.21.11 CI #181 failed to compile (3 small
+  1.21.11 API slips: `Camera.leftVector/upVector` are `Vector3fc`, `DustParticleOptions(int, float)`, jspecify
+  `ProximaHud.@Nullable Caption`): fixed by Claude `59a0f73`, pushed. Next: when 1.21.11's CI is green, its agent does
+  the screenshot check (its frames are by tick, not film time: `other_<tick>.png`); 26.3 after its port.
 - **Porting: WAIT for the user's word** ("then i will tell u when to give gpt the prompts for porting"). Plan when they
   say go: like 1.7.0's (RELEASE PLAN block): squash main's commits since `b605256` onto `origin/main` as one commit
   (`port-1.8.0`?), six worktrees in the project folder's `ports\<branch>\` on `port/<branch>`, one `BRIEF.md` each
