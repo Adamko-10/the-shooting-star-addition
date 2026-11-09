@@ -44,7 +44,7 @@ import org.joml.Vector4f;
  *
  * <p>While a shader pack is on, Iris drops pipelines it doesn't know, same as SS-05's own light - but unlike that
  * light, this sphere already has real textures, so no atlas needs painting: it is simply submitted a second way, with
- * the same real textures, the surface the beacon-beam way and the seams/glow as glowing-eyes geometry
+ * the same real textures, the surface the beacon-beam way, translucent emissive seams and additive glowing eyes
  * ({@link #submitForShaderPack}), which every shader pack draws.
  *
  * <h2>Always its true size</h2>
@@ -244,11 +244,13 @@ public final class MoonSphere {
                 pass.setUniform("Sampler0", baseTex.getTextureView(), baseTex.getSampler());
                 BLEND_MESH.draw(pass);
             }
-            pass.setPipeline(RenderSystem.getCompiledPipeline(HalleyPipelines.MOON_EMISSIVE));
             if (drawSeam) {
+                // Main's emissive seam mask blends over the rock; only its separate glow adds light.
+                pass.setPipeline(RenderSystem.getCompiledPipeline(HalleyPipelines.MOON_BLEND));
                 pass.setUniform("Sampler0", seamTex.getTextureView(), seamTex.getSampler());
                 SEAM_MESH.draw(pass);
             }
+            pass.setPipeline(RenderSystem.getCompiledPipeline(HalleyPipelines.MOON_EMISSIVE));
             if (drawSeamGlow) {
                 pass.setUniform("Sampler0", seamTex.getTextureView(), seamTex.getSampler());
                 SEAM_GLOW_MESH.draw(pass);
@@ -270,8 +272,8 @@ public final class MoonSphere {
      * Fabric's {@code LevelRenderEvents.COLLECT_SUBMITS}, while a shader pack is on: the same sphere, with its own
      * real textures (no atlas needed, unlike the glow), submitted so every shader pack draws it. The surface goes the
      * beacon-beam way (solid, full-bright, its own shading - like the custom pipeline's base, see the class doc; the
-     * translucent beam while it blends); the seams, their glow and the heat shell go as glowing-eyes geometry (added
-     * light). Both are one-sided, so both windings are given here.
+     * translucent beam while it blends); the seams use translucent emissive geometry, with their glow and the heat
+     * shell as glowing eyes (added light). These types are one-sided, so both windings are given here.
      */
     public static void submitForShaderPack(LevelRenderContext context) {
         if (MoonFx.active().isEmpty() || !ShaderPacks.active()) {
@@ -294,7 +296,7 @@ public final class MoonSphere {
         List<Placement> blending = placements.stream().filter(p -> !opaque(p)).toList();
         submitPart(context, RenderTypes.beaconBeam(SURFACE, false), solid, camera, Part.BASE, time);
         submitPart(context, RenderTypes.beaconBeam(SURFACE, true), blending, camera, Part.BASE, time);
-        submitPart(context, RenderTypes.eyes(SEAMS), placements, camera, Part.SEAM, time);
+        submitPart(context, RenderTypes.entityTranslucentEmissive(SEAMS), placements, camera, Part.SEAM, time);
         submitPart(context, RenderTypes.eyes(SEAMS), placements, camera, Part.SEAM_GLOW, time);
         submitPart(context, RenderTypes.eyes(GLOW), placements, camera, Part.HEAT, time);
     }

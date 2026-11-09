@@ -358,6 +358,16 @@ final class Harness {
         if (cam == null) {
             return;
         }
+        if (mc.gui.hud.isHidden() == HarnessParams.HUD) {
+            mc.gui.hud.toggle();
+        }
+        if (finalView < 0 && CutsceneDirector.active()) {
+            // The film moves the player's camera; keeping our marker here hides the caster in the opening shot.
+            if (mc.getCameraEntity() != mc.player) {
+                mc.setCameraEntity(mc.player);
+            }
+            return;
+        }
         double markX = lastMark != null ? lastMark.x : SPAWN_X + HarnessParams.DISTANCE;
         double markY = lastMark != null ? lastMark.y : groundY;
         double markZ = lastMark != null ? lastMark.z : SPAWN_Z;
