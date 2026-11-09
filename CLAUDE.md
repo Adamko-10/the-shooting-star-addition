@@ -31,12 +31,14 @@ The user moved to a new conversation here (2026-11-09: "write claude md since im
 | forge-1.20.1 | `1d75fda` | #175 green (build only) | none possible |
 | fabric-1.21.1 | `4d8a980` | #180 green | DONE (CHECK.md): film matches main |
 | fabric-1.20.1 | `29e6989` | #183 green (harness fix) | DONE (CHECK.md): film matches main |
-| fabric-1.21.11 | `11ae581` (check's fixes: `5c01035` harness camera/HUD, `11ae581` Luna's seam blending as main's) | final CI running (pushed ~21:35) | DONE (CHECK.md) |
-| fabric-26.3 | `4ca3e91` (check's fixes: Luna's seam mask, harness caster + HUD) | final CI running (pushed ~21:35) | DONE (CHECK.md) |
+| fabric-1.21.11 | `11ae581` (check's fixes: `5c01035` harness camera/HUD, `11ae581` Luna's seam blending as main's) | #186 green | DONE (CHECK.md) |
+| fabric-26.3 | `4ca3e91` (check's fixes: Luna's seam mask, harness caster + HUD) | #187 green | DONE (CHECK.md) |
 
 - **2026-11-09 ~13:25**: the user ran `RELEASE-PROMPT.md` in Codex (a new chat "Find the requested task" in the
   "TSSA port fabric-26.3" project); it **stopped correctly at the readiness check** (fabric-1.20.1's newest finished CI
   was #179, before the harness fix; #183 still running) and changed nothing. Run it again once every branch is green.
+- **2026-11-09 ~22:00: ALL SEVEN READY** (every CI green, every Fabric screenshot check done, all seven checkouts
+  clean): the user can run `releases\1.8.0\RELEASE-PROMPT.md` now. Not done: a person's in-game test of a Forge jar.
 - **Left before the release, in order**: (1) #182, #183, #184 green (read `summary.txt` of the draft `ci-<branch>-<n>`;
   failures from `gh run view <id> --log`); fix small compile slips here, bigger ones back to the branch's Codex agent;
   (2) the screenshot checks for fabric-1.21.11 and fabric-26.3 by their Codex agents (prompt: the project folder's
