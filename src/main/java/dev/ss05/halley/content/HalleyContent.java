@@ -113,7 +113,7 @@ public final class HalleyContent {
         new SnowLayerBlock(BlockBehaviour.Properties.of().setId(PROXIMA_ASH_KEY)
             .mapColor(MapColor.COLOR_GRAY).replaceable().forceSolidOff().strength(0.1F).sound(SoundType.SAND)
             .isViewBlocking((state, level, pos, bounds) -> state.getValue(SnowLayerBlock.LAYERS) >= 8)
-            .pushReaction(PushReaction.DESTROY)) {});
+            .pushReaction(PushReaction.POPPED)) {});
     public static final Item SOLAR_RESIDUE_ITEM = item("solar_residue", key -> new BlockItem(SOLAR_RESIDUE, new Item.Properties().setId(key)));
     public static final Item PROXIMA_ASH_ITEM = item("proxima_ash", key -> new BlockItem(PROXIMA_ASH, new Item.Properties().setId(key)));
 

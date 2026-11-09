@@ -311,7 +311,7 @@ public final class ProximaStrike {
         double push = scale * (entity instanceof Player ? Math.min(0.6, 0.2 + 0.6 * k) : 1.0 + 3.0 * k);
         double lift = scale * (entity instanceof Player ? 0.25 : 0.4 + 0.8 * k);
         entity.setDeltaMovement(entity.getDeltaMovement().add(away.scale(push)).add(0.0, lift, 0.0));
-        entity.hurtMarked = true;
+        entity.syncVelocity = true;
     }
 
     private static boolean immune(LivingEntity living, @Nullable ServerPlayer caster) {

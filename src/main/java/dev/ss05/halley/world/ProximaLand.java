@@ -49,7 +49,8 @@ final class ProximaLand {
         this.madeAt = level.getGameTime();
         double reach = plan.params.scorchRadius() * 1.12 + 1.0;
         int r = (int) Math.ceil(reach / 16.0) + 1;
-        ChunkPos middle = new ChunkPos(BlockPos.containing(plan.target));
+        BlockPos target = BlockPos.containing(plan.target);
+        ChunkPos middle = new ChunkPos(target.getX() >> 4, target.getZ() >> 4);
         List<ChunkPos> chunks = new ArrayList<>();
         for (int dx = -r; dx <= r; dx++) {
             for (int dz = -r; dz <= r; dz++) {
