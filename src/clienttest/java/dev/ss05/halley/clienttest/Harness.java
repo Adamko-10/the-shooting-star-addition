@@ -343,6 +343,14 @@ final class Harness {
         if (cam == null) {
             return;
         }
+        if (finalView < 0 && CutsceneDirector.active()) {
+            // Vanilla hides the local player when a marker owns the camera; the film moves the player's camera itself.
+            if (mc.getCameraEntity() != mc.player) {
+                mc.setCameraEntity(mc.player);
+            }
+            mc.options.hideGui = !HarnessParams.HUD;
+            return;
+        }
         double markX = lastMark != null ? lastMark.x : SPAWN_X + HarnessParams.DISTANCE;
         double markY = lastMark != null ? lastMark.y : groundY;
         double markZ = lastMark != null ? lastMark.z : SPAWN_Z;
@@ -367,6 +375,7 @@ final class Harness {
         if (mc.getCameraEntity() != camera) {
             mc.setCameraEntity(camera);
         }
+        mc.options.hideGui = !HarnessParams.HUD;
     }
 
     private static long landWaitSince = -1;
