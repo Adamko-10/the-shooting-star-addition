@@ -17,8 +17,8 @@ const HEAD = {
   "fabric-1.21.1": "**For Minecraft 1.21.1 with Fabric Loader 0.17.0+ and Fabric API.** Goes on the server and on every client.",
   "fabric-1.20.1": "**For Minecraft 1.20.1 with Fabric Loader 0.17.0+ and Fabric API.** Goes on the server and on every client.",
 };
-// Proxima's default skill key: Z everywhere (check fabric-26.3's port report: Z is the plate's Epic-mode key there)
-const KEY = b => "Z";
+// Proxima's default skill key: Z, but ] on Fabric 26.3 (Z is the plate's Epic-mode key there)
+const KEY = b => b === "fabric-26.3" ? "]" : "Z";
 
 const body = b => `
 ### New: SA-04 · Proxima

@@ -71,7 +71,7 @@ Proxima Centauri, a red dwarf locked inside a Dyson sphere 4.2 light years away,
 *   **Aftermath**: **Solar Residue** (a glowing, minable block left in the bowl), **Flare Ash** over the scorched land, and a **radiation zone** in the crater that fades after about 10 minutes.
 *   **Its own 36-second film**: up through the clouds and out of the world, a warp to Proxima Centauri, the Dyson sphere opening, the lens charging, the shot crossing to Earth, the gate catching it, and back on the land for the flash and the shock wave. Everyone else sees the gate in the sky.
 *   **Power sets the flare's class**, like real ones: 0.1× is about C1, 1× M5, 3× X3, 10× X25.
-*   **Its own music** by [DOM\_MusicST](https://www.youtube.com/@DOM_MusicST) and [FarzanNB](https://www.youtube.com/@FarzanNB). Its own key (**Z** by default), sliders and cooldown.
+*   **Its own music** by [DOM\_MusicST](https://www.youtube.com/@DOM_MusicST) and [FarzanNB](https://www.youtube.com/@FarzanNB). Its own key (**Z** by default, **]** on Fabric 26.3), sliders and cooldown.
 *   **Random solar flares** (off by default): servers can turn on flares that arrive by themselves, announced in chat first: minor, major, or a full cataclysm if the server allows it. Operators can call one with `/ssa flare <minor|major|cataclysm> [seconds]`.
 
 ## SA-00 · Stellar Convergence
