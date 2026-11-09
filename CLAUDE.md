@@ -12,125 +12,72 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-07, ~22:40, Adam's PC) <<<
+### >>> RESUME HERE (2026-11-09, ~14:00, Adam's PC): 1.8.0 (SA-04 Proxima) is ported, about to be released <<<
 
-- **1.7.0 is RELEASED everywhere** (7 GitHub releases, 7 CurseForge files; RELEASE PLAN block below).
-- **The next update = Proxima (SA-04), on local `main` only, NOT pushed** (all commits after `b605256`). The user wants
-  it out **"today/tmr"** (said 2026-11-07 evening), ported by **their GPT (the Codex app)**. The user approved the film:
-  **"its very good"** (2026-11-07 night) after these rounds, all in docs/SS-07-PROXIMA.md ("The new film", "Polish ...",
-  "Second polish round", "Third round", "Fourth round"):
-  legacy-film-style overlay fix (`f3c9d6d`); Earth like the Railgun's + one soundtrack (`127df8d`); lens power-up,
-  focused wave, captions in smooth type, SOLAR FLARE INBOUND, km/miles (`63f922e`); the 36 s film: zoom out into a warp to
-  Proxima, no infinity loops, new star surface, 3 s lens absorption, cooler bolt with a tracking shot, slow shock wave
-  (WAVE_TICKS 130) with a pull-back shot and trees bursting, music stacking switch (`5a54f07`); new approach and impact
-  sounds and the first sky version (`3b8303e`); then (this turn, see below) the keys moved and the sky version became
-  the gate only.
-- **Done this turn (2026-11-07 ~22:30)**: the stack-music and units switches moved off S and D (the user: "S is for
-  moving backwards", same for D): now **=** (stack music) and **-** (units): every free letter is taken in the menu (WASD
-  move, Q drops, P is Stellar Quartet's, U I K Y O N B Z skills, M G L F E C ours, R X V T Convergence's, H the menu,
-  J films). The sky version now shows **only the gate** (the user: "make only the lens visible in the sky, not proxima
-  centauri itself, like the thing that the energy passes through"; the user calls the gate near Earth "the lens"):
-  `ProximaCosmos.renderSky`/`skyGate`, a real object 360 blocks over the land, 180 out toward the front's side,
-  ~140 blocks across, drawn after the particles with the world's depth; appears at the lens shot, ring brightening with
-  the charge, catches the shot, refocuses it down onto the mark, gone at the flash.
-- **The user asked again what was said about the "legacy fullscreen ui"** (answered again 2026-11-07 night): no revert
-  was made; the floating "White Space" menu is RimuLib 1.2.2's own new menu (not ours, not safely replaceable); RimuLib's
-  "Legacy mode" switch (cutscenes.legacy) only changes how films and warnings show their text.
-- **For later (the user, 2026-11-07 night; not now)**: (1) **redesign the inside of the Dyson sphere completely**; (2) the
-  arrival at Proxima Centauri should **feel like a massive star** (scale: it fills the view, the camera dwarfed);
-  (3) **the gate ("the lens that's above the earth") visible in the sky like Gravitia** (TSS's Gravitia shows its huge
-  structure for everyone: a bigger, longer-lasting world version of the gate, beyond today's sky gate).
-- **PORTING STARTED 2026-11-08 ~00:02 (the user: "alright write the prompts and send them to gpt")**: main is version
-  **1.8.0** (`86196f1`); the port commit `604fb06` (local branch `port-1.8.0`) = main's whole tree at `86196f1` on top
-  of `b605256` (1.7.0); six worktrees in the project folder's `ports\<branch>\` on `port/<branch>` (reset to
-  `origin/<branch>`, each branch's 1.7.0); one `BRIEF.md` each from `ports\make-briefs.js` (1.7.0's generator kept as
-  `make-briefs-1.7.0.js`; BRIEF.md/REPORT.md are in `.git/info/exclude`). Sent through computer use to the **Codex app
-  ("ChatGPT")**, one project per folder ("TSSA port <branch>", folders trusted), prompt "Read BRIEF.md in this folder
-  and do exactly what it says ...": **GPT-6.1 Sol, High** for forge-1.21.1, fabric-1.21.1, forge-1.20.1, fabric-1.20.1
-  (Sol = "latest model for coding"; it did 1.7.0's 1.20.1 ports well); **GPT-6 Astra, High** for fabric-1.21.11 and
-  fabric-26.3 ("frontier intelligence for your most demanding tasks": their Proxima rendering must be rewritten for
-  RenderPipelines; the brief says gameplay first, the space scene last, `TODO(port)` rather than half-working drawing).
-  **Next for Claude**: as each finishes, read its `REPORT.md`, review its diff (grep `mc1211`, `net.neoforged`, conflict
-  markers), build the Forge ones here, push each to `wip/<branch>` with `dev/ci/push-wip.sh` for CI, fix from CI; then
-  the release (two waves), as listed below. Earlier plan:
-  **2026-11-08 ~12:35**: all six Codex tasks had stopped on **Codex's usage limit** ("You've hit your usage limit"), each
-  mid cherry-pick, except **forge-1.21.1: DONE** (`e3bd2f0`, REPORT.md fine, built, tssPack 40 refs clean; pushed to
-  `wip/forge-1.21.1` for CI, with `wip/main` too). The user ("for now run 2 of them", "with astra it should be better":
-  1.7.0's Sol ports were buggy): **fabric-1.21.1 and forge-1.20.1 resumed on GPT-6 Astra, High** in their chats
-  ("continue where you left off ..."); fabric-1.20.1, fabric-1.21.11, fabric-26.3 wait (cherry-pick in progress,
-  untouched) until those two finish, then resume them the same way on Astra, two at a time. Push wip from the port
-  worktree (its `dev/ci/branches/<branch>.sh` has TSS 1.5.2; main's copies of the other branches' scripts are stale).
-  **~12:50**: fabric-1.21.1 (`846024b`, not buildable here: CI) and forge-1.20.1 (`1d75fda`, built here, tssPack clean)
-  DONE, reports clean (no TODO(port), nothing left out; Codex ran its ponytail skill: fine, both list every feature);
-  pushed to wip (CI #176, #175). forge-1.21.1 CI #173 ok (mappings + build); wip/main #174 running. **fabric-1.20.1
-  and fabric-1.21.11 resumed on Astra**; fabric-26.3 waits for one of them.
-  **~17:05, testing (the user picked "Add to CI, GPT checks")**: CI's client tests now include **proxima** (main `f13e74e`,
-  fabric-1.21.1 `8c1d044`: `skill=other world=normal filmlog=true command="ssa strike proxima at 150 ~ 0"`, 76 frames
-  `other_film_<s>.png`, ~30 MB zip; software GL renders the whole film fine: Earth, Dyson sphere, lens, gate, titles).
-  Green: main #177, fabric-1.21.1 #178 (all four client tests), forge-1.21.1 #173, forge-1.20.1 #175 (re-run: the first
-  try lost the network on the 1.4.0 mapping). Forge branches have no game run in CI: one Forge jar needs a person's
-  test before release. Next: each finished Fabric port's Codex agent compares its CI frames with main's (#177) and
-  writes `CHECK.md` (in `.git/info/exclude`), fixing clear port bugs; the prompt is the project folder's
-  `ports\check-prompt.txt` (change the run numbers per branch). Add the proxima test line to each remaining Fabric
-  branch's own `dev/ci/branches/<branch>.sh` after its port (`node ports\addtest.js <script> prodClientTest`).
-  Codex's limit hit again ~16:00 and reset ~17:00 (the user): fabric-1.20.1 (committed `b3e2a6a`, report left) and
-  fabric-1.21.11 (rendering left) resumed.
-  **~17:50**: fabric-1.20.1 DONE (`b3e2a6a` + CI test line, pushed to wip); fabric-1.21.1's agent checking its CI
-  frames (found: Luna's opening shot lacks the caster on Fabric = the test harness's camera entity, fixing the harness;
-  Proxima's terrain "inconclusive"); fabric-1.21.11 finishing its RenderPipeline space scene (`ProximaRenderer`). Limit hit
-  again, the user reset it, both resumed. fabric-26.3 still waits.
-  **Release texts made (the user asked for "a prompt to an ai to publish all of this on curseforge")**:
-  `dev/publish/changelog_180.js` -> the project folder's `releases\1.8.0\changelogs\<branch>.md` (Proxima's key says Z
-  on every branch: check fabric-26.3's report, Z is its Epic key); `curseforge-description.md` updated for Proxima
-  (four skills, SA-04 section, = and - keys, credits NASA + Solar System Scope); the prompt is
-  `releases\1.8.0\CURSEFORGE-PROMPT.md` (per-jar table, Markdown-first changelog trap, relations, summary 235 chars).
-  It expects the jars in `releases\1.8.0\jars\` (not there yet: stage the CI jars of the final commits first).
-  **~18:00**: fabric-1.21.1's screenshot check DONE (`ports\fabric-1.21.1\CHECK.md`, 208 images compared): the film's
-  space part, overlays and title cards match main; one real fault, in the Fabric test harness (its marker stayed the
-  camera entity in films, so the caster was missing from Luna's opening shot), fixed `4d8a980`, pushed to wip for a
-  re-run; Proxima's wave shots show little land on Fabric, but the test world's seed is random (main's last shots sit in
-  rock instead): not a port bug by itself; a fixed seed in the harness would make the comparisons cleaner (not done).
-  `ports\check-prompt.txt` now carries both lessons for the next checks. **fabric-26.3 started on Astra** (told to keep
-  Epic mode on Z and give Proxima a free key if Z clashes; read its REPORT.md for the key, then fix `changelog_180.js`
-  `KEY` and the description). Running: fabric-1.21.11 (port), fabric-26.3 (port); fabric-1.20.1 CI #179 running.
-  **~23:10**: CI green: fabric-1.20.1 #179 (all four client tests, proxima 76 frames), fabric-1.21.1 #180 (the harness
-  fix works: the caster is back in Luna's opening shot). **fabric-1.21.11 DONE** (`822a8a6`, REPORT.md: the space scene
-  and sky gate fully rewritten for RenderPipelines in `client/proxima/ProximaRender`, no TODO(port)); its harness has no
-  film recorder, so its CI proxima test takes shots by ticks from the cast (0,40,...,900); pushed to wip. **fabric-26.3**
-  hit the limit again, resumed (the user: "go resume the one agent"); its agent said it is **deferring the space/Earth
-  scene and the sky gate under TODO(port)** (26.3 lacks the immediate shader draws, GUI flush and GL texture ids it
-  needs): on 26.3 the film keeps its world shots, captions and music only; **Proxima's key there is ] (right bracket)**,
-  Epic stays Z: set `changelog_180.js` KEY for 26.3 and the description once its REPORT.md confirms. fabric-1.20.1's
-  agent is doing its screenshot check (ci-fabric-1.20.1-179).
-  **~23:30**: fabric-26.3's port committed (`be16496` port + `f93a92f` "handoff", which also edited CLAUDE.md on that
-  branch: check it) with the space scene deferred; **the user: "Yes, port it"** = give 26.3 the space/Earth scene and sky
-  gate from fabric-1.21.11's rewrite (`822a8a6`: `ProximaRender`, `HalleyPipelines`, `ProximaCosmos`, shaders). Sent
-  to its Codex agent (Astra), running; then add the CI proxima test to fabric-26.3 and push wip.
-  **2026-11-09 ~13:00** ("go resume one more time"): fabric-26.3 had stopped on the limit mid-way through the space scene
-  (9 files changed, uncommitted), resumed. fabric-1.20.1's screenshot check DONE (`CHECK.md`): the same harness bug as
-  1.21.1 (caster missing from Luna's opening), fixed `29e6989`; Proxima matches main; the last aftermath shot is fog vs
-  main's dark terrain (random world, inconclusive). Pushed to wip. fabric-1.21.11 CI #181 failed to compile (3 small
-  1.21.11 API slips: `Camera.leftVector/upVector` are `Vector3fc`, `DustParticleOptions(int, float)`, jspecify
-  `ProximaHud.@Nullable Caption`): fixed by Claude `59a0f73`, pushed. Next: when 1.21.11's CI is green, its agent does
-  the screenshot check (its frames are by tick, not film time: `other_<tick>.png`); 26.3 after its port.
-- **Porting: WAIT for the user's word** ("then i will tell u when to give gpt the prompts for porting"). Plan when they
-  say go: like 1.7.0's (RELEASE PLAN block): squash main's commits since `b605256` onto `origin/main` as one commit
-  (`port-1.8.0`?), six worktrees in the project folder's `ports\<branch>\` on `port/<branch>`, one `BRIEF.md` each
-  (`ports\make-briefs.js`, update it for Proxima: new files to port: ProximaCosmos + the `proxima_space` core shader,
-  ProximaFx/Hud/Storyboard, FilmTitle captions, StrikeMusic.film, the plate's new rows, HalleyClientConfig, the Earth
-  textures, sounds, WAVE_TICKS; the render code for fabric-1.21.11/26.3 must be rewritten for their pipeline). Odds
-  given: 1.21.1 Forge/Fabric ~85%, 1.20.1 ~60%, 1.21.11/26.3 ~25% by the next day; recommended two release waves (the
-  1.21.1s + whichever 1.20.1s pass CI first; 1.21.11/26.3 later, keeping 1.7.0 meanwhile).
-- **Before release, besides the ports**: version (1.8.0), changelog (`dev/publish/changelog_170.js` as the model),
-  README, CurseForge description + summary (add Proxima), credits: Proxima's music by **DOM_MusicST and FarzanNB**;
-  Earth imagery **NASA** (Blue Marble, Black Marble) and **Solar System Scope (CC BY 4.0: must be credited)**; Stellar
-  Quartet by ikun520. Proxima's sounds are built from the **Sonniss GDC 2026** bundle (the licence grey area the user
-  knows about). One CI round. Not checked yet: the sky gate with shader packs, at night; any sound by ear (Claude can't).
-- The crash the user saw (2026-11-07 22:01) was **FTB Ultimine's** (NullPointerException in its player data), not ours.
+The user moved to a new conversation here (2026-11-09: "write claude md since im moving this to a new convo").
+
+- **1.7.0 is released everywhere** (2026-11-07). **1.8.0 = 1.7.0 + SA-04 Proxima** (its 36 s film, the sky gate, the
+  = and - plate keys, the legacy-film-style overlay fix). The user approved the film ("its very good", 2026-11-07).
+  main is version 1.8.0; nothing of 1.8.0 is pushed yet (main is 38 commits ahead of origin/main).
+- **All six ports are DONE**, made by the user's **Codex app ("ChatGPT", GPT-6 Astra, High)** from one `BRIEF.md` per
+  branch (the user: Astra, not Sol: 1.7.0's Sol ports were buggy). Each port is a worktree in the project folder's
+  `ports\<branch>\` on local branch `port/<branch>` (from `origin/<branch>`), with `REPORT.md` (and `CHECK.md` where
+  checked; both git-excluded, never committed). The port commit = `604fb06` (main's tree at `86196f1` on 1.7.0).
+
+| Branch | Head (local) | CI (wip/<branch>) | Screenshot check by its agent |
+|---|---|---|---|
+| main | `fd1c6ad` (code as CI #177) | #177 green, all 4 client tests incl. proxima | the reference |
+| forge-1.21.1 | `e3bd2f0` | #173 green (build only: Forge has no game run) | none possible |
+| forge-1.20.1 | `1d75fda` | #175 green (build only) | none possible |
+| fabric-1.21.1 | `4d8a980` | #180 green | DONE (CHECK.md): film matches main |
+| fabric-1.20.1 | `29e6989` | #183 running (harness fix) | DONE (CHECK.md): film matches main |
+| fabric-1.21.11 | `59a0f73` | #182 running (#181 failed to compile, fixed by Claude) | not yet |
+| fabric-26.3 | CI test line on `096b883` | #184 running | not yet |
+
+- **Left before the release, in order**: (1) #182, #183, #184 green (read `summary.txt` of the draft `ci-<branch>-<n>`;
+  failures from `gh run view <id> --log`); fix small compile slips here, bigger ones back to the branch's Codex agent;
+  (2) the screenshot checks for fabric-1.21.11 and fabric-26.3 by their Codex agents (prompt: the project folder's
+  `ports\check-prompt.txt`, set the run numbers; 1.21.11's harness has no film recorder, so its proxima frames are
+  `other_<tick>.png` by ticks from the cast, not film time); check whether their test harness has the "caster missing
+  from Luna's opening shot" bug (fixed on fabric-1.21.1 `4d8a980` and fabric-1.20.1 `29e6989`: the harness's marker
+  stayed the camera entity during films); (3) one Forge jar tested in game by a person (CI can't run Forge; players
+  found Forge buggy before, §10); (4) the user's own look, if they want one; (5) the release.
+- **The release is a prompt for another AI** (the user, 2026-11-09: "gimme a prompt with all the info to push it to
+  github with everything and post it on curseforge"): the project folder's **`releases\1.8.0\RELEASE-PROMPT.md`**
+  (Part A GitHub: readiness checks per branch (clean, fast-forward, newest CI draft all `ok:`, its built code = the
+  head), stage the CI jars into `releases\1.8.0\jars\` under release names, push (`port/<branch>:<branch>`, never
+  force), `dev/publish/github_180.sh`, delete `wip/*` and the `ci-*` drafts; Part B CurseForge: per-jar table, the
+  Markdown-first changelog trap, relations, description and the 235-character summary). It replaces the older
+  CurseForge-only `releases\1.8.0\CURSEFORGE-PROMPT.md`. Release texts: `dev/publish/changelog_180.js` ->
+  `releases\1.8.0\changelogs\<branch>.md` (Proxima's key: Z, **] on Fabric 26.3**, where Z is the Epic-mode key);
+  `dev/publish/curseforge-description.md` (four skills, an SA-04 section, the new keys, credits); main's README has
+  Proxima (`fd1c6ad`; the ports wrote their own READMEs). Credits in all of them: Proxima's music by DOM_MusicST and
+  FarzanNB; Earth: NASA Blue Marble/Black Marble and Solar System Scope (CC BY 4.0). Proxima's sounds come from the
+  Sonniss GDC 2026 bundle (the licence grey area the user knows about).
+- **After the release**: remove the six `ports\` worktrees (ask first), the `wip/*` branches and `ci-*` drafts (the
+  prompt does those two), and tell the user the owed reminders (below).
+- **How the Codex agents were run** (computer use, app "ChatGPT"): one project per worktree ("TSSA port <branch>"),
+  chat "Port SA-04 Proxima ..."; model picker = click the model label at the bottom right of the composer, then the
+  model name row, then GPT-6 Astra. **Codex's usage limit** stopped them many times ("You've hit your usage limit"):
+  the user resets it and says "resume"; then each stopped chat gets "The usage limit has reset. Continue where you left
+  off: ..." and its work goes on (nothing is lost). Run **two at a time** (the user's rule). Their ponytail skill is fine.
+- **CI's client tests now include Proxima** (each branch's `dev/ci/branches/<branch>.sh`, added with the project
+  folder's `ports\addtest.js <script> prodClientTest`): `skill=other world=normal filmlog=true command="ssa strike
+  proxima at 150 ~ 0"`, a frame every half second of film time (`other_film_<s>.png`, ~30 MB zip); software GL renders
+  the whole film. The test world's seed is random, so land differs between runs (not a port bug by itself; a fixed
+  seed in the harness would make comparisons cleaner, not done). Push wip from each port's own worktree
+  (main's copies of the other branches' CI scripts are stale).
+- **For later (the user, 2026-11-07; not now)**: (1) redesign the inside of the Dyson sphere completely; (2) the arrival
+  at Proxima Centauri should feel like a massive star (it fills the view); (3) the gate visible in the sky like TSS's
+  Gravitia (a bigger, longer-lasting world version than today's sky gate). Also still open from before: SA-04B
+  Proxima CME (design, previz, build), the Sonniss sound verdict for Halley/Luna.
+- Answered 2026-11-07, in case it comes up again: the floating "White Space" menu is RimuLib 1.2.2's own (not ours,
+  not safely replaceable); RimuLib's "Legacy mode" (`cutscenes.legacy`) only changes how films and warnings show text.
+  The crash the user saw on 2026-11-07 was FTB Ultimine's, not ours.
 - Test jar in the user's Modrinth profile: `(Proxima sky gate build)` (`test builds\2026-11-07 Proxima sky gate\`).
-- Ponytail is OFF. The user is budget-conscious: keep replies short.
+- Ponytail: the session hook reports it on (level full). The user is budget-conscious: keep replies short.
 - Reminders owed (§0): idea #16 (Mrityu mod), Proxima's "Extra content" film ideas (§15; mention when it ships),
-  SA-05+ candidates and the free SA-03 slot, the Solar Residue economy (when Proxima ships).
+  SA-05+ candidates and the free SA-03 slot, the Solar Residue economy (Proxima ships now: bring it up).
 
 ### RELEASE PLAN (decided 2026-11-06 evening; the user: "what can we do to push it out today? either this session or the one after")
 
@@ -604,7 +551,7 @@ project 1719195, All Rights Reserved). It adds two skills to TSS's Stellar Remot
 
 Mod id `shooting_star_addition`, Java package `dev.ss05.halley` (the "SS-05/SS-06" names in code are the old
 codenames; players see SA-01/SA-02). GitHub `Adamko-10/the-shooting-star-addition`; CurseForge project **1725916**
-(author `adamko_10`). Current version **1.7.0** (released on GitHub 2026-11-07, all seven branches; TSS 1.5.2 + RimuLib 1.2.2 only; 1.6.0 = TSS 1.5.0, §16).
+(author `adamko_10`). Current version **1.7.0**, with **1.8.0** (Proxima) about to be released (1.7.0 released on GitHub 2026-11-07, all seven branches; TSS 1.5.2 + RimuLib 1.2.2 only; 1.6.0 = TSS 1.5.0, §16).
 Since 2026-11-03 `main` (not released) targets **TSS 1.5.1 only** with RimuLib 1.2.1 (§16, "TSS 1.5.1"); the other six
 branches are still on 1.5.0.
 
