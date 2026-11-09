@@ -16,5 +16,11 @@ out vec4 fragColor;
 
 void main() {
     vec4 tex = texture(Sampler0, texCoord0);
+#ifdef EMISSIVE
+    // Match main's entity_translucent_emissive shader before applying the animated seam opacity.
+    if (tex.a < 0.1) {
+        discard;
+    }
+#endif
     fragColor = vec4(tex.rgb * vertexColor.rgb * ColorModulator.rgb, tex.a * vertexColor.a * ColorModulator.a);
 }

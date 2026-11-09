@@ -33,7 +33,7 @@ public final class HalleyPipelines {
 
     /** SS-06's moon sphere: {@code surface.png}, opaque, depth-tested and written, so it occludes and is occluded
      * like any solid block of the world. */
-    public static final RenderPipeline MOON = moon("moon", true);
+    public static final RenderPipeline MOON = moon("moon", true, false);
     /** SS-06's moon sphere, blending and writing no depth: crumbling away over the block moon, or kept behind the
      * clouds where it can't be drawn far enough out (see {@code MoonSphere}). */
     public static final RenderPipeline MOON_BLEND = RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
@@ -48,12 +48,12 @@ public final class HalleyPipelines {
         .withBlend(BlendFunction.TRANSLUCENT)
         .withColorWrite(true, false)
         .build();
-    /** The molten seams on top: {@code seams.png}, additive, depth-tested but not written (it rides on the base). */
-    public static final RenderPipeline MOON_EMISSIVE = moon("moon_emissive", false);
+    /** The molten seams on top: translucent, as main's entityTranslucentEmissive pass (the glow is separate). */
+    public static final RenderPipeline MOON_EMISSIVE = moon("moon_emissive", false, true);
     /** The seams' own warm glow (a second, additive pass over the same crack mask, brighter as the moon nears). */
-    public static final RenderPipeline MOON_SEAM_GLOW = moon("moon_seam_glow", false);
+    public static final RenderPipeline MOON_SEAM_GLOW = moon("moon_seam_glow", false, false);
     /** The heat shell over its leading face and the glow round its rim: {@code glow.png}, additive. */
-    public static final RenderPipeline MOON_HEAT = moon("moon_heat", false);
+    public static final RenderPipeline MOON_HEAT = moon("moon_heat", false, false);
 
     /** The dome over the vanilla sky. */
     public static final RenderPipeline SKY = sky("sky", false);
@@ -111,7 +111,7 @@ public final class HalleyPipelines {
         return b.build();
     }
 
-    private static RenderPipeline moon(String name, boolean base) {
+    private static RenderPipeline moon(String name, boolean base, boolean emissive) {
         RenderPipeline.Builder b = RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
             .withLocation(HalleyAddon.id("pipeline/halley_" + name))
             .withVertexShader(HalleyAddon.id("core/halley_moon"))
@@ -124,6 +124,8 @@ public final class HalleyPipelines {
             .withCull(false);
         if (base) {
             b.withoutBlend().withColorWrite(true, false);
+        } else if (emissive) {
+            b.withBlend(BlendFunction.TRANSLUCENT).withColorWrite(true, false).withShaderDefine("EMISSIVE");
         } else {
             b.withBlend(BlendFunction.ADDITIVE).withColorWrite(true, false);
         }

@@ -290,7 +290,7 @@ public final class MoonSphere {
         List<Placement> blending = placements.stream().filter(p -> !opaque(p)).toList();
         submitPart(context, RenderTypes.beaconBeam(SURFACE, false), solid, camera, Part.BASE, time);
         submitPart(context, RenderTypes.beaconBeam(SURFACE, true), blending, camera, Part.BASE, time);
-        submitPart(context, RenderTypes.eyes(SEAMS), placements, camera, Part.SEAM, time);
+        submitPart(context, RenderTypes.entityTranslucentEmissive(SEAMS), placements, camera, Part.SEAM, time);
         submitPart(context, RenderTypes.eyes(SEAMS), placements, camera, Part.SEAM_GLOW, time);
         submitPart(context, RenderTypes.eyes(GLOW), placements, camera, Part.HEAT, time);
     }
@@ -316,7 +316,8 @@ public final class MoonSphere {
                 case HEAT -> new Sinks(Sink.NONE, Sink.NONE, sink, Sink.NONE);
             };
             for (Placement placement : placements) {
-                build(sinks, camera, placement, true, time);
+                // The translucent seam type has no culling: a second winding would blend each patch twice.
+                build(sinks, camera, placement, part != Part.SEAM, time);
             }
         });
     }
