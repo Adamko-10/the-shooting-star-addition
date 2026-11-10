@@ -5,8 +5,9 @@ hand-edited:
 
 - `make_textures.py` - the two block textures (12-frame animations) and the 64x32 card shown in the remote's menu and
   HUD.
-- `make_thumbnail.py` - the project thumbnail (`thumbnail.png`, 512x512, used on CurseForge) and the mod's logo in
-  the game's mod list.
+- `make_thumbnail.py` - the old project thumbnail (`thumbnail.png`, 512x512; until 1.8.0 also the mod's logo).
+- `make_icon.js` - the mod's logo in the game's mod list since 1.8.1 (`node art/make_icon.js`; Halley, Proxima and
+  Luna converging on Earth, the SA badge and the Addon tag). Also the CurseForge avatar (`releases\1.8.1\icon.png`).
 - `make_sounds.py` - the raw sounds (one function each; their lengths match the strike's timeline, e.g. the
   countdown is cut to end exactly at touchdown). Since the sound overhaul (2026-11-04) they are kept in `raw/`
   (`python3 make_sounds.py raw` remakes them there), not shipped as they are.

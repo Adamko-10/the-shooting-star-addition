@@ -107,5 +107,5 @@ for i, ch in enumerate(text):
 
 picture = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8), 'RGB')
 picture.resize((512, 512), Image.NEAREST).save(OUT)
-picture.resize((256, 256), Image.NEAREST).save(LOGO)
-print('thumbnail written to', OUT, 'and', os.path.normpath(LOGO))
+# the mod's logo is made by make_icon.js since 1.8.1 (this one no longer writes it)
+print('thumbnail written to', OUT)
