@@ -51,6 +51,7 @@ public final class HalleyClient {
         MinecraftForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
+            dev.ss05.halley.client.proxima.ProximaFx.clearAll();
             ConvergenceView.clearAll();
             ServerSettings.forget();
         });
