@@ -14,4 +14,6 @@ ci_tests() {
   client_test tuned prodClientTest -Dss05.clienttest.skill=moon -Dss05.clienttest.shots=150,324,342,380 -Dss05.clienttest.view=aerial -Dss05.clienttest.final=rim,skills -Dss05.clienttest.time=6000 -Dss05.clienttest.power=0.4 -Dss05.clienttest.speed=3 -Dss05.clienttest.damage=20
   # SA-04 Proxima's whole film on real land, a frame every half second of film time (film_<seconds>.png)
   client_test proxima prodClientTest -Dss05.clienttest.skill=other -Dss05.clienttest.world=normal -Dss05.clienttest.time=6000 -Dss05.clienttest.shots=0,900 -Dss05.clienttest.film=true -Dss05.clienttest.hud=true -Dss05.clienttest.filmlog=true "-Dss05.clienttest.command=ssa strike proxima at 150 ~ 0"
+  # SA-00 Stellar Convergence film (every default weapon), frames by film time: its panels must show the frozen shots, not white
+  client_test convergence prodClientTest -Dss05.clienttest.skill=other -Dss05.clienttest.world=normal -Dss05.clienttest.time=6000 -Dss05.clienttest.shots=0,900 -Dss05.clienttest.film=true -Dss05.clienttest.hud=true -Dss05.clienttest.filmlog=true "-Dss05.clienttest.command=ssa strike stellar_convergence at 150 ~ 0"
 }
