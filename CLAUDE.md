@@ -42,8 +42,16 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
      panel is white (it froze in the beam's white-out, probably real: the user to check on their GPU). Known difference
      (not fixed): on 26.3 a panel copies the world at the end of its main pass, before the weapons' screen effects (TSS's
      purple comic look), where the other versions copy the finished screen.
+  3b. **The user's game (26.3, with the 3. jar): panels still washed out** (pale, the white panel showing through; Halley's
+     looked right). Cause: a copy of the screen keeps whatever alpha the world and shader passes left in it, and the
+     panels are drawn blended. Fix (all seven branches, main `05de6a1`): GL branches clear the copy's alpha to 1 right
+     after the blit (`colorMask(false,false,false,true)` + the frame's `clear`), 1.21.11 and 26.3 draw it with
+     `RenderPipelines.GUI_OPAQUE_TEXTURED_BACKGROUND` (so on those two the panel image no longer fades while the grid
+     shatters; its border does). The CI frames of #188 had shown it too (land white, sky red) but were misread as fine.
   4. "Will there be an SA-03?": the user answered yes (the free slot, §10).
-  **Every other addon, whether it uses RimuLib's API, and a message for their devs: `docs/ADDONS.md`** (the user is
+  **The user: keep CLAUDE.md as it is (don't trim it), the addon list stays its own doc.**
+  **Every other addon, whether it uses RimuLib's API, and a message for their devs: `docs/ADDONS.md`** (from TSS's
+  CurseForge Dependents tab, complete on 2026-11-10; Modrinth has none; SS-22 Hyperion still to check: its jar gave 403) (the user is
   contacting Quasar's and TON618's devs; TON618 = "The TON618 demo", Forge 1.20.1 / Fabric 1.21.11, same reflection as
   Quasar; jars in `other mods\ton618\`).
 - **State**: main `029c9a3` built here (pack check clean); forge-1.21.1 `89e0ec0` and forge-1.20.1 `81b1fc8` built here;
