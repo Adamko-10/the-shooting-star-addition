@@ -19,9 +19,11 @@ import dev.ss05.halley.ProximaPlan;
 import dev.ss05.halley.compat.StarBridge;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.network.FriendlyByteBuf;
@@ -126,8 +128,8 @@ public final class Convergence {
         }
     }
 
-    /** One weapon waiting for its tick. */
-    private record Pending(UUID caster, Skill skill, Tuning tuning, Vec3 at, long tick, long latest) {
+    /** One weapon waiting for its tick, aimed at a point in the caster's world at the cast ({@code level}). */
+    private record Pending(UUID caster, ServerLevel level, Skill skill, Tuning tuning, Vec3 at, long tick, long latest) {
     }
 
     static void received(ServerPlayer player, Picks picks) {
@@ -149,9 +151,11 @@ public final class Convergence {
         List<Weapon> weapons = new ArrayList<>();
         List<Weapon> finale = new ArrayList<>();
         if (picks != null) {
+            // the picks come from the player's game: each weapon fires once, however often a (modified) game lists it
+            Set<Skill> seen = new HashSet<>();
             for (Pick pick : picks.picks()) {
                 Skill skill = find(pick.id());
-                if (skill == null || skill == TssLink.CONVERGENCE) {
+                if (skill == null || skill == TssLink.CONVERGENCE || !seen.add(skill)) {
                     continue;
                 }
                 Tuning tuning = Limits.hold(skill, scaled(pick, master).clampFor(skill));
@@ -185,12 +189,13 @@ public final class Convergence {
             Vec3 at = spots != null ? ground(level, spots[i], target.y) : target;
             // unknown (another addon's): with the slowest, at once
             long delay = weapon.impact() < 0 ? 0 : last - weapon.impact();
-            PENDING.add(new Pending(player.getUUID(), weapon.skill(), weapon.tuning(), at, now + delay, -1L));
+            PENDING.add(new Pending(player.getUUID(), level, weapon.skill(), weapon.tuning(), at, now + delay, -1L));
             colors[i] = weapon.skill().color();
             points[i] = at;
         }
         for (Weapon weapon : finale) {
-            PENDING.add(new Pending(player.getUUID(), weapon.skill(), weapon.tuning(), target, now + last + FINALE_MIN, now + last + FINALE_MAX));
+            PENDING.add(new Pending(player.getUUID(), level, weapon.skill(), weapon.tuning(), target, now + last + FINALE_MIN,
+                now + last + FINALE_MAX));
         }
         HalleyAddon.LOG.info("{} cast Stellar Convergence: {} at {} (all hit in {} ticks{})", player.getScoreboardName(),
             weapons.stream().map(w -> w.skill().id() + "+" + (w.impact() < 0 ? 0 : last - w.impact())).toList(), target, last,
@@ -208,7 +213,8 @@ public final class Convergence {
         for (Iterator<Pending> it = PENDING.iterator(); it.hasNext(); ) {
             Pending pending = it.next();
             ServerPlayer player = server.getPlayerList().getPlayer(pending.caster());
-            if (player == null) {
+            if (player == null || player.level() != pending.level()) {
+                // gone, or in another world now: its point means nothing there
                 it.remove();
             } else if (player.level().getGameTime() >= pending.tick() && (pending.latest() < 0
                     || player.level().getGameTime() >= pending.latest() || othersDone(player.level(), pending.caster()))) {
