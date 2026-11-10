@@ -117,6 +117,13 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   screen while its strike runs (outside RimuLib's CutsceneDirector, which Convergence holds), so every freeze copies
   Quasar's picture. Not investigated yet (would need Quasar's client render code: `other mods\quasar\`). **Soon (the
   user: "very soon", not now)**: sound effects synced with the panels popping in and the grid breaking apart.
+- **Fable 5.2 (the user, 2026-11-11)**: the user wants to use Claude Fable 5.2 but fears it "will refactor everything":
+  so Fable only **reviews and proposes** (read-only, files in the project folder's `reviews\fable-proposals\`: summary,
+  bugs, films with patch files, players' requests, an SA-03 design, performance) and an Opus session **applies** what the
+  user picks, carefully, on all seven branches. The prompt: the project folder's `prompts\FABLE-REVIEW-PROMPT.md` (the
+  user runs it in a new session with Fable 5.2). Never let Fable edit the repos directly.
+- **Convergence with every addon (the user, 2026-11-11: "fix quasar, i want convergence to work with all addons but for
+  now stick to quasar and whatever else is on the latest version of the shooting star")**: before the 1.8.1 release.
 - **Still to do for 1.8.1** (older list): the icon's final version and commit; the Fable fixes; one CI round on all seven from the
   final heads; a test jar for the user (Fabric 26.3 profile); then the release (`releases\1.8.1\RELEASE-PROMPT.md`).
   **The user: keep CLAUDE.md as it is (don't trim it), the addon list stays its own doc.**
