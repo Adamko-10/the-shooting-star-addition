@@ -124,6 +124,15 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   user runs it in a new session with Fable 5.2). Never let Fable edit the repos directly.
 - **Convergence with every addon (the user, 2026-11-11: "fix quasar, i want convergence to work with all addons but for
   now stick to quasar and whatever else is on the latest version of the shooting star")**: before the 1.8.1 release.
+  Found: "almost all the panels were Quasar" because Convergence fires a skill it has no impact time for at once, and
+  Quasar's jet touches down at tick 758 (burst 998): it ran its whole build-up through the film. Fix: `Convergence
+  .ADDON_IMPACT` (by skill id: `quasar` 758, `solar_flare` 365 = SX-01's whip touching the ground; read from their
+  decompiled spells, `QuasarSpell` / `dev.solarflare.Flare.TOUCH`), so they land with the rest (a convergence with Quasar
+  now takes ~38 s). Not yet seen in game. **TON618 (the user: "dont do ton618 yet ... later, not in this version")**:
+  its remote button doesn't strike, it opens its own menu/video screen (`StellarButton`'s caster ->
+  `Ton618Mod.openMenuFor(player)`; `FilmScreen` plays a decoded video), so Convergence firing it pops that screen up
+  mid-film: later, skip it in Convergence (and the plate) or give it a proper role. SS-22 Hyperion: still unchecked (its
+  jar gave 403).
 - **Still to do for 1.8.1** (older list): the icon's final version and commit; the Fable fixes; one CI round on all seven from the
   final heads; a test jar for the user (Fabric 26.3 profile); then the release (`releases\1.8.1\RELEASE-PROMPT.md`).
   **The user: keep CLAUDE.md as it is (don't trim it), the addon list stays its own doc.**
