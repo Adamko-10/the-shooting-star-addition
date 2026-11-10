@@ -88,7 +88,9 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   1.8.1 changes checked fine on all seven. **Fixed** (main `cc65f41`, the same on all six branches): (1) Convergence fired
   a weapon once per *listed* pick (a modified client could list Luna 32 times): now once per skill; (4) its queued
   weapons (Gravitia's finale up to 60 s later) are dropped if the caster changed world (`Pending.level`); (2)
-  `ProximaFx.clearAll()` on logout like Halley's/Luna's (music, effects); (5) GL branches: `main.bindWrite(true)` after a
+  `ProximaFx.clearAll()` on logout like Halley's/Luna's (music, effects) on main, both Forge branches and fabric-1.21.1
+  (fabric-1.20.1, 1.21.11 and 26.3 already had one, which also clears zones and auroras: kept theirs; the review was
+  wrong there, and the first CI round #205-207 failed on the duplicate); (5) GL branches: `main.bindWrite(true)` after a
   panel copy (the grid was drawn in a quarter of the screen for a frame); the mod description lists four skills.
   **Left as they are** (minor or riskier to change; revisit if they show up): (3) strikes running at server stop are
   dropped without `onEnd()` (half-cut scar, no heart; finishing them during shutdown is riskier); (6) 26.3's one-frame
