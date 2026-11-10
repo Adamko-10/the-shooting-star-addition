@@ -48,7 +48,8 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   fabric-1.20.1 #191 (`09a077d`). Not CI'd: main and the two Forge branches (wip pushes before the release). Version still
   1.8.0 (bump to 1.8.1 at release). Nothing pushed to the real branches. Test jar for the user's Fabric 26.3 profile:
   `test builds\2026-11-10 menu fix, plates config, 26.3 panels\` (CI #188's jar + Quasar's Fabric 1.8.0 jar, which the
-  user needs instead of the NeoForge one to see the menu bug). Not tested in game yet: the menu fix with Quasar (no harness
+  user needs instead of the NeoForge one to see the menu bug); **both swapped into the Modrinth profile `Fabric 26.3`**
+  (2026-11-10; the 1.8.0 jar and the NeoForge Quasar jar there renamed `.disabled`). Not tested in game yet: the menu fix with Quasar (no harness
   for other mods' jars on Fabric), `menu_plates=false`.
 - **Decided / for later (the user, 2026-11-10)**: **rename the mod to "The Shooting Star Additions: SA Series"** (the user's
   pick from Claude's list; other addons all call themselves "The Shooting Star Addition [skill]"): display name only, keep
