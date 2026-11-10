@@ -106,9 +106,8 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   fabric-1.21.1 `4bfa832` #204, fabric-1.20.1 `124561d` #208, fabric-1.21.11 `99f7d73` #209, fabric-26.3 `56fa08f` #210;
   filled into `releases\1.8.1\RELEASE-PROMPT.md` A0 (the user runs it in Codex when happy). Test jar
   `test builds\2026-11-10 1.8.1 final (Fabric 26.3)\The Shooting Star Addition SA Series 1.8.1 [Fabric 26.3].jar`
-  (CI #210's), **not yet in the Modrinth profile**: the user's game was open (javaw with Sodium) at 23:12; the profile
-  still has the earlier fix jar `The-Shooting-Star-Addition-1.8.0-fix-Fabric-26.3.jar` (rename it `.disabled` when
-  swapping). Gallery: 20 candidates at 1920x1080 + captions in `gallery\1.8.1 candidates\` (`index.md`; `extras\`),
+  (CI #210's), **in the Modrinth profile `Fabric 26.3` since 2026-11-10 ~23:20** (the earlier fix jar renamed
+  `.disabled`; a javaw Minecraft client with Sodium was still running then, another profile's: the jar wasn't locked). Gallery: 20 candidates at 1920x1080 + captions in `gallery\1.8.1 candidates\` (`index.md`; `extras\`),
   made with an init script for the window size, nothing in the project changed (the agent was cut off by the usage limit
   at the very end; its files are complete).
 - **Still to do for 1.8.1** (older list): the icon's final version and commit; the Fable fixes; one CI round on all seven from the
