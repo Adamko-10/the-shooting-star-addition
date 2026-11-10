@@ -51,6 +51,7 @@ public final class HalleyClient {
         NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingOut.class, event -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
+            dev.ss05.halley.client.proxima.ProximaFx.clearAll();
             ConvergenceView.clearAll();
             ServerSettings.forget();
         });
