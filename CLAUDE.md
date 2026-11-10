@@ -12,7 +12,52 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-09, ~14:00, Adam's PC): 1.8.0 (SA-04 Proxima) is ported, about to be released <<<
+### >>> RESUME HERE (2026-11-10, Adam's PC): 1.8.0 is RELEASED everywhere; 1.8.1 compat fixes built, waiting for the user's test <<<
+
+- **1.8.0 is out** (GitHub tags `v1.8.0*` on all seven branches = origin; CurseForge too, the user, 2026-11-10). The six
+  `ports\<branch>\` worktrees are still there (local `port/<branch>`), now 1-3 commits ahead of origin with the fixes below.
+- **CurseForge comments (2026-11-10)** and what was found (the other mods' jars are in the project folder's `other mods\`:
+  `quasar\ss-21-quasar-1.8.0.jar` (Fabric multi-version, by Aether21, mod id `shooting_star_ss21_multi`), `solar flare\
+  shooting-star-solar-flare-1.1.1-fabric.jar` (SX-01, by Martina), `stellar quartet\star_quartet-1.4.0-fabric-multi.jar`
+  ("Stellar Quartet multi" = its Fabric 1.21.1 + 26.3 jar); decompiled in the session scratchpad only):
+  1. **"Our skills don't show when other addons are installed"** (two players): RimuLib 1.2.2's `SkillSet.skills` is a live
+     unmodifiable view of the private `rows`, which `SkillApi.extend` (ours, Solar Flare's) appends to. **Quasar 1.8.0
+     doesn't use the API**: `QuasarBridge.install` writes RimuLib's private tables by reflection and sets `skills` to a
+     frozen `List.copyOf(...)`, so every skill extended after it is castable but missing from the menu. It installs from
+     its Fabric main entrypoint (and again on SERVER_STARTING); we join at RimuLib's client entrypoint, so on Fabric we
+     usually came after it. Solar Flare already works round it (`RemoteLink.ensure`). **Fix** (main `029c9a3`, cherry-picked
+     to all six): `TssLink.showInMenu(set)` right after our `extend` puts every skill either list holds back into `rows`
+     and `skills` back to a live view (so later add-ons show too); logs "Another add-on had frozen ..." when it changed
+     something. The user's own Fabric 26.3 profile never showed the bug because its Quasar jar is the **NeoForge** build
+     (`ss-21-quasar-1.7.1+neoforge-1.21.1.jar`), which Fabric doesn't load. A note to Aether21 (use `SkillApi.extend`) would
+     fix it at the source: the user's call.
+  2. **"A config to disable the config menu inside the remote"**: client config `menu_plates` (default true; `[stellar_remote]`
+     section of the client toml), false hides our settings plate and Convergence's plate and their keys; the Convergence
+     picks still sync (same commit `029c9a3`; each branch's config added in its own style).
+  3. **Convergence's film panels blank white on Fabric 26.3** (a player with "Stellar Quartet multi", and the user on 26.3
+     without any other addon): 26.3's `FilmPanels.image` flipped the frozen frame with a negative pose scale; 26.3's GUI
+     pipelines cull back faces, so only the white border fill under it showed. Flipped by v now, as 1.21.11 already did
+     (`126ca62` on `port/fabric-26.3`). **CI #188 checked it** (new 26.3 client test `convergence`, `2466b6e`: frames by film
+     time in `ci-fabric-26.3-188` `shots-convergence.zip`): five of six panels show their frozen shots; the Railgun's
+     panel is white (it froze in the beam's white-out, probably real: the user to check on their GPU). Known difference
+     (not fixed): on 26.3 a panel copies the world at the end of its main pass, before the weapons' screen effects (TSS's
+     purple comic look), where the other versions copy the finished screen.
+  4. "Will there be an SA-03?": the user answered yes (the free slot, §10).
+- **State**: main `029c9a3` built here (pack check clean); forge-1.21.1 `89e0ec0` and forge-1.20.1 `81b1fc8` built here;
+  CI green: wip/fabric-26.3 #188 (`2466b6e`), fabric-1.21.11 #189 (`953f0ae`), fabric-1.21.1 #190 (`a17ef64`),
+  fabric-1.20.1 #191 (`09a077d`). Not CI'd: main and the two Forge branches (wip pushes before the release). Version still
+  1.8.0 (bump to 1.8.1 at release). Nothing pushed to the real branches. Test jar for the user's Fabric 26.3 profile:
+  `test builds\2026-11-10 menu fix, plates config, 26.3 panels\` (CI #188's jar + Quasar's Fabric 1.8.0 jar, which the
+  user needs instead of the NeoForge one to see the menu bug). Not tested in game yet: the menu fix with Quasar (no harness
+  for other mods' jars on Fabric), `menu_plates=false`.
+- **Decided / for later (the user, 2026-11-10)**: **rename the mod to "The Shooting Star Additions: SA Series"** (the user's
+  pick from Claude's list; other addons all call themselves "The Shooting Star Addition [skill]"): display name only, keep
+  mod id `shooting_star_addition`, the CurseForge project and slug; the jar-name rule (§0) and release titles change with
+  it; when: with 1.8.1 or later, ask. **A new mod icon** and **new CurseForge gallery images**: later.
+- Model/effort advice given: Opus 5.5 high (xhigh to investigate), Fable 5.2 only when stuck or for big new visual
+  work; ponytail lite for fixes/ports, off for creative work. The user set xhigh, ponytail lite, and fast mode on.
+
+### RESUME HERE (2026-11-09, ~14:00, Adam's PC): 1.8.0 (SA-04 Proxima) is ported, about to be released
 
 The user moved to a new conversation here (2026-11-09: "write claude md since im moving this to a new convo").
 
