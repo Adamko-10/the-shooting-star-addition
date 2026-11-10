@@ -158,7 +158,8 @@ public final class FilmPanels {
         pose.translate(x0, y0);
         pose.scale((x1 - x0) / 64.0F, (y1 - y0) / 64.0F);
         // a frame buffer's rows run bottom up: v from 1 at the top to 0 at the bottom (a texture "height" of -64)
-        g.blit(RenderPipelines.GUI_TEXTURED, frame.location, 0, 0, 0.0F, -64.0F, 64, 64, 64, -64, fade(0xFFFFFFFF, alpha));
+        // drawn opaque: the screen's alpha copied with the frame would let the white panel behind show through
+        g.blit(RenderPipelines.GUI_OPAQUE_TEXTURED_BACKGROUND, frame.location, 0, 0, 0.0F, -64.0F, 64, 64, 64, -64, fade(0xFFFFFFFF, alpha));
         pose.popMatrix();
     }
 
