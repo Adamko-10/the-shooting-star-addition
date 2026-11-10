@@ -86,7 +86,7 @@ public final class StarBridge {
             HalleyAddon.LOG.info("Attaching to The Shooting Star {} through {}", version, pkg);
             return (StarLink) type.getDeclaredConstructor().newInstance();
         }
-        throw new IllegalStateException("this build of The Shooting Star Addition doesn't support The Shooting Star " + version);
+        throw new IllegalStateException("this build of The Shooting Star Addition: SA Series doesn't support The Shooting Star " + version);
     }
 
     /** Runs the strikes in progress; from the loader's server tick. Does nothing if the addon didn't attach. */
@@ -135,7 +135,7 @@ public final class StarBridge {
     private static StarLink link() {
         StarLink current = link;
         if (current == null) {
-            throw new IllegalStateException("The Shooting Star Addition isn't attached to The Shooting Star (" + problem + ")");
+            throw new IllegalStateException("The Shooting Star Addition: SA Series isn't attached to The Shooting Star (" + problem + ")");
         }
         return current;
     }

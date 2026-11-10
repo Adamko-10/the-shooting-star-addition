@@ -169,7 +169,9 @@ public final class AdditionPanel {
             statusColor = INK;
         }
 
-        int w = Math.max(WIDTH, Math.max(font.width(status), font.width(Component.translatable("gui.shooting_star_addition.no_cooldown.disabled"))) + 22);
+        Component title = Component.translatable("gui.shooting_star_addition.panel").withStyle(ChatFormatting.BOLD);
+        int w = Math.max(WIDTH, Math.max(Math.max(font.width(status), font.width(title)),
+            font.width(Component.translatable("gui.shooting_star_addition.no_cooldown.disabled"))) + 22);
         int h = cooldownOff ? 296 : 284;
         g.pose().pushPose();
         // over the menu, in its top left corner
@@ -181,7 +183,7 @@ public final class AdditionPanel {
         plate(g, 2, 3, w + 2, h + 3, 0x26000000);
         plate(g, 0, 0, w, h, 0xF4000000 | PLATE);
         g.fill(0, 2, 3, h - 2, 0xFF000000 | GOLD);
-        g.drawString(font, Component.translatable("gui.shooting_star_addition.panel").withStyle(ChatFormatting.BOLD), 11, 7, 0xFF000000 | INK, false);
+        g.drawString(font, title, 11, 7, 0xFF000000 | INK, false);
         g.fill(11, 19, w - 10, 20, 0xFF000000 | RULE);
 
         // the skills' music

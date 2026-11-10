@@ -76,7 +76,7 @@ public final class NoCooldown {
             return;
         }
         String who = HalleyConfig.noCooldownSurvival() ? "everyone" : "creative mode only";
-        Component line = Component.literal("[The Shooting Star Addition] ").withStyle(ChatFormatting.GOLD)
+        Component line = Component.literal("[SA Series] ").withStyle(ChatFormatting.GOLD)
             .append(Component.literal(on
                 ? "No cooldown is ON here (" + who + "): Stellar Remote skills can be cast again straight away. "
                     + "Switch it for yourself in the remote's menu (H) with C."
