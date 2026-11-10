@@ -84,6 +84,21 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   incursion like in Marvel. Two Earths/Universes colliding with each other."); SA-03 (11-10). Unsolved bug: a Forge 1.20.1
   crash that stopped when the sound .ogg files were deleted (Steve_Gamer7643, cause never found). Several players mix
   this addon up with TSS itself (version numbers, asking here for TSS's skills).
+- **Fable 5.2's review (2026-11-10, read-only; `reviews\2026-11-10 Fable review.md`)**: no crash or data loss found; the
+  1.8.1 changes checked fine on all seven. **Fixed** (main `cc65f41`, the same on all six branches): (1) Convergence fired
+  a weapon once per *listed* pick (a modified client could list Luna 32 times): now once per skill; (4) its queued
+  weapons (Gravitia's finale up to 60 s later) are dropped if the caster changed world (`Pending.level`); (2)
+  `ProximaFx.clearAll()` on logout like Halley's/Luna's (music, effects); (5) GL branches: `main.bindWrite(true)` after a
+  panel copy (the grid was drawn in a quarter of the screen for a frame); the mod description lists four skills.
+  **Left as they are** (minor or riskier to change; revisit if they show up): (3) strikes running at server stop are
+  dropped without `onEnd()` (half-cut scar, no heart; finishing them during shutdown is riskier); (6) 26.3's one-frame
+  grid blink per freeze (by design); (7) `Convergence.PICKS` never forgotten on logout (tiny), `MoonBuild.LINGERING`
+  walks waiting chunks every tick; (8) FilmPanels state survives a disconnect until the next film; (9) `StarCastMixin`'s
+  flag is cleared only at RETURN (stuck if TSS's cast throws); (10) forge-1.21.1 `net/AddonNetwork` imports client
+  classes in a common class (works by lazy loading; Forge was never run on a dedicated server); (11) `ConvergencePlate.sent`
+  not reset on disconnect; (12) forge-1.21.1 `ProximaStrike`'s `SavedData.Factory` with null `DataFixTypes` (if Forge
+  1.21.1 doesn't allow it, radiation zones vanish at restart there: check in a Forge game); (13) `MoonBuild` may skip
+  putting protected blocks back in a chunk that is still loading.
 - **Still to do for 1.8.1**: the icon's final version and commit; the Fable fixes; one CI round on all seven from the
   final heads; a test jar for the user (Fabric 26.3 profile); then the release (`releases\1.8.1\RELEASE-PROMPT.md`).
   **The user: keep CLAUDE.md as it is (don't trim it), the addon list stays its own doc.**
