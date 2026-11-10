@@ -76,6 +76,14 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   `gallery\1.8.1 candidates\`; all CurseForge comments summarised -> `reviews\2026-11-10 CurseForge comments summary.md`
   (+ the raw JSON; the full Incursion idea by gomez_96 is in there: CurseForge's comment API only pages the newest 20 for
   plain curl). All four were cut off by the 5-hour limit and resumed.
+- **All 138 CurseForge comments read (2026-11-10)**: `reviews\2026-11-10 CurseForge comments summary.md` + raw JSON
+  (the API pages with `page=N`, not `index`). **Open promises by adamko_10** (not done): Halley's blast "overhauled this
+  Tuesday" and "will see about the halley" (10-12, blast too small); TSS's Tesseract icon has Halley's colour, "probably
+  tweak it" (10-11); music as .ogg files players can swap + asking TSS's dev about music for TSS's weapons (10-13);
+  "more proper cutscenes like the original" (10-28); Incursion "ill look into it" (10-27; gomez_96's full idea: "Imagine an
+  incursion like in Marvel. Two Earths/Universes colliding with each other."); SA-03 (11-10). Unsolved bug: a Forge 1.20.1
+  crash that stopped when the sound .ogg files were deleted (Steve_Gamer7643, cause never found). Several players mix
+  this addon up with TSS itself (version numbers, asking here for TSS's skills).
 - **Still to do for 1.8.1**: the icon's final version and commit; the Fable fixes; one CI round on all seven from the
   final heads; a test jar for the user (Fabric 26.3 profile); then the release (`releases\1.8.1\RELEASE-PROMPT.md`).
   **The user: keep CLAUDE.md as it is (don't trim it), the addon list stays its own doc.**
