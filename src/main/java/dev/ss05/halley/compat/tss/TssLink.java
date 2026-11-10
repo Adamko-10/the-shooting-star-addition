@@ -35,6 +35,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.commands.CommandSourceStack;
@@ -127,11 +128,49 @@ public final class TssLink implements StarLink {
             SkillApi.extend(set, new Skill[]{SKILL, MOON, PROXIMA, CONVERGENCE}, (player, skill, tuning) -> skill == SKILL
                 ? HalleyCasting.cast(player, tune(tuning)) : skill == MOON ? MoonCasting.cast(player, tune(tuning))
                 : skill == PROXIMA ? ProximaCasting.cast(player, tune(tuning)) : Convergence.cast(player, tuning));
+            showInMenu(set);
             for (Skill ours : List.<Skill>of(SKILL, MOON, PROXIMA, CONVERGENCE)) {
                 HalleyAddon.LOG.info("{} joined the Stellar Remote as skill #{} (key slot {}).", ours.title(), set.skills.indexOf(ours) + 1,
                     SkillApi.index(ours));
             }
         });
+    }
+
+    /**
+     * The remote's menu lists {@code SkillSet.skills}, a live view of the set's rows that {@code SkillApi.extend} adds
+     * to. An add-on that joins by swapping that field for a frozen copy (SS-21 Quasar 1.8.0) hides every skill added
+     * after it: castable, but missing from the menu (ours, SX-01 Solar Flare's). This puts back every skill either list
+     * holds (the shown order first) as a live view again, so add-ons that join later show too. RimuLib internals: if
+     * they change, only a warning.
+     */
+    private static void showInMenu(SkillSet set) {
+        try {
+            Field rowsField = SkillSet.class.getDeclaredField("rows");
+            Field skillsField = SkillSet.class.getDeclaredField("skills");
+            rowsField.setAccessible(true);
+            skillsField.setAccessible(true);
+            synchronized (SkillSet.class) {
+                @SuppressWarnings("unchecked")
+                List<Skill> rows = (List<Skill>) rowsField.get(set);
+                List<Skill> all = new ArrayList<>(set.skills);
+                int shown = all.size();
+                for (Skill skill : rows) {
+                    if (!all.contains(skill)) {
+                        all.add(skill);
+                    }
+                }
+                rows.clear();
+                rows.addAll(all);
+                skillsField.set(set, Collections.unmodifiableList(rows));
+                if (all.size() > shown) {
+                    HalleyAddon.LOG.info("Another add-on had frozen the Stellar Remote's menu list; {} hidden skill(s) shown again.",
+                        all.size() - shown);
+                }
+            }
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            HalleyAddon.LOG.warn("Couldn't check the Stellar Remote's menu list; with some other add-ons our skills may not show in it: {}",
+                e.toString());
+        }
     }
 
     /** The remote's sliders for one cast, as the addon's own type (the defaults if there are none). */
