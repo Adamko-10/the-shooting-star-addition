@@ -223,10 +223,11 @@ public final class FilmPanels {
     private static void image(GuiGraphicsExtractor g, Frame frame, float x0, float y0, float x1, float y1, int argb) {
         Matrix3x2fStack pose = g.pose();
         pose.pushMatrix();
-        // a render target's rows run bottom up (as on the other versions): drawn flipped
-        pose.translate(x0, y1);
-        pose.scale((x1 - x0) / 64.0F, -(y1 - y0) / 64.0F);
-        g.blit(RenderPipelines.GUI_TEXTURED, frame.location, 0, 0, 0.0F, 0.0F, 64, 64, 64, 64, argb);
+        pose.translate(x0, y0);
+        pose.scale((x1 - x0) / 64.0F, (y1 - y0) / 64.0F);
+        // a render target's rows run bottom up: flipped by v (1 at the top, 0 at the bottom: a texture "height" of -64),
+        // not by a negative scale, which turns the quad round and the GUI pipelines cull it (the panels came out white)
+        g.blit(RenderPipelines.GUI_TEXTURED, frame.location, 0, 0, 0.0F, -64.0F, 64, 64, 64, -64, argb);
         pose.popMatrix();
     }
 
