@@ -1,4 +1,4 @@
-# The Shooting Star Addition
+# The Shooting Star Addition: SA Series
 
 An **unofficial**, fan-made addon for **[The Shooting Star \[Demo\]](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-demo)** by rimuru\_dev. It adds four skills to the Stellar Remote: **SA-01 · Halley**, a comet called down onto your crosshair, **SA-02 · Luna**, which brings the moon itself down, **SA-04 · Proxima**, a solar flare fired from a star 4.2 light years away, and **SA-00 · Stellar Convergence**, which fires every weapon at once.
 
@@ -12,9 +12,11 @@ An **unofficial**, fan-made addon for **[The Shooting Star \[Demo\]](https://www
 
 ### Check out my other mod that will be just as cool as this one: \[[https://www.curseforge.com/minecraft/mc-addons/type-95-sniper-rifle-addition](https://www.curseforge.com/minecraft/mc-addons/type-95-sniper-rifle-addition))
 
+**Renamed in 1.8.1:** the mod is now called **The Shooting Star Addition: SA Series**, so it is not mixed up with other Shooting Star addons. Nothing breaks: your configs, worlds and other mods work as before.
+
 ## ⚠️ Compatibility — please read
 
-Version **1.8.0** works with **The Shooting Star \[Demo\] 1.5.2** and needs **RimuLib 1.2.2** or newer (The Shooting Star needs it too). On The Shooting Star 1.5.0, keep version 1.6.0 of this addon; on 1.4.x, version 1.5.1.
+Version **1.8.1** works with **The Shooting Star \[Demo\] 1.5.2** and needs **RimuLib 1.2.2** or newer (The Shooting Star needs it too). On The Shooting Star 1.5.0, keep version 1.6.0 of this addon; on 1.4.x, version 1.5.1.
 
 ### Available builds
 
@@ -90,7 +92,7 @@ Halley and Luna have The Shooting Star's three sliders, under them in the remote
 
 ## The remote's menu
 
-A small plate in the corner of the remote's menu (**H**) holds your own switches: **M** Luna's and Proxima's music, **=** music stacking (off: casting again doesn't start a second copy), **G** Epic mode (**Z** on 26.3), **L** keep the moon, **F** impact frames (full, softer or off), **E** where a creative caster goes when standing where their own strike lands (straight up, or out to the crater's edge), **-** kilometres or miles, **C** no cooldown.
+A small plate in the corner of the remote's menu (**H**) holds your own switches: **M** Luna's and Proxima's music, **=** music stacking (off: casting again doesn't start a second copy), **G** Epic mode (**Z** on 26.3), **L** keep the moon, **F** impact frames (full, softer or off), **E** where a creative caster goes when standing where their own strike lands (straight up, or out to the crater's edge), **-** kilometres or miles, **C** no cooldown. Don't want the plates? Set `menu_plates = false` in the `[stellar_remote]` section of the client config to hide them; the settings still apply.
 
 ## ⏱️ No cooldown (optional)
 
@@ -109,7 +111,7 @@ Off by default. Set `no_cooldown = true` in the `[stellar_remote]` section of `c
 ## Settings
 
 *   `config/shooting_star_addition-common.toml` (the server's): each skill's sizes, blast reach and cooldown, whether they carve the land, `no_cooldown`, the slider limits, and Proxima's shelter depth, knockback, radiation and random flares.
-*   `config/shooting_star_addition-client.toml` (each player's own): the dark sky, the extra effects, the world-lighting flashes (turn them off if flashing light bothers you), and the menu plate's switches.
+*   `config/shooting_star_addition-client.toml` (each player's own): the dark sky, the extra effects, the world-lighting flashes (turn them off if flashing light bothers you), the menu plate's switches, and `menu_plates` (`false` hides the addon's and Stellar Convergence's plates in the remote's menu; the settings still apply).
 
 ## Will it work with future versions of The Shooting Star?
 
@@ -121,7 +123,7 @@ Not without an update of this addon. The Shooting Star has no official way for o
 
 ## Plans
 
-This is version **1.8.0**. More skills for the Stellar Remote are planned, along with balancing and polish. Comments, bug reports and ideas are very welcome!
+This is version **1.8.1**. SA-03 is planned. More skills for the Stellar Remote are planned, along with balancing and polish. Comments, bug reports and ideas are very welcome!
 
 ## Credits
 
