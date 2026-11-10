@@ -48,7 +48,34 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
      after the blit (`colorMask(false,false,false,true)` + the frame's `clear`), 1.21.11 and 26.3 draw it with
      `RenderPipelines.GUI_OPAQUE_TEXTURED_BACKGROUND` (so on those two the panel image no longer fades while the grid
      shatters; its border does). The CI frames of #188 had shown it too (land white, sky red) but were misread as fine.
-  4. "Will there be an SA-03?": the user answered yes (the free slot, §10).
+  3c. **The user: "they're not washed out, they're blank"**: the real cause on 26.3: it gathers the GUI (so the film's
+     freezes) *before* drawing the frame, and the port copied at the end of the world's main pass, before the screen
+     effects and the films' scenes. Fix `b772df2` (port/fabric-26.3): copy at the TAIL of `GameRenderer.render()`
+     (`client/mixin/GameRendererMixin`), the END_MAIN hook removed, and `FilmPanels.draw` skips the grid on a frame that
+     freezes (so the copy doesn't hold it: one-frame grid blink per freeze). **CI #196 shows the panels holding the real
+     shots** (TSS's comic look, the Railgun's red beam). 1.21.11 copies while the GUI is gathered, which there happens after
+     the world and its effects: probably fine; its new CI Convergence test (#200) can't show it (shots by tick miss the
+     film under CI lag).
+  4. "Will there be an SA-03?": the user answered yes (the free slot, §10). Ideas: `docs/SA-03-IDEAS.md` (six concepts;
+     the user likes **planet** ideas; more given in chat 2026-11-10: Jupiter gravity well lifting land, Neptune diamond
+     rain, Venus acid greenhouse, Uranus sideways gravity, Planet Nine, 55 Cancri e lava flood, eyeball planet, Incursion).
+- **1.8.1 = the fixes + the rename + a new icon** (the user, 2026-11-10: "rename it at the same time as we ship this
+  update and with the icon too"). Name **"The Shooting Star Addition: SA Series"** (not "Additions"), chat prefix
+  `[SA Series]`, jars **"The Shooting Star Addition SA Series 1.8.1 [<Loader> <MC>].jar"** (no colon: Windows), version
+  1.8.1: committed on all seven (main `073588b`). Release texts (an agent): `dev/publish/changelog_181.js` ->
+  `releases\1.8.1\changelogs\`, `dev/publish/github_181.sh`, `releases\1.8.1\RELEASE-PROMPT.md` (placeholders `<HEAD x>`
+  `<CI x>` to fill; it renames the CurseForge project, new summary, avatar `releases\1.8.1\icon.png`), READMEs and
+  `curseforge-description.md`. **Icon**: `art/make_icon.js` (Node, writes `src/main/resources/shooting_star_addition_icon.png`
+  on main; copied to the six worktrees and `releases\1.8.1\icon.png`): Halley, Proxima, Luna converging on Earth, an SA
+  badge; the user: "looks amazing", asked for an "Addon" tag like the old icon and a Moon that reads as the Moon (agent
+  working on it). Not committed yet. `art/make_thumbnail.py` would overwrite the icon with the old one: drop its logo save.
+- **Background agents started 2026-11-10** (the user's one-time OK): Fable 5.2 read-only bug review ->
+  `reviews\2026-11-10 Fable review.md` (Claude applies the fixes afterwards, carefully); gallery screenshots ->
+  `gallery\1.8.1 candidates\`; all CurseForge comments summarised -> `reviews\2026-11-10 CurseForge comments summary.md`
+  (+ the raw JSON; the full Incursion idea by gomez_96 is in there: CurseForge's comment API only pages the newest 20 for
+  plain curl). All four were cut off by the 5-hour limit and resumed.
+- **Still to do for 1.8.1**: the icon's final version and commit; the Fable fixes; one CI round on all seven from the
+  final heads; a test jar for the user (Fabric 26.3 profile); then the release (`releases\1.8.1\RELEASE-PROMPT.md`).
   **The user: keep CLAUDE.md as it is (don't trim it), the addon list stays its own doc.**
   **Every other addon, whether it uses RimuLib's API, and a message for their devs: `docs/ADDONS.md`** (from TSS's
   CurseForge Dependents tab, complete on 2026-11-10; Modrinth has none; SS-22 Hyperion still to check: its jar gave 403) (the user is
