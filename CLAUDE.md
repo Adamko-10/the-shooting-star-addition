@@ -43,6 +43,9 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
      (not fixed): on 26.3 a panel copies the world at the end of its main pass, before the weapons' screen effects (TSS's
      purple comic look), where the other versions copy the finished screen.
   4. "Will there be an SA-03?": the user answered yes (the free slot, §10).
+  **Every other addon, whether it uses RimuLib's API, and a message for their devs: `docs/ADDONS.md`** (the user is
+  contacting Quasar's and TON618's devs; TON618 = "The TON618 demo", Forge 1.20.1 / Fabric 1.21.11, same reflection as
+  Quasar; jars in `other mods\ton618\`).
 - **State**: main `029c9a3` built here (pack check clean); forge-1.21.1 `89e0ec0` and forge-1.20.1 `81b1fc8` built here;
   CI green: wip/fabric-26.3 #188 (`2466b6e`), fabric-1.21.11 #189 (`953f0ae`), fabric-1.21.1 #190 (`a17ef64`),
   fabric-1.20.1 #191 (`09a077d`). Not CI'd: main and the two Forge branches (wip pushes before the release). Version still
