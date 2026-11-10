@@ -66,12 +66,19 @@ public final class StarClientBridge {
             // the addon's plates in the remote's menu (H) and their keys (the menu holds the mouse: things in it are picked
             // by looking at them), through RimuLib's public API; never a key the remote uses or one being rebound
             UiApi.onMenuDraw((graphics, partial) -> {
-                if (MenuApi.capturesInput()) {
+                if (!MenuApi.capturesInput()) {
+                    return;
+                }
+                if (HalleyClientConfig.menuPlates()) {
                     AdditionPanel.draw(graphics);
                     ConvergencePlate.draw(graphics);
+                } else {
+                    // hidden by the client config: the Stellar Convergence picks still go to the server
+                    ConvergencePlate.sync(false);
                 }
             });
-            MenuApi.onKey(key -> MenuApi.capturesInput() && !menuUses(key, 0) && (AdditionPanel.key(key) || ConvergencePlate.key(key)));
+            MenuApi.onKey(key -> MenuApi.capturesInput() && HalleyClientConfig.menuPlates() && !menuUses(key, 0)
+                && (AdditionPanel.key(key) || ConvergencePlate.key(key)));
             // once the server has said hello, tell it this player's Stellar Convergence picks
             Runnable before = ServerSettings.onReceived;
             ServerSettings.onReceived = () -> {
