@@ -110,6 +110,13 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   `.disabled`; a javaw Minecraft client with Sodium was still running then, another profile's: the jar wasn't locked). Gallery: 20 candidates at 1920x1080 + captions in `gallery\1.8.1 candidates\` (`index.md`; `extras\`),
   made with an init script for the window size, nothing in the project changed (the agent was cut off by the usage limit
   at the very end; its files are complete).
+- **The user's test of the final jar (2026-11-11, Fabric 26.3 with Quasar 1.8.0, Solar Flare, Stellar Quartet)**: new
+  name and icon "perfect", the H menu works (their earlier log: "Another add-on had frozen the Stellar Remote's menu
+  list; 4 hidden skill(s) shown again", then our four joined). Convergence's panels now show real frames, **but "it picked
+  the wrong stuff ... the frames were almost all the quasar"**: likely SS-21 Quasar draws its own film/scene over the
+  screen while its strike runs (outside RimuLib's CutsceneDirector, which Convergence holds), so every freeze copies
+  Quasar's picture. Not investigated yet (would need Quasar's client render code: `other mods\quasar\`). **Soon (the
+  user: "very soon", not now)**: sound effects synced with the panels popping in and the grid breaking apart.
 - **Still to do for 1.8.1** (older list): the icon's final version and commit; the Fable fixes; one CI round on all seven from the
   final heads; a test jar for the user (Fabric 26.3 profile); then the release (`releases\1.8.1\RELEASE-PROMPT.md`).
   **The user: keep CLAUDE.md as it is (don't trim it), the addon list stays its own doc.**
