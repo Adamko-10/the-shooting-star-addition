@@ -132,7 +132,8 @@ public final class FilmPanels {
         frame.setClearColor(0.0F, 0.0F, 0.0F, 1.0F);
         frame.clear(Minecraft.ON_OSX);
         RenderSystem.colorMask(true, true, true, true);
-        main.bindWrite(false);
+        // true: the viewport back to the screen (the frame's constructor and clear left it at the half-size copy)
+        main.bindWrite(true);
         PANELS.add(new Panel(frame, color, now));
     }
 

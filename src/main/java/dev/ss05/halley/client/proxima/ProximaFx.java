@@ -208,6 +208,14 @@ public final class ProximaFx {
         return -1.0F;
     }
 
+    /** Leaving the world: every running flare stops (its music and soundtrack with it), as Halley's and Luna's do. */
+    public static void clearAll() {
+        for (ProximaFx fx : List.copyOf(ACTIVE)) {
+            fx.removed();
+        }
+        ACTIVE.clear();
+    }
+
     public void removed() {
         ACTIVE.remove(this);
         if (this.music != null) {
