@@ -83,6 +83,16 @@ public final class Convergence {
         "gungnir", 323,
         "seven_stars", 339);
 
+    /**
+     * The same for other addons' skills on the remote (by skill id), read from their spells' timelines (2026-11-11):
+     * SS-21 Quasar 1.8.0's jet touches down at 758 (its burst at 998), SX-01 Solar Flare 1.1.1's whip touches the
+     * ground at 365. Without an entry a weapon fires at once, and a long one (Quasar) then runs its whole build-up
+     * through the convergence's film, into every panel. Check them when those addons update (docs/ADDONS.md).
+     */
+    private static final Map<String, Integer> ADDON_IMPACT = Map.of(
+        "quasar", 758,
+        "solar_flare", 365);
+
     private static final Map<UUID, Picks> PICKS = new ConcurrentHashMap<>();
     private static final List<Pending> PENDING = new ArrayList<>();
 
@@ -358,6 +368,8 @@ public final class Convergence {
             base = ProximaPlan.IMPACT;
         } else if (SkillSet.of(skill) == SkillSet.of(TssLink.SKILL) && TSS_IMPACT.containsKey(skill.id())) {
             base = TSS_IMPACT.get(skill.id());
+        } else if (ADDON_IMPACT.containsKey(skill.id())) {
+            base = ADDON_IMPACT.get(skill.id());
         } else {
             return -1;
         }
