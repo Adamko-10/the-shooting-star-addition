@@ -40,6 +40,7 @@ public final class HalleyClientConfig {
     private static final ConfigFile.BoolValue CONVERGENCE_RING;
     private static final ConfigFile.BoolValue CONVERGENCE_PLATE;
     private static final ConfigFile.BoolValue CONVERGENCE_PLATE_OLD;
+    private static final ConfigFile.BoolValue MENU_PLATES;
     private static final ConfigFile.EnumValue<ConvergenceShake> CONVERGENCE_SHAKE;
     /** What Stellar Convergence fires out of the box: every weapon but Gravitia (which only the menu chooses). */
     private static final List<String> CONVERGENCE_DEFAULT = List.of("the_shooting_star", "gungnir", "seven_stars", "tesseract", "halley", "luna", "proxima");
@@ -112,6 +113,9 @@ public final class HalleyClientConfig {
                 "size (false: the smaller one, shown while it is the selected skill). T in the remote's menu.");
         CONVERGENCE_SHAKE = b.defineEnum("convergence_shake", ConvergenceShake.CAPPED, "The screen shake while a Stellar Convergence is on its way and for 20 s after it hits: CAPPED (no",
                 "stronger than one big weapon's, though every weapon shakes), FULL (every weapon's added up) or OFF. X in the remote's menu.");
+        MENU_PLATES = b.define("menu_plates", true,
+            "The addon's plates in the remote's menu (its settings, and Stellar Convergence's): false hides them and",
+            "their keys. The settings above still apply; change them in this file.");
     }
 
     private HalleyClientConfig() {
@@ -235,6 +239,11 @@ public final class HalleyClientConfig {
     }
 
     /** Stellar Convergence's plate in its old look (always shown, bigger) instead of the new one. */
+    /** The addon's plates (and their keys) in the remote's menu; false: hidden (menu_plates). */
+    public static boolean menuPlates() {
+        return get(MENU_PLATES);
+    }
+
     public static boolean convergencePlateOld() {
         return get(CONVERGENCE_PLATE_OLD);
     }
