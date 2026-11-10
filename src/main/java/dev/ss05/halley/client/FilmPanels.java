@@ -128,6 +128,12 @@ public final class FilmPanels {
         GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, main.frameBufferId);
         GlStateManager._glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, frame.frameBufferId);
         GlStateManager._glBlitFrameBuffer(0, 0, main.width, main.height, 0, 0, frame.width, frame.height, GL11.GL_COLOR_BUFFER_BIT, GL11.GL_LINEAR);
+        // a frozen frame is opaque: the screen's alpha (whatever the world and shader passes left in it) would let the
+        // white panel behind show through (washed-out panels, 2026-11-10)
+        RenderSystem.colorMask(false, false, false, true);
+        frame.setClearColor(0.0F, 0.0F, 0.0F, 1.0F);
+        frame.clear(Minecraft.ON_OSX);
+        RenderSystem.colorMask(true, true, true, true);
         main.bindWrite(false);
         PANELS.add(new Panel(frame, color, now));
     }
