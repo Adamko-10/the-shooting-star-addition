@@ -69,6 +69,8 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   on main; copied to the six worktrees and `releases\1.8.1\icon.png`): Halley, Proxima, Luna converging on Earth, an SA
   badge; the user: "looks amazing", asked for an "Addon" tag like the old icon and a Moon that reads as the Moon (agent
   working on it). Not committed yet. `art/make_thumbnail.py` would overwrite the icon with the old one: drop its logo save.
+- **Subagents (the user, 2026-11-10): "no more using too many subagents, just only as stated in the MD"**: the agents
+  below were a one-time run; from now on only what §0 allows (Sonnet subagents for bounded mechanical work, e.g. ports).
 - **Background agents started 2026-11-10** (the user's one-time OK): Fable 5.2 read-only bug review ->
   `reviews\2026-11-10 Fable review.md` (Claude applies the fixes afterwards, carefully); gallery screenshots ->
   `gallery\1.8.1 candidates\`; all CurseForge comments summarised -> `reviews\2026-11-10 CurseForge comments summary.md`
