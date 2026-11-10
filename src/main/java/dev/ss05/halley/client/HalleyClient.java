@@ -50,7 +50,6 @@ public final class HalleyClient implements ClientModInitializer {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
-            dev.ss05.halley.client.proxima.ProximaFx.clearAll();
             ConvergenceView.clearAll();
             ProximaFx.clearAll();
             ProximaCosmos.release();
