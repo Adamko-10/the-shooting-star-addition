@@ -117,6 +117,24 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   screen while its strike runs (outside RimuLib's CutsceneDirector, which Convergence holds), so every freeze copies
   Quasar's picture. Not investigated yet (would need Quasar's client render code: `other mods\quasar\`). **Soon (the
   user: "very soon", not now)**: sound effects synced with the panels popping in and the grid breaking apart.
+- **Skill ladder (the user, 2026-11-11)**: SA-03 = planet level (ideas: docs/SA-03-IDEAS.md + the planet list above);
+  **SA-05 = galaxy up to multi-galaxy level** (Claude's ideas: Andromeda = the Milky Way-Andromeda merger filling the sky
+  and raining tidal star streams; the Great Attractor pulling galaxies together; avoid black holes/galactic jets: Quasar
+  and TON618 have them); **SA-06 · Hypervoid = universal** (a player's suggestion the user wants to build; they filed
+  it as SA-05, the user moved it to SA-06): "flip the cover and press the button", a white crosshair on the ground, 12 s
+  later the whole universe is seen, galaxies vanish into darkness, a flash, a multiversal shockwave erases all matter:
+  every block gone except a small glass platform, everything dies (creative players are put on the platform); no
+  sliders, like Gravitia. Claude's plan (not agreed yet): wipe the loaded land at the strike (empty sections, like
+  MoonBuild), kill every entity in the dimension, mark the dimension "voided" in saved data so every chunk that loads or
+  generates afterwards comes in empty (an endless void without freezing the server); off by default on servers
+  (operators or a config switch), two presses (arm, then fire) + a warning page like Gravitia's, an optional
+  visual-only "dream mode" that brings the world back after the film; film: the countdown, a pull-out from Earth past
+  the galaxy to the cosmic web, galaxies going out, silence, a point of light, the flash, bubble universes popping,
+  then the void and the platform.
+- **CurseForge requests still open (2026-11-11, from the comments summary)**: Halley's blast bigger (promised 10-12),
+  TSS's Tesseract icon colour clash with Halley's, swappable music .ogg files, "proper cutscenes like the original",
+  Incursion/Pulsar/planets, the unsolved Forge 1.20.1 crash cured by deleting our sounds. The menu_plates config IS done
+  (1.8.1).
 - **Fable 5.2 (the user, 2026-11-11)**: the user wants to use Claude Fable 5.2 but fears it "will refactor everything":
   so Fable only **reviews and proposes** (read-only, files in the project folder's `reviews\fable-proposals\`: summary,
   bugs, films with patch files, players' requests, an SA-03 design, performance) and an Opus session **applies** what the
