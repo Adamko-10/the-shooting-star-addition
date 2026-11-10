@@ -117,6 +117,13 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   screen while its strike runs (outside RimuLib's CutsceneDirector, which Convergence holds), so every freeze copies
   Quasar's picture. Not investigated yet (would need Quasar's client render code: `other mods\quasar\`). **Soon (the
   user: "very soon", not now)**: sound effects synced with the panels popping in and the grid breaking apart.
+- **Design notes for what's next: `docs/NEXT-SKILLS.md`** (SA-04B CME's look: both lenses heating, the Earth gate
+  processing the energy with a shockwave in space and one at the impact, a much bigger impact with a real hole; TON618
+  in Convergence later as a delayed finale like Gravitia, it also deletes the world; SA-05 Great Attractor proposal:
+  galaxies merging, Sagittarius A* and M31* colliding, the Sun wiped, the remote overheating, "DANGER CANNOT BE
+  CALCULATED / INITIATING ULTIMATE FREEZE", the universe frozen until SA-05's row turns into "Reverse Collision?" and
+  plays the film backwards; SA-06 Hypervoid: void by default with a config to not, operators only, needs SA-05 first by
+  default). **Open player requests: `docs/PLAYER-REQUESTS.md`.**
 - **Skill ladder (the user, 2026-11-11)**: SA-03 = planet level (ideas: docs/SA-03-IDEAS.md + the planet list above);
   **SA-05 = galaxy up to multi-galaxy level** (Claude's ideas: Andromeda = the Milky Way-Andromeda merger filling the sky
   and raining tidal star streams; the Great Attractor pulling galaxies together; avoid black holes/galactic jets: Quasar
