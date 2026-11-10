@@ -1,4 +1,4 @@
-# The Shooting Star Addition
+# The Shooting Star Addition: SA Series
 
 An **unofficial**, fan-made addon for [The Shooting Star [Demo]](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-demo)
 by rimuru_dev. It adds three new strike skills to the Stellar Remote: **SA-01 · Halley**, a comet called down onto your
@@ -8,7 +8,10 @@ remote they come after The Shooting Star's own skills. Their codenames are
 their own series, SA (Shooting star Addition), so they never clash with the SS numbers of The Shooting Star's own
 skills, whatever it adds.
 
-**Download:** [The Shooting Star Addition on CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition)
+**Download:** [The Shooting Star Addition: SA Series on CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition)
+
+> **Renamed in 1.8.1:** this mod is now called **The Shooting Star Addition: SA Series**, so it isn't mixed up with other
+> Shooting Star addons. Nothing breaks: the mod id, your configs, your worlds and other mods' links are unchanged.
 
 ![Halley in game](docs/screenshots/overview.jpg)
 
@@ -280,6 +283,7 @@ And your switches from the remote's menu (**H**), in the `[stellar_remote]` sect
 | `convergence_shake` | CAPPED | Its camera shake: `CAPPED`, `FULL` or `OFF` (**X**). |
 | `convergence_plate` | true  | Its panel shown in full (`false` folds it to its name; **V**). |
 | `convergence_plate_old` | false | Its panel's older look, always shown (**T**). |
+| `menu_plates`    | true    | Show this addon's settings plate and Stellar Convergence's plate in the remote's menu (**H**). `false` hides them and their keys; the settings still apply, edit them in this file. |
 
 ## Will it work with future versions of The Shooting Star?
 
@@ -305,7 +309,7 @@ Shooting Star it knows, and uses the one for the version you have:
 
 ## Plans
 
-This is version 1.7. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
+This is version 1.8.1. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
 Shooting Star and keep improving it: more skills for the Stellar Remote, balancing and polish from your feedback,
 and versions for other loaders and Minecraft versions if there's demand. Bug reports, ideas and feedback are very
 welcome in the issues.
