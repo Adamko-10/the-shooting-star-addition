@@ -37,8 +37,6 @@ public final class HalleyClient implements ClientModInitializer {
         LevelRenderEvents.END_MAIN.register(CometRenderer::render);
         LevelRenderEvents.END_MAIN.register(MoonRenderer::render);
         LevelRenderEvents.END_MAIN.register(ProximaCosmos::renderSky);
-        // a film's panels: the shot being cut away from is copied once the world is drawn (see FilmPanels)
-        LevelRenderEvents.END_MAIN.register(context -> FilmPanels.copyPending());
         LevelRenderEvents.COLLECT_SUBMITS.register(context -> {
             HalleySky.submitForShaderPack(context);
             CometRenderer.submitForShaderPack(context);

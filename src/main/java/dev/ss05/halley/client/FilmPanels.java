@@ -25,9 +25,10 @@ import org.joml.Matrix3x2fStack;
  *
  * <p>26.3: the GUI is drawn by Minecraft's own GUI renderer from what is handed to a {@link GuiGraphicsExtractor}, so
  * the panels are drawn from the film's overlay pass ({@code StarClientBridge.renderFilmHud}) rather than at the very
- * end of the frame as on the other versions; and a freeze copies the world as drawn ({@link #copyPending}, at the end
- * of the world's main pass), whole-size, into a texture of its own that the GUI draws like any other (the way RimuLib's
- * own screen mirror does it).
+ * end of the frame as on the other versions. The GUI is gathered before the frame is drawn, so a freeze is copied at
+ * the very end of that frame ({@link #copyPending}, from GameRendererMixin: the world, the screen effects and the films'
+ * scenes as the player saw them), whole-size, into a texture of its own that the GUI draws like any other. Copying at
+ * the end of the world's main pass (until 2026-11-10) missed everything drawn after it: most panels came out blank.
  */
 public final class FilmPanels {
     /** Ticks a frozen panel takes to slide from full screen into its place. */
@@ -121,7 +122,7 @@ public final class FilmPanels {
 
     /**
      * Freezes the frame now on the screen into the next panel ({@code color}: its border's accent; {@code now}: the
-     * film's time). The copy itself is made at the end of the world's next main pass ({@link #copyPending}).
+     * film's time). The copy itself is made at the end of this frame ({@link #copyPending}).
      */
     public static void freeze(GuiGraphicsExtractor g, int color, float now) {
         int i = frozen();
@@ -134,7 +135,7 @@ public final class FilmPanels {
         PENDING.add(new Panel(FRAMES.get(i), color, now));
     }
 
-    /** From the end of the world's main pass (HalleyClient): the freezes asked for, copied from the frame as drawn. */
+    /** From the very end of the frame (GameRendererMixin): the freezes asked for, copied from the frame as shown. */
     public static void copyPending() {
         if (PENDING.isEmpty()) {
             return;
@@ -156,7 +157,8 @@ public final class FilmPanels {
      * when the grid breaks apart (NaN: not yet).
      */
     public static void draw(GuiGraphicsExtractor g, int w, int h, float now, float shatterAt) {
-        if (PANELS.isEmpty()) {
+        // not on a frame that freezes a shot: its copy is taken after the GUI is drawn, and must not hold the grid itself
+        if (PANELS.isEmpty() || !PENDING.isEmpty()) {
             return;
         }
         int cols = Mth.ceil(Math.sqrt(slots));
