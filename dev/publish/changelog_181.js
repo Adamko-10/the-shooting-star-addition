@@ -29,6 +29,8 @@ const body = b => `
 
 ### Fixed
 - **Our skills were missing from the remote's H menu** (Halley, Luna, Proxima and Stellar Convergence) when **SS-21 Quasar** or **The TON618 demo** was installed. You could still cast them; only the menu hid them. They now always show, and so do other addons that join the remote the official way (like **SX-01 Solar Flare**).
+- **Stellar Convergence with other addons**: **SS-21 Quasar** and **SX-01 Solar Flare** now land on the same tick as every other weapon. Before, they fired at once, and Quasar's long build-up filled almost every panel of the film.
+- **Stellar Convergence fires each ticked weapon once**, and weapons still on their way are called off if you change dimension before they land.
 - **Stellar Convergence's film panels** now draw the frozen frames solid: on some setups the screen's own transparency let the white panel behind show through.${b === "fabric-26.3" ? `
 - **Fabric 26.3: Stellar Convergence's film panels were blank white.** The frozen frames were drawn in the wrong order and copied too early in the frame, before the films' scenes and screen effects. Now they show the shots as you saw them.` : ""}
 `;
