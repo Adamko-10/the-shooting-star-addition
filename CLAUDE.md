@@ -138,11 +138,20 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   dark-matter wave swallows the universe (replaces the shatter/bubble-universe ending). **Fable's role**: (1) the
   read-only review (`prompts\FABLE-REVIEW-PROMPT.md`), (2) the SA-05/06 previz (`prompts\FABLE-PREVIZ-PROMPT.md`,
   output in the project folder's `previz\great-attractor\`, never the repo); Opus builds and applies.
+- **The blank-panel bug on every loader (checked 2026-11-11, the user asked)**: GL branches (main, both Forge, Fabric
+  1.21.1, 1.20.1) copy the finished screen at the end of the frame (main's films verified 2026-11-05); 26.3 fixed and
+  CI-verified (#196); **Fabric 1.21.11 had the same cause as 26.3** (its GUI is gathered, then drawn; the freeze copied
+  while gathering, before the films' GUI-drawn scenes): fixed the same way, `8cb58f3` on port/fabric-1.21.11 (copy at
+  `GameRenderer.render` TAIL, `PENDING` freezes, no grid on a freeze frame); its harness has no film recorder, so CI can
+  only build it. CI's Convergence film test (filmlog) added on main, fabric-1.21.1, fabric-1.20.1 (dev/ci, after the
+  release heads: fine for the release prompt's "descendant differing only in dev/"); runs started 2026-11-11.
+  **The release prompt's fabric-1.21.11 head must become `8cb58f3`** (a code change) once its CI is green.
 - **Gallery**: the 20 candidates are on one page in `gallery\1.8.1 candidates\_overview.png`. **Uploaded to CurseForge
   2026-11-11** (the user's pick: 01, 02, 06, 08, 10, 11, 19; no captions, short titles "Halley: title card", "Halley:
   comet over the mountains", "Luna: title card", "Luna: entry plasma sheath", "Luna: the moon in its crater at dusk",
-  "Luna: the moon at rest", "Stellar Convergence: comic-panel grid"), after the 9 old SS-05-era images (now 16; the old
-  ones kept, the featured image unchanged). How: CurseForge's Media tab takes images **under 2 MB** (the PNGs were 2-3.5 MB:
+  "Luna: the moon at rest", "Stellar Convergence: comic-panel grid"). Then (the user: "yes remove old gallery images")
+  the 9 old SS-05-era images were deleted (select each card's checkbox on hover, "Delete (9)", confirm) and **"Halley:
+  comet over the mountains" is the featured image** (the user's pick). The gallery is now exactly those 7. How: CurseForge's Media tab takes images **under 2 MB** (the PNGs were 2-3.5 MB:
   converted to JPEG q2 at 1920x1080, in the session scratchpad); upload = open "Add media", inject a file input, fill
   it with the extension's file_upload, dispatch dragenter/dragover/drop (bubbles: true) on `[role=dialog]
   div.css-1x73roo`. **Trap**: with the dialog closed, `div.css-1x73roo` is the page-wide *mod file* dropzone: a drop
