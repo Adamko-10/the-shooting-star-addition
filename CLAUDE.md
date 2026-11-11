@@ -138,8 +138,16 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   dark-matter wave swallows the universe (replaces the shatter/bubble-universe ending). **Fable's role**: (1) the
   read-only review (`prompts\FABLE-REVIEW-PROMPT.md`), (2) the SA-05/06 previz (`prompts\FABLE-PREVIZ-PROMPT.md`,
   output in the project folder's `previz\great-attractor\`, never the repo); Opus builds and applies.
-- **Gallery**: the 20 candidates are on one page in `gallery\1.8.1 candidates\_overview.png` (sent to the user
-  2026-11-11); not uploaded to CurseForge yet (the release prompt doesn't upload gallery images).
+- **Gallery**: the 20 candidates are on one page in `gallery\1.8.1 candidates\_overview.png`. **Uploaded to CurseForge
+  2026-11-11** (the user's pick: 01, 02, 06, 08, 10, 11, 19; no captions, short titles "Halley: title card", "Halley:
+  comet over the mountains", "Luna: title card", "Luna: entry plasma sheath", "Luna: the moon in its crater at dusk",
+  "Luna: the moon at rest", "Stellar Convergence: comic-panel grid"), after the 9 old SS-05-era images (now 16; the old
+  ones kept, the featured image unchanged). How: CurseForge's Media tab takes images **under 2 MB** (the PNGs were 2-3.5 MB:
+  converted to JPEG q2 at 1920x1080, in the session scratchpad); upload = open "Add media", inject a file input, fill
+  it with the extension's file_upload, dispatch dragenter/dragover/drop (bubbles: true) on `[role=dialog]
+  div.css-1x73roo`. **Trap**: with the dialog closed, `div.css-1x73roo` is the page-wide *mod file* dropzone: a drop
+  there opened "Upload New File" with the image (discarded, nothing created). Titles: click a card, edit Title, Apply,
+  then the right arrow for the next.
 - **Skill ladder (the user, 2026-11-11)**: SA-03 = planet level (ideas: docs/SA-03-IDEAS.md + the planet list above);
   **SA-05 = galaxy up to multi-galaxy level** (Claude's ideas: Andromeda = the Milky Way-Andromeda merger filling the sky
   and raining tidal star streams; the Great Attractor pulling galaxies together; avoid black holes/galactic jets: Quasar
