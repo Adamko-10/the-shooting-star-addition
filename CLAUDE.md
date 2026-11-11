@@ -12,7 +12,61 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-10, Adam's PC): 1.8.0 is RELEASED everywhere; 1.8.1 compat fixes built, waiting for the user's test <<<
+### >>> RESUME HERE (2026-11-11 ~04:15, Adam's PC): 1.8.1 almost ready; one blocker on Fabric 1.21.1/1.20.1 <<<
+
+Written before a context compaction (the user: "write all info in claude md since compact is decently soon"). The
+details of everything below are in the 2026-11-10 section under this one.
+
+**Adam's personal rules now live in `C:\Users\adam_\.claude\CLAUDE.md`** (loaded in every project: short replies,
+clickable questions, ponytail switch reminders, Fable review-only, subagents only when asked, 2 AM rule, .disabled
+instead of deleting, keep CLAUDE.md updated). This file's §0 still has the project's own rules.
+
+**1.8.1 = what's in it** (all seven branches, committed locally, nothing pushed to the real branches):
+- our skills shown in the H menu next to SS-21 Quasar / TON618 (`TssLink.showInMenu`), confirmed in the user's game;
+- client config `menu_plates`; the rename **"The Shooting Star Addition: SA Series"** + the new icon (user: "perfect");
+- Convergence: Quasar (758) and Solar Flare (365) land with the rest (`Convergence.ADDON_IMPACT`); each weapon once per
+  cast; queued weapons dropped after a dimension change; film panels drawn solid; 26.3 and 1.21.11 copy the panels at
+  the end of the frame (`GameRendererMixin` TAIL + `FilmPanels.copyPending`); GL branches restore the viewport;
+- `ProximaFx.clearAll()` on logout (main, Forge x2, Fabric 1.21.1; the other Fabric branches already had one);
+  the mod description lists four skills; release texts (`dev/publish/changelog_181.js`, `github_181.sh`, READMEs,
+  `curseforge-description.md`); version 1.8.1.
+
+**Code heads to release** (later commits on these branches touch only CLAUDE.md, docs/ or dev/):
+main `4b1c4ff` (CI #211), forge-1.21.1 `0f2c3a9` (#213), forge-1.20.1 `77c9fd4` (#214), fabric-1.21.1 `3756b9b`
+(#215), fabric-1.20.1 `e51296b` (#216), **fabric-1.21.11 `8cb58f3` (#221, the panel fix; the release prompt was
+pointed at it 2026-11-11)**, fabric-26.3 `c29ce26` (#212). All green. `releases\1.8.1\RELEASE-PROMPT.md` A0 has them.
+
+**The blocker: Convergence crashes the game on Fabric 1.21.1 and 1.20.1** (found by the new CI Convergence film tests,
+#219/#220/#224): `java.lang.VerifyError` in **TSS 1.5.2's own Railgun film camera class** (`il1li1llii`, a RimuLib
+`CameraRig`, built when the Railgun's film is made), not our code. Running now: wip/fabric-1.21.1 `add8601` fires TSS's
+Railgun, Gungnir and Seven Stars alone (CI tests `tss_railgun` etc.). Then:
+- if the Railgun alone crashes: TSS's bug for every player on those two versions (tell rimuru_dev); for us, leave
+  `the_shooting_star` out of Convergence on fabric-1.21.1 and fabric-1.20.1 (picks and default list), say so in the
+  changelog, CI, refill the release prompt;
+- if it doesn't: something in how Convergence holds the Railgun's film makes TSS build it differently: investigate
+  (`ConvergenceClient.hold`, `CutsceneDirectorMixin`).
+How to read a CI crash now: `dev/ci/common/.github/ci/client-test.sh` prints the error, its Location/Reason lines and
+the stack (names only); `gh run view <id> --log | grep -A50 "Unreported exception"`.
+
+**Still to do before releasing 1.8.1**: (1) the blocker above; (2) the user's look at Convergence with Quasar ticked
+(jar in the Modrinth profile `Fabric 26.3`); (3) ideally one person's game test of a Forge jar (CI can't run Forge);
+(4) the user runs `releases\1.8.1\RELEASE-PROMPT.md` in Codex (pushes, GitHub releases, CurseForge files, project
+rename, summary, avatar `releases\1.8.1\icon.png`). The gallery is already done (7 new shots, featured "Halley: comet
+over the mountains", the 9 old ones deleted).
+
+**Waiting on the user / later**:
+- Fable 5.2 runs the SA-05/SA-06 previz from `prompts\FABLE-PREVIZ-PROMPT.md` (~2 h after 02:30; Claude Code, High,
+  ponytail off) and brings back the link; later the read-only review (`prompts\FABLE-REVIEW-PROMPT.md`).
+- 1.8.2: settings UI redo, Convergence's installed/missing addons list, panel sound effects; TON618 in Convergence as a
+  delayed finale (it opens a menu and deletes the world).
+- Skills to make later (list in the 2026-11-10 section), the ponytail reminder as a skill too.
+- Contacting Quasar's and TON618's devs (`docs/ADDONS.md` has the message); SS-22 Hyperion unchecked (its jar gave 403).
+- Designs: `docs/NEXT-SKILLS.md` (SA-04B CME look, SA-05 Great Attractor + SA-06 Hypervoid as agreed), `docs/SA-03-IDEAS.md`
+  (+ the planet ideas), `docs/PLAYER-REQUESTS.md` (open CurseForge requests and promises).
+- Reminders owed (§0): idea #16 (Mrityu mod), Proxima's extra film ideas, SA-05+ candidates, the Solar Residue economy.
+- The six `ports\<branch>\` worktrees stay until 1.8.1 is released (then ask before removing them).
+
+### RESUME HERE (2026-11-10, Adam's PC): 1.8.0 is RELEASED everywhere; 1.8.1 compat fixes built, waiting for the user's test
 
 - **1.8.0 is out** (GitHub tags `v1.8.0*` on all seven branches = origin; CurseForge too, the user, 2026-11-10). The six
   `ports\<branch>\` worktrees are still there (local `port/<branch>`), now 1-3 commits ahead of origin with the fixes below.
