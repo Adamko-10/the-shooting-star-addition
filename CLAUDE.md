@@ -153,7 +153,11 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   Quasar's jet touches down at tick 758 (burst 998): it ran its whole build-up through the film. Fix: `Convergence
   .ADDON_IMPACT` (by skill id: `quasar` 758, `solar_flare` 365 = SX-01's whip touching the ground; read from their
   decompiled spells, `QuasarSpell` / `dev.solarflare.Flare.TOUCH`), so they land with the rest (a convergence with Quasar
-  now takes ~38 s). Not yet seen in game. **TON618 (the user: "dont do ton618 yet ... later, not in this version")**:
+  now takes ~38 s). **CI green on all seven (2026-11-11): main `01968d8` #211, forge-1.21.1 `0f2c3a9` #213, forge-1.20.1
+  `77c9fd4` #214, fabric-1.21.1 `3756b9b` #215, fabric-1.20.1 `e51296b` #216, fabric-1.21.11 `c4ecc7c` #217, fabric-26.3
+  `c29ce26` #212; refilled into `releases\1.8.1\RELEASE-PROMPT.md`.** Its 26.3 jar is in the Modrinth profile `Fabric
+  26.3` (`test builds\2026-11-11 1.8.1 Quasar timing (Fabric 26.3)\`; the previous one renamed
+  `... (before Quasar timing).jar.disabled`). Waiting for the user's look at the panels with Quasar ticked. **TON618 (the user: "dont do ton618 yet ... later, not in this version")**:
   its remote button doesn't strike, it opens its own menu/video screen (`StellarButton`'s caster ->
   `Ton618Mod.openMenuFor(player)`; `FilmScreen` plays a decoded video), so Convergence firing it pops that screen up
   mid-film: later, skip it in Convergence (and the plate) or give it a proper role. SS-22 Hyperion: still unchecked (its
