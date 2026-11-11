@@ -167,6 +167,12 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   `il1li1llii implements rimulib CameraRig`, built by `iii11111l.liiillli1l(Subject, ii1ilili1i)` (the Railgun's film
   storyboard); `ii1ilili1i` = the Railgun's effect (strings KINETIC, BRACE, INSIDE, T-%05.2f). Read from TSS 1.5.2's
   Fabric jar (CurseForge 9438887, nested `...+mc1.21.1.jar`) in the session scratchpad only.
+- **Skills, for later (the user, 2026-11-11: "put it in the md for later we can make them later")**: turn the long
+  procedures in this file into project skills (`.claude/skills/<name>/SKILL.md`, loaded only when relevant or called as
+  `/name`; always-on rules like the ponytail one stay here). Candidates offered: `/port-all-branches` (§3 + the conflict
+  rules and traps), `/release` (§8 + the release prompt flow, jar names, changelog rules), `/curseforge-upload` (the
+  upload form, changelog trap, gallery 2 MB limit and wrong-dropzone trap, titles, featured image), `/game-test` (§4
+  "Testing on Adam's PC", harness options, filmlog frames, reading CI shots and crash lines). The user picks which, later.
 - **Gallery**: the 20 candidates are on one page in `gallery\1.8.1 candidates\_overview.png`. **Uploaded to CurseForge
   2026-11-11** (the user's pick: 01, 02, 06, 08, 10, 11, 19; no captions, short titles "Halley: title card", "Halley:
   comet over the mountains", "Luna: title card", "Luna: entry plasma sheath", "Luna: the moon in its crater at dusk",
