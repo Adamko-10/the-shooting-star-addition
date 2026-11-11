@@ -149,6 +149,13 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   only build it. CI's Convergence film test (filmlog) added on main, fabric-1.21.1, fabric-1.20.1 (dev/ci, after the
   release heads: fine for the release prompt's "descendant differing only in dev/"); runs started 2026-11-11.
   **The release prompt's fabric-1.21.11 head must become `8cb58f3`** (a code change) once its CI is green.
+  **CI results (#218-221, all "ok")**: main's Convergence frames show the panels with the real shots (verified again);
+  1.21.11 built (#221). **But Fabric 1.21.1 (#219) and 1.20.1 (#220) crash in the Convergence film ~13 s in**, before
+  the panels: "[Render thread/ERROR]: Unreported exception thrown! / Exception Details: / Exception Handler Table:" =
+  a bytecode `VerifyError` (their first ever Convergence test, so maybe there since 1.7.0; the frames stop at 13-14 s
+  of film). The full error is only in the encrypted CI logs (key not on Adam's PC), so `client-test.sh` now prints a
+  crash's error lines and our own frames, never TSS/RimuLib lines (main `dev/ci/common`, copied to both ports), and both
+  re-run (wip 78e3914, 4b9b476). **1.8.1 must not ship on Fabric 1.21.1/1.20.1 until this is understood.**
 - **Gallery**: the 20 candidates are on one page in `gallery\1.8.1 candidates\_overview.png`. **Uploaded to CurseForge
   2026-11-11** (the user's pick: 01, 02, 06, 08, 10, 11, 19; no captions, short titles "Halley: title card", "Halley:
   comet over the mountains", "Luna: title card", "Luna: entry plasma sheath", "Luna: the moon in its crater at dusk",
