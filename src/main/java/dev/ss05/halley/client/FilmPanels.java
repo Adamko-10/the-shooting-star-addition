@@ -26,6 +26,9 @@ import org.joml.Matrix3x2fStack;
  * <p>Minecraft 1.21.11 (Fabric 1.21.11 branch): the copies are whole-size textures copied from the main target on the
  * GPU (1.21.11 copies without scaling; main keeps half-size ones) and registered under a name, so the deferred GUI can
  * draw them; the frame's GUI is drawn last, so they are drawn into it from {@code client/mixin/ToastManagerMixin}.
+ * The GUI is gathered before it is drawn, so a freeze is copied at the very end of that frame ({@link #copyPending},
+ * from GameRendererMixin), with the films' scenes and overlays the GUI draws; copying while it was gathered (until
+ * 2026-11-11) missed them, as on 26.3.
  */
 public final class FilmPanels {
     /** Ticks a frozen panel takes to slide from full screen into its place. */
@@ -37,7 +40,12 @@ public final class FilmPanels {
     private record Panel(Frame frame, int color, float frozenAt) {
     }
 
+    /** A freeze asked for, copied at the end of the frame. */
+    private record Freeze(int color, float frozenAt) {
+    }
+
     private static final List<Panel> PANELS = new ArrayList<>();
+    private static final List<Freeze> PENDING = new ArrayList<>();
     private static int slots;
     /** Set by the film that has panels while it plays: run once a frame, over everything else. */
     public static volatile Consumer<GuiGraphics> frame;
@@ -65,26 +73,37 @@ public final class FilmPanels {
     }
 
     public static int frozen() {
-        return PANELS.size();
+        return PANELS.size() + PENDING.size();
     }
 
     /**
      * Freezes the frame now on the screen into the next panel ({@code color}: its border's accent; {@code now}: the
-     * film's time). Called while the GUI is gathered, before it is drawn over the frame.
+     * film's time). The copy itself is made at the end of this frame ({@link #copyPending}).
      */
     public static void freeze(GuiGraphics g, int color, float now) {
-        if (PANELS.size() >= slots) {
+        if (frozen() < slots) {
+            PENDING.add(new Freeze(color, now));
+        }
+    }
+
+    /** From the very end of the frame (GameRendererMixin): the freezes asked for, copied from the frame as shown. */
+    public static void copyPending() {
+        if (PENDING.isEmpty()) {
             return;
         }
         RenderTarget main = Minecraft.getInstance().getMainRenderTarget();
         GpuTexture source = main.getColorTexture();
         if (source == null) {
+            PENDING.clear();
             return;
         }
-        Frame frame = new Frame(HalleyAddon.id("film_panel_" + PANELS.size()), main.width, main.height);
-        RenderSystem.getDevice().createCommandEncoder().copyTextureToTexture(source, frame.gpu(), 0, 0, 0, 0, 0,
-            main.width, main.height);
-        PANELS.add(new Panel(frame, color, now));
+        for (Freeze freeze : PENDING) {
+            Frame frame = new Frame(HalleyAddon.id("film_panel_" + PANELS.size()), main.width, main.height);
+            RenderSystem.getDevice().createCommandEncoder().copyTextureToTexture(source, frame.gpu(), 0, 0, 0, 0, 0,
+                main.width, main.height);
+            PANELS.add(new Panel(frame, freeze.color(), freeze.frozenAt()));
+        }
+        PENDING.clear();
     }
 
     /**
@@ -92,7 +111,8 @@ public final class FilmPanels {
      * when the grid breaks apart (NaN: not yet).
      */
     public static void draw(GuiGraphics g, int w, int h, float now, float shatterAt) {
-        if (PANELS.isEmpty()) {
+        // not on a frame that freezes a shot: its copy is taken after the GUI is drawn, and must not hold the grid itself
+        if (PANELS.isEmpty() || !PENDING.isEmpty()) {
             return;
         }
         int cols = Mth.ceil(Math.sqrt(slots));
@@ -148,6 +168,7 @@ public final class FilmPanels {
             panel.frame().release();
         }
         PANELS.clear();
+        PENDING.clear();
         slots = 0;
     }
 
