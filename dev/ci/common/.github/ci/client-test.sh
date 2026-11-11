@@ -27,6 +27,10 @@ client_test() {
     ok "client test $name ($(ls "$dir"/screenshots/*.png | wc -l) screenshots)"
   else
     fail "client test $name (no screenshots)"
+    # a Gradle failure before the game starts (compile errors, Gradle's summary): names only, no TSS code
+    grep -a -E '\.java:[0-9]+: error:|What went wrong|^> |^  [a-z]' "$SECRET/client-$name.log" | grep -a -v cyou/rimuru | head -30 || true
   fi
   grep -a -E 'never attached|Exception|ERROR' "$SECRET/client-$name.log" | grep -a -v -E 'Realms|authlib|Yggdrasil|profile|OpenAL|SoundSystem|telemetry' | head -5 || true
+  # a crash in game: the error, where it was thrown and our own frames (never The Shooting Star's or RimuLib's code)
+  grep -a -A60 'Unreported exception thrown' "$SECRET/client-$name.log" | grep -a -E 'Error|Location:|Reason:|Caused by|at dev\.ss05|dev/ss05' | grep -a -v -E 'cyou/rimuru|cyou\.rimuru' | head -20 || true
 }
