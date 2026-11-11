@@ -156,6 +156,14 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   of film). The full error is only in the encrypted CI logs (key not on Adam's PC), so `client-test.sh` now prints a
   crash's error lines and our own frames, never TSS/RimuLib lines (main `dev/ci/common`, copied to both ports), and both
   re-run (wip 78e3914, 4b9b476). **1.8.1 must not ship on Fabric 1.21.1/1.20.1 until this is understood.**
+  **Found (#224, 2026-11-11)**: `java.lang.VerifyError: Bad type on operand stack` in **TSS 1.5.2's own class**
+  `cyou/rimuru/shootingstardemo/il1li1llii.correct(Cutscene, CameraPose, F, F)CameraPose @584: invokespecial`
+  ('java/lang/Object' not assignable to 'net/minecraft/class_1297' = Entity), loaded from TSS's client tick
+  (`ShootingStarDemoClient` -> `lll1ili11` -> `ii1ilili1i` -> `iii11111l`); none of our code on the stack. TSS's
+  NeoForge and Fabric 26.3/1.21.11 builds don't hit it. Next test (wip `add8601`): TSS's Railgun, Gungnir and Seven
+  Stars fired alone on Fabric 1.21.1 (CI tests `tss_railgun`, `tss_gungnir`, `tss_seven_stars`): if one crashes, it is
+  TSS's bug for every player (tell its developer; Convergence can only avoid that weapon); if none does, something in
+  how Convergence holds/steps TSS's films reaches that class.
 - **Gallery**: the 20 candidates are on one page in `gallery\1.8.1 candidates\_overview.png`. **Uploaded to CurseForge
   2026-11-11** (the user's pick: 01, 02, 06, 08, 10, 11, 19; no captions, short titles "Halley: title card", "Halley:
   comet over the mountains", "Luna: title card", "Luna: entry plasma sheath", "Luna: the moon in its crater at dusk",
