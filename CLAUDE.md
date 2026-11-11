@@ -137,7 +137,10 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   SA-06 Hypervoid = the ring overloads trying to stop the whole universe, implodes, and an unimaginably massive
   dark-matter wave swallows the universe (replaces the shatter/bubble-universe ending). **Fable's role**: (1) the
   read-only review (`prompts\FABLE-REVIEW-PROMPT.md`), (2) the SA-05/06 previz (`prompts\FABLE-PREVIZ-PROMPT.md`,
-  output in the project folder's `previz\great-attractor\`, never the repo); Opus builds and applies.
+  output in the project folder's `previz\great-attractor\`, never the repo); Opus builds and applies. How the user runs
+  it: Claude Code (not Chat), a new session in `the-shooting-star-addition`, Fable 5.2, effort High, ponytail off,
+  message "Read ...\prompts\FABLE-PREVIZ-PROMPT.md and do what it says below the line." The user plans to start it
+  ~2 hours after 2026-11-11 ~02:30 (to start on a fresh 5-hour limit); then they bring the previz link back here.
 - **The blank-panel bug on every loader (checked 2026-11-11, the user asked)**: GL branches (main, both Forge, Fabric
   1.21.1, 1.20.1) copy the finished screen at the end of the frame (main's films verified 2026-11-05); 26.3 fixed and
   CI-verified (#196); **Fabric 1.21.11 had the same cause as 26.3** (its GUI is gathered, then drawn; the freeze copied
@@ -748,6 +751,12 @@ are on **Hamza's PC**; anywhere else, you are on **Adam's PC**. Adam is the one 
 - *(Adam's PC only)* If finishing a task past 2 AM their time, shut down their PC (unless told not to). If running low on tokens, schedule
   a continuation.
 - The user is budget-conscious: don't over-test; one CI round per change set is normally enough, and they test in game.
+- **Ponytail (the user, 2026-11-11): always tell the user when to switch ponytail and when it switched on its own.**
+  Say it unasked, in one line, at the moment it matters: (1) when the work changes kind: **lite** for fixes, ports,
+  releases and CI; **off** for creative work (films, previz, VFX, sounds, UI redesigns, new skill design); (2) when a
+  session hook reports a different level than the user last set (it comes back as **full** after a resume or a new
+  session): name the level it's at and give the command (`/ponytail lite`, or "stop ponytail"). The user's last
+  setting: **lite** (2026-11-11).
 
 ## 1. What this is
 
