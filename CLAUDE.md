@@ -163,7 +163,10 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   NeoForge and Fabric 26.3/1.21.11 builds don't hit it. Next test (wip `add8601`): TSS's Railgun, Gungnir and Seven
   Stars fired alone on Fabric 1.21.1 (CI tests `tss_railgun`, `tss_gungnir`, `tss_seven_stars`): if one crashes, it is
   TSS's bug for every player (tell its developer; Convergence can only avoid that weapon); if none does, something in
-  how Convergence holds/steps TSS's films reaches that class.
+  how Convergence holds/steps TSS's films reaches that class. **The class is the Railgun's film camera rig**:
+  `il1li1llii implements rimulib CameraRig`, built by `iii11111l.liiillli1l(Subject, ii1ilili1i)` (the Railgun's film
+  storyboard); `ii1ilili1i` = the Railgun's effect (strings KINETIC, BRACE, INSIDE, T-%05.2f). Read from TSS 1.5.2's
+  Fabric jar (CurseForge 9438887, nested `...+mc1.21.1.jar`) in the session scratchpad only.
 - **Gallery**: the 20 candidates are on one page in `gallery\1.8.1 candidates\_overview.png`. **Uploaded to CurseForge
   2026-11-11** (the user's pick: 01, 02, 06, 08, 10, 11, 19; no captions, short titles "Halley: title card", "Halley:
   comet over the mountains", "Luna: title card", "Luna: entry plasma sheath", "Luna: the moon in its crater at dusk",
