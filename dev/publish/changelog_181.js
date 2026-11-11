@@ -32,7 +32,9 @@ const body = b => `
 - **Stellar Convergence with other addons**: **SS-21 Quasar** and **SX-01 Solar Flare** now land on the same tick as every other weapon. Before, they fired at once, and Quasar's long build-up filled almost every panel of the film.
 - **Stellar Convergence fires each ticked weapon once**, and weapons still on their way are called off if you change dimension before they land.
 - **Stellar Convergence's film panels** now draw the frozen frames solid: on some setups the screen's own transparency let the white panel behind show through.${b === "fabric-26.3" ? `
-- **Fabric 26.3: Stellar Convergence's film panels were blank white.** The frozen frames were drawn in the wrong order and copied too early in the frame, before the films' scenes and screen effects. Now they show the shots as you saw them.` : ""}
+- **Fabric 26.3: Stellar Convergence's film panels were blank white.** The frozen frames were drawn in the wrong order and copied too early in the frame, before the films' scenes and screen effects. Now they show the shots as you saw them.` : ""}${b === "fabric-1.21.11" ? `
+- **Stellar Convergence's film panels** are now copied at the very end of the frame, so they show the films' space scenes and overlays too.` : ""}${b === "fabric-1.21.1" || b === "fabric-1.20.1" ? `
+- **Stellar Convergence no longer fires Gungnir on this version.** The Shooting Star 1.5.2's own build for this version crashes the game when Gungnir's film is made (it happens with Gungnir alone too, without this addon), and Convergence used to fire it. It's left out until a The Shooting Star update fixes it.` : ""}
 `;
 fs.mkdirSync(OUT, { recursive: true });
 for (const [b, head] of Object.entries(HEAD)) {
