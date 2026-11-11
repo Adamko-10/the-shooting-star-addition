@@ -36,15 +36,17 @@ main `4b1c4ff` (CI #211), forge-1.21.1 `0f2c3a9` (#213), forge-1.20.1 `77c9fd4` 
 (#215), fabric-1.20.1 `e51296b` (#216), **fabric-1.21.11 `8cb58f3` (#221, the panel fix; the release prompt was
 pointed at it 2026-11-11)**, fabric-26.3 `c29ce26` (#212). All green. `releases\1.8.1\RELEASE-PROMPT.md` A0 has them.
 
-**The blocker: Convergence crashes the game on Fabric 1.21.1 and 1.20.1** (found by the new CI Convergence film tests,
-#219/#220/#224): `java.lang.VerifyError` in **TSS 1.5.2's own Railgun film camera class** (`il1li1llii`, a RimuLib
-`CameraRig`, built when the Railgun's film is made), not our code. Running now: wip/fabric-1.21.1 `add8601` fires TSS's
-Railgun, Gungnir and Seven Stars alone (CI tests `tss_railgun` etc.). Then:
-- if the Railgun alone crashes: TSS's bug for every player on those two versions (tell rimuru_dev); for us, leave
-  `the_shooting_star` out of Convergence on fabric-1.21.1 and fabric-1.20.1 (picks and default list), say so in the
-  changelog, CI, refill the release prompt;
-- if it doesn't: something in how Convergence holds the Railgun's film makes TSS build it differently: investigate
-  (`ConvergenceClient.hold`, `CutsceneDirectorMixin`).
+**The blocker, SOLVED (2026-11-11 ~13:00, CI re-running): Convergence crashed the game on Fabric 1.21.1 and 1.20.1**
+(found by the new CI Convergence film tests, #219/#220/#224): `java.lang.VerifyError` in **TSS 1.5.2's own Gungnir
+film camera class** (`il1li1llii`, a RimuLib `CameraRig` built with Gungnir's effect `ii1ilili1i`, whose HUD says
+KINETIC STRIKE INBOUND; first misread as the Railgun's). CI #225 fired TSS's weapons alone on Fabric 1.21.1: **Gungnir
+alone crashes** (1 screenshot, the same VerifyError), Railgun and Seven Stars don't: **TSS's own bug** for every player
+firing Gungnir with films on, on those two versions (tell rimuru_dev). Our fix: `Convergence.SKIPPED = Set.of("gungnir")`
+on fabric-1.21.1 (`5eec79b`) and fabric-1.20.1 (`f161e78`) only: the server skips it, the plate doesn't list it;
+changelog line for those two (and 1.21.11's panel line) in `dev/publish/changelog_181.js` (`1206671` on main), the
+release changelogs regenerated: **the script writes to `~/.tssa-ci/publish/1.8.1` unless given
+`releases\1.8.1\changelogs` as its argument** (they had been stale since 2026-11-10 15:49). CI: wip/fabric-1.21.1
+`64952a3`, wip/fabric-1.20.1 `a3ec46c` running; when green, refill the release prompt's two rows.
 How to read a CI crash now: `dev/ci/common/.github/ci/client-test.sh` prints the error, its Location/Reason lines and
 the stack (names only); `gh run view <id> --log | grep -A50 "Unreported exception"`.
 
@@ -838,7 +840,7 @@ are on **Hamza's PC**; anywhere else, you are on **Adam's PC**. Adam is the one 
   releases and CI; **off** for creative work (films, previz, VFX, sounds, UI redesigns, new skill design); (2) when a
   session hook reports a different level than the user last set (it comes back as **full** after a resume or a new
   session): name the level it's at and give the command (`/ponytail lite`, or "stop ponytail"). The user's last
-  setting: **lite** (2026-11-11).
+  setting: **off** (2026-11-11 ~12:50; lite advised for fixes and release work).
 
 ## 1. What this is
 
