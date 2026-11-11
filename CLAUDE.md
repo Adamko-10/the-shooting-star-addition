@@ -12,7 +12,17 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-11 ~04:15, Adam's PC): 1.8.1 almost ready; one blocker on Fabric 1.21.1/1.20.1 <<<
+### >>> RESUME HERE (2026-11-11 ~18:10, Adam's PC): 1.8.1 READY, the user releases it with Codex; then Meridian <<<
+
+**2026-11-11 ~18:10**: every branch green (fabric-1.21.1 #226, fabric-1.20.1 #227: the Convergence film runs to the
+end, 61 frames, no crash), all seven checkouts clean, `releases\1.8.1\RELEASE-PROMPT.md` A0 refilled. **The user runs
+it in Codex** (their pick, 2026-11-11; "release this and then immediately port it"). Not done before it: the Quasar look, a Forge game test. **Meridian** = the next
+The Shooting Star update **and** a new RimuLib (the user: both), out ~19:00 on 2026-11-11: the user wants it ported
+"immediately" after 1.8.1. Not on CurseForge yet at 18:05 (TSS's newest was 1.5.2). How: §7 + §16a (file ids via
+`https://api.cfwidget.com/minecraft/mc-mods/the-shooting-star-demo` and `.../rimulib`; mappings oldest first; the raw
+names `compat/tss` uses, e.g. the effect packet record, checked with javap per loader; `tss_min_version`,
+`rimulib_version_range`, `TSS_FILES`/`TSS_OBF`/`RIMULIB_FILE` in every `dev/ci/branches/*.sh`). Recheck
+`Convergence.SKIPPED` (Gungnir) on Fabric 1.21.1/1.20.1 with the new build.
 
 Written before a context compaction (the user: "write all info in claude md since compact is decently soon"). The
 details of everything below are in the 2026-11-10 section under this one.
@@ -32,8 +42,8 @@ instead of deleting, keep CLAUDE.md updated). This file's §0 still has the proj
   `curseforge-description.md`); version 1.8.1.
 
 **Code heads to release** (later commits on these branches touch only CLAUDE.md, docs/ or dev/):
-main `4b1c4ff` (CI #211), forge-1.21.1 `0f2c3a9` (#213), forge-1.20.1 `77c9fd4` (#214), fabric-1.21.1 `3756b9b`
-(#215), fabric-1.20.1 `e51296b` (#216), **fabric-1.21.11 `8cb58f3` (#221, the panel fix; the release prompt was
+main `4b1c4ff` (CI #211; the prompt names its descendant `01968d8`), forge-1.21.1 `0f2c3a9` (#213), forge-1.20.1
+`77c9fd4` (#214), **fabric-1.21.1 `4b7afd4` (#226; code `5eec79b`), fabric-1.20.1 `f161e78` (#227)**, **fabric-1.21.11 `8cb58f3` (#221, the panel fix; the release prompt was
 pointed at it 2026-11-11)**, fabric-26.3 `c29ce26` (#212). All green. `releases\1.8.1\RELEASE-PROMPT.md` A0 has them.
 
 **The blocker, SOLVED (2026-11-11 ~13:00, CI re-running): Convergence crashed the game on Fabric 1.21.1 and 1.20.1**
@@ -46,11 +56,11 @@ on fabric-1.21.1 (`5eec79b`) and fabric-1.20.1 (`f161e78`) only: the server skip
 changelog line for those two (and 1.21.11's panel line) in `dev/publish/changelog_181.js` (`1206671` on main), the
 release changelogs regenerated: **the script writes to `~/.tssa-ci/publish/1.8.1` unless given
 `releases\1.8.1\changelogs` as its argument** (they had been stale since 2026-11-10 15:49). CI: wip/fabric-1.21.1
-`64952a3`, wip/fabric-1.20.1 `a3ec46c` running; when green, refill the release prompt's two rows.
+`64952a3` #226, wip/fabric-1.20.1 `a3ec46c` #227: both green, the release prompt's two rows refilled.
 How to read a CI crash now: `dev/ci/common/.github/ci/client-test.sh` prints the error, its Location/Reason lines and
 the stack (names only); `gh run view <id> --log | grep -A50 "Unreported exception"`.
 
-**Still to do before releasing 1.8.1**: (1) the blocker above; (2) the user's look at Convergence with Quasar ticked
+**Still to do before releasing 1.8.1** (as of ~04:15; (1) done; (2), (3) not done, the user is releasing now): (1) the blocker above; (2) the user's look at Convergence with Quasar ticked
 (jar in the Modrinth profile `Fabric 26.3`); (3) ideally one person's game test of a Forge jar (CI can't run Forge);
 (4) the user runs `releases\1.8.1\RELEASE-PROMPT.md` in Codex (pushes, GitHub releases, CurseForge files, project
 rename, summary, avatar `releases\1.8.1\icon.png`). The gallery is already done (7 new shots, featured "Halley: comet
