@@ -55,7 +55,7 @@ public final class ConvergencePlate {
                 continue;
             }
             for (Skill skill : set.skills) {
-                if (skill != TssLink.CONVERGENCE && weapons.size() < 9) {
+                if (skill != TssLink.CONVERGENCE && !Convergence.SKIPPED.contains(skill.id()) && weapons.size() < 9) {
                     weapons.add(skill);
                 }
             }

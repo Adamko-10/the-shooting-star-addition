@@ -89,6 +89,13 @@ public final class Convergence {
      * ground at 365. Without an entry a weapon fires at once, and a long one (Quasar) then runs its whole build-up
      * through the convergence's film, into every panel. Check them when those addons update (docs/ADDONS.md).
      */
+    /**
+     * Weapons Convergence never fires on this branch: The Shooting Star 1.5.2's own Fabric 1.21.1/1.20.1 build crashes the
+     * game building Gungnir's film (a VerifyError in its camera rig, `il1li1llii`; Gungnir alone crashes too, CI
+     * 2026-11-11). Hidden from the plate as well. Drop it once a TSS update fixes that.
+     */
+    public static final Set<String> SKIPPED = Set.of("gungnir");
+
     private static final Map<String, Integer> ADDON_IMPACT = Map.of(
         "quasar", 758,
         "solar_flare", 365);
@@ -158,7 +165,7 @@ public final class Convergence {
             Set<Skill> seen = new HashSet<>();
             for (Pick pick : picks.picks()) {
                 Skill skill = find(pick.id());
-                if (skill == null || skill == TssLink.CONVERGENCE || !seen.add(skill)) {
+                if (skill == null || skill == TssLink.CONVERGENCE || SKIPPED.contains(skill.id()) || !seen.add(skill)) {
                     continue;
                 }
                 Tuning tuning = Limits.hold(skill, scaled(pick, master).clampFor(skill));
