@@ -119,11 +119,20 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   user: "very soon", not now)**: sound effects synced with the panels popping in and the grid breaking apart.
 - **Design notes for what's next: `docs/NEXT-SKILLS.md`** (SA-04B CME's look: both lenses heating, the Earth gate
   processing the energy with a shockwave in space and one at the impact, a much bigger impact with a real hole; TON618
-  in Convergence later as a delayed finale like Gravitia, it also deletes the world; SA-05 Great Attractor proposal:
-  galaxies merging, Sagittarius A* and M31* colliding, the Sun wiped, the remote overheating, "DANGER CANNOT BE
-  CALCULATED / INITIATING ULTIMATE FREEZE", the universe frozen until SA-05's row turns into "Reverse Collision?" and
-  plays the film backwards; SA-06 Hypervoid: void by default with a config to not, operators only, needs SA-05 first by
-  default). **Open player requests: `docs/PLAYER-REQUESTS.md`.**
+  in Convergence later as a delayed finale like Gravitia, it also deletes the world; **SA-05 Great Attractor + SA-06
+  Hypervoid as one story, rewritten 2026-11-11 with the user's picks**: the Great Attractor = a hidden black ring that
+  pulls the galaxies together and fires "The Ultimate Freeze" (a faster-than-light wave of stopped time, Sinister
+  Clockman style, not ice) over both galaxies (SA-05; players still move; Reverse Collision? on SA-05's row; a later
+  "Unfreeze" option shows the rest of the film after the remote flashes "good luck :)" and turns off) and then over
+  the whole universe, which shatters into the void (SA-06; operators only, needs SA-05 first, void by default with a
+  config to keep the world, glass platform under the caster). **Open player requests: `docs/PLAYER-REQUESTS.md`.**
+- **For 1.8.2 (the user, 2026-11-11)**: (1) redo the look of our settings UI (the plates in the H menu: AdditionPanel,
+  ConvergencePlate): "it looks a tiny bit bad", works fine, no design chosen yet: propose options first; (2) in Stellar
+  Convergence, a list of the addons it can fire, installed vs not installed, so players see what they're missing
+  (e.g. on the Convergence plate; the known ones from docs/ADDONS.md); (3) sound effects synced with the panels popping
+  in and the grid breaking (asked earlier, "very soon").
+- **Gallery**: the 20 candidates are on one page in `gallery\1.8.1 candidates\_overview.png` (sent to the user
+  2026-11-11); not uploaded to CurseForge yet (the release prompt doesn't upload gallery images).
 - **Skill ladder (the user, 2026-11-11)**: SA-03 = planet level (ideas: docs/SA-03-IDEAS.md + the planet list above);
   **SA-05 = galaxy up to multi-galaxy level** (Claude's ideas: Andromeda = the Milky Way-Andromeda merger filling the sky
   and raining tidal star streams; the Great Attractor pulling galaxies together; avoid black holes/galactic jets: Quasar

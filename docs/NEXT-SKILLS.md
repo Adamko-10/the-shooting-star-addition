@@ -34,69 +34,77 @@ short. Its skill id is `ton618`; it exists for Forge 1.20.1 and Fabric 1.21.11 o
 SA-01 comet, SA-02 moon, (SA-03 planet: docs/SA-03-IDEAS.md), SA-04 star, **SA-05 galaxy to multi-galaxy**,
 **SA-06 universe**.
 
-## SA-05 · Great Attractor (proposal)
+## SA-05 · Great Attractor and SA-06 · Hypervoid (one story; brainstormed with the user 2026-11-11)
 
-The user's outline: the Great Attractor pulls two galaxies together; they merge; the two central black holes (the
-Milky Way's **Sagittarius A\*** and Andromeda's **M31\***) collide, in the film and visibly in the sky for everyone
-else; that wipes out the Sun; the player's remote overheats and blares an alarm (not too loud); a message like
-"DANGER CANNOT BE CALCULATED · INITIATING ULTIMATE FREEZE"; the whole universe freezes, the camera zooming out further
-and further (the feel of Sinister Clockman freezing the galaxy in the Multiverse series, scaled up; style only); it
-stays frozen until the player chooses to reverse it, which plays the film backwards.
+Not built. Everything below is agreed unless marked open. "Freeze" always means **time stopped** (everything halts
+mid-motion, colours drain, sound cuts: Sinister Clockman's freeze in the Multiverse series; style only, nothing copied),
+never ice.
 
-**Claude's proposal**
+### The Great Attractor (the device)
 
-- **Name**: SA-05 · Great Attractor. The film's title card: GREAT ATTRACTOR, then MERGER, then the freeze's own card.
-- **Film (~40 s)**, beats:
-  1. The remote, a press; the crosshair; the sky starts to bend (stars streaking slowly toward one point).
-  2. Pull-out from Earth past the Milky Way: far away a dark region (the Great Attractor, shown as a lensing ripple in
-     the background stars: it's hidden behind dust in real life, which makes it eerie).
-  3. Andromeda comes in from the side, both galaxies stretched into tidal tails, spiral arms tearing into streams.
-  4. MERGER: the cores spiral toward each other; Sagittarius A\* and M31\* as two bright accretion rings circling
-     closer, faster, gravitational-wave ripples spreading out over the starfield.
-  5. They collide: a white-violet flash, a ring of light racing out through both galaxies; the Sun, back home, is
-     snuffed out (a quick cut: the Sun shrinking to a point in Earth's sky and going dark).
-  6. The remote overheats: the HUD glitches red, a soft alarm, then the text
-     DANGER: CANNOT BE CALCULATED / INITIATING ULTIMATE FREEZE.
-  7. The freeze: everything stops mid-motion, colours drain to an icy blue-grey, the camera zooms out and keeps going
-     (galaxy, cluster, supercluster, the cosmic web), all of it frozen still. Hold. Silence with a faint ringing.
-  8. Back in the world: frozen.
-- **What the world does (all reversible, no terrain changes)**:
-  - the Sun gone from the sky (the day stays dark; a dimmed sky, stars visible all day);
-  - the universe frozen: the world's ticking stopped (Minecraft 1.20.3+ has a tick-freeze built in: mobs, water,
-    fire, crops, redstone all stop; players can still move; 1.20.1 branches would need our own freeze, or skip it);
-    an icy tint and still particles for everyone;
-  - in the sky for everyone not in the film: the two black holes' rings circling and colliding high above.
-- **Reversing it (the remote)**: no new physical button can be added to TSS's remote (its model and menu are TSS's and
-  RimuLib's). Two clean ways that fit the remote as it is:
-  - **Recommended: SA-05's own row changes while the universe is frozen.** Its title becomes
-    "SA-05 · Reverse Collision?" (the remote's screen still shows SA-05); pressing it plays the film backwards
-    (the freeze cracking, the camera zooming back in, the black holes pulling apart, the Sun relighting), then unfreezes.
-    No extra row, nothing to find, and it can't be pressed by accident while nothing is frozen.
-  - Or a separate row, "SA-05R · Revert Timeline", only listed while frozen.
-  Name options for the reverse: Reverse Collision, Revert Timeline, Rewind, Thaw. Claude's pick: **Reverse Collision**.
-- **Config**: who may fire it on a server (operators only by default), the freeze on/off, the Sun on/off.
+- **Name stays "Great Attractor"** for the skill and the device (the user turned down Laniakea/Zero Hour/etc.).
+- **Look: a hidden black ring** (the user's pick), wider than a galaxy, sitting where the real Great Attractor is
+  (behind the Milky Way's dust, the "Zone of Avoidance"). Invisible except for the starlight bending around it (a
+  lensing halo). When it wakes, glowing lines race over it; its centre charges and fires.
+- **What it does**: it shrinks the space between the Milky Way and Andromeda (a warp drive in reverse: the starfield
+  between them wrinkles and draws in), fast-forwarding their real merger (Andromeda really is falling toward us).
+- **The wave it fires: "The Ultimate Freeze"** (the user's name): a shell of stopped time racing out far faster than
+  light. Shown in SA-05's ending, SA-06's opening, and **in the sky outside the films** for everyone.
 
-## SA-06 · Hypervoid (a player's suggestion; the user's decisions 2026-11-11)
+### SA-05 · Great Attractor (galaxy level)
 
-The suggestion: flip the cover and press; a white crosshair marks the ground; 12 s later the whole universe is seen,
-galaxies vanish into darkness, a flash, a multiversal shockwave erases all matter: every block gone except a small
-glass platform; everything dies (creative players are put on the platform). No sliders, like TSS's Gravitia.
+Film, in order:
+1. Press; the crosshair; the remote uplinks: GREAT ATTRACTOR · DORMANT -> AWAKENING.
+2. Pull out past the Milky Way to the ring; it wakes.
+3. Space between the galaxies draws in; Andromeda slides toward us.
+4. MERGER: tidal streams; Sagittarius A\* and M31\* circle closer as two glowing rings, gravitational-wave ripples.
+5. Back home the Solar System starts to tear apart: planets drifting off their paths, the Sun guttering and going out.
+6. **The remote is pushed to its limits** (all ours to draw, TSS's model untouched): heat shimmer, sparks and steam in
+   your hand, a slight tremor; LOAD 340% -> 999%, CORE TEMP 4,800 K; red chevrons, the HUD stuttering into static; a
+   rising whine and a soft alarm (not too loud); then DANGER: CANNOT BE CALCULATED · INITIATING THE ULTIMATE FREEZE.
+7. The camera swings to the Great Attractor: it charges and fires the Ultimate Freeze.
+8. The wave sweeps both galaxies just before the Solar System comes apart: everything stops (the black holes a hair
+   apart), colours drain, a heavy clunk, silence.
+9. Pull back: the two stopped galaxies hang still while the rest of the universe still moves.
 
-**Decided**: it turns the world into a void by default, with a config to turn that off (then only the film and the
-deaths, the world stays); **only operators** can fire it on a server; by default **SA-05 Great Attractor must have been
-used first** (config to drop that requirement).
+In the world afterwards (nothing touches terrain, fully reversible):
+- time stopped: mobs, water, fire, crops, redstone halt, dust hangs; **players can still move, build and fight** (the
+  user's pick; Minecraft 1.20.3+ has a tick freeze built in, the 1.20.1 branches need our own or skip it);
+- the Sun out; for everyone the device's flash, the wave sweeping the sky and land, the stopped merger overhead.
 
-**Claude's plan**: wipe the loaded land at the strike (empty sections, the way MoonBuild cuts Luna's crater, fast),
-kill every entity in the dimension, then mark the dimension "voided" in its saved data so every chunk that loads or
-generates afterwards comes in empty: an endless void without freezing the server. Two presses (arm, then fire: the
-"flip the cover") and a warning page like Gravitia's. Film: the countdown, a pull-out from Earth past the galaxy to the
-cosmic web, galaxies going out one by one, silence, a point of light, the flash, bubble universes popping, then the
-void and the platform. If SA-05 froze the universe first, Hypervoid can play into the frozen universe (the frozen
-cosmic web is what gets erased): the two skills read as one story.
+On the remote while time is stopped (GUI, no physical button):
+- the H-menu plate reads REMOTE: CRITICAL, faintly glitching;
+- **SA-05's row turns red: "SA-05 · Reverse Collision?"**. Pressing it plays the film backwards: the wave pulls back
+  into the ring, the black holes drift apart, Andromeda slides away, the Sun relights, time restarts, the remote vents
+  its heat.
 
-## Open questions (for when this starts)
+**Later update: an Unfreeze option** (the user, 2026-11-11), to see the rest of SA-05's film (it is unfinished by
+design: you never see the end). The remote flashes **"good luck :)"**, turns off, and the film continues past the
+freeze (what the end shows: to design then). It sits next to Reverse Collision while time is stopped.
 
-1. SA-05's freeze: should players still be able to build and fight while frozen (vanilla tick-freeze: yes), or should
-   everything, players included, stand still?
-2. SA-05 in third person: sky only, or also the remote's alarm heard by players nearby?
-3. Hypervoid's platform: at the caster or at the world spawn?
+Config: operators only on servers by default; the time stop on/off; the Sun on/off.
+
+### SA-06 · Hypervoid (universe level; a player's suggestion)
+
+- **Rules (decided)**: locked until SA-05 has stopped time (config to drop that); **operators only** on servers; turns
+  the world into a void by default, **config to keep the world** (then only the film and the deaths); "flip the cover":
+  the first press shows EXTEND THE ULTIMATE FREEZE TO ALL OF SPACE?, the second fires; no sliders, like Gravitia.
+- **Film**: the white crosshair burns into the ground, a 12 s countdown, the remote strains again; the camera zooms in
+  on the Great Attractor, which charges far harder (white-hot, space bending round it) and fires a far bigger Ultimate
+  Freeze past the stopped galaxies, across clusters and superclusters to the whole cosmic web (UNIVERSE: STOPPED);
+  silence; a hairline fracture (STRUCTURAL FAILURE); it shatters, galaxies fall into darkness one by one, a point of
+  light, the flash, the multiversal shockwave (bubble universes popping); back in the world: endless void and you on
+  the glass platform. Title card SA-06 · HYPERVOID.
+- **Outside the film**: the device's flash, the colossal wave across the sky, the world dissolving into the void.
+- **The world**: wipe the loaded land at the strike (empty sections, the way MoonBuild cuts Luna's crater), kill every
+  entity in the dimension (creative players put on the platform), mark the dimension "voided" in its saved data so
+  every chunk that loads or generates afterwards comes in empty (an endless void without freezing the server).
+  **The glass platform goes under the caster** (the user's pick).
+- Afterwards there is nothing to reverse: SA-05's row goes back to normal (with the void config off, Reverse
+  Collision stays).
+
+### Still open
+
+- SA-05 in third person: is the remote's alarm heard by players nearby, or only the caster?
+- What the end of SA-05's film shows (for the Unfreeze update).
+- A previz (a web page like Proxima's) before building: offered, not decided.
