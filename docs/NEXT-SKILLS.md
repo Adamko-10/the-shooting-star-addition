@@ -46,8 +46,12 @@ never ice.
 - **Look: a hidden black ring** (the user's pick), wider than a galaxy, sitting where the real Great Attractor is
   (behind the Milky Way's dust, the "Zone of Avoidance"). Invisible except for the starlight bending around it (a
   lensing halo). When it wakes, glowing lines race over it; its centre charges and fires.
-- **What it does**: it shrinks the space between the Milky Way and Andromeda (a warp drive in reverse: the starfield
-  between them wrinkles and draws in), fast-forwarding their real merger (Andromeda really is falling toward us).
+- **How it pulls (the user's pick): dark-matter filaments.** The cosmic web's dark-matter filaments (normally invisible)
+  light up violet when it wakes and tighten like cables toward the ring, reeling the Milky Way and Andromeda in. Real
+  galaxies do flow toward the Great Attractor along such streams; this fast-forwards the real merger (Andromeda really
+  is falling toward us). The ring's dark matter is also what floods out when it implodes (below).
+- **It is what saves you**: it holds the stopped time. When it implodes (Unfreeze, or SA-06 asking too much of it), the
+  protection is gone: hence the remote's "good luck :)".
 - **The wave it fires: "The Ultimate Freeze"** (the user's name): a shell of stopped time racing out far faster than
   light. Shown in SA-05's ending, SA-06's opening, and **in the sky outside the films** for everyone.
 
@@ -56,7 +60,7 @@ never ice.
 Film, in order:
 1. Press; the crosshair; the remote uplinks: GREAT ATTRACTOR · DORMANT -> AWAKENING.
 2. Pull out past the Milky Way to the ring; it wakes.
-3. Space between the galaxies draws in; Andromeda slides toward us.
+3. Violet dark-matter filaments light up across the void and tighten toward the ring; Andromeda is reeled toward us.
 4. MERGER: tidal streams; Sagittarius A\* and M31\* circle closer as two glowing rings, gravitational-wave ripples.
 5. Back home the Solar System starts to tear apart: planets drifting off their paths, the Sun guttering and going out.
 6. **The remote is pushed to its limits** (all ours to draw, TSS's model untouched): heat shimmer, sparks and steam in
@@ -79,8 +83,10 @@ On the remote while time is stopped (GUI, no physical button):
   its heat.
 
 **Later update: an Unfreeze option** (the user, 2026-11-11), to see the rest of SA-05's film (it is unfinished by
-design: you never see the end). The remote flashes **"good luck :)"**, turns off, and the film continues past the
-freeze (what the end shows: to design then). It sits next to Reverse Collision while time is stopped.
+design: you never see the end). It sits next to Reverse Collision while time is stopped. The remote flashes
+**"good luck :)"** and turns off; the Great Attractor, no longer holding time, **implodes**; time restarts and **the
+merger finishes for real** (a huge flash, the merged galaxy hanging in the sky), but **the world survives**, changed
+(the user's pick, 2026-11-11).
 
 Config: operators only on servers by default; the time stop on/off; the Sun on/off.
 
@@ -89,13 +95,16 @@ Config: operators only on servers by default; the time stop on/off; the Sun on/o
 - **Rules (decided)**: locked until SA-05 has stopped time (config to drop that); **operators only** on servers; turns
   the world into a void by default, **config to keep the world** (then only the film and the deaths); "flip the cover":
   the first press shows EXTEND THE ULTIMATE FREEZE TO ALL OF SPACE?, the second fires; no sliders, like Gravitia.
-- **Film**: the white crosshair burns into the ground, a 12 s countdown, the remote strains again; the camera zooms in
-  on the Great Attractor, which charges far harder (white-hot, space bending round it) and fires a far bigger Ultimate
-  Freeze past the stopped galaxies, across clusters and superclusters to the whole cosmic web (UNIVERSE: STOPPED);
-  silence; a hairline fracture (STRUCTURAL FAILURE); it shatters, galaxies fall into darkness one by one, a point of
-  light, the flash, the multiversal shockwave (bubble universes popping); back in the world: endless void and you on
-  the glass platform. Title card SA-06 · HYPERVOID.
-- **Outside the film**: the device's flash, the colossal wave across the sky, the world dissolving into the void.
+- **Film (the user's idea, 2026-11-11: an implosion, then a dark-matter wave)**: the white crosshair burns into the
+  ground, a 12 s countdown, the remote strains again; the camera zooms in on the Great Attractor, ordered to stop time
+  across the whole universe: it charges far harder (white-hot, space bending round it), starts the Ultimate Freeze out
+  past the stopped galaxies, and can't hold it: it buckles and **implodes**, collapsing to a point (silence, a hairline
+  of light); then **an unimaginably massive wave of dark matter** bursts out of where it was (all the dark matter it
+  was holding) and swallows galaxy after galaxy, cluster after cluster, the whole universe going dark; back in the
+  world: the wave rolls over the land, then nothing: endless void and you on the glass platform. Title card SA-06 ·
+  HYPERVOID. (Replaces the earlier shatter + bubble-universe ending.)
+- **Outside the film**: the ring's implosion flash, the dark wave rolling across the sky and the land, the world
+  dissolving into the void.
 - **The world**: wipe the loaded land at the strike (empty sections, the way MoonBuild cuts Luna's crater), kill every
   entity in the dimension (creative players put on the platform), mark the dimension "voided" in its saved data so
   every chunk that loads or generates afterwards comes in empty (an endless void without freezing the server).
@@ -106,5 +115,6 @@ Config: operators only on servers by default; the time stop on/off; the Sun on/o
 ### Still open
 
 - SA-05 in third person: is the remote's alarm heard by players nearby, or only the caster?
-- What the end of SA-05's film shows (for the Unfreeze update).
-- A previz (a web page like Proxima's) before building: offered, not decided.
+- The exact look of the Unfreeze ending and of the changed sky afterwards (later update).
+- **A previz is wanted (decided 2026-11-11), built by Fable 5.2** from `prompts\FABLE-PREVIZ-PROMPT.md` in the project
+  folder (a standalone web page in `previz\great-attractor\`, never the mod's code).

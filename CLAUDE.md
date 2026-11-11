@@ -131,6 +131,13 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   Convergence, a list of the addons it can fire, installed vs not installed, so players see what they're missing
   (e.g. on the Convergence plate; the known ones from docs/ADDONS.md); (3) sound effects synced with the panels popping
   in and the grid breaking (asked earlier, "very soon").
+- **SA-05/06 updates (the user, 2026-11-11, in docs/NEXT-SKILLS.md)**: the Great Attractor pulls with violet
+  dark-matter filaments tightening like cables; it is what saves you (holds the stopped time), so Unfreeze = the remote
+  says "good luck :)", turns off, the ring implodes and the merger finishes but the world survives (changed sky);
+  SA-06 Hypervoid = the ring overloads trying to stop the whole universe, implodes, and an unimaginably massive
+  dark-matter wave swallows the universe (replaces the shatter/bubble-universe ending). **Fable's role**: (1) the
+  read-only review (`prompts\FABLE-REVIEW-PROMPT.md`), (2) the SA-05/06 previz (`prompts\FABLE-PREVIZ-PROMPT.md`,
+  output in the project folder's `previz\great-attractor\`, never the repo); Opus builds and applies.
 - **Gallery**: the 20 candidates are on one page in `gallery\1.8.1 candidates\_overview.png` (sent to the user
   2026-11-11); not uploaded to CurseForge yet (the release prompt doesn't upload gallery images).
 - **Skill ladder (the user, 2026-11-11)**: SA-03 = planet level (ideas: docs/SA-03-IDEAS.md + the planet list above);
