@@ -173,6 +173,10 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   rules and traps), `/release` (§8 + the release prompt flow, jar names, changelog rules), `/curseforge-upload` (the
   upload form, changelog trap, gallery 2 MB limit and wrong-dropzone trap, titles, featured image), `/game-test` (§4
   "Testing on Adam's PC", harness options, filmlog frames, reading CI shots and crash lines). The user picks which, later.
+  **Also wanted (the user, 2026-11-11): the ponytail reminder as a skill** (e.g. `/ponytail-check`: which level fits the
+  work now, and what the hook last reported). Keep the always-on rule in §0 as well: a skill only loads when called or
+  judged relevant, so on its own it could be skipped. Personal preference, so maybe a user-level skill
+  (`~/.claude/skills/`) that works in every project; ask when making it.
 - **Gallery**: the 20 candidates are on one page in `gallery\1.8.1 candidates\_overview.png`. **Uploaded to CurseForge
   2026-11-11** (the user's pick: 01, 02, 06, 08, 10, 11, 19; no captions, short titles "Halley: title card", "Halley:
   comet over the mountains", "Luna: title card", "Luna: entry plasma sheath", "Luna: the moon in its crater at dusk",
