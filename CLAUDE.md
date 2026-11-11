@@ -24,6 +24,23 @@ names `compat/tss` uses, e.g. the effect packet record, checked with javap per l
 `rimulib_version_range`, `TSS_FILES`/`TSS_OBF`/`RIMULIB_FILE` in every `dev/ci/branches/*.sh`). Recheck
 `Convergence.SKIPPED` (Gungnir) on Fabric 1.21.1/1.20.1 with the new build.
 
+**RimuLib 1.2.3 is already out** (2026-11-11 14:15 UTC; NeoForge 9558360, Forge 9558351, Fabric 9558344; jars in the
+session scratchpad only). Checked against 1.8.1 (not in game): `dev/tools/RefCheck.java` (compile with ASM 9.9.1 from
+`~/.gradle/caches/minecraftforge/.../org/ow2/asm`, Windows paths in `-cp`) finds **0 missing** RimuLib references in all
+seven 1.8.1 jars (prefix `cyou/rimuru/rimulib/mc1211/`, `mc1201/`, none on Fabric, whose RimuLib jar nests one jar per
+MC in `META-INF/jars`), and every mixin target into RimuLib is still there (`CutsceneDirector.play/tick`,
+`PostFxRenderer.render`, `SkillKeys.register`, `RimulibFabricClient.onInitializeClient`), as are the reflected fields
+(`SkillSet.rows/skills`, `Carving.LIVE/LINGERING/level`). 1.2.3 reworked `Carving` (new `atOnce`, `prepare`, `ready`,
+`tickLingering(MinecraftServer)`, `primeHeightmaps` without floors): none of it is called by us. So 1.8.1 ships as is
+(range `[1.2.2,2.0)`). A Meridian watcher (cfwidget every 3 min, TSS file id > 9438887) was started at ~18:30.
+
+**Roadmap for players (the user, 2026-11-11)**: written from the user's own roadmap, for Discord: the project folder's
+`announcements\roadmap 2026-11-11.md` (the user's picks: SA-06 only teased, SA-03/SA-05 by theme only (planet, galaxy),
+SA-04B CME undated). Dates: 1.8.1 Nov 11, Meridian support Nov 11-14, 1.8.2 late Nov (settings UI, Convergence's addon
+list, panel sounds, polish + QoL incl. Halley's bigger blast), SA-03 mid Dec (polished late Dec), a surprise at
+Christmas/New Year, SA-05 mid Jan (polished late Jan), "something bigger than a galaxy" after; no date: SA-04B,
+TON618 in Convergence, swappable music.
+
 Written before a context compaction (the user: "write all info in claude md since compact is decently soon"). The
 details of everything below are in the 2026-11-10 section under this one.
 
