@@ -68,6 +68,16 @@ so. Meridian (The Shooting Star's next update + RimuLib 1.2.3) is still not on C
   is seen from third person; in the film a longer charge-up, a bigger beam and sounds to match. Today's Flare outside
   the film: remove the small red beam and bolt that shoot from the gate down onto the mark and do nothing
   (`ProximaCosmos.renderSky`, the `refocus` part), "probably remove it"; not done yet.
+- **The CME's music (decided 2026-11-12)**: the Flare's track recut slower and lower, with a longer build-up and the
+  drop on the CME's impact (`docs/NEXT-SKILLS.md`, SA-04B).
+- **Waiting on the user (they'll read it all later, 2026-11-12: "i will read all the stuff i didnt later")**:
+  1. drag `backups\ports 1.8.1 (2026-11-12).zip` into Google Drive, then say so (the six worktrees get removed);
+  2. pick where the website is hosted (Cloudflare Pages recommended; Google Sites only by embedding);
+  3. pick a settings UI look (A-D, https://claude.ai/artifact/HijprQTn9nMJT6pDZPrwaJ) for 1.8.2;
+  4. run the Fable bug review (`prompts\FABLE-BUG-REVIEW-PROMPT.md`);
+  5. say go for the code changes: the shader-pack wave fix (main + forge-1.21.1), the click-to-close H menu
+     setting, removing the Flare's sky bolt;
+  6. tell Claude when Meridian is on CurseForge.
 - **Fable bug review prompt (the user, 2026-11-12)**: the project folder's `prompts\FABLE-BUG-REVIEW-PROMPT.md`:
   find bugs and unknowns and report only (no edits, no refactoring, no patches, no builds or game runs; other branches
   read through `git show origin/<branch>:...`), writing `reviews\fable-bug-review\FINDINGS.md` **as it goes** (one

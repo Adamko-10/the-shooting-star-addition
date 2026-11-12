@@ -22,7 +22,8 @@ What the user wants it to look like, on top of SA-04A Proxima Flare (today's ski
   theme, like Luna's Epic mode, and no new track needed). Best done as a recut, not just slowed: play it a little
   slower and lower (darker; a pure stretch at the same pitch smears past ~15%), stretch the build-up to the longer
   charge by repeating its phrases, add weight under the drop, and land the drop on the CME's impact
-  (`art/make_proxima_music.sh` has the cut points). Not decided: lower and slower, or the same pitch.
+  (`art/make_proxima_music.sh` has the cut points). **Decided (2026-11-12, the user: "your pick")**: slower **and
+  lower** (darker), recut as above. The user judges it by ear when it's built.
 
 **To change on today's Flare (SA-04A), the user, 2026-11-12: "i say we probably remove it"**: outside the film
 (third person, no cutscene) the gate and lens in the sky are good, but after the gate catches the shot, a small red
