@@ -67,7 +67,9 @@ public final class HalleyClient {
         ShaderPacks.update();
         HalleySky.update(event);
         if (ShaderPacks.active() && Minecraft.getInstance().level != null
-            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty() || ConvergenceView.any())) {
+            && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty()
+                || !dev.ss05.halley.client.proxima.ProximaFx.active().isEmpty() || dev.ss05.halley.client.proxima.ProximaFx.auroras()
+                || ConvergenceView.any())) {
             GlowAtlas.paint(HalleyRenderTypes.shader());
             HalleySky.paint(event.getPartialTick().getGameTimeDeltaPartialTick(true));
         }

@@ -83,6 +83,8 @@
   "gui.shooting_star_addition.units.hint": "Distances in the films: kilometres or miles.",
   "gui.shooting_star_addition.units.km": "KM",
   "gui.shooting_star_addition.units.miles": "MILES",
+  "gui.shooting_star_addition.close_on_pick": "Close on pick",
+  "gui.shooting_star_addition.close_on_pick.hint": "Clicking a skill picks it and closes this menu.",
   "key.shooting_star_demo.stellar_remote.stellar_convergence": "The Shooting Star: Stellar Convergence",
   "skill.shooting_star_demo.stellar_remote.stellar_convergence.desc": "Fire everything at once. Tick the weapons on the Stellar Convergence plate in this menu (1-9; any mod's remote skills) and fire this: each one is called down with its own sliders, scaled by this one's (power and speed multiply, damage caps), timed so that they all hit at the same moment, on your crosshair or spread in a ring round it (R on the plate). There are no limits: every ticked weapon at high power, all at once, can freeze or crash a server. Inspired by The Shooting Star - Stellar Quartet, by ikun520: unlocks with it installed.",
   "gui.shooting_star_addition.convergence": "SA-00 · Stellar Convergence",

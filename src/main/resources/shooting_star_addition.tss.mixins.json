@@ -13,7 +13,8 @@
     "CutsceneDirectorMixin",
     "FxManagerMixin",
     "PostFxRendererMixin",
-    "SkillKeysMixin"
+    "SkillKeysMixin",
+    "WhiteSpaceMixin"
   ],
   "injectors": {
     "defaultRequire": 0

@@ -50,6 +50,8 @@ public final class AdditionPanel {
     /** - and =: every free letter is taken in the menu (WASD move, Q drops, P is Stellar Quartet's, the rest skills). */
     public static final int KEY_UNITS = 45;
     public static final int KEY_STACK = 61;
+    /** [ : close the menu when a skill is picked. */
+    public static final int KEY_CLOSE = 91;
     private static final float SLIDE_MILLIS = 160.0F;
 
     private static long musicFlippedAt;
@@ -60,6 +62,7 @@ public final class AdditionPanel {
     private static long epicFlippedAt;
     private static long unitsFlippedAt;
     private static long stackFlippedAt;
+    private static long closeFlippedAt;
 
     private AdditionPanel() {
     }
@@ -113,6 +116,12 @@ public final class AdditionPanel {
         if (key == KEY_UNITS) {
             HalleyClientConfig.setImperial(!HalleyClientConfig.imperial());
             unitsFlippedAt = Util.getMillis();
+            click(true);
+            return true;
+        }
+        if (key == KEY_CLOSE) {
+            HalleyClientConfig.setCloseMenuOnPick(!HalleyClientConfig.closeMenuOnPick());
+            closeFlippedAt = Util.getMillis();
             click(true);
             return true;
         }
@@ -177,7 +186,7 @@ public final class AdditionPanel {
         Component title = Component.translatable("gui.shooting_star_addition.panel").withStyle(ChatFormatting.BOLD);
         int w = Math.max(WIDTH, Math.max(Math.max(font.width(status), font.width(title)),
             font.width(Component.translatable("gui.shooting_star_addition.no_cooldown.disabled"))) + 22);
-        int h = cooldownOff ? 296 : 284;
+        int h = cooldownOff ? 328 : 316;
         g.pose().pushPose();
         // over the menu, in its top left corner
         g.pose().translate(8.0F, 8.0F, 400.0F);
@@ -233,10 +242,16 @@ public final class AdditionPanel {
         g.drawString(font, Component.translatable("gui.shooting_star_addition.units.hint"), 11, 230, 0xFF000000 | GREY, false);
         g.fill(11, 243, w - 10, 244, 0xFF000000 | RULE);
 
+        // picking a skill closes the menu, or it stays open
+        row(g, font, 250, Component.translatable("gui.shooting_star_addition.close_on_pick"), "[", HalleyClientConfig.closeMenuOnPick(), true,
+            closeFlippedAt, w);
+        g.drawString(font, Component.translatable("gui.shooting_star_addition.close_on_pick.hint"), 11, 262, 0xFF000000 | GREY, false);
+        g.fill(11, 275, w - 10, 276, 0xFF000000 | RULE);
+
         // no cooldown, and what the server allows
-        row(g, font, 250, Component.translatable("gui.shooting_star_addition.no_cooldown"), "C", cooldownOff, allowed, cooldownFlippedAt, w);
-        g.drawString(font, Component.translatable("gui.shooting_star_addition.no_cooldown.hint"), 11, 262, 0xFF000000 | GREY, false);
-        g.drawString(font, status, 11, 273, 0xFF000000 | statusColor, false);
+        row(g, font, 282, Component.translatable("gui.shooting_star_addition.no_cooldown"), "C", cooldownOff, allowed, cooldownFlippedAt, w);
+        g.drawString(font, Component.translatable("gui.shooting_star_addition.no_cooldown.hint"), 11, 294, 0xFF000000 | GREY, false);
+        g.drawString(font, status, 11, 305, 0xFF000000 | statusColor, false);
         if (cooldownOff) {
             g.drawString(font, Component.translatable("gui.shooting_star_addition.no_cooldown.careful"), 11, 284, 0xFF000000 | WARN, false);
         }
