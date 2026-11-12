@@ -70,6 +70,34 @@ so. Meridian (The Shooting Star's next update + RimuLib 1.2.3) is still not on C
   (`ProximaCosmos.renderSky`, the `refocus` part), "probably remove it"; not done yet.
 - **The CME's music (decided 2026-11-12)**: the Flare's track recut slower and lower, with a longer build-up and the
   drop on the CME's impact (`docs/NEXT-SKILLS.md`, SA-04B).
+- **The user's answers (2026-11-12, later)**: website on **Cloudflare Pages** (the user makes the free account and
+  connects the private repo; Claude can't sign up); settings UI **option B** ("follows the selected skill") for the
+  late-November update; **go for the code changes**, done the same day (local commits, not pushed):
+  1. **shader-pack wave fix**: main `HalleyClient.frameStart` and forge-1.21.1 (`54ac2ae`) now paint `GlowAtlas` while
+     Proxima or its auroras run (as the other five already did);
+  2. **the Flare's sky bolt removed** on all seven (`ProximaCosmos.renderSky`, the refocus beam/bolt/landing glow; the
+     film's Earth shot keeps its beam): forge-1.20.1 `bff06db`, fabric-1.21.1 `0e1ea0c`, fabric-1.20.1 `fb6f6dc`,
+     fabric-1.21.11 `c3acba1`, fabric-26.3 `746cad3`, forge-1.21.1 `54ac2ae`, main (below);
+  3. **close on pick** (main only, a new feature): client config `close_menu_on_pick` (default false), **[** on our
+     plate (a new row above No cooldown; the plate is 32 px taller), `compat/tss/mixin/WhiteSpaceMixin` injects at the
+     TAIL of RimuLib's private `WhiteSpace.commit(Skill, String)` (called after a click and after a warning page's
+     confirm) and calls its package-private static `leave()` (the normal close, as H/Esc) through `@Shadow`. Both exist
+     in RimuLib 1.2.2 and 1.2.3. Not game-tested (the harness's `select=` doesn't go through `commit`).
+  The Fable bug-review prompt was updated with these (and to read the local `port/<branch>` refs, not origin).
+- **Test jar** (2026-11-12): `test builds\2026-11-12 shader wave, no sky bolt, close on pick\`, **in the Modrinth
+  profile `NeoForge 1.21.1 (1)`** (no game running then); the released 1.8.1 jar there renamed `.disabled`. Found and
+  fixed there: **two RimuLibs** (1.2.1 and 1.2.2) side by side: `rimulib-1.2.1-neoforge.jar` renamed `.disabled`. The
+  profile has Iris 1.8.14 and Complementary Reimagined r5.9.3 for the shader test.
+- **Plan given to the user (2026-11-12)**:
+  1. now: the user tests the jar (Proxima's wave with Complementary on, the [ switch, the Flare outside the film);
+     the Fable bug review runs; Cloudflare Pages for the website;
+  2. **Meridian is urgent when it lands**: 1.8.1 declares The Shooting Star `[1.5.2, next patch)`, so it stops loading
+     for anyone who updates TSS. Quick check (15-20 min) -> port -> a fast release = today's fixes + Meridian support
+     (+ Fable's quick fixes), proposed as **1.8.2**, which moves the late-November update (option B settings,
+     Convergence's addon list, panel sounds, Halley's bigger blast, polish/QoL) to **1.9.0** (the roadmap says 1.8.2
+     for it: change it if the user agrees);
+  3. December: SA-03 (pick the planet first), then SA-04B CME when it fits; January: SA-05/06
+     (`docs/SA-05-06-BUILD-PLAN.md`).
 - **Waiting on the user (they'll read it all later, 2026-11-12: "i will read all the stuff i didnt later")**:
   1. drag `backups\ports 1.8.1 (2026-11-12).zip` into Google Drive, then say so (the six worktrees get removed);
   2. pick where the website is hosted (Cloudflare Pages recommended; Google Sites only by embedding);
