@@ -269,28 +269,9 @@ public final class ProximaCosmos {
                 bolt(program, p, from.scale(1.0 - arrive), from.scale(-1.0).normalize(), 0.35, t);
             }
         }
-        // refocused into a narrow beam down onto the mark, its bolt racing ahead, a flash where it lands
-        double refocus = smooth((t - CATCH - 0.15) / 0.12) * (1.0 - smooth((t - T_FLASH - 0.2) / 0.3));
-        if (refocus > 0.0) {
-            double reach = smooth((t - CATCH - 0.15) / (LANDS - CATCH - 0.15));
-            Vec3[] line = new Vec3[25];
-            for (int s = 0; s <= 24; s++) {
-                line[s] = ground.scale(reach * s / 24.0);
-            }
-            b = begin(VertexFormat.Mode.QUADS);
-            band(b, p, line, 0.05, 0xB31A33, (float) refocus, 1.0);
-            band(b, p, line, 0.015, 0xFFE0EE, (float) refocus, 1.0);
-            set(program, p, BAND, 2.0F, 3.0F, 0.0F, 0.0F);
-            draw(program, p, b);
-            if (reach < 0.999) {
-                bolt(program, p, ground.scale(reach), z, 0.2, t);
-            }
-        }
+        // (no beam down onto the mark from here: the user, 2026-11-12, players couldn't tell what the small red bolt was,
+        // so the gate leads straight into the flash and the wave; the film's Earth shot keeps its beam)
         b = begin(VertexFormat.Mode.QUADS);
-        double landed = pulse(t, LANDS, 0.4);
-        if (t > LANDS - 0.05) {
-            glow(b, p, ground, 0.2 + 1.2 * landed, 0xFFE6F0, (float) (0.3 + 0.7 * landed));
-        }
         // appearing in a flash
         double flash = smooth((t - T_LENS + 0.3) / 0.3) * (1.0 - smooth((t - T_LENS) / 0.6));
         glow(b, p, Vec3.ZERO, 1.2, 0xFFE6EE, (float) flash);
