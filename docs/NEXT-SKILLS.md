@@ -112,9 +112,34 @@ Config: operators only on servers by default; the time stop on/off; the Sun on/o
 - Afterwards there is nothing to reverse: SA-05's row goes back to normal (with the void config off, Reverse
   Collision stays).
 
+### The previz (Fable 5.2, version 2, 2026-11-12)
+
+https://claude.ai/artifact/S5kyk3ACpBUWZg6fPi48VR; source, every shot in ticks and the rendering notes in the project
+folder's `previz\great-attractor\` (`HANDOVER.md`, `NOTES.md`). Version 1 was rejected ("not according to my vision");
+version 2: "absolutely awesome ... its actually near perfect". What "near perfect" is missing is **written down for a
+later update** (the user, 2026-11-12: "fine with just writing this down for later and improving it in an update");
+the build follows version 2. How to build it: `docs/SA-05-06-BUILD-PLAN.md`.
+
+What version 2 changed from the design above (the user's picks or accepted):
+- **Length**: SA-05 84 s (1680 ticks), SA-06 58 s (1160 ticks): "as long as it needs".
+- **The Great Attractor is a machine**: 72 plated hull segments, masts, an inner rail, 24 emitters that telescope
+  out, an inner ring turning against the hull; still black and unseen until it wakes. A new shot, "The machine wakes".
+- **Galaxies from real pictures plus stars** (the user's pick): NASA/JPL-Caltech/R. Hurt's Milky Way map and Hubble's
+  M74 as Andromeda's body (both public domain; credit both). Real-looking black holes (bent light, hot disc).
+- **The Ultimate Freeze has an 8 s charge-up** and a half-second hold; the stop is shown three times (galaxies, black
+  holes, Solar System), each starting 1.3 s before it happens there.
+- **Reverse Collision is a recut**, not a plain reverse: wave back, black holes apart, Andromeda away, ring dormant,
+  Sun relights, time restarts, **the remote vents its heat last** (the user's pick), at triple speed.
+- **SA-06**: its countdown ends when the order is sent (tick 320); a long pull back where the freeze stalls at 0.69%
+  of the universe (POWER INSUFFICIENT); **the device breaks apart, then implodes** (the user's pick; no shatter of
+  space); a "time restarts" beat before the dark wave; on the land, in film order.
+- **Kept (the user, 2026-11-12: "all can stay theyre fine")**: Fable's three unasked additions, the year counter
+  (to 4.5 billion, stops dead at the freeze), the "time restarts" beat, Reverse Collision at triple speed.
+
 ### Still open
 
 - SA-05 in third person: is the remote's alarm heard by players nearby, or only the caster?
-- The exact look of the Unfreeze ending and of the changed sky afterwards (later update).
-- **A previz is wanted (decided 2026-11-11), built by Fable 5.2** from `prompts\FABLE-PREVIZ-PROMPT.md` in the project
-  folder (a standalone web page in `previz\great-attractor\`, never the mod's code).
+- The exact look of the Unfreeze ending and of the changed sky afterwards (later update; not in the previz).
+- What "near perfect" is missing (later update).
+- Andromeda's body is M74's photo: fine to ship, credited?
+- SA-06's first shot ("the second press") may be cut in the game: the first press is before the film.
