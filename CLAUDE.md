@@ -49,6 +49,13 @@ so. Meridian (The Shooting Star's next update + RimuLib 1.2.3) is still not on C
   BRIEF/REPORT/CHECK.md and the ports scripts; no build output, no TSS jars or mappings). Google Drive isn't installed
   on this PC: **the user drags it into Drive**; remove the worktrees (`git worktree remove`) only after they confirm.
 - Ponytail: the session hook reported **full** after the resume (the user keeps it off).
+- **Fable bug review prompt (the user, 2026-11-12)**: the project folder's `prompts\FABLE-BUG-REVIEW-PROMPT.md`:
+  find bugs and unknowns and report only (no edits, no refactoring, no patches, no builds or game runs; other branches
+  read through `git show origin/<branch>:...`), writing `reviews\fable-bug-review\FINDINGS.md` **as it goes** (one
+  finding per edit, a Status/Next list, resumable after a usage cut-off), plus six questions (shader packs per loader
+  and Oculus detection, what breaks when TSS/RimuLib update, the Forge 1.20.1 sound-file crash, worst-case lag, other
+  popular mods, unknown unknowns). The user runs it in Claude Code with Fable 5.2, High; an Opus session fixes what
+  they pick. The older `FABLE-REVIEW-PROMPT.md` (films, requests, SA-03) is a separate, creative review.
 
 ### RESUME HERE (2026-11-11 ~18:10, Adam's PC): 1.8.1 READY, the user releases it with Codex; then Meridian
 
