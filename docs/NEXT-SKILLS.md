@@ -17,6 +17,12 @@ What the user wants it to look like, on top of SA-04A Proxima Flare (today's ski
 - **Proxima shines so bright you see it from third person** (the user, 2026-11-12): while a CME is being fired,
   everyone outside the film sees Proxima Centauri blazing in the sky, not only the gate.
 - **In the film, a visibly longer charge-up, a bigger beam, and sounds to match** (the user, 2026-11-12).
+- **Music idea (the user, 2026-11-12)**: reuse the Flare's track (Proxima's music, by DOM_MusicST and FarzanNB),
+  altered and slowed down for the CME, so the two sound related. Claude's take: good (a heavier version of the same
+  theme, like Luna's Epic mode, and no new track needed). Best done as a recut, not just slowed: play it a little
+  slower and lower (darker; a pure stretch at the same pitch smears past ~15%), stretch the build-up to the longer
+  charge by repeating its phrases, add weight under the drop, and land the drop on the CME's impact
+  (`art/make_proxima_music.sh` has the cut points). Not decided: lower and slower, or the same pitch.
 
 **To change on today's Flare (SA-04A), the user, 2026-11-12: "i say we probably remove it"**: outside the film
 (third person, no cutscene) the gate and lens in the sky are good, but after the gate catches the shot, a small red
