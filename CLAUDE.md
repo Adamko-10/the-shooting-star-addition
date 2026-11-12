@@ -12,7 +12,45 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-11 ~18:10, Adam's PC): 1.8.1 READY, the user releases it with Codex; then Meridian <<<
+### >>> RESUME HERE (2026-11-12 ~13:00, Adam's PC): 1.8.1 RELEASED; waiting for Meridian; side work only <<<
+
+**The user, 2026-11-12: "lets not do any updates ... dont change anything just yet"**: no code changes until they say
+so. Meridian (The Shooting Star's next update + RimuLib 1.2.3) is still not on CurseForge (watched until 2026-11-11
+21:10; the user: "i will tell you when", so no watcher runs).
+- **1.8.1 is out everywhere** (checked 2026-11-12): seven GitHub releases `v1.8.1*` (2026-11-11 17:41, main latest),
+  seven CurseForge files 9561064 NeoForge, 9561079 Forge 1.21.1, 9561084 Forge 1.20.1, 9561095 Fabric 1.21.1, 9561098
+  Fabric 1.20.1, 9561104 Fabric 1.21.11, 9561131 Fabric 26.3; the project renamed "The Shooting Star Addition: SA
+  Series". Origin = local on all seven (origin/main `bb999d4`, so CLAUDE.md commits after that are local); no `wip/*`
+  branches or `ci-*` drafts left (Codex cleaned them).
+- **Proxima's wave invisible with a shader pack on NeoForge 1.21.1 (the user's report, Complementary Reimagined)**:
+  found, **not fixed** (the user said wait). `HalleyClient.frameStart` paints the shader-pack glow texture
+  (`GlowAtlas.paint`) only while a Halley, Luna or Convergence effect runs; Proxima isn't in that check on **main and
+  forge-1.21.1**, so with only Proxima running `GlowAtlas.ready()` is false and `CometRenderer` draws nothing (the
+  coronal front, the shock wave, the cracks; probably the auroras too). The other five branches already have
+  `|| !ProximaFx.active().isEmpty() || ProximaFx.auroras()` there (their porting agents added it). Fix = add that to
+  main's and forge-1.21.1's condition; test with Iris + Complementary (the user's Modrinth profile has Iris). Forge's
+  shader mod is Oculus: `ShaderPacks` looks for `net.irisshaders.iris.api.v0.IrisApi`; whether Oculus has it is
+  unchecked. The user wants every loader to work with shaders.
+- **Planned (the user, 2026-11-12, not started)**: a client setting "clicking a skill closes the H menu" vs today's
+  stays open. The full list of settings we have was given (client toml, plate keys, Convergence plate, common toml).
+  The full-screen "legacy" menu: never made (RimuLib's menu); a full-screen settings screen of our own is possible in
+  1.8.2's settings redo.
+- **Fable's SA-05/06 previz version 2** is in (the project folder's `previz\great-attractor\`, `HANDOVER.md` +
+  `NOTES.md`; https://claude.ai/artifact/S5kyk3ACpBUWZg6fPi48VR): the user: "near perfect", its gaps **written down
+  for a later update**, Fable's three extras all stay. Written into `docs/NEXT-SKILLS.md`; the game build plan (six
+  stages, ~2-3 weeks of sessions) is `docs/SA-05-06-BUILD-PLAN.md`. Asked how risky changing the previz is: low (a
+  separate folder outside the repo; keep a copy of version 2 first).
+- **The website** (the user's hub for all projects) was built by a separate Claude session in
+  `C:\Users\adam_\Documents\Website\` (outside this project; brief `PROMPT.md`; content in `data.js`; not published).
+  Gemini 4 Argon on the web failed at it first. Instagram and TikTok added 2026-11-12 (both `the_game_explainer`, sent
+  to that session). The players' roadmap now has the other projects too (`announcements\roadmap 2026-11-11.md`).
+- **The six `ports\` worktrees**: the user OK'd removing them "but zip it and put it on my google drive". Zipped to the
+  project folder's `backups\ports 1.8.1 (2026-11-12).zip` (153 MB: every tracked file except `libs/README.txt`, plus
+  BRIEF/REPORT/CHECK.md and the ports scripts; no build output, no TSS jars or mappings). Google Drive isn't installed
+  on this PC: **the user drags it into Drive**; remove the worktrees (`git worktree remove`) only after they confirm.
+- Ponytail: the session hook reported **full** after the resume (the user keeps it off).
+
+### RESUME HERE (2026-11-11 ~18:10, Adam's PC): 1.8.1 READY, the user releases it with Codex; then Meridian
 
 **2026-11-11 ~18:10**: every branch green (fabric-1.21.1 #226, fabric-1.20.1 #227: the Convergence film runs to the
 end, 61 frames, no crash), all seven checkouts clean, `releases\1.8.1\RELEASE-PROMPT.md` A0 refilled. **The user runs
@@ -823,8 +861,8 @@ The user moved to a new conversation here (2026-11-09: "write claude md since im
 
 **Two people work on this, on two PCs. Check which one you are on first:** if the project sits in a folder called
 `software files` (e.g. `C:\Users\HamzaTom\Desktop\Dont Touch\software files\shooting star adon with adam\`), you
-are on **Hamza's PC**; anywhere else, you are on **Adam's PC**. Adam is the one with the Chrome tab suspender and the
-2 AM shutdown policy; Hamza has neither (no tab suspender to ask about, never shut his PC down). The two rules marked
+are on **Hamza's PC**; anywhere else, you are on **Adam's PC**. Adam is the one with the 2 AM shutdown policy (his
+Chrome tab suspender is gone since 2026-11-11); Hamza has neither (no tab suspender to ask about, never shut his PC down). The two rules marked
 *(Adam's PC only)* below apply only on Adam's PC; everything else applies on both.
 
 - **Never ship or commit The Shooting Star's jar, code, data, assets or mappings.** `libs/*.jar` and `libs/mappings/`
@@ -845,7 +883,8 @@ are on **Hamza's PC**; anywhere else, you are on **Adam's PC**. Adam is the one 
   wants to see a feature as they imagine it (look, VFX, film, sounds) in one version, test it and approve it before
   anything is ported. Only after that approval does it go to the other six branches (§3); from then on **every change
   goes to every branch**. Sonnet subagents (`model: "sonnet"`) are fine for bounded mechanical work.
-- *(Adam's PC only)* For browser uploads (CurseForge), ask the user to disable their Chrome tab suspender first.
+- ~~*(Adam's PC only)* For browser uploads (CurseForge), ask the user to disable their Chrome tab suspender first.~~
+  **Adam has no tab suspender any more (2026-11-11)**: no warning needed for browser uploads.
 - Deleting the user's files needs permission (rename mods to `.disabled` instead).
 - Talking to the user: after coding, give a clear list of **what they need to do**; for testing, a list of **what to
   test**. They may say "you can stop telling me now"; start again when the topic changes (building → testing etc.).
