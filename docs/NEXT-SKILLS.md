@@ -14,6 +14,16 @@ What the user wants it to look like, on top of SA-04A Proxima Flare (today's ski
 - **Two shockwaves you can both see**: the one in space at the gate, and the one at the impact.
 - **A much bigger wave and shockwave that look very different** from the Flare's.
 - **A much bigger impact with an actual hole** (the Flare leaves a 6-deep glassy bowl; the CME punches a real hole).
+- **Proxima shines so bright you see it from third person** (the user, 2026-11-12): while a CME is being fired,
+  everyone outside the film sees Proxima Centauri blazing in the sky, not only the gate.
+- **In the film, a visibly longer charge-up, a bigger beam, and sounds to match** (the user, 2026-11-12).
+
+**To change on today's Flare (SA-04A), the user, 2026-11-12: "i say we probably remove it"**: outside the film
+(third person, no cutscene) the gate and lens in the sky are good, but after the gate catches the shot, a small red
+beam with a bolt at its head shoots down onto the mark, lands with a small flash, does nothing, and only then the wave
+comes. Players can't tell what it is. Remove it, so the gate leads straight into the wave. Code:
+`ProximaCosmos.renderSky`, the "refocused into a narrow beam down onto the mark" part (the `refocus` band, its `bolt`
+and the `LANDS` glow), on every branch. Not done yet (no code changes until the user says so).
 
 How the lens works (as built in 1.8.0): Proxima Centauri sits in a Dyson sphere 4.2 light years away; the sphere's panels
 open like an iris and fly together into a giant hexagonal lens in front of the star; the lens soaks up the star's

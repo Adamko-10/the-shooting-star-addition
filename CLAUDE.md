@@ -64,6 +64,10 @@ so. Meridian (The Shooting Star's next update + RimuLib 1.2.3) is still not on C
   settings and hints); **C** film-HUD look (dark mono panel, corner brackets, each row tagged with the skills it
   affects); **D** its own full-screen settings screen (P opens it; mouse works there; tabs General / each skill / This
   server; switches and a Full/Soft/Off choice). Waiting for the user's pick.
+- **Proxima notes (the user, 2026-11-12, written in `docs/NEXT-SKILLS.md`)**: SA-04B CME: Proxima shines so bright it
+  is seen from third person; in the film a longer charge-up, a bigger beam and sounds to match. Today's Flare outside
+  the film: remove the small red beam and bolt that shoot from the gate down onto the mark and do nothing
+  (`ProximaCosmos.renderSky`, the `refocus` part), "probably remove it"; not done yet.
 - **Fable bug review prompt (the user, 2026-11-12)**: the project folder's `prompts\FABLE-BUG-REVIEW-PROMPT.md`:
   find bugs and unknowns and report only (no edits, no refactoring, no patches, no builds or game runs; other branches
   read through `git show origin/<branch>:...`), writing `reviews\fable-bug-review\FINDINGS.md` **as it goes** (one
