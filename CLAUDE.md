@@ -49,6 +49,21 @@ so. Meridian (The Shooting Star's next update + RimuLib 1.2.3) is still not on C
   BRIEF/REPORT/CHECK.md and the ports scripts; no build output, no TSS jars or mappings). Google Drive isn't installed
   on this PC: **the user drags it into Drive**; remove the worktrees (`git worktree remove`) only after they confirm.
 - Ponytail: the session hook reported **full** after the resume (the user keeps it off).
+- **Website (2026-11-12)**: done by its session (Wikipedia links on Halley/Luna/Proxima, CurseForge button + a greyed
+  "Modrinth: coming soon" slot, Instagram/TikTok). **In a private GitHub repo** (the user's ask):
+  https://github.com/Adamko-10/adamko-website (`.gitignore`: `assets.zip`, `PROMPT.md`). The user wants it hosted on
+  **Google Sites**: Google Sites can't host a site's own files; its "Embed code" runs in a sandboxed iframe where most
+  JavaScript doesn't run (and the site draws its pages from `data.js` with JS), so the options given were: a free host
+  that works from a private repo (Cloudflare Pages or Netlify; Claude's recommendation), Google Sites embedding the
+  site from such a host by URL, rebuilding it in the Sites editor, or GitHub Pages (free only for public repos).
+  Waiting for the user's pick.
+- **1.8.2 settings UI options (2026-11-12, design only, nothing in the mod changed)**: a canvas of four looks,
+  https://claude.ai/artifact/HijprQTn9nMJT6pDZPrwaJ (source in the session scratchpad only): **A** tidy plate (today's
+  place, grouped SOUND/LUNA/FILMS/CASTING, keycaps and value pills, hints on Shift, Convergence's plate restyled to
+  match); **B** follows the selected skill (a one-line general strip + a card beside the selected skill with only its
+  settings and hints); **C** film-HUD look (dark mono panel, corner brackets, each row tagged with the skills it
+  affects); **D** its own full-screen settings screen (P opens it; mouse works there; tabs General / each skill / This
+  server; switches and a Full/Soft/Off choice). Waiting for the user's pick.
 - **Fable bug review prompt (the user, 2026-11-12)**: the project folder's `prompts\FABLE-BUG-REVIEW-PROMPT.md`:
   find bugs and unknowns and report only (no edits, no refactoring, no patches, no builds or game runs; other branches
   read through `git show origin/<branch>:...`), writing `reviews\fable-bug-review\FINDINGS.md` **as it goes** (one
