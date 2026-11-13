@@ -57,7 +57,12 @@ public final class HalleyAddon implements ModInitializer {
             StarBridge.tick(server);
             MoonStrike.tickLingering();
             ProximaStrike.tickLingering(server);
-            SolarFlares.tick(server);
+            try {
+                SolarFlares.tick(server);
+            } catch (RuntimeException | LinkageError failed) {
+                // random flares are a side feature: never let one stop the server
+                LOG.error("A random solar flare failed", failed);
+            }
         });
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             StarBridge.clear();

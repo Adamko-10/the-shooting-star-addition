@@ -458,7 +458,9 @@ public final class HalleyStrike {
         double baseX = Mth.floor(t.x) + 0.5;
         double baseZ = Mth.floor(t.z) + 0.5;
         double baseY = floor + 0.5;
-        double size = Math.max(0.5, this.params.craterRadius() / 56.0);
+        // capped at 3x: it is built in one tick, and its cost grows with its size to the fourth power (a 10x heart
+        // froze the server for seconds; Fable's review, B2)
+        double size = Mth.clamp(this.params.craterRadius() / 56.0, 0.5, 3.0);
         int spikes = 6 + (int) (this.plan.hash(5, 9) * 3.0);
 
         for (int s = -1; s < spikes; s++) {
@@ -469,8 +471,11 @@ public final class HalleyStrike {
             double ax = Math.cos(yaw) * Math.sin(lean);
             double ay = Math.cos(lean);
             double az = Math.sin(yaw) * Math.sin(lean);
-            for (double l = 0.0; l < length; l += 0.5) {
+            double step;
+            for (double l = 0.0; l < length; l += step) {
                 double w = thick * Math.pow(1.0 - l / length, 0.8) + 0.45;
+                // each prism reaches w every way, so stepping half of that still leaves no gaps (and far fewer repeats)
+                step = Math.max(0.5, w * 0.5);
                 double px = baseX + ax * l;
                 double py = baseY + ay * l;
                 double pz = baseZ + az * l;
@@ -579,7 +584,7 @@ public final class HalleyStrike {
                 StarBridge.hit(this.level, living, living == caster ? null : caster, this.cast.damage());
             }
         } else if (loose && !(entity instanceof Player) && entity.getPassengers().isEmpty()
-                && (caster == null || entity != caster.getVehicle()) && !entity.isRemoved()) {
+                && (caster == null || entity != caster.getVehicle()) && !entity.isRemoved() && Protected.removable(entity)) {
             entity.discard();
         }
     }

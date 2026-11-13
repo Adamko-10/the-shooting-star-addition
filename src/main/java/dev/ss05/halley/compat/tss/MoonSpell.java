@@ -46,6 +46,11 @@ final class MoonSpell extends Spell {
     }
 
     @Override
+    protected double reach() {
+        return this.strike.plan().blastRadius();
+    }
+
+    @Override
     protected boolean worldDone() {
         return this.strike.worldDone();
     }
