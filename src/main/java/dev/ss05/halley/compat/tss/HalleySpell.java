@@ -45,6 +45,13 @@ final class HalleySpell extends Spell {
         return this.strike.plan().params.encode();
     }
 
+    /** The blast round the crater, or the trench the comet ploughs back from the mark, whichever reaches further. */
+    @Override
+    protected double reach() {
+        HalleyParams params = this.strike.plan().params;
+        return Math.max(params.craterRadius() * params.blastReach(), params.trenchLength() + params.trenchWidth());
+    }
+
     @Override
     protected boolean worldDone() {
         return this.strike.worldDone();

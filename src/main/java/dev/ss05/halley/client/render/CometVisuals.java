@@ -94,7 +94,8 @@ public final class CometVisuals {
         if (plan.params.heart() && plan.params.carve()) {
             // where the server stands the heart (HalleyStrike.placeHeart): its main spike, nearly upright
             int floor = plan.craterFloor(Mth.floor(plan.target.x), Mth.floor(plan.target.z), minY);
-            this.heartSize = Math.max(0.5, plan.params.craterRadius() / 56.0);
+            // capped at 3x as on the server (HalleyStrike.placeHeart)
+            this.heartSize = Mth.clamp(plan.params.craterRadius() / 56.0, 0.5, 3.0);
             this.heartBase = new Vec3(Mth.floor(plan.target.x) + 0.5, floor + 0.5, Mth.floor(plan.target.z) + 0.5);
             double length = 26.0 * this.heartSize;
             this.heartTip = this.heartBase.add(Math.sin(0.08) * length, Math.cos(0.08) * length, 0.0);

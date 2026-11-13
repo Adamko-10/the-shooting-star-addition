@@ -79,6 +79,9 @@ abstract class Spell {
     /** Whether the strike's work on the land that can be done now is done (its effects may run on after it). */
     protected abstract boolean worldDone();
 
+    /** How far from the mark the strike hurts anything (its effect is sent at least this far, so nobody is hit unseen). */
+    protected abstract double reach();
+
     /** The plan's tick at this clock tick (Luna's Epic mode slows part of its plan; see MoonPlan.warp). */
     protected double planClock(double clock) {
         return clock;
@@ -103,8 +106,8 @@ abstract class Spell {
         StrikeFx fx = new StrikeFx(SkillSet.indexOf(spell.skill), spell.fxCaster, spell.origin, spell.target, spell.yaw,
             spell.seed, spell.fxTargets(), everyone(spell.casterId) ? StrikeFx.FLAG_FOR_EVERYONE : 0,
             spell.tuning.power(), spell.tuning.speed());
-        // as far as the built-in skills' effects reach
-        double range = 512.0;
+        // as far as the built-in skills' effects reach, or further when this strike hurts further (a big strike)
+        double range = Math.max(512.0, spell.reach() + 64.0);
         for (ServerPlayer player : spell.level.players()) {
             if (player.distanceToSqr(spell.target) <= range * range && RimuNet.canSend(player, StrikeFx.TYPE)) {
                 RimuNet.send(player, fx);
@@ -145,7 +148,8 @@ abstract class Spell {
             boolean done;
             try {
                 done = spell.tick();
-            } catch (RuntimeException failed) {
+            } catch (RuntimeException | LinkageError failed) {
+                // LinkageError: a RimuLib update changed something we call outside its public API
                 HalleyAddon.LOG.error("{} failed and was stopped", spell.skill.id(), failed);
                 done = true;
             }
@@ -153,7 +157,7 @@ abstract class Spell {
                 ACTIVE.remove(spell);
                 try {
                     spell.onEnd();
-                } catch (RuntimeException failed) {
+                } catch (RuntimeException | LinkageError failed) {
                     HalleyAddon.LOG.error("{} failed while ending", spell.skill.id(), failed);
                 }
             }

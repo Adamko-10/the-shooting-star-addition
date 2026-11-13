@@ -197,7 +197,14 @@ public final class MoonBuild {
     public static void tickLingering() {
         for (Iterator<MoonBuild> it = LINGERING.iterator(); it.hasNext(); ) {
             MoonBuild build = it.next();
-            build.tick();
+            try {
+                build.tick();
+            } catch (RuntimeException | LinkageError failed) {
+                // outside any spell's safety net: drop it rather than let the error stop the server every tick
+                dev.ss05.halley.HalleyAddon.LOG.error("A past moonfall's leftover building failed and was dropped", failed);
+                it.remove();
+                continue;
+            }
             if (build.done()) {
                 it.remove();
             }
