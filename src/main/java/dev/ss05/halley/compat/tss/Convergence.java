@@ -239,7 +239,7 @@ public final class Convergence {
             NoCooldown.forced(true);
             try {
                 set.cast(player, pending.skill(), pending.tuning());
-            } catch (RuntimeException failed) {
+            } catch (RuntimeException | LinkageError failed) {
                 HalleyAddon.LOG.warn("Stellar Convergence couldn't fire {}", pending.skill().id(), failed);
             } finally {
                 NoCooldown.forced(false);

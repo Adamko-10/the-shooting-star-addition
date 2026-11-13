@@ -139,6 +139,12 @@ public final class AdditionPanel {
         }
     }
 
+    /** A symbol key as the keyboard layout prints it (the key right of P is [ in the US, Ü in Germany). */
+    private static String keyName(int key) {
+        String name = com.mojang.blaze3d.platform.InputConstants.Type.KEYSYM.getOrCreate(key).getDisplayName().getString();
+        return name.length() == 1 ? name.toUpperCase(java.util.Locale.ROOT) : name;
+    }
+
     public static void click(boolean ok) {
         Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), ok ? 1.0F : 0.6F, 0.5F));
     }
@@ -197,7 +203,7 @@ public final class AdditionPanel {
         g.fill(11, 51, w - 10, 52, 0xFF000000 | RULE);
 
         // strikes' music stacking, or the newest taking over
-        row(g, font, 58, Component.translatable("gui.shooting_star_addition.stack_music"), "=", HalleyClientConfig.stackMusic(), true,
+        row(g, font, 58, Component.translatable("gui.shooting_star_addition.stack_music"), keyName(KEY_STACK),HalleyClientConfig.stackMusic(), true,
             stackFlippedAt, w);
         g.drawString(font, Component.translatable("gui.shooting_star_addition.stack_music.hint"), 11, 70, 0xFF000000 | GREY, false);
         g.fill(11, 83, w - 10, 84, 0xFF000000 | RULE);
@@ -228,7 +234,7 @@ public final class AdditionPanel {
         g.fill(11, 211, w - 10, 212, 0xFF000000 | RULE);
 
         // the films' distances: kilometres (off) or miles (on)
-        row(g, font, 218, Component.translatable("gui.shooting_star_addition.units"), "-", HalleyClientConfig.imperial(), true,
+        row(g, font, 218, Component.translatable("gui.shooting_star_addition.units"), keyName(KEY_UNITS),HalleyClientConfig.imperial(), true,
             unitsFlippedAt, w, "gui.shooting_star_addition.units.miles", "gui.shooting_star_addition.units.km");
         g.drawString(font, Component.translatable("gui.shooting_star_addition.units.hint"), 11, 230, 0xFF000000 | GREY, false);
         g.fill(11, 243, w - 10, 244, 0xFF000000 | RULE);

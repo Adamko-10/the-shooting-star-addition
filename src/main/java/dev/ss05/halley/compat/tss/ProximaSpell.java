@@ -42,6 +42,13 @@ final class ProximaSpell extends Spell {
         return this.strike.plan().params.encode();
     }
 
+    /** The flash burns out to 1.25 scorch radii, the shock wave runs out to its own reach. */
+    @Override
+    protected double reach() {
+        ProximaPlan plan = this.strike.plan();
+        return Math.max(plan.params.scorchRadius() * 1.25, plan.waveReach());
+    }
+
     @Override
     protected boolean worldDone() {
         return this.strike.worldDone();

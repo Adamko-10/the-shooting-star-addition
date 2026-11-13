@@ -54,6 +54,8 @@ public final class HalleyClient {
         });
         MinecraftForge.EVENT_BUS.addListener(HalleySky::render);
         MinecraftForge.EVENT_BUS.addListener(ProximaCosmos::renderSky);
+        // with a shader pack on, Proxima's sky gate is drawn here, before the GUI (Fable's review, B4)
+        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.client.event.RenderGuiEvent.Pre event) -> ProximaCosmos.renderSkyLate());
         MinecraftForge.EVENT_BUS.addListener(HalleySky::fog);
         // Load Proxima's Earth textures before the film needs them.
         MinecraftForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingIn event) -> ProximaCosmos.preload());

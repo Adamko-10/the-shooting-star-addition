@@ -149,7 +149,7 @@ public final class ProximaCosmos {
      * the film reaches the lens, unfolds, its ring glowing brighter as the star's power gathers far away; the shot
      * streaks in from deep space, the gate catches it and refocuses it into a narrow beam down onto the mark, landing
      * just before the flare's flash, when it's gone. Drawn after the particles with the world's own depth (land and
-     * clouds in front hide it). Not for random flares. Shader packs: not checked.
+     * clouds in front hide it). Not for random flares. With a shader pack on it is drawn before the GUI instead (renderSkyLate).
      */
     public static void renderSky(RenderLevelStageEvent event) {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
@@ -177,9 +177,36 @@ public final class ProximaCosmos {
         Vector3f up = camera.getUpVector();
         Pass pass = new Pass(view, new Matrix4f(event.getProjectionMatrix()), eye.subtract(gate).scale(1.0 / SKY_SCALE),
             new Vec3(-left.x, -left.y, -left.z), new Vec3(up.x, up.y, up.z), (float) t);
+        Vec3 ground = fx.plan.target.subtract(gate).scale(1.0 / SKY_SCALE);
+        if (dev.ss05.halley.client.render.ShaderPacks.active()) {
+            // a shader pack masks what our own shader draws in the world pass: draw it once the frame is finished
+            // (renderSkyLate), over the land, which rarely shows as it hangs high in the sky (Fable's review, B4)
+            late = new LateSky(pass, ground);
+            return;
+        }
+        drawSkyGate(program, pass, ground);
+    }
+
+    /** The sky gate saved during a frame with a shader pack on, drawn before the GUI ({@link #renderSkyLate}). */
+    private record LateSky(Pass pass, Vec3 ground) {
+    }
+
+    private static LateSky late;
+
+    /** Before the GUI: the sky gate of a frame drawn with a shader pack on (see {@link #renderSky}). */
+    public static void renderSkyLate() {
+        LateSky sky = late;
+        late = null;
+        if (sky == null || shader == null) {
+            return;
+        }
+        drawSkyGate(shader, sky.pass(), sky.ground());
+    }
+
+    private static void drawSkyGate(ShaderInstance program, Pass pass, Vec3 ground) {
         RenderSystem.disableCull();
         try {
-            skyGate(program, pass, t, fx.plan.target.subtract(gate).scale(1.0 / SKY_SCALE));
+            skyGate(program, pass, pass.time(), ground);
         } finally {
             RenderSystem.enableCull();
             RenderSystem.depthMask(true);
