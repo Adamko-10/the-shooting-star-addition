@@ -68,7 +68,7 @@ when it's out, then release 1.8.2; (6) the TON 618 brief and the CurseForge desc
   3. B4, Proxima's sky gate with a shader pack: draw it after the world pass when a pack is on, or skip it;
   4. the extras (the user: "idk what do u think"; Claude's pick): **R2** keep items and XP dropped after the impact in
      Proxima's bowl; **`/ssa zones list|clear`** plus sending zones to players who join; an entity tag **"never
-     removed"** (graves, Create trains, item frames...). **R4** (a cap on strikes with no cooldown) waits, though Fable
+     removed"** (graves, Create trains, item frames...). **R4** (a cap on strikes with no cooldown) waits (the user confirmed 2026-11-13: decide later), though Fable
      ranked it in its top five: it only matters when a server switches no-cooldown on. Also small: limit
      `Convergence.find` to the remote's set, an OptiFine note (`shader_packs = ALWAYS`), forge-1.21.1's Forge range;
   5. the docs and comments Fable listed (README lines 261, 357, 360, the client settings table; CLAUDE.md §1, §4, §5;
