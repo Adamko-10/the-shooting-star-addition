@@ -12,6 +12,45 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
+### >>> RESUME HERE (2026-11-13 ~14:15, the VM): docs/extras/test jar done; the port waits for .git <<<
+
+First session on the VM (`C:\Users\User\Desktop\the shooting star addition on vm`). **Not committed: the VM copy had
+no `.git` folder** (hidden, so the copy skipped it): no history, no `port/<branch>` refs (GitHub has only the 1.8.1
+heads; everything after `bb999d4` is local to Adam's PC). Asked the user to copy `.git` from the PC's repo folder
+into the VM folder; today's edits then show as uncommitted changes on top of his main (commit them, then this file
+on its own). VM check: JDK 21 at `C:\Program Files\Eclipse Adoptium\jdk-21.0.13.9-hotspot`, gh signed in as
+Adamko-10; **no Node, no ffmpeg, no JDK 25**; `libs/` has the NeoForge TSS jars 1.3.3-1.5.2, RimuLib 1.2.2 and the
+mappings (main only; CI downloads the rest). Meridian: not out at 14:05 (TSS newest 1.5.2; RimuLib 1.2.3 re-uploaded
+11-11 18:50 as NeoForge 9562438, Forge 9562444, Fabric 9562450: `RIMULIB_FILE` ids for the Meridian port).
+The user's personal CLAUDE.md is copied to `C:\Users\User\.claude\CLAUDE.md` on the VM.
+Done this session (on main's working tree, built: BUILD SUCCESSFUL, 40 references verified against 1.5.2):
+- **docs/comments** (Fable's list, worked out from the code: FINDINGS.md isn't on the VM): README (Proxima's sky
+  refusal, dropped items kept, `/ssa zones`, protected blocks incl. Proxima and End gateways, the `never_removed`
+  entity tag, `shader_packs` + OptiFine, the mixin list in "When The Shooting Star updates", `close_menu_on_pick` in
+  the client table); `HalleyAddon` (four skills, the server tick's catches), `NoCooldown` (`forced` = /ssa strike
+  **and** Convergence's queued casts; the hooks list), `Excavation.linger`/`Loader` (RimuLib's, not TSS's),
+  `Protected` (Proxima, how it's kept); CLAUDE.md §1 (four skills, 1.8.1, all on 1.5.2), §4 (JDK paths, mapping chain
+  to 1.5.2, CI tests), §5 (a "now" paragraph); `/ssa` help lists `zones`;
+- **extras**: `Convergence.find` + `ConvergencePlate.weapons` only the remote's set (`SkillSet.of(TssLink.SKILL)`);
+  the OptiFine note (client config comment, README, `dev/publish/curseforge-description.md` "More", which also got the
+  never-removed tag and `/ssa zones`); **forge-1.21.1's Forge range: `forge_version_range=[52,)` -> `[52.1.16,)`
+  (the build it compiles against) is still to do on that branch** (needs the git refs);
+- **test jar**: `C:\Users\User\Desktop\test builds\2026-11-13 Fable bug fixes (NeoForge 1.21.1)\The Shooting Star
+  Addition SA Series 1.8.1 + bug fixes TEST [NeoForge 1.21.1].jar` (version still 1.8.1 inside; TSS `[1.5.2,1.5.3)`,
+  RimuLib `[1.2.2,2.0)`); the user copies it to his NeoForge profile;
+- **TON618 prompt**: `C:\Users\User\Desktop\TON618 addon prompt.md`. **TON 618 is rimuru_dev's own mod** (CurseForge
+  1798822, `mc-mods/ton618`, 1.1.0 of 2026-11-11, all seven loader/MC pairs, needs RimuLib 1.2.3+), not "The TON618
+  demo" addon by another author in `docs/ADDONS.md`;
+- **CurseForge top draft**: `C:\Users\User\Desktop\CurseForge description top (draft).md` (A: link bar, B: labelled
+  rows; the user's CurseForge projects: this one, Type 95 Sniper Rifle Addition, Cinematic Interactions AE2 (owner
+  hamzatom); Etched Gate 1721458 is his too). Nothing changed on CurseForge.
+**Left**: the port to the six branches (once `.git` is here: worktrees from `port/<branch>`, cherry-pick 25ff8ca's
+fixes and today's changes, never close-on-pick; B4 by hand on 1.21.11/26.3; 1.20.1 `tags/entity_types/` and
+`tags/blocks/`; the Forge range), one CI round; the user's game test; Meridian; release 1.8.2.
+**The user asked (2026-11-13)**: "if we have the previz does that mean we dont have to make the animation?" Answered:
+no, a previz is a browser mock-up (three.js), not the in-game film; the game film is still built (RimuLib films, our
+shaders) to match it, but faster and without redoing shots. SA-05/06's previz v2 already exists (Fable's).
+
 ### >>> RESUME HERE (2026-11-13, Adam's PC): fixing every bug of Fable's review on main, then all seven <<<
 
 Written before a context compaction (the user: "write this down and remember it because compact is kinda soon").
@@ -1083,18 +1122,24 @@ Chrome tab suspender is gone since 2026-11-11); Hamza has neither (no tab suspen
 ## 1. What this is
 
 An unofficial addon for **The Shooting Star [Demo]** ("TSS", mod id `shooting_star_demo`, by rimuru_dev, CurseForge
-project 1719195, All Rights Reserved). It adds two skills to TSS's Stellar Remote:
+project 1719195, All Rights Reserved). Display name since 1.8.1: **The Shooting Star Addition: SA Series**. It adds
+four skills to TSS's Stellar Remote:
 
 - **SA-01 · Halley** (skill id `halley`): a comet comes in over the horizon, ploughs a frozen trench and detonates on the
   crosshair, leaving an icy crater with a Comet Heart block.
 - **SA-02 · Luna** (skill id `luna`, `MoonInfo.ID`; the code calls it "moon" everywhere else): the moon cracks, tears loose and falls onto the crosshair, leaving a crater with
   the moon (made of moon cheese) buried in it.
+- **SA-04 · Proxima** (skill id `proxima`): a red dwarf's flare focused through a gate onto the crosshair: a flash burn,
+  a glassy bowl, a shock wave, Solar Residue, a radiation zone, auroras (§15, `docs/SS-07-PROXIMA.md`). SA-03 is kept
+  free.
+- **SA-00 · Stellar Convergence** (skill id `stellar_convergence`): fires every ticked weapon at once, timed to land
+  together; unlocked by Stellar Quartet (§18).
 
 Mod id `shooting_star_addition`, Java package `dev.ss05.halley` (the "SS-05/SS-06" names in code are the old
 codenames; players see SA-01/SA-02). GitHub `Adamko-10/the-shooting-star-addition`; CurseForge project **1725916**
-(author `adamko_10`). Current version **1.7.0**, with **1.8.0** (Proxima) about to be released (1.7.0 released on GitHub 2026-11-07, all seven branches; TSS 1.5.2 + RimuLib 1.2.2 only; 1.6.0 = TSS 1.5.0, §16).
-Since 2026-11-03 `main` (not released) targets **TSS 1.5.1 only** with RimuLib 1.2.1 (§16, "TSS 1.5.1"); the other six
-branches are still on 1.5.0.
+(author `adamko_10`). Current version **1.8.1** (released 2026-11-11 on all seven branches; TSS 1.5.2 + RimuLib 1.2.2
+or newer only; 1.6.0 = TSS 1.5.0, §16); **1.8.2** (Fable's bug fixes + the Meridian port) is in the works. All seven
+branches target TSS 1.5.2 + RimuLib `[1.2.2,2.0)`.
 
 ## 2. Branches
 
@@ -1170,15 +1215,17 @@ Differences between branches you will hit when porting:
 
 ## 4. Building and CI
 
-**Local build** (any branch): `./gradlew --no-daemon build -x test` with `JAVA_HOME` = JDK 21
-(`C:\Program Files\Java\jdk-21.0.11`; NeoForge/Forge) or JDK 25 (`C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot`;
-the Fabric branches, as in CI). Put TSS jars in `libs/`, one per supported version, named
+**Local build** (any branch): `./gradlew --no-daemon build -x test` with `JAVA_HOME` = JDK 21 (NeoForge/Forge; Adam's
+PC: `C:\Program Files\Eclipse Adoptium\jdk-21.0.11.10-hotspot`, the VM: `C:\Program Files\Eclipse
+Adoptium\jdk-21.0.13.9-hotspot`) or JDK 25 (the Fabric branches, as in CI; not installed on Adam's PC or the VM, so
+Fabric builds on CI). Put TSS jars in `libs/`, one per supported version, named
 `the-shooting-star-demo-<ver>-<loader>.jar` and downloaded like CI does
 (`https://www.cursemaven.com/curse/maven/the-shooting-star-demo-1719195/<id>/the-shooting-star-demo-1719195-<id>.jar`,
-ids in `dev/ci/branches/<branch>.sh`). Make the mappings oldest first, each from the previous one:
-`./gradlew tssMappings -PtssJar=1.4.0`, then 1.4.1, 1.4.2, 1.4.3, 1.4.4 (a mapping made without the previous version's
-is garbage). Every worktree's libs/ has all of them, mapped, as of 2026-10-18. The build's `tssPack` step checks every TSS member and mixin target against every version: a "missing"
-there is a real bug. Fabric 1.20.1's Loom sometimes fails once with "Cannot mutate content repository descriptor":
+ids in `dev/ci/branches/<branch>.sh`), plus the one RimuLib jar (§16). Make the mappings oldest first, each from the
+previous one: `./gradlew tssMappings -PtssJar=1.4.0`, then 1.4.1 ... 1.4.4, 1.5.0, 1.5.1, 1.5.2 (a mapping made without
+the previous version's is garbage); only versions from `tss_min_version` (1.5.2) are packed, the older ones are there
+for the chain. The build's `tssPack` step checks every TSS member and mixin target against every packed version: a
+"missing" there is a real bug. Fabric 1.20.1's Loom sometimes fails once with "Cannot mutate content repository descriptor":
 run again. The `dev/tools/*.sh` scripts are the old container's (`/home/claude/...`), not usable here.
 
 **Local client test** (real GPU, opens a game window): `./gradlew --no-daemon runClientTest -Dss05.clienttest.skill=moon
@@ -1208,7 +1255,9 @@ against a readable copy of the newest jar and packs one mapped copy of `compat/t
 - `dev/ci/push-wip.sh <branch> [local ref]` (run from any worktree; it uses its own `dev/ci/`) builds a commit = the branch + `dev/ci/common/` + `dev/ci/branches/<branch>.sh` (as
   `.github/ci/branch.sh`) and force-pushes it to `wip/<branch>`. The branch itself is untouched.
 - The workflow downloads TSS jars from CurseForge by file id (`TSS_FILES` in `dev/ci/branches/<branch>.sh`), maps every
-  version in `TSS_OBF` (1.4.0 1.4.1 1.4.2 1.4.3 1.4.4), builds, runs the client tests and (forge-1.20.1) the server test, and
+  version in `TSS_OBF` (1.4.0 ... 1.5.2, oldest first), downloads RimuLib (`RIMULIB_FILE`), builds, runs the client
+  tests (Fabric and main only: the Forge branches are built, never run, since TSS 1.5.0, §16; forge-1.20.1's server
+  test can't run either), and
   publishes everything as a **draft release** `ci-<branch>-<run>`: `summary.txt` (`ok:`/`FAIL:` lines), `commit.txt`,
   the jar, `shots-*.zip` screenshots, and an encrypted `secret` part (logs, mappings, `skill-api.txt` = javap of TSS's
   `Skill` per version) that only the holder of the private key can read.
@@ -1217,9 +1266,11 @@ against a readable copy of the newest jar and packs one mapped copy of `compat/t
   user's PC (made 2026-10-16, never in git; its public half is `dev/ci/common/.github/ci/ci-key.pub.pem`).
 - Status: `gh api "repos/Adamko-10/the-shooting-star-addition/actions/runs?per_page=8" --jq '.workflow_runs[] |
   "\(.head_branch) \(.status) \(.conclusion) \(.run_number)"'`. A full round of 7 takes roughly 15-25 minutes.
-- Client tests (`client-test.sh`, run three times per branch): `halley`, `moon` (the real film with its HUD:
-  `film=true hud=true`; its last shot is the H menu with the addon's plate), and `tuned` (Luna with
-  `power=0.4 speed=3 damage=20`, aerial view, then the remote menu scrolled to the sliders). Options are
+- Client tests (`client-test.sh`, production-style runs with TSS's real jar): `halley`, `moon` (the real film with its HUD:
+  `film=true hud=true`; its last shot is the H menu with the addon's plate), `tuned` (Luna with
+  `power=0.4 speed=3 damage=20`, aerial view, then the remote menu scrolled to the sliders), and since 1.8.0/1.8.1
+  `proxima` (its film, a frame every half second by film time) and `convergence` (its film; not on every branch: see
+  each `dev/ci/branches/<branch>.sh`). Options are
   `-Dss05.clienttest.<name>` (`skill`, `shots`, `view`, `final`, `time`, `power`, `speed`, `damage`); `build.gradle`
   forwards them. On 26.3 the script installs EGL (`libegl1 libegl-mesa0`) when missing.
 - Delete the `wip/*` branches and `ci-*` draft releases after publishing.
@@ -1228,6 +1279,18 @@ against a readable copy of the newest jar and packs one mapped copy of `compat/t
 container's absolute paths (`/home/claude/...`): adjust before use.
 
 ## 5. How the addon attaches to TSS
+
+**Now (1.8.x)**, before the 1.4.x notes below: the remote, the menu, films, carving, erasing and networking are
+RimuLib's (§16); skills join with RimuLib's public `SkillApi.whenRegistered` + `extend` (§17a), the plates draw through
+`UiApi.onMenuDraw` + `MenuApi.onKey`, packets go through `NetApi`. Only what is still inside TSS (the cast request, the
+running-spell lookup and `aimGround`, FxManager's passes and shake, the effect packet record) needs the mappings, plus a
+few RimuLib internals with no public API (§17a). Spells run on our own `compat/tss/Spell` clock, ticked from the
+loader's server tick (§16). The mixins now: `CastingMixin` (cooldowns, the server's slider limits), `StarCastMixin` +
+`SpellsMixin` (TSS's "already on its way", `aimGround` for `/ssa strike ... at`), `FxManagerMixin` (our film overlays
+from both overlay passes, Convergence's shake), and on RimuLib: `CutsceneDirectorMixin` (Convergence holds the weapons'
+films), `PostFxRendererMixin` (shake OFF), `SkillKeysMixin` (Gravitia's key), `WhiteSpaceMixin` (main only:
+`close_menu_on_pick`, at the TAIL of `WhiteSpace.commit`). `RemoteRendererMixin` is gone (1.5.0), and so is the old
+`WhiteSpaceMixin` on TSS's menu (2026-11-05). All optional (`require = 0`).
 
 - TSS has no addon API. Since 1.4.0 it is obfuscated with new names every release. `compat/tss/` is written against the
   readable 1.3.x names; the build maps it per version (`tools/tss/`: `TssMappings`, `TssMatch`, `TssRemap`, `TssPack`).
