@@ -36,7 +36,11 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   said Opus builds it and Fable may propose shaders. **The user, 2026-11-13: "Yes, Fable builds it"**: Fable 5.2 builds
   SA-05/06's films too (the space scene, SA-05's film, SA-06's film shots; films' own files only, proposals for the
   rest), Opus the skills, time stop, world, ground effects, wiring and ports: `docs/SA-05-06-BUILD-PLAN.md` "Who builds
-  what". Fable's prompt for it gets written when stage 1 is done.
+  what". Fable's prompt for it gets written when stage 1 is done. The user then asked "fable built a previz cant we use
+  that, do u not have access to that?": yes, it IS what the films are built to (no new previz); the published page
+  reads fine from here (the Artifact tool's read; it shows as "outside your organization" on the VM's account) and a
+  copy is saved at `C:\Users\User\Desktop\previz\great-attractor\SA-05-06 previz v2 (published page, 2026-11-13).html`;
+  only its source folder (`NOTES.md` tick tables, `HANDOVER.md`) is still PC-only.
 - **Idle compaction off on the VM** (the user asked): `"idleCompaction": false` in `C:\Users\User\.claude\settings.json`.
 
 ### RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven
