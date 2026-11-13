@@ -26,7 +26,10 @@ pipelines; Fable may review those ports read-only).
 Before Fable starts: stage 1 is done, CLAUDE.md has a "For Fable: the film" section (the films' files and folders,
 how a film is started, the plan's ticks, what the film can read), Fable's prompt is written (like the TON 618 one,
 `C:\Users\User\Desktop\ton 618 addition\prompts\FABLE-PREVIZ-AND-FILM-PROMPT.md`, Part 2), and, if the work is on the
-VM, the previz source (`previz\great-attractor\` in the PC's project folder) is copied over.
+VM, the previz source (`previz\great-attractor\` in the PC's project folder, with `NOTES.md`'s tick tables and
+`HANDOVER.md`) is copied over. The VM already has the published page (with its timings in the code):
+`C:\Users\User\Desktop\previz\great-attractor\SA-05-06 previz v2 (published page, 2026-11-13).html`, read from the
+artifact. **No new previz is made for SA-05/06**: Fable's version 2 is the one the films are built to.
 
 ## Stage 1: SA-05 on the remote, and the time stop (no film yet)
 
