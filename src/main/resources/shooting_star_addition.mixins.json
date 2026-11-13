@@ -9,6 +9,7 @@
   "client": [
     "ClientLevelMixin",
     "ClientLevelTimeMixin",
+    "GameRendererMixin",
     "CompassSpinMixin",
     "LevelRendererMoonMixin",
     "PlayerModelMixin"

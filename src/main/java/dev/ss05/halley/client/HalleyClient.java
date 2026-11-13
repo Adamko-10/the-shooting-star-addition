@@ -44,8 +44,6 @@ public final class HalleyClient {
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, TickEvent.RenderTickEvent.Post.class, event -> FilmPanels.endOfFrame());
         MinecraftForge.EVENT_BUS.addListener(HalleySky::render);
         MinecraftForge.EVENT_BUS.addListener(ProximaCosmos::renderSky);
-        // with a shader pack on, Proxima's sky gate is drawn here, before the GUI (Fable's review, B4)
-        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.client.event.RenderGuiEvent.Pre event) -> ProximaCosmos.renderSkyLate());
         MinecraftForge.EVENT_BUS.addListener(HalleySky::fog);
         // Proxima's Earth images (two 4096 maps, mipmapped) loaded as the world is joined, not mid-film (that stall made the
         // film's music and soundtrack stutter)
