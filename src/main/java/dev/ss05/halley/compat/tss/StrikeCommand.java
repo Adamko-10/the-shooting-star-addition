@@ -15,6 +15,7 @@ import cyou.rimuru.rimulib.mc1211.skill.Tuning;
 import dev.ss05.halley.NoCooldown;
 import dev.ss05.halley.ProximaConfig;
 import dev.ss05.halley.ProximaParams;
+import dev.ss05.halley.world.ProximaStrike;
 import dev.ss05.halley.world.SolarFlares;
 import java.util.Locale;
 import net.minecraft.ChatFormatting;
@@ -62,7 +63,26 @@ final class StrikeCommand {
                     .suggests((c, builder) -> SharedSuggestionProvider.suggest(new String[] {"minor", "major", "cataclysm"}, builder))
                     .executes(c -> flare(c, ProximaConfig.tuning().warningSeconds()))
                     .then(Commands.argument("seconds", IntegerArgumentType.integer(1, 600))
-                        .executes(c -> flare(c, IntegerArgumentType.getInteger(c, "seconds")))))));
+                        .executes(c -> flare(c, IntegerArgumentType.getInteger(c, "seconds"))))))
+            // Proxima's radiation zones in this world: list them, or clear them all (a permanent one has no other way out)
+            .then(Commands.literal("zones")
+                .executes(StrikeCommand::listZones)
+                .then(Commands.literal("list").executes(StrikeCommand::listZones))
+                .then(Commands.literal("clear").executes(c -> {
+                    int cleared = ProximaStrike.clearZones(c.getSource().getLevel());
+                    c.getSource().sendSuccess(() -> Component.literal("Cleared " + cleared + " radiation zone(s) in this world."), true);
+                    return cleared;
+                }))));
+    }
+
+    private static int listZones(CommandContext<CommandSourceStack> c) {
+        java.util.List<String> lines = ProximaStrike.zoneLines(c.getSource().getLevel());
+        c.getSource().sendSuccess(() -> Component.literal(lines.isEmpty() ? "No radiation zones in this world."
+            : lines.size() + " radiation zone(s) in this world:"), false);
+        for (String line : lines) {
+            c.getSource().sendSuccess(() -> Component.literal("  " + line), false);
+        }
+        return lines.size();
     }
 
     private static int flare(CommandContext<CommandSourceStack> c, int seconds) throws CommandSyntaxException {

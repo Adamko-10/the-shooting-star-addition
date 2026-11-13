@@ -346,7 +346,14 @@ final class MoonLand {
     static void tickLingering() {
         for (Iterator<MoonLand> it = LINGERING.iterator(); it.hasNext(); ) {
             MoonLand land = it.next();
-            if (land.lingerTick()) {
+            boolean done;
+            try {
+                done = land.lingerTick();
+            } catch (RuntimeException | LinkageError failed) {
+                dev.ss05.halley.HalleyAddon.LOG.error("A past moonfall's leftover rim and cracks failed and were dropped", failed);
+                done = true;
+            }
+            if (done) {
                 it.remove();
             }
         }

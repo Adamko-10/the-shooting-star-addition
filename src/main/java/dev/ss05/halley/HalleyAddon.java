@@ -84,7 +84,12 @@ public final class HalleyAddon {
             StarBridge.tick(ServerLifecycleHooks.getCurrentServer());
             MoonStrike.tickLingering();
             dev.ss05.halley.world.ProximaStrike.tickLingering(event.getServer());
-            dev.ss05.halley.world.SolarFlares.tick(event.getServer());
+            try {
+                dev.ss05.halley.world.SolarFlares.tick(event.getServer());
+            } catch (RuntimeException | LinkageError failed) {
+                // random flares are a side feature: never let one stop the server
+                LOG.error("A random solar flare failed", failed);
+            }
         });
         MinecraftForge.EVENT_BUS.addListener((RegisterCommandsEvent event) -> StarBridge.registerCommands(event.getDispatcher()));
         MinecraftForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> {
