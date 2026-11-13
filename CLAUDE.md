@@ -21,6 +21,13 @@ Written before a context compaction (the user: "write this down and remember it 
 the Meridian port as **1.8.2**; the late-November update becomes **1.9.0** (the user, 2026-11-13: "yes 1.8.2 then
 1.9.0"; still to change: `announcements\roadmap 2026-11-11.md` and the website's `data.js` roadmap, which say 1.8.2
 for late November).
+**Next sessions may run on a VM (the user, 2026-11-13)**: the project there is
+`C:\Users\User\Desktop\the shooting star addition on vm` (a copy of this repo folder). Not on the VM unless copied:
+the rest of the project folder (`prompts\`, `reviews\`, `test builds\`, `backups\`, the `ports\` worktrees, `other
+mods\`), the user's Modrinth profiles, the CI decryption key, and maybe JDK 21, `gh` (signed in), Node and ffmpeg:
+check them first. Test jars made on the VM stay in its folder for the user to copy to his PC. When the user says he's
+moving to another conversation, ask whether it's on the VM (his personal rules say so too).
+
 **UPDATE 2026-11-13 (the user is low on usage and moves to a new conversation): almost all of it is DONE on main,
 committed as `25ff8ca` (local, not pushed), and main BUILDS (pack check clean); not game-tested.** Done in `25ff8ca`:
 R1, R3, B1, B3, B5 (below), plus:
