@@ -19,8 +19,8 @@ Written before a context compaction (the user: "write this down and remember it 
 **Doing now (the user: "lets just plan on fixing every bug on that list" + "Start now")**: the plan is
 `docs/BUGFIX-PLAN.md`; the findings are the project folder's `reviews\fable-bug-review\FINDINGS.md`. They ship with
 the Meridian port as **1.8.2**; the late-November update becomes **1.9.0** (the user, 2026-11-13: "yes 1.8.2 then
-1.9.0"; still to change: `announcements\roadmap 2026-11-11.md` and the website's `data.js` roadmap, which say 1.8.2
-for late November).
+1.9.0"; both roadmaps were changed to match on 2026-11-13: `announcements\roadmap 2026-11-11.md` and the website's
+`data.js`, a local commit there, not pushed).
 **Next sessions may run on a VM (the user, 2026-11-13)**: the project there is
 `C:\Users\User\Desktop\the shooting star addition on vm` (a copy of this repo folder). Not on the VM unless copied:
 the rest of the project folder (`prompts\`, `reviews\`, `test builds\`, `backups\`, the `ports\` worktrees, `other
@@ -105,6 +105,19 @@ when it's out, then release 1.8.2; (6) the TON 618 brief and the CurseForge desc
     new top (Discord, YouTube, Instagram and TikTok `the_game_explainer`, the website once it's on Cloudflare, the
     other mods), show it to the user before changing anything on CurseForge.
   - Educational mode and SA-06 as its own ability: written in `docs/NEXT-SKILLS.md` (2026-11-13).
+  - **Wallpapers (the user, 2026-11-13; not started)**: make PC wallpapers, and in the future ones "for Discord itself
+    once its on rust" (his words; what "on rust" means wasn't asked). Put them on **Wallpaper Engine** (Steam Workshop;
+    uploading goes through Wallpaper Engine's own editor, so the user needs the app) and **on the website** (a
+    wallpapers section, still to add there). Notes for when it starts: only our own art, never TSS's assets (rimuru_dev's
+    terms, §9); NASA imagery is public domain, Solar System Scope's is CC BY 4.0 (credit it); music in an animated one
+    needs DOM_MusicST's and FarzanNB's OK; sizes 1920x1080, 2560x1440, 3840x2160 and ultrawide 3440x1440; Wallpaper
+    Engine takes stills, videos and web pages, so the three.js previz pages could become animated wallpapers.
+  - **The website, publishing (2026-11-13)**: it's complete and pushed to its private repo (`5a904f1`); the roadmap
+    fix (1.8.2 = Meridian support + bug fixes, late November = 1.9.0) is a local commit there, not pushed. To publish:
+    push that, then the user makes a free Cloudflare account, Workers & Pages > Create > Pages > Connect to Git >
+    `adamko-website`, no build command, output folder = the root; it goes live at `<name>.pages.dev` (a custom domain
+    later costs ~$10 a year). Claude's advice: publish now, nothing in it waits for a release, and the CurseForge
+    description's new top wants its link.
 - Why all the builds (the user asked): each change lands in seven versions' code, and a version can fail to compile
   even when the change applied cleanly; local builds cost no usage (30-60 s each), the Fabric ones run on CI (free).
 - An untracked `AGENTS.md` appeared in the repo root (not Claude's; probably Codex's): left alone, never commit it
