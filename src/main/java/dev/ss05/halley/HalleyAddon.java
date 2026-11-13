@@ -81,7 +81,12 @@ public final class HalleyAddon {
             StarBridge.tick(event.getServer());
             MoonStrike.tickLingering();
             dev.ss05.halley.world.ProximaStrike.tickLingering(event.getServer());
-            dev.ss05.halley.world.SolarFlares.tick(event.getServer());
+            try {
+                dev.ss05.halley.world.SolarFlares.tick(event.getServer());
+            } catch (RuntimeException | LinkageError failed) {
+                // random flares are a side feature: never let one stop the server
+                LOG.error("A random solar flare failed", failed);
+            }
         });
         NeoForge.EVENT_BUS.addListener(RegisterCommandsEvent.class, event -> StarBridge.registerCommands(event.getDispatcher()));
         NeoForge.EVENT_BUS.addListener(ServerStoppedEvent.class, event -> {

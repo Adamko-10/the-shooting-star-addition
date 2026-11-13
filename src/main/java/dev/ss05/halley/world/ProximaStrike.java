@@ -54,6 +54,8 @@ public final class ProximaStrike {
     public static final ResourceKey<DamageType> RADIATION = ResourceKey.create(Registries.DAMAGE_TYPE, HalleyAddon.id("proxima_radiation"));
     /** Lands still waiting for chunks to load, after their strike. */
     private static final List<ProximaLand> LINGERING = new ArrayList<>();
+    /** Worlds whose radiation zones failed to tick (logged once each). */
+    private static final java.util.Set<ResourceKey<net.minecraft.world.level.Level>> ZONES_FAILED = new java.util.HashSet<>();
 
     private final ServerLevel level;
     private final ProximaPlan plan;
@@ -67,6 +69,8 @@ public final class ProximaStrike {
     /** How far out ground zero's shock wave has hit (it burns and throws as it runs out, see {@link ProximaPlan#waveRadius}). */
     private double waveHit = -1.0;
     private final java.util.Set<java.util.UUID> struck = new java.util.HashSet<>();
+    /** The game time of the impact (Long.MAX_VALUE before it). */
+    private long impactAt = Long.MAX_VALUE;
 
     public ProximaStrike(ServerLevel level, ProximaPlan plan, @Nullable ServerPlayer caster, CastTuning cast) {
         this.level = level;
@@ -130,17 +134,53 @@ public final class ProximaStrike {
     public static void tickLingering(MinecraftServer server) {
         if (server.getTickCount() % 20 == 0) {
             for (ServerLevel level : server.getAllLevels()) {
-                Zones.of(level).tick(level);
+                try {
+                    Zones.of(level).tick(level);
+                } catch (RuntimeException | LinkageError failed) {
+                    // the zones are saved, so a failure here would come back on every start: log it once and go on
+                    if (ZONES_FAILED.add(level.dimension())) {
+                        dev.ss05.halley.HalleyAddon.LOG.error("Proxima's radiation zones in {} failed; they stay but don't hurt",
+                            level.dimension().location(), failed);
+                    }
+                }
             }
         }
         LINGERING.removeIf(land -> {
-            land.tick(Double.MAX_VALUE);
-            return land.finished();
+            try {
+                land.tick(Double.MAX_VALUE);
+                return land.finished();
+            } catch (RuntimeException | LinkageError failed) {
+                dev.ss05.halley.HalleyAddon.LOG.error("A past flare's leftover land failed and was dropped", failed);
+                return true;
+            }
         });
     }
 
     public static void clearLingering() {
         LINGERING.clear();
+    }
+
+    /** For `/ssa zones list`: one line per radiation zone in this world (where, how wide, how long it has left). */
+    public static List<String> zoneLines(ServerLevel level) {
+        List<String> lines = new ArrayList<>();
+        long now = level.getGameTime();
+        for (Zones.Zone zone : Zones.of(level).zones) {
+            String left = zone.until() == Long.MAX_VALUE ? "permanent" : Math.max(0L, (zone.until() - now) / 20L) + " s left";
+            lines.add(String.format(java.util.Locale.ROOT, "%d %d %d, %d blocks wide, %s", (int) Math.floor(zone.centre().x),
+                (int) Math.floor(zone.centre().y), (int) Math.floor(zone.centre().z), (int) Math.round(zone.radius() * 2.0), left));
+        }
+        return lines;
+    }
+
+    /** For `/ssa zones clear`: removes every radiation zone in this world; returns how many there were. */
+    public static int clearZones(ServerLevel level) {
+        Zones zones = Zones.of(level);
+        int count = zones.zones.size();
+        if (count > 0) {
+            zones.zones.clear();
+            zones.setDirty();
+        }
+        return count;
     }
 
     /**
@@ -237,7 +277,17 @@ public final class ProximaStrike {
 
     // ---- Ground zero. ----------------------------------------------------------------------------------------------
 
+    /**
+     * Items and experience that appeared since the impact (what a player killed in the bowl dropped): the wave runs over
+     * the bowl again every tick, and would wipe them before anyone could pick them up (Fable's review, R2).
+     */
+    private boolean droppedSinceImpact(Entity entity) {
+        return (entity instanceof net.minecraft.world.entity.item.ItemEntity || entity instanceof net.minecraft.world.entity.ExperienceOrb)
+            && entity.tickCount <= this.level.getGameTime() - this.impactAt + 1;
+    }
+
     private void impact(@Nullable ServerPlayer caster) {
+        this.impactAt = this.level.getGameTime();
         double bowl = this.plan.params.bowlRadius();
         for (Entity entity : this.level.getEntities((Entity) null, this.around(bowl), Entity::isAlive)) {
             if (this.plan.horizontal(entity.getX(), entity.getZ()) < bowl) {
@@ -301,7 +351,8 @@ public final class ProximaStrike {
                 StarBridge.hit(this.level, living, living == caster ? null : caster, this.cast.damage());
             }
         } else if (!(entity instanceof Player) && entity.getPassengers().isEmpty()
-                && (caster == null || entity != caster.getVehicle())) {
+                && (caster == null || entity != caster.getVehicle()) && Protected.removable(entity)
+                && !this.droppedSinceImpact(entity)) {
             entity.discard();
         }
     }
