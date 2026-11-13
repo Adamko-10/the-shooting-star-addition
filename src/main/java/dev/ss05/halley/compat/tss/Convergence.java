@@ -422,16 +422,22 @@ public final class Convergence {
 
     /** A non-hidden remote skill by its id (any mod's). */
     static Skill find(String id) {
-        for (SkillSet set : SkillSet.all()) {
-            if (!set.hidden) {
-                for (Skill skill : set.skills) {
-                    if (skill.id().equals(id)) {
-                        return skill;
-                    }
+        // only the remote's own list (TSS's skills, ours and other addons' that joined it): never a skill from another
+        // mod's own RimuLib skill set, which the player may not even hold the item for (Fable's review, A5)
+        SkillSet set = remote();
+        if (set != null) {
+            for (Skill skill : set.skills) {
+                if (skill.id().equals(id)) {
+                    return skill;
                 }
             }
         }
         return null;
+    }
+
+    /** The Stellar Remote's skill set (the one we joined), or null before we have. */
+    static SkillSet remote() {
+        return SkillSet.of(TssLink.SKILL);
     }
 
     /** The ground at x, z if that land is loaded (never loads it), else {@code fallback}. */
