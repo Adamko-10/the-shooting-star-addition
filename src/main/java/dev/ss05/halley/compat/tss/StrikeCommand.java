@@ -112,6 +112,8 @@ final class StrikeCommand {
             + "skill as you, aimed where you look (or at x y z), with no cooldown. Unset values are the skill's defaults."), false);
         c.getSource().sendSuccess(() -> Component.literal("/ssa flare <minor|major|cataclysm> [seconds]: a solar flare near you, "
             + "announced to your world first (seconds: the warning, else the config's warning_seconds)."), false);
+        c.getSource().sendSuccess(() -> Component.literal("/ssa zones [list|clear]: Proxima's radiation zones in your world: "
+            + "where they are and how long they have left, or clear them all."), false);
         c.getSource().sendSuccess(() -> Component.literal(WARNING).withStyle(ChatFormatting.RED), false);
         return 1;
     }

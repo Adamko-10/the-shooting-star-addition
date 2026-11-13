@@ -104,7 +104,10 @@ drives deep into it, the crust buckling up against it, and comes to rest there w
 
 The Dyson sphere focuses a solar flare through a gate above your target. The flash burns exposed ground, then a
 coronal mass ejection carves a glassy bowl and sends a shock wave out across the land. Solar Residue and Flare Ash
-remain after the strike, along with a radiation zone and nighttime auroras.
+remain after the strike, along with a radiation zone and nighttime auroras. It needs open sky over the mark: it
+refuses where there is no sky (like the Nether) and under a roof or deep in a cave. Items and experience dropped after
+the impact (a player's things if they die in the bowl) are left alone. Operators can list and clear the radiation
+zones with `/ssa zones`.
 
 Proxima has its own 36-second film, music and default key (**Z**). Servers can configure the strike and enable random
 flares in the `[proxima]`, `[proxima_size]`, `[proxima_world]` and `[proxima_flares]` sections.
@@ -172,11 +175,19 @@ they can freeze or crash a server. `/ssa` alone shows the help. From the console
 
 `/ssa flare <minor|major|cataclysm> [seconds]` schedules a natural flare near the operator, with a warning first.
 
-## Protected blocks
+`/ssa zones [list|clear]` lists Proxima's radiation zones in your world (where, how big, how long they have left) or
+clears them all.
 
-Blocks in the tag `shooting_star_addition:unbreakable` are never carved by Halley or Luna: bedrock, barriers, command
-and structure blocks, jigsaws, end portals and their frames, and reinforced deepslate. Servers can add more with a data
-pack (`data/shooting_star_addition/tags/block/unbreakable.json`).
+## Protected blocks and things
+
+Blocks in the tag `shooting_star_addition:unbreakable` are never carved by Halley, Luna or Proxima: bedrock, barriers,
+command and structure blocks, jigsaws, end portals and their frames, End gateways and reinforced deepslate. Servers can
+add more with a data pack (`data/shooting_star_addition/tags/block/unbreakable.json`).
+
+Things in the entity type tag `shooting_star_addition:never_removed` are never deleted by a strike: by default grave
+mods' corpses (`corpse:corpse`, which hold a dead player's items) and Create's contraptions and trains, when those mods
+are installed. Servers can add more (`data/shooting_star_addition/tags/entity_type/never_removed.json`). Living things
+are still hurt as usual.
 
 ## A key for Gravitia
 
@@ -257,7 +268,7 @@ Each player can set these for themselves; they only change what you see.
 | `extra_effects`  | true    | Fragments, sparks, ice from the crater, cracks, the shock wall, the heart's beam, glittering air. |
 | `world_flashes`  | true    | The whole world lights up for an instant at touchdown and impact. Turn off if flashing light bothers you. |
 | `comet_marker`   | true    | The arrow at the edge of the screen pointing at the comet while it's out of view. |
-| `shader_packs`   | AUTO    | How it's drawn with a shader pack: `AUTO` switches to the shader-pack way whenever Iris has a pack on, `ALWAYS` uses it all the time, `NEVER` doesn't (the comet and the sky then won't show under a shader pack). |
+| `shader_packs`   | AUTO    | How it's drawn with a shader pack: `AUTO` switches to the shader-pack way whenever Iris (or a port that keeps Iris's API) has a pack on, `ALWAYS` uses it all the time, `NEVER` doesn't (the strikes' glow and skies then won't show under a shader pack). **OptiFine isn't detected: with OptiFine shaders, set `ALWAYS`.** |
 
 And your switches from the remote's menu (**H**), in the `[stellar_remote]` section of the same file:
 
@@ -356,11 +367,14 @@ de-obfuscation map of The Shooting Star.
    list (`SkillSet`) changed shape: `TssLink.install()` finds the fields it needs by their types.
 6. **Smaller things that may stop without breaking anything** — optional mixins that switch themselves off if their
    target moved:
-   - the remote's cover/button/screen not animating for Halley and Luna → `compat/tss/mixin/RemoteRendererMixin`
-     (`strikeTime`);
-   - no overlay of theirs on the cutscene → `compat/tss/mixin/FxManagerMixin` (`renderFilmHud`);
-   - the no-cooldown note missing from the remote's menu → `compat/tss/mixin/WhiteSpaceMixin` (`render`); the
-     `no_cooldown` option not clearing cooldowns → `compat/tss/mixin/CastingMixin` (`syncCooldowns`);
+   - no overlay of theirs on the cutscene (letterbox, captions, title cards), or Stellar Convergence's shake not held
+     → `compat/tss/mixin/FxManagerMixin` (both overlay passes, `applyShake`);
+   - the `no_cooldown` option not clearing cooldowns, or the server's slider limits not holding →
+     `compat/tss/mixin/CastingMixin` (`syncCooldowns` and the cast request); The Shooting Star's own skills still saying
+     "already on its way" → `StarCastMixin` and `SpellsMixin` (also `/ssa strike ... at`, through `aimGround`);
+   - Stellar Convergence's film showing the weapons' own films → `CutsceneDirectorMixin` (RimuLib);
+   - Gravitia without a key → `SkillKeysMixin` (RimuLib). The plates in the menu use RimuLib's public API
+     (`UiApi`, `MenuApi`), no mixin;
    - the caster's arm not raising (vanilla target, very unlikely to change) → `compat/mixin/PlayerModelMixin`;
    - the land not dimming under the dark sky (vanilla target, very unlikely to change) → `compat/mixin/ClientLevelMixin`;
    - with a shader pack on, the sky not going to night (vanilla target, very unlikely to change) →

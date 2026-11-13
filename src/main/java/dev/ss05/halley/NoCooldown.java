@@ -11,15 +11,21 @@ import net.minecraft.server.level.ServerPlayer;
  * Who has the Stellar Remote's cooldowns off (server side). The server's config allows it ({@code no_cooldown}), for
  * creative and spectator players, and for survival players too if {@code no_cooldown_survival} says so; each player
  * then switches it on or off for themselves in the remote's menu (on until they do). The game hooks are in
- * {@code compat/tss/mixin/CastingMixin} (the remote's cooldowns), {@code world/HalleyCasting} and
- * {@code world/MoonCasting} (casting again while one is still coming down).
+ * {@code compat/tss/mixin/CastingMixin} (the remote's cooldowns), {@code StarCastMixin} and {@code SpellsMixin} (The
+ * Shooting Star's own "already on its way"), and {@code world/HalleyCasting}, {@code MoonCasting} and
+ * {@code ProximaCasting} (casting ours again while one is still running).
  */
 public final class NoCooldown {
     /** Each player's own switch, as their game last told the server (players who never said have it on). */
     private static final Map<UUID, Boolean> CHOICE = new ConcurrentHashMap<>();
     /** Set while The Shooting Star casts one of its own skills for a player this applies to (the server thread). */
     private static boolean casting;
-    /** Set while an operator's /ssa strike casts: no cooldown and no "already on its way" for it, whoever runs it. */
+    /**
+     * Set while the addon itself casts for a player: an operator's /ssa strike, and each weapon a Stellar Convergence
+     * fires (its queued casts, {@code Convergence.tick}). No "already on its way" for that cast, whoever it is for; the
+     * remote's cooldown isn't checked on that path anyway (it casts through RimuLib's {@code SkillSet.cast}, not the
+     * remote's cast request).
+     */
     private static boolean forced;
 
     private NoCooldown() {
@@ -47,7 +53,10 @@ public final class NoCooldown {
         forced = on;
     }
 
-    /** Whether an operator's /ssa strike is casting right now. */
+    /**
+     * Whether the addon itself is casting right now ({@link #forced}): an operator's /ssa strike or a Stellar
+     * Convergence's queued weapon. (Convergence's own lock checks it only on its own cast, where it means the command.)
+     */
     public static boolean commandCast() {
         return forced;
     }
