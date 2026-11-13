@@ -12,7 +12,32 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven <<<
+### >>> RESUME HERE (2026-11-13 ~17:30, the VM): test jars for all seven in Downloads; TON 618 addon session started <<<
+
+- **Test jars, all seven** (the user: "give me ready jars to test in downloads folder"): the green CI jars (main #228,
+  forge-1.21.1 #235, forge-1.20.1 #230, fabric-1.21.1 #231, fabric-1.20.1 #232, fabric-1.21.11 #233, fabric-26.3 #236;
+  each `commit.txt` = the wip head below, every summary line `ok:`) renamed `The Shooting Star Addition SA Series 1.8.1
+  + bug fixes TEST [<Loader> <MC>].jar`, in `C:\Users\User\Downloads\SA Series bug-fix test jars (2026-11-13)\` and a
+  copy in `C:\Users\User\Desktop\test builds\2026-11-13 bug fixes, all seven\`. Version inside still 1.8.1; they need
+  TSS 1.5.2 + RimuLib 1.2.2 or newer (+ Fabric API on Fabric). Meridian checked 17:20: still not out (TSS newest 1.5.2,
+  RimuLib 1.2.3).
+- **TON 618 addon**: its own session, [TON 618 Addition](#local_90baaa50-b05e-4e59-82c3-b2623e47b113) (Opus 5.5,
+  xhigh, the user's pick), in its own project folder `C:\Users\User\Desktop\ton 618 addition` (the prompt that was
+  `C:\Users\User\Desktop\TON618 addon prompt.md` is now its `BRIEF.md`, updated). **The user, 2026-11-13: "keep in
+  mind animation and previz will be made by fable"**: Fable 5.2 makes the TON 618 addon's previz **and** its in-game
+  film (in the film's own files only; anything else as proposals to `reviews\fable\PROPOSALS.md`), the Opus session
+  builds the rest and documents the film's place under "For Fable: the film" in its CLAUDE.md. Fable's prompt:
+  `C:\Users\User\Desktop\ton 618 addition\prompts\FABLE-PREVIZ-AND-FILM-PROMPT.md` (Part 1 previz now, Part 2 the
+  film once the previz is approved and the mod is ready). The user runs it (Fable 5.2, High, ponytail off).
+- **The user asked: "are we using the animation fable made for SA-05 and SA-06?"** Answered: yes, as the blueprint:
+  Fable's previz v2 (https://claude.ai/artifact/S5kyk3ACpBUWZg6fPi48VR; source only on the PC, `previz\great-attractor\`)
+  is what `docs/SA-05-06-BUILD-PLAN.md` builds in game (6 stages, ~2-3 weeks of sessions, January); it's three.js, so
+  the game film is rebuilt to match it (timings, shots, shader ideas carry over); nothing of it is built yet. The plan
+  says Opus builds it and Fable may propose shaders; **asked the user whether Fable should build SA-05/06's film too**,
+  as for TON 618 (no answer yet).
+- **Idle compaction off on the VM** (the user asked): `"idleCompaction": false` in `C:\Users\User\.claude\settings.json`.
+
+### RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven
 
 **`.git` arrived on the VM** (the user copied it; HEAD was `5f0b9cf`). On main: `9e534bb` (the docs/extras below, the
 code part) and `90bf5ed` (CLAUDE.md). The VM repo has its own git identity set (Adamko-10, noreply); `git worktree
