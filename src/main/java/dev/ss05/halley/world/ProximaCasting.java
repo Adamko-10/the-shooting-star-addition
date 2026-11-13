@@ -25,7 +25,17 @@ public final class ProximaCasting {
             StarBridge.deny(player, ProximaInfo.title() + ": the flare is already on its way");
             return false;
         }
+        // a flare comes down out of the sky: none in a world with a roof (the Nether), none onto a mark deep under the land
+        // (its bowl would be cut into the roof or the surface far above, while the mark itself is erased)
+        if (player.level().dimensionType().hasCeiling()) {
+            StarBridge.deny(player, ProximaInfo.title() + ": there is no sky here");
+            return false;
+        }
         Vec3 target = StarBridge.aimGround(player, HalleyConfig.tuning().reach(), 260.0);
+        if (ProximaStrike.groundAt(player.level(), (int) Math.floor(target.x), (int) Math.floor(target.z)) > target.y + 6.0) {
+            StarBridge.deny(player, ProximaInfo.title() + ": the flare needs open sky over the mark");
+            return false;
+        }
         StarBridge.startProxima(player, target, player.getRandom().nextLong(), ProximaParams.of(cast.power()), cast);
         return true;
     }

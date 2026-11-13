@@ -133,7 +133,7 @@ public final class ProximaCosmos {
      * the film reaches the lens, unfolds, its ring glowing brighter as the star's power gathers far away; the shot
      * streaks in from deep space, the gate catches it and refocuses it into a narrow beam down onto the mark, landing
      * just before the flare's flash, when it's gone. Drawn after the particles with the world's own depth (land and
-     * clouds in front hide it). Not for random flares. Shader packs: not checked.
+     * clouds in front hide it). Not for random flares. Not drawn while a shader pack is on (see below).
      */
     public static void renderSky(WorldRenderContext context) {
         ProximaRender program = shader;
@@ -157,6 +157,12 @@ public final class ProximaCosmos {
         Vector3f up = new Vector3f(camera.upVector());
         Pass pass = new Pass(view, RenderSystem.getProjectionMatrixBuffer(), eye.subtract(gate).scale(1.0 / SKY_SCALE),
             new Vec3(-left.x, -left.y, -left.z), new Vec3(up.x, up.y, up.z), (float) t);
+        if (dev.ss05.halley.client.render.ShaderPacks.active()) {
+            // a shader pack masks what our own pipeline draws in the world pass, so the gate isn't drawn with one on.
+            // Main draws it before the GUI instead (Fable's review, B4); this version's frame is put together
+            // differently and that hook isn't built here yet
+            return;
+        }
         program.beginWorld();
         skyGate(program, pass, t, fx.plan.target.subtract(gate).scale(1.0 / SKY_SCALE));
     }

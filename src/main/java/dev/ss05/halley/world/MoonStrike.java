@@ -409,7 +409,7 @@ public final class MoonStrike {
                 StarBridge.hit(this.level, living, living == caster ? null : caster, this.cast.damage());
             }
         } else if (!(entity instanceof Player) && entity.getPassengers().isEmpty()
-                && (caster == null || entity != caster.getVehicle()) && !entity.isRemoved()) {
+                && (caster == null || entity != caster.getVehicle()) && !entity.isRemoved() && Protected.removable(entity)) {
             entity.discard();
         }
     }
