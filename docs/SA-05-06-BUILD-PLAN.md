@@ -13,6 +13,21 @@ Rules that hold throughout:
 - nothing from The Shooting Star or other mods; the two galaxy pictures are public domain (credit both: NASA/JPL-Caltech/
   R. Hurt's Milky Way map, Hubble's M74 used as Andromeda's body).
 
+## Who builds what (the user, 2026-11-13: "Yes, Fable builds it")
+
+**Fable 5.2 builds the films** (as for the TON 618 addon): stage 2's space scene, stage 3's SA-05 film and stage 5's
+SA-06 film shots, to match its own previz, on `main`, **in the films' own files only** (their storyboard and cutscene
+classes, the space scene, its shaders, textures and title cards). Anything it needs outside them goes as a proposal
+(what, where, why, the patch) to a proposals file, and Opus applies the ones the user picks. Fable never refactors or
+edits the rest. **Opus builds everything else**: stage 1 (the skills, the time stop, Reverse Collision, configs),
+stage 4's ground effects (Fable may propose their look), stage 5's world (the void, the platform), wiring the films
+in, and stage 6 (the ports to the six branches, including the hand port of the space scene to 26.3/1.21.11's
+pipelines; Fable may review those ports read-only).
+Before Fable starts: stage 1 is done, CLAUDE.md has a "For Fable: the film" section (the films' files and folders,
+how a film is started, the plan's ticks, what the film can read), Fable's prompt is written (like the TON 618 one,
+`C:\Users\User\Desktop\ton 618 addition\prompts\FABLE-PREVIZ-AND-FILM-PROMPT.md`, Part 2), and, if the work is on the
+VM, the previz source (`previz\great-attractor\` in the PC's project folder) is copied over.
+
 ## Stage 1: SA-05 on the remote, and the time stop (no film yet)
 
 - `GreatAttractorSkill` / `GreatAttractorSpell` like `ProximaSkill` / `ProximaSpell`; `GreatAttractorPlan` with the
@@ -41,8 +56,8 @@ the previz's "Rendering: what the game needs":
 
 Upload everything that doesn't move once (vertex buffers), and animate on the GPU: rebuilding 55,000 points on the CPU
 every frame would cost too much. Check it with a shader pack (Complementary), as the film overlay pass may behave
-differently there. Fable could propose the shaders (read-only, patch files), since it wrote the previz's; Opus applies
-them (the user's rule).
+differently there. Fable builds this scene and its shaders (see "Who builds what"; until 2026-11-13 the plan was
+that Fable only proposes them).
 
 ## Stage 3: SA-05's film
 
