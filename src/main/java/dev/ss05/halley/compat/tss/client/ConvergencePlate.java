@@ -47,17 +47,16 @@ public final class ConvergencePlate {
     private ConvergencePlate() {
     }
 
-    /** The weapons it can fire, in the menu's order (any mod's remote skills), at most nine. */
+    /** The weapons it can fire, in the menu's order (the remote's skills, other addons' on it too), at most nine. */
     static List<Skill> weapons() {
         List<Skill> weapons = new ArrayList<>();
-        for (SkillSet set : SkillSet.all()) {
-            if (set.hidden) {
-                continue;
-            }
-            for (Skill skill : set.skills) {
-                if (skill != TssLink.CONVERGENCE && !Convergence.SKIPPED.contains(skill.id()) && weapons.size() < 9) {
-                    weapons.add(skill);
-                }
+        SkillSet set = SkillSet.of(TssLink.SKILL);
+        if (set == null) {
+            return weapons;
+        }
+        for (Skill skill : set.skills) {
+            if (skill != TssLink.CONVERGENCE && !Convergence.SKIPPED.contains(skill.id()) && weapons.size() < 9) {
+                weapons.add(skill);
             }
         }
         return weapons;

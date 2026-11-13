@@ -89,9 +89,11 @@ Off by default. Set `no_cooldown = true` in the `[stellar_remote]` section of `c
 
 ## More
 
-*   **Protected blocks**: the block tag `shooting_star_addition:unbreakable` (bedrock, barriers, command and structure blocks, end portals, reinforced deepslate) is never carved by Halley or Luna; servers can add more with a data pack.
+*   **Protected blocks**: the block tag `shooting_star_addition:unbreakable` (bedrock, barriers, command and structure blocks, end portals and gateways, reinforced deepslate) is never carved by Halley, Luna or Proxima; servers can add more with a data pack.
+*   **Protected things**: the entity type tag `shooting_star_addition:never_removed` is never deleted by a strike (grave mods' corpses and Create's trains and contraptions by default); servers can add more.
+*   **Radiation zones**: `/ssa zones [list|clear]` (operators) lists Proxima's radiation zones in your world or clears them.
 *   **A key for Gravitia**, The Shooting Star's skill that has none: in the remote's menu and in Controls, unbound until you set it.
-*   **Shader packs** (Iris): tested with Complementary Reimagined. Also tested with Sodium and ImmediatelyFast.
+*   **Shader packs** (Iris): tested with Complementary Reimagined. Also tested with Sodium and ImmediatelyFast. **OptiFine** shaders aren't detected: set `shader_packs = "ALWAYS"` in `config/shooting_star_addition-client.toml`.
 
 ## Settings
 

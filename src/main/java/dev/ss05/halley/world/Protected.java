@@ -14,9 +14,11 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 
 /**
- * The blocks Halley and Luna never break or cover: the block tag {@code shooting_star_addition:unbreakable} (bedrock,
- * command and structure blocks, end portals... by default; servers add their own with a data pack). Each is kept
- * where it is, as RimuLib's carvings keep their "cores" (they are one of them, see TssLink).
+ * The blocks Halley, Luna and Proxima never break or cover: the block tag {@code shooting_star_addition:unbreakable}
+ * (bedrock, command and structure blocks, end portals and gateways... by default; servers add their own with a data
+ * pack). Each is kept where it is: our carvings keep them as RimuLib keeps a carving's "cores" (they are registered as
+ * cores in TssLink), {@code TssLink.paint} drops writes onto them and {@code MoonBuild} puts them back after building a
+ * chunk. The Shooting Star's own skills only spare them where that skill keeps cores itself (most don't).
  */
 public final class Protected {
     public static final TagKey<Block> TAG = TagKey.create(Registries.BLOCK, HalleyAddon.id("unbreakable"));

@@ -85,7 +85,8 @@ public final class HalleyClientConfig {
             "Shader packs (Iris) only show what is drawn with Minecraft's own shaders, so while one is on",
             "Halley paints its comet and sky onto textures first and draws those the way the pack expects.",
             "AUTO: do that whenever a shader pack is on. ALWAYS: do it all the time. NEVER: don't (with a",
-            "shader pack on, the comet and the sky then won't show).");
+            "shader pack on, the comet and the sky then won't show).",
+            "AUTO only sees Iris (and ports that keep Iris's API). With OptiFine's shaders, set ALWAYS.");
 
         b.section("stellar_remote", "Your switches in the Stellar Remote's menu (H). They are saved here when you flip them there.");
         LUNA_MUSIC = b.define("luna_music", true,
