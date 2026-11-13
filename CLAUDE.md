@@ -12,6 +12,39 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
+### >>> RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven <<<
+
+**`.git` arrived on the VM** (the user copied it; HEAD was `5f0b9cf`). On main: `9e534bb` (the docs/extras below, the
+code part) and `90bf5ed` (CLAUDE.md). The VM repo has its own git identity set (Adamko-10, noreply); `git worktree
+prune` dropped the PC's worktree entries **in the VM's copy only**. Six new worktrees in `C:\Users\User\Desktop\ports\
+<branch>` on the local `port/<branch>` refs (each was origin + the 2026-11-12 sky-bolt commit; forge-1.21.1 also the
+shader-wave fix). Ported there: `25ff8ca` (Fable's fixes) and `9e534bb` (docs/extras), never close-on-pick:
+| Branch | Head | Notes |
+|---|---|---|
+| forge-1.21.1 | `a23d6c5` | + `forge_version_range=[52.1.16,)` (R5); sky gate before the GUI: `GameRendererMixin` (Forge 52 has no `RenderGuiEvent`) |
+| forge-1.20.1 | `cb624d7` | `tags/entity_types/never_removed.json`; `RenderGuiEvent.Pre` listener |
+| fabric-1.21.1 | `1d3c74a` | sky gate: `GameRendererMixin` INVOKE before `Gui.render(GuiGraphics, DeltaTracker)`; `SKIPPED` kept in the plate |
+| fabric-1.20.1 | `655f135` | same before `Gui.render(GuiGraphics, F)` in `render(FJZ)V`; `prepareBlend` moved into `drawSkyGate`; `tags/entity_types/` |
+| fabric-1.21.11 | `3aea6b5` | **B4 not built**: with a shader pack the sky gate is skipped (was masked anyway); `player.level()`, log uses `level.dimension()` |
+| fabric-26.3 | `a359f3b` | same as 1.21.11; the plate keeps "=" and "-" labels; never-removed via the type's holder |
+On every port the README keeps its own wording plus the new sentences (open sky, dropped items, `/ssa zones`,
+protected things, OptiFine); the `close_menu_on_pick` row and the `WhiteSpaceMixin` line are main-only. B4 on
+1.21.11/26.3 later: those versions already send the comet/moon/sky through `submitForShaderPack` (AFTER_ENTITIES /
+COLLECT_SUBMITS); the gate could go the same way, or a hook after the world pass once their GameRenderer can be read.
+Their first port commit's message still says "shader-pack sky gate" (not true there; left as is).
+**CI round** (wip pushes, the user's step 4): wip/main `4eafd07`, forge-1.21.1 `6f2ebcd`, forge-1.20.1 `b12936f`,
+fabric-1.21.1 `5055673`, fabric-1.20.1 `2876737`, fabric-1.21.11 `a11cbe9`, fabric-26.3 `da009e0`. Results: **green,
+every summary line `ok:`**: main #228 (14 ok), forge-1.20.1 #230 (9), fabric-1.21.1 #231 (15), fabric-1.20.1 #232 (15),
+fabric-1.21.11 #233 (14). **Failed and fixed**: forge-1.21.1 #229 (Forge 52 has no `RenderGuiEvent`: the hook is now
+`compat/mixin/GameRendererMixin`, INVOKE before `Gui.render`, `remap = false`, `a23d6c5`); fabric-26.3 #234 (26.3's
+`InputConstants...getDisplayName` and `EntityType.is(TagKey)` don't exist as on main: the plate keeps "=" and "-",
+`Protected.removable` uses `getType().builtInRegistryHolder().is(...)`, `a359f3b`). Re-run: wip/forge-1.21.1
+`9bc9f31` #235 (9 ok), wip/fabric-26.3 `3d56a94` #236 (14 ok): **all seven green**. Left: the user's game test (main's test jar
+is current: `c4d58b5` changed only dev/ci), Meridian, then release 1.8.2 (version bump, changelog, the six branches'
+CI jars). The `wip/*` branches and `ci-*` drafts stay until the release. main `c4d58b5`: CI now prints each compile error's `symbol:`/`location:` lines
+(copied to 26.3; forge-1.21.1's older ci.sh left as it was). Not built locally: the six ports (no Forge/Fabric TSS jars
+or JDK 25 on the VM; CI downloads them).
+
 ### >>> RESUME HERE (2026-11-13 ~14:15, the VM): docs/extras/test jar done; the port waits for .git <<<
 
 First session on the VM (`C:\Users\User\Desktop\the shooting star addition on vm`). **Not committed: the VM copy had
