@@ -12,7 +12,75 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-12 ~13:00, Adam's PC): 1.8.1 RELEASED; waiting for Meridian; side work only <<<
+### >>> RESUME HERE (2026-11-13, Adam's PC): fixing every bug of Fable's review on main, then all seven <<<
+
+Written before a context compaction (the user: "write this down and remember it because compact is kinda soon").
+
+**Doing now (the user: "lets just plan on fixing every bug on that list" + "Start now")**: the plan is
+`docs/BUGFIX-PLAN.md`; the findings are the project folder's `reviews\fable-bug-review\FINDINGS.md`. They ship with
+the Meridian port as **1.8.2**; the late-November update becomes **1.9.0** (the user, 2026-11-13: "yes 1.8.2 then
+1.9.0"; still to change: `announcements\roadmap 2026-11-11.md` and the website's `data.js` roadmap, which say 1.8.2
+for late November).
+- **Done on main, NOT committed yet, not built** (`git status` shows them):
+  - **R3**: `Spell.tickAll` and `Convergence.tick` catch `LinkageError` too;
+  - **R1**: try/catch per item in `MoonBuild.tickLingering`, `MoonLand.tickLingering` and `ProximaStrike.tickLingering`
+    (the zones' tick logged once per world in `ZONES_FAILED`; leftover land dropped); `SolarFlares.tick` wrapped in
+    `HalleyAddon`;
+  - **B1**: `Spell.reach()` (abstract; Halley = max(crater x blastReach, trench length + width), Luna =
+    `plan.blastRadius()`, Proxima = max(scorch x 1.25, `waveReach`)); the effect goes out to max(512, reach + 64);
+  - **B3**: `ProximaCasting` refuses where `dimensionType().hasCeiling()` ("there is no sky here") and where
+    `ProximaStrike.groundAt` at the mark is over 6 blocks above it ("the flare needs open sky over the mark");
+  - **B5**: `minecraft:end_gateway` added to `tags/block/unbreakable.json` (1.20.1 branches: `tags/blocks/`).
+- **Still to do, in order**:
+  1. A0, the close-on-pick key's label: show the key's real name for the keyboard layout, not "[";
+  2. B2, Halley's comet heart (`HalleyStrike.placeHeart`): fill each spike by columns, paint chunk by chunk over a few
+     ticks, cap its size at 3x;
+  3. B4, Proxima's sky gate with a shader pack: draw it after the world pass when a pack is on, or skip it;
+  4. the extras (the user: "idk what do u think"; Claude's pick): **R2** keep items and XP dropped after the impact in
+     Proxima's bowl; **`/ssa zones list|clear`** plus sending zones to players who join; an entity tag **"never
+     removed"** (graves, Create trains, item frames...). **R4** (a cap on strikes with no cooldown) waits, though Fable
+     ranked it in its top five: it only matters when a server switches no-cooldown on. Also small: limit
+     `Convergence.find` to the remote's set, an OptiFine note (`shader_packs = ALWAYS`), forge-1.21.1's Forge range;
+  5. the docs and comments Fable listed (README lines 261, 357, 360, the client settings table; CLAUDE.md §1, §4, §5;
+     `HalleyAddon`, `NoCooldown.forced`, `Excavation.linger`, `Protected` comments);
+  6. build main, game-test B2 (Halley at 10x) and B4 (Complementary on); then the six branches, one CI round, a test
+     jar.
+- **Fable's own summary (pasted by the user 2026-11-13, kept here)**: no crash-on-load or lost-world bug; 5 bugs, 5
+  risks, 6 answers. Biggest in play: B1 (512-block effect range) and B2 (Halley's heart freezes the server for
+  seconds at 10x, can trip the 60 s watchdog at the config's extremes). Biggest for safety: R1 + R3. Shader packs: B4
+  is the one effect still missing with a pack, on all seven; Oculus probably detected, OptiFine not. Close-on-pick is
+  safe (Gravitia's warning shows first; a locked skill doesn't close the menu; it closes on any skill pick in
+  RimuLib's menu, not only ours). For Meridian: A2 lists every raw name, mixin target and reflective lookup per branch,
+  and whether each fails loudly or silently. **Fable's five to fix first**: B2, B1, R1 + R3, B4, R4; plus B5 (data
+  only). **Not settled**: the Forge 1.20.1 sound crash (the files are normal; the crash happens once a sound starts;
+  the player's crash report would settle it); Forge never run (R5 lists what to test first); not read: the renderers'
+  and HUDs' insides, the plan maths, the film panels on 1.21.11 and 26.3. Fable also wrote a short entry in its own
+  notes file, the project folder's `previz\CLAUDE.md` (outside the repo).
+- **Was Fable worth it** (the user asked): most findings could have been found by a focused review with the same
+  prompt, but nobody had looked; Fable's systematic read gave B2, the A2 dependency list (it will speed up the
+  Meridian port) and the bytecode check of close-on-pick, plus peace of mind (no crash-on-load or lost-world bug).
+- **Waiting / next after the fixes**:
+  - **TON 618 addon brief**: the user's raw text is saved word for word in the project folder's
+    `prompts\TON618-ADDON-PROMPT (Adam's raw text).md`. Clean it up into a prompt for another Claude session
+    **without removing any details**, after the fixes. In it:
+    - ton618 on CurseForge, by The Shooting Star's developer; the user makes the SA Series;
+    - brainstorm what to add;
+    - **a new skill usable only after TON 618 has been used**: the remote fast-forwards time so far that the black
+      hole evaporates (the user described it as particles of dark matter splitting and smashing; it is Hawking
+      radiation: keep his words and add the right name);
+    - an educational mode, or slight text mentioning the physics;
+    - **Fable 5.2 makes the cutscene previz**, then maybe oversees the code and reports bugs without changing code;
+    - the new session makes its own project folder and writes its own CLAUDE.md there.
+  - **The CurseForge description's top part** (the user: overhaul it "with new links that all look cleaner"): draft a
+    new top (Discord, YouTube, Instagram and TikTok `the_game_explainer`, the website once it's on Cloudflare, the
+    other mods), show it to the user before changing anything on CurseForge.
+  - Educational mode and SA-06 as its own ability: written in `docs/NEXT-SKILLS.md` (2026-11-13).
+- Why all the builds (the user asked): each change lands in seven versions' code, and a version can fail to compile
+  even when the change applied cleanly; local builds cost no usage (30-60 s each), the Fabric ones run on CI (free).
+- An untracked `AGENTS.md` appeared in the repo root (not Claude's; probably Codex's): left alone, never commit it
+  without asking.
+
+### RESUME HERE (2026-11-12 ~13:00, Adam's PC): 1.8.1 RELEASED; waiting for Meridian; side work only
 
 **The user, 2026-11-12: "lets not do any updates ... dont change anything just yet"**: no code changes until they say
 so. Meridian (The Shooting Star's next update + RimuLib 1.2.3) is still not on CurseForge (watched until 2026-11-11
