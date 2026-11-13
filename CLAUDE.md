@@ -48,6 +48,10 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   to make the previz for ton 618": [Fable: TA-01 Last Light previz](#local_3da78c21-4f7c-44cc-8f82-14a775e18582)
   (Fable 5.2, High, same folder, writes only `previz\`, no git). **Trap**: `start_session`'s `model` came up as Opus
   (a model above this session's is ignored): stop its turn, `set_session_model` to `claude-fable-5-2`, resend the task.
+  **Done**: the user approved previz v2 of TA-01 · Last Light (850 ticks, 42.5 s),
+  https://claude.ai/artifact/Ta6Z91SRwtCYN1z27zKQtJ; its source, tick table and hand-over are in that project's
+  `previz\` (uncommitted: the TON 618 Opus session does git). Part 2 (the in-game film) waits for that project's
+  CLAUDE.md §7 "ready", i.e. the user's go-ahead to the Opus session to build the base.
 
 ### RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven
 
