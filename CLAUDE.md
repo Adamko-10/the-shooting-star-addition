@@ -106,6 +106,16 @@ so. Meridian (The Shooting Star's next update + RimuLib 1.2.3) is still not on C
   5. say go for the code changes: the shader-pack wave fix (main + forge-1.21.1), the click-to-close H menu
      setting, removing the Flare's sky bolt;
   6. tell Claude when Meridian is on CurseForge.
+- **Fable's bug review is in (2026-11-13)**: the project folder's `reviews\fable-bug-review\FINDINGS.md` (done; no
+  crash-on-load or lost-world bug; B1-B5, R1-R5, answers A0-A6 incl. A2 = everything that depends on TSS/RimuLib
+  internals, for the Meridian port). Claude spot-checked the main claims in the code: all true. **The user: "lets just
+  plan on fixing every bug on that list"**: the plan is `docs/BUGFIX-PLAN.md` (R1, R3, B1-B5, the "[" key label,
+  docs; the user's call on R2, R4, zones command, an entity "never removed" tag, Convergence limited to the remote's
+  set, an OptiFine note, the Forge range), all seven branches, shipped with the Meridian port.
+- **Notes (the user, 2026-11-13, in `docs/NEXT-SKILLS.md`)**: an **educational mode** setting (small labels in the
+  films pointing at the real physics, e.g. the Great Attractor's dark-matter filaments); **SA-06 may become its own
+  ability** with a different cutscene, not an option of SA-05 (MOOVOID, who suggested it, prefers that; Adam: "i might
+  also make it its own ability now that i think about it").
 - **Fable bug review prompt (the user, 2026-11-12)**: the project folder's `prompts\FABLE-BUG-REVIEW-PROMPT.md`:
   find bugs and unknowns and report only (no edits, no refactoring, no patches, no builds or game runs; other branches
   read through `git show origin/<branch>:...`), writing `reviews\fable-bug-review\FINDINGS.md` **as it goes** (one

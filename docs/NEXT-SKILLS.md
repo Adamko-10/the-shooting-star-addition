@@ -109,6 +109,13 @@ Config: operators only on servers by default; the time stop on/off; the Sun on/o
 
 ### SA-06 · Hypervoid (universe level; a player's suggestion)
 
+**Maybe its own ability (2026-11-13)**: on Discord, MOOVOID (the player who suggested Hypervoid) said they'd rather it
+be a separate ability than an option of SA-05 ("Id rather that my thing will be a separate ability but its your
+mod"). Adam: "i might also make it its own ability now that i think about it just with a different cutscene". Not
+decided. If it becomes its own ability: no "locked until SA-05 has stopped time" rule (or only as an option), its
+own film that doesn't need SA-05's to have played first, and the two can still share the Great Attractor and the
+space scene (`docs/SA-05-06-BUILD-PLAN.md` stage 5 changes with it).
+
 - **Rules (decided)**: locked until SA-05 has stopped time (config to drop that); **operators only** on servers; turns
   the world into a void by default, **config to keep the world** (then only the film and the deaths); "flip the cover":
   the first press shows EXTEND THE ULTIMATE FREEZE TO ALL OF SPACE?, the second fires; no sliders, like Gravitia.
@@ -160,3 +167,13 @@ What version 2 changed from the design above (the user's picks or accepted):
 - What "near perfect" is missing (later update).
 - Andromeda's body is M74's photo: fine to ship, credited?
 - SA-06's first shot ("the second press") may be cut in the game: the first press is before the film.
+
+## Settings ideas
+
+- **Educational mode (the user, 2026-11-13)**: a client setting (off by default, to decide) that adds small labels in
+  the films pointing at the real physics behind what's on screen, e.g. on the Great Attractor "Dark-matter
+  filaments: the cosmic web galaxies really flow along", or for the others: Halley "a periodic comet, back every ~76
+  years"; Luna "the Roche limit: why it cracks before it lands"; Proxima "flare light arrives in minutes, a CME takes
+  days; here a gate cheats". Short, one line each, with a thin pointer line to the thing, in the films' HUD style,
+  fading in and out with the shot. Fits every skill, old and new; SA-05/06 are the obvious first ones. The text is
+  ours to write (keep it true, and say plainly where the skill bends the physics).
