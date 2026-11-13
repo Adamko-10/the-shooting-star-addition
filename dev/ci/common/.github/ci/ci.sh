@@ -73,7 +73,8 @@ if GR "$SECRET/build.log" build $BUILD_ARGS; then
   cp build/libs/*.jar "$OUT/jars/" 2>/dev/null
 else
   fail "build"
-  grep -E '\.java:[0-9]+: error:' "$SECRET/build.log" | grep -v 'cyou/rimuru' | sort -u | head -60 || true
+  # each error with its symbol and location lines (our code and Minecraft's names only, never TSS code)
+  grep -A4 -E '\.java:[0-9]+: error:' "$SECRET/build.log" | grep -v 'cyou/rimuru' | grep -E '\.java:[0-9]+: error:|symbol:|location:' | head -80 || true
   # a failure after compiling (the TSS pack check's "missing" lines, Gradle's own summary): names only, no TSS code
   grep -iE 'missing|What went wrong|^> ' "$SECRET/build.log" | grep -v '\.java:[0-9]*: error:' | sort -u | head -40 || true
   awk '/^> Task :tssPack/{on=1} on{print} /^> Task :tssPack FAILED/{exit}' "$SECRET/build.log" | grep -v 'unknown invokedynamic' | head -60 || true
