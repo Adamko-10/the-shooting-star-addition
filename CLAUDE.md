@@ -21,7 +21,30 @@ Written before a context compaction (the user: "write this down and remember it 
 the Meridian port as **1.8.2**; the late-November update becomes **1.9.0** (the user, 2026-11-13: "yes 1.8.2 then
 1.9.0"; still to change: `announcements\roadmap 2026-11-11.md` and the website's `data.js` roadmap, which say 1.8.2
 for late November).
-- **Done on main, NOT committed yet, not built** (`git status` shows them):
+**UPDATE 2026-11-13 (the user is low on usage and moves to a new conversation): almost all of it is DONE on main,
+committed as `25ff8ca` (local, not pushed), and main BUILDS (pack check clean); not game-tested.** Done in `25ff8ca`:
+R1, R3, B1, B3, B5 (below), plus:
+- **A0**: `AdditionPanel.keyName` shows the symbol keys (-, =, [) by the keyboard layout's own name;
+- **B2**: `HalleyStrike.placeHeart` size `Mth.clamp(craterRadius / 56, 0.5, 3.0)` (and the same cap in
+  `CometVisuals.heartSize`), and each spike stepped by `max(0.5, w * 0.5)` instead of 0.5 (no column fill or per-tick
+  paint: with the cap it is small enough);
+- **B4**: `ProximaCosmos.renderSky` saves the frame's pass (`LateSky`) when `ShaderPacks.active()` and
+  `renderSkyLate()` draws it from `RenderGuiEvent.Pre` (registered in `HalleyClient`), over the land;
+- **R2**: `ProximaStrike.droppedSinceImpact` (items/XP younger than the impact are not vaporised; `impactAt`);
+- **never removed**: `Protected.ENTITIES` = entity type tag `shooting_star_addition:never_removed`
+  (`data/.../tags/entity_type/never_removed.json`: optional `corpse:corpse` and Create's four contraption ids;
+  1.20.1 branches: `tags/entity_types/`), checked by `Protected.removable` before the three strikes' `discard()`;
+- **`/ssa zones [list|clear]`** (`StrikeCommand.listZones`, `ProximaStrike.zoneLines/clearZones`). Not done: sending
+  zones to players who join (needs a packet on every loader), and the help text doesn't list `zones` yet.
+**Left, in order**: (1) the docs and comments (item 5 below) and the help text; (2) the smaller extras: limit
+`Convergence.find` to the remote's set, the OptiFine note, forge-1.21.1's Forge range; (3) a test jar into the user's
+NeoForge profile and the user's game test (Halley at 10x: heart size and no freeze; Proxima with Complementary: the
+sky gate; Proxima in the Nether/a cave: refused; `/ssa zones`; a player killed in the bowl keeps their drops); (4) port
+`25ff8ca` (and the earlier `dafa478`'s close-on-pick, main-only until approved) to the six branches (26.3/1.21.11:
+B4 by hand, their own render pipelines; 1.20.1: `tags/entity_types/`, `tags/blocks/`), one CI round; (5) Meridian,
+when it's out, then release 1.8.2; (6) the TON 618 brief and the CurseForge description top (below).
+
+- **Done on main** (was "NOT committed yet, not built" earlier; now in `25ff8ca`):
   - **R3**: `Spell.tickAll` and `Convergence.tick` catch `LinkageError` too;
   - **R1**: try/catch per item in `MoonBuild.tickLingering`, `MoonLand.tickLingering` and `ProximaStrike.tickLingering`
     (the zones' tick logged once per world in `ZONES_FAILED`; leftover land dropped); `SolarFlares.tick` wrapped in
