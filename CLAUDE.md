@@ -42,6 +42,12 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   copy is saved at `C:\Users\User\Desktop\previz\great-attractor\SA-05-06 previz v2 (published page, 2026-11-13).html`;
   only its source folder (`NOTES.md` tick tables, `HANDOVER.md`) is still PC-only.
 - **Idle compaction off on the VM** (the user asked): `"idleCompaction": false` in `C:\Users\User\.claude\settings.json`.
+- **TON 618 previz under way (2026-11-13 ~20:40)**: the user's first brainstorm picks are in the TON 618 project's
+  CLAUDE.md (TA-01 · Last Light, devoured world only, the burst brings the world back, both items, Quasar Jets with
+  SS-21 Quasar); Fable's prompt was updated with them (`c3043fe` there). The user: "start the fable session and tell it
+  to make the previz for ton 618": [Fable: TA-01 Last Light previz](#local_3da78c21-4f7c-44cc-8f82-14a775e18582)
+  (Fable 5.2, High, same folder, writes only `previz\`, no git). **Trap**: `start_session`'s `model` came up as Opus
+  (a model above this session's is ignored): stop its turn, `set_session_model` to `claude-fable-5-2`, resend the task.
 
 ### RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven
 
