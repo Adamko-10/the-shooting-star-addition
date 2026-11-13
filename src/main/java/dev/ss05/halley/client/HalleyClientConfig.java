@@ -87,7 +87,8 @@ public final class HalleyClientConfig {
         SHADER_PACKS = b.comment("Shader packs (Iris) only show what is drawn with Minecraft's own shaders, so while one is on",
                 "Halley paints its comet and sky onto textures first and draws those the way the pack expects.",
                 "AUTO: do that whenever a shader pack is on. ALWAYS: do it all the time. NEVER: don't (with a",
-                "shader pack on, the comet and the sky then won't show).")
+                "shader pack on, the comet and the sky then won't show).",
+                "AUTO only sees Iris (and ports that keep Iris's API). With OptiFine's shaders, set ALWAYS.")
             .defineEnum("shader_packs", PackMode.AUTO);
         b.pop();
 

@@ -27,17 +27,27 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.slf4j.Logger;
 
 /**
- * The Shooting Star Addition — an unofficial addon for The Shooting Star. Adds SS-05 · Halley to the Stellar Remote.
+ * The Shooting Star Addition: SA Series — an unofficial addon for The Shooting Star. Adds SA-01 · Halley, SA-02 · Luna,
+ * SA-04 · Proxima and SA-00 · Stellar Convergence to the Stellar Remote (the code's "SS-05"/"SS-06"/"moon" names are
+ * the old codenames).
  *
  * <p>Where things live:
  * <ul>
- *   <li>{@code compat/tss/}  — the ONLY code that touches The Shooting Star. When that mod updates, start there.</li>
- *   <li>{@link HalleyConfig} — every number you might want to tune (also written to config/shooting_star_addition-common.toml).</li>
- *   <li>{@link HalleyClientConfig} — how it looks on each player's screen (config/shooting_star_addition-client.toml).</li>
- *   <li>{@link HalleyPlan} — the timeline and the shape of the strike, shared by the server and the client film.</li>
- *   <li>{@code world/} — what the strike does to the world (server side).</li>
- *   <li>{@code client/} — what it looks and sounds like (client side).</li>
+ *   <li>{@code compat/tss/}  — the ONLY code that touches The Shooting Star (and RimuLib's internals). When either
+ *       updates, start there.</li>
+ *   <li>{@link HalleyConfig}, {@link MoonConfig}, {@link ProximaConfig} — every number you might want to tune (written
+ *       to config/shooting_star_addition-common.toml).</li>
+ *   <li>{@link HalleyClientConfig} — how it looks on each player's screen and their switches in the remote's menu
+ *       (config/shooting_star_addition-client.toml).</li>
+ *   <li>{@link HalleyPlan}, {@link MoonPlan}, {@link ProximaPlan} — each skill's timeline and shape, shared by the server
+ *       and the client film.</li>
+ *   <li>{@code world/} — what the strikes do to the world (server side).</li>
+ *   <li>{@code client/} — what they look and sound like (client side).</li>
  * </ul>
+ *
+ * <p>The server tick below runs the spells ({@code StarBridge.tick}), then the work each strike leaves behind (Luna's
+ * leftover land, Proxima's land and radiation zones), then the random flares. Each of those catches its own failures
+ * (one bad item is logged and dropped), so a broken strike can never stop the server.
  */
 @Mod(HalleyAddon.MOD_ID)
 public final class HalleyAddon {
@@ -57,7 +67,7 @@ public final class HalleyAddon {
 
         // Mods are constructed in parallel. Hooking into The Shooting Star waits until every mod has been
         // constructed (the deferred queue runs on the main thread), but still runs before key bindings are
-        // registered, so SS-05 gets its own key like the other three skills.
+        // registered, so our skills get their own keys like the remote's own.
         modBus.addListener(FMLConstructModEvent.class, event -> event.enqueueWork(() -> {
             StarBridge.install();
             if (dist.isClient()) {
