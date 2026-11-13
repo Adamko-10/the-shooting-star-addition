@@ -20,8 +20,20 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
  */
 public final class Protected {
     public static final TagKey<Block> TAG = TagKey.create(Registries.BLOCK, HalleyAddon.id("unbreakable"));
+    /**
+     * The things (not living) a strike never deletes: the entity type tag {@code shooting_star_addition:never_removed}
+     * (grave mods' corpses holding a dead player's items, Create's contraptions and trains by default; servers add
+     * their own). Living things are still hurt as usual.
+     */
+    public static final TagKey<net.minecraft.world.entity.EntityType<?>> ENTITIES =
+        TagKey.create(Registries.ENTITY_TYPE, HalleyAddon.id("never_removed"));
 
     private Protected() {
+    }
+
+    /** Whether a strike may delete this loose thing (not in {@link #ENTITIES}). */
+    public static boolean removable(net.minecraft.world.entity.Entity entity) {
+        return !entity.getType().is(ENTITIES);
     }
 
     public static boolean is(BlockState state) {

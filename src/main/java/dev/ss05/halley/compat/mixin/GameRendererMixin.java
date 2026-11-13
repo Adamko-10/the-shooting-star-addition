@@ -18,6 +18,16 @@ abstract class GameRendererMixin {
     }
 
     /**
+     * Once a frame, just before the GUI: Proxima's sky gate when a shader pack is on (it would be masked in the
+     * world pass; ProximaCosmos.renderSkyLate, Fable's review B4).
+     */
+    @Inject(method = "render(Lnet/minecraft/client/DeltaTracker;Z)V", at = @At(value = "INVOKE",
+        target = "Lnet/minecraft/client/gui/Gui;render(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V"))
+    private void ss05halley$beforeGui(DeltaTracker deltaTracker, boolean renderLevel, CallbackInfo ci) {
+        dev.ss05.halley.client.proxima.ProximaCosmos.renderSkyLate();
+    }
+
+    /**
      * Once a frame, after everything is drawn: a film's panels over the finished picture (FilmPanels.endOfFrame).
      * The high priority puts this after the other mods' end-of-frame hooks on the same method (The Shooting Star's own).
      */
