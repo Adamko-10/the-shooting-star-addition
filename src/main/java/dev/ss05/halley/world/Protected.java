@@ -35,7 +35,7 @@ public final class Protected {
 
     /** Whether a strike may delete this loose thing (not in {@link #ENTITIES}). */
     public static boolean removable(net.minecraft.world.entity.Entity entity) {
-        return !entity.getType().is(ENTITIES);
+        return !entity.getType().builtInRegistryHolder().is(ENTITIES);
     }
 
     public static boolean is(BlockState state) {

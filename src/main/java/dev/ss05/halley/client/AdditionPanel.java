@@ -139,10 +139,12 @@ public final class AdditionPanel {
         }
     }
 
-    /** A symbol key as the keyboard layout prints it (the key right of P is [ in the US, Ü in Germany). */
+    /**
+     * The plate's symbol keys, as printed on them. (Main shows each by the keyboard layout's own name; 26.3's input
+     * API differs, so its two symbol keys keep their US labels here.)
+     */
     private static String keyName(int key) {
-        String name = com.mojang.blaze3d.platform.InputConstants.Type.KEYSYM.getOrCreate(key).getDisplayName().getString();
-        return name.length() == 1 ? name.toUpperCase(java.util.Locale.ROOT) : name;
+        return key == KEY_STACK ? "=" : key == KEY_UNITS ? "-" : "?";
     }
 
     public static void click(boolean ok) {
