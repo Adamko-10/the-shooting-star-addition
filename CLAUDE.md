@@ -33,8 +33,10 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   Fable's previz v2 (https://claude.ai/artifact/S5kyk3ACpBUWZg6fPi48VR; source only on the PC, `previz\great-attractor\`)
   is what `docs/SA-05-06-BUILD-PLAN.md` builds in game (6 stages, ~2-3 weeks of sessions, January); it's three.js, so
   the game film is rebuilt to match it (timings, shots, shader ideas carry over); nothing of it is built yet. The plan
-  says Opus builds it and Fable may propose shaders; **asked the user whether Fable should build SA-05/06's film too**,
-  as for TON 618 (no answer yet).
+  said Opus builds it and Fable may propose shaders. **The user, 2026-11-13: "Yes, Fable builds it"**: Fable 5.2 builds
+  SA-05/06's films too (the space scene, SA-05's film, SA-06's film shots; films' own files only, proposals for the
+  rest), Opus the skills, time stop, world, ground effects, wiring and ports: `docs/SA-05-06-BUILD-PLAN.md` "Who builds
+  what". Fable's prompt for it gets written when stage 1 is done.
 - **Idle compaction off on the VM** (the user asked): `"idleCompaction": false` in `C:\Users\User\.claude\settings.json`.
 
 ### RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven
