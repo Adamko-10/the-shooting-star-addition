@@ -58,6 +58,11 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   then wrote Part 2 (the in-game film, `client/film/` + `shaders/film/`; compiles; never built into a jar or run;
   uncommitted) until the usage limit cut it off: send that session "continue Part 2" to finish (its `previz\HANDOVER.md`
   "Next steps"). The user also made ponytail "never" in every project (personal rules; §0 here updated to match).
+  Later on 2026-11-14 Fable finished Part 2: test jar `TON 618 Addition 0.1.0 film [NeoForge 1.21.1].jar` in
+  `C:\Users\User\Desktop\test builds\2026-11-14 TON 618 film\` (and loose in `C:\Users\User\Downloads\`); the Opus
+  session committed it and added P1 (the film stops if the world comes back early). Never run in a game: the VM has no
+  OpenGL, so the user's game test is the first. (The `AGENTS.md` that session binned was its own folder's; this repo's
+  untracked `AGENTS.md` is still here, untouched.)
 
 ### RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven
 
