@@ -65,6 +65,11 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   untracked `AGENTS.md` is still here, untouched.)
   **The user's first test (2026-11-14)**: "when ton 618 eats your world you cant open the ui you just dont see it" (the
   skill menu doesn't show in the devoured dark, so Last Light can't be picked): forwarded to the TON 618 Opus session.
+  **Fixed there (`f6ef1bd`, not game-tested)**: TON 618 turns off the whole GUI layer in its dark (and in RimuLib
+  films) and draws only its own, which hid RimuLib's H menu and Fable's film overlay; the addon now draws the menu
+  itself and tells the film. Test jar `TON 618 Addition 0.1.0 menu fix [NeoForge 1.21.1].jar` in
+  `C:\Users\User\Desktop\test builds\2026-11-14 TON 618 menu fix\`, copied to `C:\Users\User\Downloads\` by this
+  session (it replaces the earlier TON 618 jars).
 
 ### RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven
 
