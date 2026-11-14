@@ -90,7 +90,12 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   "theres no education mode" (built, but off by default and only in NeoForge's Config screen) and picked: an
   Educational mode switch in TON 618's H menu (off by default); "write down real music quasar jets for another update,
   for now just educational mode then we port and post it on curseforge". Forwarded to the TON 618 session (it asks him
-  the port and CurseForge decisions before doing them; publishing waits for his yes).
+  the port and CurseForge decisions before doing them; publishing waits for his yes). Built there (`5e623cd`, not
+  game-tested): the switch is a "TON 618 Addition" panel bottom-left of the H menu, key **]**; Last Light's keys moved
+  to **;** (TON 618's item) and **'** (Stellar Remote) so they don't clash with our Convergence (V on the plate, B its
+  skill key). Jar `TON 618 Addition 0.1.0 educational mode [NeoForge 1.21.1].jar`, copied to Downloads by this session.
+  The user's port/CurseForge picks (recorded there): all eight loader/version pairs TON 618 runs on, a public GitHub
+  repo with CI (nothing pushed until he says), 1.0.0 as a Release, Claude drafts the page text for his review.
 
 ### RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven
 
