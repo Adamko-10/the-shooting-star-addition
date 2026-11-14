@@ -52,6 +52,12 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   https://claude.ai/artifact/Ta6Z91SRwtCYN1z27zKQtJ; its source, tick table and hand-over are in that project's
   `previz\` (uncommitted: the TON 618 Opus session does git). Part 2 (the in-game film) waits for that project's
   CLAUDE.md §7 "ready", i.e. the user's go-ahead to the Opus session to build the base.
+  **2026-11-14**: the TON 618 Opus session built the NeoForge base: test jar `TON 618 Addition 0.1.0 [NeoForge
+  1.21.1].jar` in `C:\Users\User\Desktop\test builds\2026-11-14 TON 618 Addition base\` (its copy to Downloads was
+  blocked there; copied by this session to `C:\Users\User\Downloads\TON 618 Addition test jar (2026-11-14)\`). Fable
+  then wrote Part 2 (the in-game film, `client/film/` + `shaders/film/`; compiles; never built into a jar or run;
+  uncommitted) until the usage limit cut it off: send that session "continue Part 2" to finish (its `previz\HANDOVER.md`
+  "Next steps"). The user also made ponytail "never" in every project (personal rules; §0 here updated to match).
 
 ### RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven
 
@@ -1186,12 +1192,10 @@ Chrome tab suspender is gone since 2026-11-11); Hamza has neither (no tab suspen
 - *(Adam's PC only)* If finishing a task past 2 AM their time, shut down their PC (unless told not to). If running low on tokens, schedule
   a continuation.
 - The user is budget-conscious: don't over-test; one CI round per change set is normally enough, and they test in game.
-- **Ponytail (the user, 2026-11-11): always tell the user when to switch ponytail and when it switched on its own.**
-  Say it unasked, in one line, at the moment it matters: (1) when the work changes kind: **lite** for fixes, ports,
-  releases and CI; **off** for creative work (films, previz, VFX, sounds, UI redesigns, new skill design); (2) when a
-  session hook reports a different level than the user last set (it comes back as **full** after a resume or a new
-  session): name the level it's at and give the command (`/ponytail lite`, or "stop ponytail"). The user's last
-  setting: **off** (2026-11-11 ~12:50; lite advised for fixes and release work).
+- **Ponytail: don't use it** (the user, 2026-11-14: "lets just not use ponytail", then "every project"; also in
+  their personal rules). Keep it off and never advise switching levels; if a session hook turns it back on (it comes
+  back as **full** after a resume or a new session), turn it off ("stop ponytail") without asking. (From 2026-11-11
+  to 2026-11-14 this rule said lite for fixes, ports and releases, off for creative work.)
 
 ## 1. What this is
 
