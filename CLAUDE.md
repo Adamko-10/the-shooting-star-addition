@@ -113,7 +113,9 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   618's own (still running in the dark); with films off (J) it never starts, and TON 618 hides RimuLib's "films off"
   message in the dark. Fix (not game-tested): skip a film in the way, a countdown card when Last Light runs without
   its film ("Films are off: press J"; J starts it mid-way), log lines on the client. Jar `TON 618 Addition 0.1.0 cast
-  fix [NeoForge 1.21.1].jar`, copied to Downloads.
+  fix [NeoForge 1.21.1].jar`, copied to Downloads. **The user: "it works, i say we post it"** (2026-11-14):
+  forwarded to the TON 618 session (it asks him: NeoForge now and ports after, or all eight together; drafts the
+  GitHub repo and CurseForge project for his yes, step by step).
 
 ### RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven
 
