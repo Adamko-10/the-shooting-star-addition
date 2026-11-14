@@ -12,7 +12,23 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-13 ~17:30, the VM): test jars for all seven in Downloads; TON 618 addon session started <<<
+### >>> RESUME HERE (2026-11-14, the VM): the PC's notes merged in; how to send the VM's work back <<<
+
+- **PC -> VM sync done (2026-11-14)**: the user put the PC's `pc-to-vm 2026-11-14.bundle` in `C:\Users\User\Downloads\`
+  (verified: needs `25ff8ca`, which the VM has; head `33fa7cf`). Fetched to `refs/remotes/pc/main` and merged into the
+  VM's main as `579a195` (clean: the PC's three commits `de1ad3d`, `8a98bb3`, `33fa7cf` touch only CLAUDE.md's
+  2026-11-13 PC section: R4 waits, the wallpapers plan, the website on hold, how to sync). Nothing pushed.
+- **VM -> PC, when the user goes back to the PC** (his PC session's plan): make one bundle with main **and the six
+  `port/<branch>` refs** (the 1.8.2 ports live only here and on GitHub's `wip/*`), excluding what the PC already has:
+  `git bundle create "vm-to-pc <date>.bundle" main port/forge-1.21.1 port/forge-1.20.1 port/fabric-1.21.1
+  port/fabric-1.20.1 port/fabric-1.21.11 port/fabric-26.3 --not 33fa7cf origin/main origin/forge-1.21.1
+  origin/forge-1.20.1 origin/fabric-1.21.1 origin/fabric-1.20.1 origin/fabric-1.21.11 origin/fabric-26.3`, then
+  `git bundle verify` it; the user copies it into the PC's project folder. On the PC: `git pull "<bundle>" main`, and
+  for each port branch a fast-forward fetch (`git fetch "<bundle>" port/x:port/x`, from a checkout where that branch
+  isn't checked out; the PC's `ports\` worktrees, if still there, need `git merge --ff-only` inside each instead).
+  Never copy a folder over the other.
+
+### RESUME HERE (2026-11-13 ~17:30, the VM): test jars for all seven in Downloads; TON 618 addon session started
 
 - **Test jars, all seven** (the user: "give me ready jars to test in downloads folder"): the green CI jars (main #228,
   forge-1.21.1 #235, forge-1.20.1 #230, fabric-1.21.1 #231, fabric-1.20.1 #232, fabric-1.21.11 #233, fabric-26.3 #236;
