@@ -27,6 +27,15 @@ the rest of the project folder (`prompts\`, `reviews\`, `test builds\`, `backups
 mods\`), the user's Modrinth profiles, the CI decryption key, and maybe JDK 21, `gh` (signed in), Node and ffmpeg:
 check them first. Test jars made on the VM stay in its folder for the user to copy to his PC. When the user says he's
 moving to another conversation, ask whether it's on the VM (his personal rules say so too).
+**Syncing the PC and the VM (2026-11-14)**: the two are separate copies of the repo, so never copy one folder over
+the other (it throws away the other side's commits). Move commits with a git bundle: on the side that has them,
+`git bundle create "<name>.bundle" <a commit both have>..main`, copy that one file across, then
+`git pull "<file>" main` on the other side (a merge if both moved; CLAUDE.md conflicts: keep both sides' notes).
+This PC's commits after the VM copy (`de1ad3d` R4 note, `8a98bb3` wallpapers + website, and this one; CLAUDE.md
+only) are in the project folder's `pc-to-vm 2026-11-14.bundle` (base `25ff8ca`). The VM's work comes back the same
+way (a `vm-to-pc` bundle into the project folder; the user told this session he'll come back here with it). Not on
+the VM: the website repo (`C:\Users\adam_\Documents\Website\`, local commit `7617477`, not pushed) and
+`announcements\` (outside the repo).
 
 **UPDATE 2026-11-13 (the user is low on usage and moves to a new conversation): almost all of it is DONE on main,
 committed as `25ff8ca` (local, not pushed), and main BUILDS (pack check clean); not game-tested.** Done in `25ff8ca`:
@@ -118,6 +127,9 @@ when it's out, then release 1.8.2; (6) the TON 618 brief and the CurseForge desc
     `adamko-website`, no build command, output folder = the root; it goes live at `<name>.pages.dev` (a custom domain
     later costs ~$10 a year). Claude's advice: publish now, nothing in it waits for a release, and the CurseForge
     description's new top wants its link.
+    **The user, 2026-11-14: "not yet lets save all of that for later"**: no website push and no Cloudflare until he
+    says so. The project folder's `announcements\roadmap 2026-11-11.md` says 1.8.2/1.9.0 now too; a copy already
+    posted on Discord is his to correct.
 - Why all the builds (the user asked): each change lands in seven versions' code, and a version can fail to compile
   even when the change applied cleanly; local builds cost no usage (30-60 s each), the Fabric ones run on CI (free).
 - An untracked `AGENTS.md` appeared in the repo root (not Claude's; probably Codex's): left alone, never commit it
