@@ -96,6 +96,11 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   skill key). Jar `TON 618 Addition 0.1.0 educational mode [NeoForge 1.21.1].jar`, copied to Downloads by this session.
   The user's port/CurseForge picks (recorded there): all eight loader/version pairs TON 618 runs on, a public GitHub
   repo with CI (nothing pushed until he says), 1.0.0 as a Release, Claude drafts the page text for his review.
+  The user then told that session directly to move the panel to the top right with key \ (done there). Next (the
+  user, with a screenshot of TON 618's H menu): "fix this" (Last Light's icon shows the missing-texture checkerboard)
+  "and also add a little note somewhere that tells people that u have to set the blackhole to infinite power and then
+  use it and THEN finally u can use last light (im talking about the UI)", then the new jar in Downloads: forwarded to
+  the TON 618 session; this session copies its jar to Downloads when it reports back.
 
 ### RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven
 
