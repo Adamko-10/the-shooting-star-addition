@@ -115,7 +115,11 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   its film ("Films are off: press J"; J starts it mid-way), log lines on the client. Jar `TON 618 Addition 0.1.0 cast
   fix [NeoForge 1.21.1].jar`, copied to Downloads. **The user: "it works, i say we post it"** (2026-11-14):
   forwarded to the TON 618 session (it asks him: NeoForge now and ports after, or all eight together; drafts the
-  GitHub repo and CurseForge project for his yes, step by step).
+  GitHub repo and CurseForge project for his yes, step by step). The port is done there (Fabric 26.3 last,
+  `ce7f85f`): seven 1.0.0 jars (Forge 1.20.1 also covers NeoForge 1.20.1) in `C:\Users\User\Desktop\test builds\
+  2026-11-14 TON 618 Addition 1.0.0 all loaders\`, copied by this session to `C:\Users\User\Downloads\TON 618 Addition
+  1.0.0 all loaders\`. Test servers start on the VM for all but Forge 1.20.1; none run in a real game yet; nothing
+  pushed or posted. Riskiest: Fabric 26.3 and 1.21.11 (film drawing rewritten), Forge 1.20.1 (never ran).
 
 ### RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven
 
