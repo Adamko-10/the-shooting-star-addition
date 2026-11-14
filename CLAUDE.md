@@ -100,7 +100,11 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   user, with a screenshot of TON 618's H menu): "fix this" (Last Light's icon shows the missing-texture checkerboard)
   "and also add a little note somewhere that tells people that u have to set the blackhole to infinite power and then
   use it and THEN finally u can use last light (im talking about the UI)", then the new jar in Downloads: forwarded to
-  the TON 618 session; this session copies its jar to Downloads when it reports back.
+  the TON 618 session; this session copies its jar to Downloads when it reports back. Done there (not game-tested):
+  a code-drawn Last Light icon in both menus; the top-right panel lists the 3 unlock steps (Scale ∞, use TON618, cast
+  Last Light in the dark) until the dark, then "Last Light is ready" (also in the pick warning, the too-early message
+  and the description); the red ⚠ is RimuLib's normal unofficial-addon marker. Jar `TON 618 Addition 0.1.0 icon and
+  unlock note [NeoForge 1.21.1].jar`, copied to Downloads (replaces every earlier TON 618 jar).
 
 ### RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven
 
