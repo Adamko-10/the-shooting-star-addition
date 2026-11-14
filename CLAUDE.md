@@ -105,6 +105,11 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   Last Light in the dark) until the dark, then "Last Light is ready" (also in the pick warning, the too-early message
   and the description); the red ⚠ is RimuLib's normal unofficial-addon marker. Jar `TON 618 Addition 0.1.0 icon and
   unlock note [NeoForge 1.21.1].jar`, copied to Downloads (replaces every earlier TON 618 jar).
+  **The user's test: "idk why it isnt working i cant trigger it"** (logs in `C:\Users\User\Downloads\logs\`): the
+  server did log the cast in the dark (13:52:00, "world comes back in 34.5 s"); he quit 15 s later; no error of ours.
+  So likely nothing showed on his screen (film not starting client-side, or a too-quiet opening, or Iris/TON 618
+  hiding it). Forwarded with these findings to the TON 618 session. His mods folder also has two RimuLibs (1.2.2 and
+  1.2.3): disable 1.2.2.
 
 ### RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven
 
