@@ -86,7 +86,11 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   films) and draws only its own, which hid RimuLib's H menu and Fable's film overlay; the addon now draws the menu
   itself and tells the film. Test jar `TON 618 Addition 0.1.0 menu fix [NeoForge 1.21.1].jar` in
   `C:\Users\User\Desktop\test builds\2026-11-14 TON 618 menu fix\`, copied to `C:\Users\User\Downloads\` by this
-  session (it replaces the earlier TON 618 jars).
+  session (it replaces the earlier TON 618 jars). **The user tested it: "it works"** (2026-11-14). He noticed
+  "theres no education mode" (built, but off by default and only in NeoForge's Config screen) and picked: an
+  Educational mode switch in TON 618's H menu (off by default); "write down real music quasar jets for another update,
+  for now just educational mode then we port and post it on curseforge". Forwarded to the TON 618 session (it asks him
+  the port and CurseForge decisions before doing them; publishing waits for his yes).
 
 ### RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven
 
