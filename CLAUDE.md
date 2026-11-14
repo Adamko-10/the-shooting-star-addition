@@ -109,7 +109,11 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   server did log the cast in the dark (13:52:00, "world comes back in 34.5 s"); he quit 15 s later; no error of ours.
   So likely nothing showed on his screen (film not starting client-side, or a too-quiet opening, or Iris/TON 618
   hiding it). Forwarded with these findings to the TON 618 session. His mods folder also has two RimuLibs (1.2.2 and
-  1.2.3): disable 1.2.2.
+  1.2.3): disable 1.2.2. **Cause found there**: RimuLib plays one film at a time and held Last Light's film behind TON
+  618's own (still running in the dark); with films off (J) it never starts, and TON 618 hides RimuLib's "films off"
+  message in the dark. Fix (not game-tested): skip a film in the way, a countdown card when Last Light runs without
+  its film ("Films are off: press J"; J starts it mid-way), log lines on the client. Jar `TON 618 Addition 0.1.0 cast
+  fix [NeoForge 1.21.1].jar`, copied to Downloads.
 
 ### RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven
 
