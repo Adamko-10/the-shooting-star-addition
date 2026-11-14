@@ -63,6 +63,8 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   session committed it and added P1 (the film stops if the world comes back early). Never run in a game: the VM has no
   OpenGL, so the user's game test is the first. (The `AGENTS.md` that session binned was its own folder's; this repo's
   untracked `AGENTS.md` is still here, untouched.)
+  **The user's first test (2026-11-14)**: "when ton 618 eats your world you cant open the ui you just dont see it" (the
+  skill menu doesn't show in the devoured dark, so Last Light can't be picked): forwarded to the TON 618 Opus session.
 
 ### RESUME HERE (2026-11-13 ~16:30, the VM): 1.8.2 fixes ported to all seven, CI green on all seven
 
