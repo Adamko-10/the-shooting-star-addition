@@ -18,7 +18,8 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   (verified: needs `25ff8ca`, which the VM has; head `33fa7cf`). Fetched to `refs/remotes/pc/main` and merged into the
   VM's main as `579a195` (clean: the PC's three commits `de1ad3d`, `8a98bb3`, `33fa7cf` touch only CLAUDE.md's
   2026-11-13 PC section: R4 waits, the wallpapers plan, the website on hold, how to sync). Nothing pushed.
-- **VM -> PC, when the user goes back to the PC** (his PC session's plan): make one bundle with main **and the six
+- **VM -> PC, when the user goes back to the PC** (his PC session's plan; the user, 2026-11-14: "Later, when I
+  switch": make it then, not before): make one bundle with main **and the six
   `port/<branch>` refs** (the 1.8.2 ports live only here and on GitHub's `wip/*`), excluding what the PC already has:
   `git bundle create "vm-to-pc <date>.bundle" main port/forge-1.21.1 port/forge-1.20.1 port/fabric-1.21.1
   port/fabric-1.20.1 port/fabric-1.21.11 port/fabric-26.3 --not 33fa7cf origin/main origin/forge-1.21.1
