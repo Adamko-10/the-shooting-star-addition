@@ -1,5 +1,45 @@
 # SA-03 ideas (the free slot between Luna and Proxima)
 
+## THE PICK (the user, 2026-11-15): two skills, SA-03A · Roche and SA-03B · JuMBO
+
+The user turned down the six ideas below and the next four offered (Incursion, eyeball planet, Neptune's diamond rain,
+Venus greenhouse) and asked for "something planetary but special": **two planets**, "1 that would get shattered by the
+earth's roche limit and one that would do something else special that isnt crashing", the planet "bigger". Then:
+"slow down, plan 2 seperate things": **two separate skills**, coded like SA-04A/SA-04B: "i say we call the bigger one
+JuMBO and the smaller one Roche".
+
+- The science hook: **JuMBOs** (Jupiter-Mass Binary Objects), pairs of planets with no star, reported in the Orion
+  Nebula by the James Webb telescope in 2023 (still debated). The **Roche limit**: inside about 2.44 Earth radii (times
+  the cube root of the density ratio), Earth's tides tear apart a body held together only by its own gravity. A body
+  **bigger than Earth but much lighter** (an ice world) can be torn apart; that is the fantasy's rule.
+- **SA-03A · Roche** (the smaller planet): a rogue ice world, bigger than Earth but light, drifts in, crosses Earth's
+  Roche limit, stretches and unravels into a stream of chunks (like comet Shoemaker-Levy 9's "string of pearls" at
+  Jupiter, 1992-94), which wraps around Earth into a **new ring**; chunks fall as burning ice-rock fireballs onto the
+  crosshair area. World: a scatter of ice-and-rock craters with steam and frost; the ring **fades after a while** (the
+  user's pick; a setting could keep it). Its film plan: "SA-03A · Roche, the film" below.
+- **SA-03B · JuMBO** (the bigger planet): a giant (bigger than Jupiter) that **does not crash**. First idea from the
+  planning: its pass **brakes Earth's spin until it stops**: the sun freezes in the sky and a huge wind blows from the
+  east, **for about 2 minutes** (the user's pick), then the day cycle restarts. To plan on its own, after Roche ("slow
+  down").
+- Educational-mode labels (for later): the Roche limit, Shoemaker-Levy 9, rings born from torn moons (Saturn's may
+  be one), tidal braking, JuMBOs.
+
+### SA-03A · Roche, the film (first plan, 2026-11-15, not approved yet)
+
+About 44 s, Fable makes the previz and the film (as for SA-05/06):
+1. **Uplink** (0-3 s): the remote, the caster; HUD "ROGUE BODY DETECTED".
+2. **Pull-out** (3-7 s): Railgun-style, up through the clouds to orbit.
+3. **Arrival** (7-12 s): past the Moon, a pale blue-white ice world bigger than Earth, dark cracks in its crust,
+   drifts in out of the dark. Title card **SA-03A · ROCHE**, label "ROGUE ICE WORLD · NO STAR".
+4. **The line** (12-16 s): a glowing circle around Earth, "ROCHE LIMIT"; the ice world crosses it.
+5. **Stretching** (16-21 s): it pulls into an egg toward Earth; the cracks glow blue, geysers jet from them, ice plates
+   peel off the near side.
+6. **Unravelling** (21-25 s): not an explosion: it comes apart into a long stream of chunks.
+7. **The ring is born** (25-30 s): the stream wraps around Earth into a bright ring, its shadow on the clouds.
+8. **On the ground** (30-34 s): the ring arches from horizon to horizon; the first fireballs peel off it.
+9. **Debris rain** (34-40 s): burning ice-rock chunks with steam trails hit around the crosshair.
+10. **Pull-back** (40-44 s): icy craters, steam, the ring overhead, small streaks still falling.
+
 The series climbs: comet (Halley), moon (Luna), **planet-scale (SA-03)**, star (Proxima). Every idea below is bigger than
 a moon and smaller than a star. All of them stay region-sized (carved near the centre, lazy carving further out, the
 `unbreakable` tag honoured, never the whole map). Taken elsewhere, so avoided: Quasar (jet), Solar Flare (Sun whips
