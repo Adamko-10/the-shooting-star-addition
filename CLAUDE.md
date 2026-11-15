@@ -14,8 +14,9 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
 
 ### >>> RESUME HERE (2026-11-15 ~13:45, Adam's PC): back from the VM; this session runs both projects <<<
 
-- **The move is done** (from `HANDOFF PROMPT (2026-11-15).md`; the user unzipped the move folder to
-  `C:\Users\adam_\Downloads\Move to PC (2026-11-15)\`, not Documents as the prompt planned):
+- **The move is done** (from `HANDOFF PROMPT (2026-11-15).md`). The move folder is now
+  `C:\Users\adam_\Documents\Move to PC (2026-11-15)\` (the user unzipped it in Downloads; moved to Documents at his
+  pick, the zip in its `zip\` subfolder; nothing deleted):
   - **This repo**: `vm-to-pc 2026-11-15 (SA Series).bundle` verified; `git pull` of its `main` was a fast-forward
     `33fa7cf..d089f07` (no conflicts). Its six port branches fetched to `refs/remotes/vm/port/*` and each local
     `port/<branch>` fast-forwarded inside its `ports\<branch>` worktree (all six were fast-forwards, worktrees clean):
