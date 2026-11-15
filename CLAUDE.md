@@ -12,7 +12,29 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-14, the VM): the PC's notes merged in; how to send the VM's work back <<<
+### >>> RESUME HERE (2026-11-15, moving to Adam's PC): one fresh session takes over both projects <<<
+
+- **The user, 2026-11-15**: "just break it down for me what do i do and lets finalize moving this to a fresh session"
+  (clickable: **"On my PC"**, **"Both projects (Recommended)"**): one fresh session on his PC carries on the SA Series
+  and TON 618 Addition. Everything it needs is in **`C:\Users\User\Downloads\Move to PC (2026-11-15).zip`**:
+  - `vm-to-pc 2026-11-15 (SA Series).bundle`: `main` + the six `port/<branch>` refs (the 1.8.2 ports), made with
+    `--not 33fa7cf` and the seven `origin/<branch>` heads (the recipe in the section below);
+  - `ton 618 addition (all branches).bundle`: that repo's `main` and six port branches (its GitHub repo
+    `Adamko-10/ton618-addition` has an older `main` only);
+  - the SA bug-fix test jars (2026-11-13) and TON 618 Addition's seven 1.0.0 jars; `Adam's notes\`; the icons;
+    the VM's copy of his personal rules; `HANDOFF PROMPT (2026-11-15).md` (what the fresh session reads first).
+- **Icons for Discord emojis** (the user, 2026-11-15: "do we still have the files to the old icon for the mod, i kinda
+  want it along with every other icon cuz i want to turn them into emojis in my discord server"): yes, the old one is
+  in git (`94d84c3`, from 1.0.0, replaced by the 1.8.1 icon in `90608b7`). All in
+  `C:\Users\User\Downloads\Icons for Discord emojis (2026-11-15)\`: `originals\` (old and new SA icon, the old 512 px
+  thumbnail, the four SA skill sprites 64x32, TON 618 Addition's icon, Last Light's sprite 256x128) and `emoji
+  128x128\` (square icons scaled to 128; each wide sprite twice: "(wide)" 128x64 and "(square crop)" 128x128; pixel art
+  scaled nearest-neighbour). Every file is far under Discord's 256 KB limit. Also in the zip.
+- Meridian checked 2026-11-15 ~12:30: still not out (TSS newest 1.5.2, RimuLib 1.2.3).
+- After the move this VM folder is the older copy: don't work here unless the user comes back to the VM (then bring
+  the PC's commits over with a `pc-to-vm` bundle, as on 2026-11-14).
+
+### RESUME HERE (2026-11-14, the VM): the PC's notes merged in; how to send the VM's work back
 
 - **PC -> VM sync done (2026-11-14)**: the user put the PC's `pc-to-vm 2026-11-14.bundle` in `C:\Users\User\Downloads\`
   (verified: needs `25ff8ca`, which the VM has; head `33fa7cf`). Fetched to `refs/remotes/pc/main` and merged into the
