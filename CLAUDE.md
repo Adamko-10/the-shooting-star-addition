@@ -12,7 +12,29 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-15, moving to Adam's PC): one fresh session takes over both projects <<<
+### >>> RESUME HERE (2026-11-15 ~13:45, Adam's PC): back from the VM; this session runs both projects <<<
+
+- **The move is done** (from `HANDOFF PROMPT (2026-11-15).md`; the user unzipped the move folder to
+  `C:\Users\adam_\Downloads\Move to PC (2026-11-15)\`, not Documents as the prompt planned):
+  - **This repo**: `vm-to-pc 2026-11-15 (SA Series).bundle` verified; `git pull` of its `main` was a fast-forward
+    `33fa7cf..d089f07` (no conflicts). Its six port branches fetched to `refs/remotes/vm/port/*` and each local
+    `port/<branch>` fast-forwarded inside its `ports\<branch>` worktree (all six were fast-forwards, worktrees clean):
+    forge-1.21.1 `a23d6c5`, forge-1.20.1 `cb624d7`, fabric-1.21.1 `1d3c74a`, fabric-1.20.1 `655f135`, fabric-1.21.11
+    `3aea6b5`, fabric-26.3 `a359f3b` (= the VM's table below, CI green). Nothing pushed. The untracked `AGENTS.md` and
+    `aurora-theme.json` here are left as they were.
+  - **The SA bug-fix test jars** copied to `..\test builds\SA Series bug-fix test jars (2026-11-13)\` (7 jars).
+  - **TON 618 Addition** cloned to `C:\Users\adam_\Documents\TON 618 Addition\ton 618 addition\` (its own CLAUDE.md has
+    the details); its 1.0.0 jars in `...\TON 618 Addition\test builds\2026-11-14 TON 618 Addition 1.0.0 all loaders\`.
+  - **His personal rules** (`C:\Users\adam_\.claude\CLAUDE.md`) merged with the VM copy: **no ponytail ever** (replaces
+    the old "tell him when to switch" rule and §0's lite/off advice), Fable makes the films (TON 618's, SA-05/06's),
+    the VM-only notes (TON 618 folder, idle compaction, test jars in Downloads there), and the two projects' PC paths.
+- **The user, 2026-11-15**: "emojis are uploaded": the Discord emoji icons are on his server; nothing left for us.
+- **Still waiting** (unchanged): his game test of the 7 SA bug-fix jars; **Meridian** (checked 2026-11-15 ~12:30 on
+  the VM: not out). When it is out: port to it first, then release 1.8.2. Open with him: the CurseForge description top
+  (draft A or B, in the move folder's `Adam's notes\`), the website and wallpapers on hold.
+- From now on this one session keeps **both** CLAUDE.md files up to date, each committed on its own.
+
+### RESUME HERE (2026-11-15, moving to Adam's PC): one fresh session takes over both projects
 
 - **The user, 2026-11-15**: "just break it down for me what do i do and lets finalize moving this to a fresh session"
   (clickable: **"On my PC"**, **"Both projects (Recommended)"**): one fresh session on his PC carries on the SA Series
