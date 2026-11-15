@@ -35,6 +35,31 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   (draft A or B, in the move folder's `Adam's notes\`), the website and wallpapers on hold.
 - From now on this one session keeps **both** CLAUDE.md files up to date, each committed on its own.
 
+### >>> 2026-11-15 ~16:00 (Adam's PC): Fable jobs, SA-03 picked, descriptions to redo <<<
+
+- **TON 618 Addition 1.0.0 is released** (GitHub v1.0.0 x7, CurseForge project 1807506 waiting for approval): its
+  own CLAUDE.md has the details.
+- **Fable jobs (the user, 2026-11-15: "anything else we can do, particularly with fable liek animations")**: picked
+  all four, **one at a time** (clickable), **Opus starts each Fable 5.2 session** ("I start them for you"):
+  1. TON 618: Last Light film polish (the faint early glow, toasts over the film): **running**,
+     [Fable: Last Light film polish](#local_22632a54-fabf-4609-a051-0906500bfd9b), prompt
+     `C:\Users\adam_\Documents\TON 618 Addition\ton 618 addition\prompts\FABLE-LAST-LIGHT-POLISH-PROMPT.md`;
+  2. TON 618: TA-02 · Quasar Jets previz; 3. SA-04B · Proxima CME previz (`docs/NEXT-SKILLS.md`); 4. SA-03 previz
+     (once its plan is approved). Each prompt is written when its turn comes.
+- **SA-03 is two skills: SA-03A · Roche and SA-03B · JuMBO** (the user, 2026-11-15; the planning and the first film
+  plan of Roche are in `docs/SA-03-IDEAS.md` "THE PICK"). Roche = a rogue ice world torn apart by Earth's Roche limit
+  into a ring, debris raining on the crosshair, the ring fading after a while; JuMBO = a giant that doesn't crash
+  (first idea: it stops Earth's spin, sun frozen ~2 minutes, wind from the east); planned **one at a time** ("slow
+  down, plan 2 seperate things").
+- **Write-down (the user, 2026-11-15), not started**:
+  - **Rework the CurseForge descriptions of ALL his projects**: look better; links to his other projects, the
+    roadmap, the Discord, "all hyperlinks", "maybe some emojis"; **each custom block under the skill that adds it**
+    (e.g. Solar Residue under Proxima). "the description thing applies to all projects, and the links".
+  - **Update the roadmap on the website** (`C:\Users\adam_\Documents\Website\`, `data.js`) with a **different roadmap**:
+    "i kinda changed my mind and stuff" (ask him for the new one first).
+  - **TON 618 Addition has no source code link** on CurseForge (its Source tab): add
+    https://github.com/Adamko-10/ton618-addition; check his other projects' source links too.
+
 ### RESUME HERE (2026-11-15, moving to Adam's PC): one fresh session takes over both projects
 
 - **The user, 2026-11-15**: "just break it down for me what do i do and lets finalize moving this to a fresh session"
