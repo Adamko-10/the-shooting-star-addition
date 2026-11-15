@@ -57,6 +57,11 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
     (e.g. Solar Residue under Proxima). "the description thing applies to all projects, and the links".
   - **Update the roadmap on the website** (`C:\Users\adam_\Documents\Website\`, `data.js`) with a **different roadmap**:
     "i kinda changed my mind and stuff" (ask him for the new one first).
+  - **The mod icon in the mod's own metadata, every project** (the user, 2026-11-15: "add the mod icon to the mod
+    itself in the metadata so the icon shows when its installed in the downloaded mods ui in the instance"; also in
+    his personal rules now): **this repo already has it on all 7** (`shooting_star_addition_icon.png`, `logoFile` in
+    the NeoForge/Forge `mods.toml`, `"icon"` in `fabric.mod.json`, checked 2026-11-15): keep it on every new branch.
+    TON 618 Addition has none yet (in its CLAUDE.md for its next update).
   - **TON 618 Addition has no source code link** on CurseForge (its Source tab): add
     https://github.com/Adamko-10/ton618-addition; check his other projects' source links too.
 
