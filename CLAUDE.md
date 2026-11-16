@@ -1335,6 +1335,11 @@ The user moved to a new conversation here (2026-11-09: "write claude md since im
 
 ## 0. The user's rules (follow these exactly)
 
+**2026-11-16: the general ones are now also in Adam's personal rules** (`C:\Users\adam_\.claude\CLAUDE.md`, "Every
+mod project"), so every project follows them (Adam: "make sure that it will be everywhere from now on, same with most
+other rules in that project"). This section keeps them, plus the SA-only ones. "New features on one branch first"
+covers bug fixes too (his rule "the main version first").
+
 **Two people work on this, on two PCs. Check which one you are on first:** if the project sits in a folder called
 `software files` (e.g. `C:\Users\HamzaTom\Desktop\Dont Touch\software files\shooting star adon with adam\`), you
 are on **Hamza's PC**; anywhere else, you are on **Adam's PC**. Adam is the one with the 2 AM shutdown policy (his
