@@ -53,6 +53,8 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   ([Fable: TA-02 quality redo](#local_89d133b7-381e-4222-b7db-49bd77b35ec8)); this session built educational mode's
   reading time (TA-02 and Last Light), a screenshot test harness, the landing crater; the Sonniss sounds come next.
   The general rules of this file's §0 are now in his personal rules too (every project).
+  **2026-11-17 ~00:30**: Fable's first redo round and the Sonniss sounds (TON's `art/sonniss_sounds.sh`, this repo's
+  recipe engine) are in one test jar in his `NeoForge 1.21.1 (1)` instance; waiting for his test (TON's CLAUDE.md).
 
 ### >>> 2026-11-15 ~16:00 (Adam's PC): Fable jobs, SA-03 picked, descriptions to redo <<<
 
