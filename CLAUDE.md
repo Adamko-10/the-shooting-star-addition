@@ -38,15 +38,21 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
 ### >>> 2026-11-16 ~13:50 (Adam's PC): test jars in his Modrinth instance; ponytail off in its own setting <<<
 
 - **Test jars now go into his Modrinth instances** (the user, 2026-11-16; also in his personal rules). Done in
-  `D:ModrinthAppprofilesNeoForge 1.21.1 (1)mods`: in = `TON 618 Addition 1.1.0 TA-02 film TEST [NeoForge
+  `D:\ModrinthApp\profiles\NeoForge 1.21.1 (1)\mods`: in = `TON 618 Addition 1.1.0 TA-02 film TEST [NeoForge
   1.21.1].jar`, `ss-21-quasar-1.8.0-neoforge.jar`, `The Shooting Star Addition SA Series 1.8.1 + bug fixes TEST
   [NeoForge 1.21.1].jar`; renamed `.disabled` = the three TON 618 Addition 0.1.0 test jars (one mod id, three
   copies), `rimulib-1.2.2-neoforge.jar` (1.2.3 stays), the SA shader-wave test jar of 2026-11-12. Left as they were:
   TSS 1.5.2, TON 618 1.1.0, RimuLib 1.2.3. The other loaders' SA bug-fix jars are not in their instances yet (no
   Fabric 1.20.1 instance exists).
-- **Ponytail off in the hook** (the user: "confirm that ponytail is off with the hook"): `%APPDATA%ponytailconfig.json`
+- **Ponytail off in the hook** (the user: "confirm that ponytail is off with the hook"): `%APPDATA%\ponytail\config.json`
   `{"defaultMode": "off"}` (the plugin's own setting), live flags cleared; the start hook tested for startup, resume
   and compact: nothing injected. Details in his personal rules.
+- **The user's game test of TA-02 (2026-11-16 afternoon)**: "looks much worse in game", low quality everywhere, weak
+  landing, too little sound, too little reading time. A quality redo is under way (plan, picks and progress in TON 618
+  Addition's CLAUDE.md, the 2026-11-16 ~14:20 section): Fable redoes the film and the world visuals
+  ([Fable: TA-02 quality redo](#local_89d133b7-381e-4222-b7db-49bd77b35ec8)); this session built educational mode's
+  reading time (TA-02 and Last Light), a screenshot test harness, the landing crater; the Sonniss sounds come next.
+  The general rules of this file's §0 are now in his personal rules too (every project).
 
 ### >>> 2026-11-15 ~16:00 (Adam's PC): Fable jobs, SA-03 picked, descriptions to redo <<<
 
