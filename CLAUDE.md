@@ -35,6 +35,19 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   (draft A or B, in the move folder's `Adam's notes\`), the website and wallpapers on hold.
 - From now on this one session keeps **both** CLAUDE.md files up to date, each committed on its own.
 
+### >>> 2026-11-16 ~13:50 (Adam's PC): test jars in his Modrinth instance; ponytail off in its own setting <<<
+
+- **Test jars now go into his Modrinth instances** (the user, 2026-11-16; also in his personal rules). Done in
+  `D:ModrinthAppprofilesNeoForge 1.21.1 (1)mods`: in = `TON 618 Addition 1.1.0 TA-02 film TEST [NeoForge
+  1.21.1].jar`, `ss-21-quasar-1.8.0-neoforge.jar`, `The Shooting Star Addition SA Series 1.8.1 + bug fixes TEST
+  [NeoForge 1.21.1].jar`; renamed `.disabled` = the three TON 618 Addition 0.1.0 test jars (one mod id, three
+  copies), `rimulib-1.2.2-neoforge.jar` (1.2.3 stays), the SA shader-wave test jar of 2026-11-12. Left as they were:
+  TSS 1.5.2, TON 618 1.1.0, RimuLib 1.2.3. The other loaders' SA bug-fix jars are not in their instances yet (no
+  Fabric 1.20.1 instance exists).
+- **Ponytail off in the hook** (the user: "confirm that ponytail is off with the hook"): `%APPDATA%ponytailconfig.json`
+  `{"defaultMode": "off"}` (the plugin's own setting), live flags cleared; the start hook tested for startup, resume
+  and compact: nothing injected. Details in his personal rules.
+
 ### >>> 2026-11-15 ~16:00 (Adam's PC): Fable jobs, SA-03 picked, descriptions to redo <<<
 
 - **TON 618 Addition 1.0.0 is released** (GitHub v1.0.0 x7, CurseForge project 1807506 waiting for approval): its
