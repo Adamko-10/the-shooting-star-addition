@@ -64,6 +64,16 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
     TON 618 Addition has none yet (in its CLAUDE.md for its next update).
   - **TON 618 Addition has no source code link** on CurseForge (its Source tab): add
     https://github.com/Adamko-10/ton618-addition; check his other projects' source links too.
+  - **Clean up ALL his mods, including ones this session doesn't know yet** (the user, 2026-11-16: "i wanna fix the
+    relations (dependencies) for some of my other mods u dont know about and the metadata stuff for the icon and more
+    just fix it all up and make a better description and stuff"). For each project: the CurseForge **relations**
+    (required/optional dependencies right on every file), the **mod icon in the jar's metadata** (his rule), the
+    **source link**, a **better description** (the rework above), and anything else that's off. His CurseForge projects
+    (seen on his author page 2026-11-15): The Shooting Star Addition: SA Series (1725916), TON 618 Addition (1807506),
+    Type 95 Sniper Rifle Addition (Addons, approved; and a second "Type 95 Sniper Rifle Addition" in Mods, status New),
+    Etched Gate (1721458), Claim Wars, Pet Skills, Radio Gate, Server Tweaks Toolbox, Cinematic Interactions Applied
+    Energistics 2 (he's an author; owner hamzatom). Most of their code isn't on this PC: ask him where each one lives
+    (and whether it's his to change) before starting. Not started.
 
 ### RESUME HERE (2026-11-15, moving to Adam's PC): one fresh session takes over both projects
 
