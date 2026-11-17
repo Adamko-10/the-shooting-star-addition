@@ -55,6 +55,10 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   The general rules of this file's §0 are now in his personal rules too (every project).
   **2026-11-17 ~00:30**: Fable's first redo round and the Sonniss sounds (TON's `art/sonniss_sounds.sh`, this repo's
   recipe engine) are in one test jar in his `NeoForge 1.21.1 (1)` instance; waiting for his test (TON's CLAUDE.md).
+  **2026-11-17 ~19:45**: TON 618 Addition 1.1.0 (NeoForge) is ready to publish once he has looked: TA-02 now draws
+  properly with shader packs (this repo's `GlowAtlas` approach, ported as TON's `QuasarAtlas`; the shader must bake
+  alpha 1 where there is light, or packs drop it) and has a landing marker (crater-wide target, pillar of light,
+  quickening pulse). The jar is in his instance; details in TON's CLAUDE.md.
 
 ### >>> 2026-11-15 ~16:00 (Adam's PC): Fable jobs, SA-03 picked, descriptions to redo <<<
 
