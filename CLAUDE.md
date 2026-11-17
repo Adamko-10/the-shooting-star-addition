@@ -59,6 +59,11 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   properly with shader packs (this repo's `GlowAtlas` approach, ported as TON's `QuasarAtlas`; the shader must bake
   alpha 1 where there is light, or packs drop it) and has a landing marker (crater-wide target, pillar of light,
   quickening pulse). The jar is in his instance; details in TON's CLAUDE.md.
+  **2026-11-17 ~21:50**: then a 5x bigger landing blast (craters 200-600 blocks; RimuLib's `start()`/linger alone
+  didn't cut a 300-radius crater at its middle in time: tick the cut from the middle out first) and the named stars
+  under the clouds without a pack (with Complementary, things drawn with the sky are wiped: keep them after the
+  particles). Adam has ChatGPT/Codex release it: `C:\Users\adam_\Documents\TON 618 Addition\releases\1.1.0\
+  RELEASE-PROMPT.md`. His next-update list is in TON's CLAUDE.md.
 
 ### >>> 2026-11-15 ~16:00 (Adam's PC): Fable jobs, SA-03 picked, descriptions to redo <<<
 
