@@ -26,6 +26,7 @@ public final class HalleyClientConfig {
     private static final ModConfigSpec.BooleanValue WORLD_FLASHES;
     private static final ModConfigSpec.BooleanValue COMET_MARKER;
     private static final ModConfigSpec.EnumValue<PackMode> SHADER_PACKS;
+    private static final ModConfigSpec.BooleanValue TITLE_CARDS;
     private static final ModConfigSpec.BooleanValue LUNA_MUSIC;
     private static final ModConfigSpec.BooleanValue NO_COOLDOWN;
     private static final ModConfigSpec.BooleanValue EVAC_LIFT;
@@ -90,6 +91,9 @@ public final class HalleyClientConfig {
                 "shader pack on, the comet and the sky then won't show).",
                 "AUTO only sees Iris (and ports that keep Iris's API). With OptiFine's shaders, set ALWAYS.")
             .defineEnum("shader_packs", PackMode.AUTO);
+        TITLE_CARDS = b.comment("The skills' title cards in their films (SA-01 HALLEY, SA-02 LUNA, and Proxima's PROXIMA CENTAURI,",
+                "DYSON SPHERE, CORONAL MASS EJECTION and SA-04 PROXIMA). Shown with RimuLib's legacy film style too.")
+            .define("title_cards", true);
         b.pop();
 
         b.comment("Your switches in the Stellar Remote's menu (H). They are saved here when you flip them there.").push("stellar_remote");
@@ -158,6 +162,11 @@ public final class HalleyClientConfig {
 
     public static boolean worldFlashes() {
         return get(WORLD_FLASHES);
+    }
+
+    /** The films' title cards (on by default, also in RimuLib's legacy film style; the user, 2026-11-18). */
+    public static boolean titleCards() {
+        return get(TITLE_CARDS);
     }
 
     public static boolean cometMarker() {
