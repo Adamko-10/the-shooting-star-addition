@@ -77,7 +77,15 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
     `Forge 1.20.1 (1)` with TSS 1.6.0 Forge + RimuLib 1.3.0 Forge (their old SA/TSS/RimuLib jars renamed `.disabled`).
     The Fabric instances (`Fabric 1.21.1`, `Fabric 1.21.11 (1)`, `Fabric 26.3`) need TSS 1.6.0 Fabric (9676941,
     38.3 MB) and RimuLib 1.3.0 Fabric (9676539, 3.5 MB): not downloaded (ask first).
-  - **Left: the release of 1.8.2 on all seven**, only on his word (a release prompt for Codex like 1.8.1's, from
+  - **The user, 2026-11-18 ~11:30: "Yes, release it"** (1.8.2, all seven). `releases\1.8.2\RELEASE-PROMPT.md` written
+    from 1.8.1's (no rename/summary/avatar steps this time; untracked `AGENTS.md`/`aurora-theme.json` allowed in A1);
+    main's CI re-run from its head first (#247 `78bbfb1`, base `acc05bb`, all `ok:`) because #237 was built before a
+    `gradle.properties` comment change; every A1 check run here on all seven before handing it over. Handed to Codex
+    (~12:10) in a new Codex project "Shooting Star Addition" on the project folder (trusted). **CI's Proxima test can
+    hit B3 on a random world** (main #247 and fabric-1.20.1 #232/#242: "2 screenshots"; the command's `~` is the
+    player's height, under higher land): make that test's mark robust some time (a flat world, or a mark known to be
+    in the open).
+  - **(was) Left: the release of 1.8.2 on all seven**, only on his word (a release prompt for Codex like 1.8.1's, from
     `releases\1.8.1\RELEASE-PROMPT.md`; heads above; jars from these CI drafts; changelogs in `..\releases\1.8.2\
     changelogs\`; the six `port/<branch>` refs pushed as `port/<branch>:<branch>`, fast-forward).
   - **Release texts** on main (`eebe166`): `dev/publish/changelog_182.js` (per-branch lines: close-on-pick main only,
