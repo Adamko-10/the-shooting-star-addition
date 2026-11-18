@@ -12,7 +12,20 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-18 ~13:30, Adam's PC): 1.8.2 RELEASED on all seven; comments read; drafts for Adam <<<
+### >>> RESUME HERE (2026-11-18 ~16:30, Adam's PC): 1.8.3 patch on its way (the user: "1.8.3 patch first") <<<
+
+- **1.8.3 = 1.8.2 + the block names (Fabric 26.3/1.21.11) + Luna's moon mixin (Forge) + the mod list's requirements**
+  (the mod description in `gradle.properties`/`fabric.mod.json` still said "The Shooting Star (Demo) 1.5.2": now
+  "1.6.0 and RimuLib 1.3.0"). Version commits: main `66b19f4`, forge-1.21.1 `6b55e95`, forge-1.20.1 `4cdd09c`,
+  fabric-1.21.1 `11d51c2`, fabric-1.20.1 `b098e92`, fabric-1.21.11 `0cc7dfd`, fabric-26.3 `d13119d` (READMEs "This is
+  version 1.8.3"; main's `dev/publish/curseforge-description.md` too). `dev/publish/changelog_183.js` ->
+  `..\releases\1.8.3\changelogs\`, `github_183.sh`. CI round #252 (main) to #258 (26.3) started ~16:25.
+  `..\releases\1.8.3\RELEASE-PROMPT.md` made from 1.8.2's (A0 = those heads and runs; B2 only changes the two version
+  mentions in the description). Next: CI green -> run its A1 checks here -> hand it to Codex (project "Shooting Star
+  Addition") -> check the result. The user had asked "whats next": offered 1.8.3 / TON ports / 1.9.0 / stop; picked
+  1.8.3 first. Reminder given: idea #16 (Mrityu mod).
+
+### >>> 2026-11-18 ~13:30 (Adam's PC): 1.8.2 RELEASED on all seven; comments read; drafts for Adam <<<
 
 - **1.8.2 is out** (Codex, ~12:10-13:00, from `releases\1.8.2\RELEASE-PROMPT.md`): GitHub `v1.8.2*` x7 (tags on
   main `ac770fd`, forge-1.21.1 `580cd53`, forge-1.20.1 `7006728`, fabric-1.21.1 `f6db2f4`, fabric-1.20.1 `44f84e9`,
