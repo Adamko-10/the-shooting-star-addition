@@ -24,7 +24,7 @@ abstract class LevelRendererMoonMixin {
     @Redirect(method = "renderSky", at = @At(value = "INVOKE",
         target = "Lcom/mojang/blaze3d/vertex/BufferUploader;drawWithShader(Lcom/mojang/blaze3d/vertex/MeshData;)V", ordinal = 1),
         require = 0)
-    private static void ss06luna$hideVanillaSun(MeshData mesh) {
+    private void ss06luna$hideVanillaSun(MeshData mesh) {
         if (MoonFx.active().isEmpty()) {
             BufferUploader.drawWithShader(mesh);
         } else {
@@ -35,7 +35,7 @@ abstract class LevelRendererMoonMixin {
     @Redirect(method = "renderSky", at = @At(value = "INVOKE",
         target = "Lcom/mojang/blaze3d/vertex/BufferUploader;drawWithShader(Lcom/mojang/blaze3d/vertex/MeshData;)V", ordinal = 2),
         require = 0)
-    private static void ss06luna$hideVanillaMoon(MeshData mesh) {
+    private void ss06luna$hideVanillaMoon(MeshData mesh) {
         if (MoonFx.active().isEmpty()) {
             BufferUploader.drawWithShader(mesh);
         } else {
