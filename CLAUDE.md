@@ -51,7 +51,7 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   already fine). Built here: main, both Forge (40 references verified). Re-tested in the Forge 1.20.1 game: no mixin
   failure, Luna's strike ran (44 chunks in 3.5 s, worst tick 26 ms, no errors). Jar in his instance: `The Shooting
   Star Addition SA Series 1.8.2 + moon mixin fix TEST [Forge 1.20.1].jar` (copy in `..\test builds\2026-11-18 moon
-  mixin fix (Forge 1.20.1)\`; the 1.8.2 TEST jar there renamed `.disabled`). CI started for the two Fabric branches.
+  mixin fix (Forge 1.20.1)\`; the 1.8.2 TEST jar there renamed `.disabled`). CI green on the two Fabric branches (#250, #251, all `ok:`).
   Not released: ships with the next update together with the 26.3/1.21.11 block names. The reply to LeeHeTwo now says
   it works on 1.8.2. The user also asked to resume the R.E.P.O. mod conversation: [Jeff Doors mod for
   Gale](#local_bff08752-625c-4608-bcf8-6d1373d7c890) got a message to pick up where it left off; (5) "a config to hide the little popup top-left when the remote is opened" = our plate:
