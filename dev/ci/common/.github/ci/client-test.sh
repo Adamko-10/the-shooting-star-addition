@@ -31,6 +31,8 @@ client_test() {
     grep -a -E '\.java:[0-9]+: error:|What went wrong|^> |^  [a-z]' "$SECRET/client-$name.log" | grep -a -v cyou/rimuru | head -30 || true
   fi
   grep -a -E 'never attached|Exception|ERROR' "$SECRET/client-$name.log" | grep -a -v -E 'Realms|authlib|Yggdrasil|profile|OpenAL|SoundSystem|telemetry' | head -5 || true
+  # our harness's own lines and our skills' chat messages (a refused cast shows here; nothing of TSS or RimuLib)
+  grep -a -E "\[SS05CLIENTTEST\]|\[CHAT\]" "$SECRET/client-$name.log" | grep -a -v -E "status:|cyou/rimuru" | grep -a -iE "proxima|halley|luna|convergence|ran |refus|sky|mark|failed" | cut -c1-200 | head -12 || true
   # a crash in game: the error, the class and method it names, why, and the call stack (names only, never the bytecode
   # dump a VerifyError carries, so no code of The Shooting Star's or RimuLib's)
   grep -a -A600 'Unreported exception thrown' "$SECRET/client-$name.log" | grep -a -A1 -E 'Error:|Location:|Reason:|Caused by' | head -16 || true

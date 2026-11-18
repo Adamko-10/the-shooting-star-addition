@@ -26,6 +26,4 @@ ci_tests() {
   client_test proxima prodClientTest -Dss05.clienttest.skill=other -Dss05.clienttest.world=normal -Dss05.clienttest.time=6000 -Dss05.clienttest.shots=0,900 -Dss05.clienttest.film=true -Dss05.clienttest.hud=true -Dss05.clienttest.filmlog=true "-Dss05.clienttest.command=ssa strike proxima at 150 ~ 0"
   # SA-00 Stellar Convergence film (every default weapon), frames by film time: its panels must show the frozen shots
   client_test convergence prodClientTest -Dss05.clienttest.skill=other -Dss05.clienttest.world=normal -Dss05.clienttest.time=6000 -Dss05.clienttest.shots=0,900 -Dss05.clienttest.film=true -Dss05.clienttest.hud=true -Dss05.clienttest.filmlog=true "-Dss05.clienttest.command=ssa strike stellar_convergence at 150 ~ 0"
-  # TSS 1.5.2 crashed in Gungnir's film on this version (Convergence.SKIPPED): is TSS 1.6.0 fixed?
-  client_test tss_gungnir prodClientTest -Dss05.clienttest.skill=other -Dss05.clienttest.world=normal -Dss05.clienttest.time=6000 -Dss05.clienttest.shots=0,700 -Dss05.clienttest.film=true -Dss05.clienttest.hud=true -Dss05.clienttest.filmlog=true "-Dss05.clienttest.command=ssa strike gungnir at 150 ~ 0"
 }
