@@ -24,7 +24,7 @@ final class ProximaFxAdapter extends SpellFx {
 
     ProximaFxAdapter(StrikeFx strike) {
         super(StarClientBridge.payload(strike));
-        Subject subject = this.liiillli1l();
+        Subject subject = FxSubject.of(this);
         this.fx = new ProximaFx(new MoonFx.Host() {
             @Override
             public float filmWeight() {
@@ -65,7 +65,7 @@ final class ProximaFxAdapter extends SpellFx {
 
     /** The film's subject: the caster, the strike's target and the way they faced. */
     Subject subject() {
-        return this.liiillli1l();
+        return FxSubject.of(this);
     }
 
     /** The remote's speed slider for this cast: the film's clock runs at it too. */
@@ -79,7 +79,8 @@ final class ProximaFxAdapter extends SpellFx {
     }
 
     @Override
-    public void beamTick(ClientLevel level, int t) {
+    // The Shooting Star's tick (1.6.0 added the Minecraft argument; the name isn't mapped)
+    public void liiillli1l(Minecraft minecraft, ClientLevel level, int t) {
         this.fx.tick(Minecraft.getInstance(), level, t + this.start());
     }
 
