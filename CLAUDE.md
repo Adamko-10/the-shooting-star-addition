@@ -12,6 +12,37 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
+### >>> RESUME HERE (2026-11-18 ~09:30, Adam's PC): MERIDIAN IS OUT; main ported (1.8.2), the six branches wait <<<
+
+- **Meridian = The Shooting Star 1.6.0 + RimuLib 1.3.0** (CurseForge 2026-11-18 ~02:00 UTC). TSS 1.6.0: NeoForge
+  9677111, Forge 9676949, Fabric 9676941 (35.9/35.9/38.3 MB); it needs RimuLib `[1.3.0,2.0)`. RimuLib 1.3.0: NeoForge
+  9676532, Forge 9676536, Fabric 9676539. TON 618 (rimuru's) is still 1.1.0. Downloaded with the user's OK: the two
+  NeoForge jars into `libs/` (RimuLib 1.2.2 moved to the project folder's `old versions\rimulib\`).
+- **main ported, `fe1b647` (local), version 1.8.2**: mapping 1.6.0 made from 1.5.2's (168/227 classes, report 92
+  lines); `tss_min_version=1.6.0`, `rimulib_version_range=[1.3.0,2.0)`; `dev/ci/branches/main.sh` has 1.6.0 and
+  RimuLib 9676532. **The one break**: TSS 1.6.0's `SpellFx` has two no-argument methods named `liiillli1l` (the film
+  `Subject` and, new, the seed as a `long`), so Java can't call the Subject one: `compat/tss/client/FxSubject` finds it
+  by return type (reflection, cached); and its abstract per-tick method is now `liiillli1l(Minecraft, ClientLevel,
+  int)` (was `beamTick(ClientLevel, int)`), overridden by that name in the three FxAdapters. Everything else maps (40
+  references verified); the raw names still mean the same (payload record `ll1i111l11`, same 15 fields;
+  `SpellEngine.liiillli1l(StarSkill, UUID)`; `Casting.liiillli1l(ServerPlayer, int, float x4, boolean)`;
+  FxManager's `trauma`/`rumble`, `renderHud`/`renderFilmHud`, `applyShake`). RimuLib 1.3.0 still has every internal
+  we hook (`CutsceneDirector.play/tick`, `PostFxRenderer.render`, `SkillKeys.register/KEYS/SKILLS`,
+  `WhiteSpace.commit/leave`, `Carving.LIVE/LINGERING/level`, `SkillSet.rows/skills`).
+- **CI #237** (`wip/main` `011f188`) runs the five client tests on TSS 1.6.0.
+- **Checked against TSS 1.6.0 + RimuLib 1.3.0 (`dev/tools/RefCheck.java`, 0 missing each)**: SS-21 Quasar 1.8.0 (it
+  also reflects `SkillSet.BY_NAMESPACE/OWNER/INDEX/skills/caster`: all still there), TON 618 1.1.0, TON 618 Addition
+  1.1.1 (so its release can go ahead as is). Mind RefCheck needs the jar's classes extracted first (an `unzip` with a
+  pattern into a fresh folder silently gave 0 classes once: count them).
+- **TON 618 Addition 1.1.1's release prompt is made** (`C:\Users\adam_\Documents\TON 618 Addition\releases\1.1.1\
+  RELEASE-PROMPT.md`, head `9eae265`, checks passed), sent to the user for ChatGPT/Codex.
+- **Next, in order**: CI #237 green -> test jar + TSS 1.6.0 + RimuLib 1.3.0 into his `NeoForge 1.21.1 (1)` instance
+  (TSS 1.5.2, RimuLib 1.2.3 and the 1.8.1 bug-fix test jar renamed `.disabled`) -> his game test of everything in 1.8.2
+  (Fable's fixes too: Halley at 10x, Proxima with Complementary, Proxima in the Nether, `/ssa zones`, drops kept) ->
+  only then (his rule) the six `port/<branch>` branches (the 1.8.2 fixes are on them already, CI green 2026-11-13):
+  TSS 1.6.0 + RimuLib 1.3.0 on each (Forge/Fabric jars, mappings, the `SpellFx` change per branch, raw names javap'd
+  per loader), one CI round, then the release 1.8.2 (changelog, release prompt).
+
 ### >>> RESUME HERE (2026-11-15 ~13:45, Adam's PC): back from the VM; this session runs both projects <<<
 
 - **The move is done** (from `HANDOFF PROMPT (2026-11-15).md`). The move folder is now
