@@ -27,7 +27,13 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   Markdown matched the original with exactly those two substitutions. Release instructions and jars are under
   `..\releases\1.8.3\`.
 
-### >>> RESUME HERE (2026-11-18 ~16:30, Adam's PC): 1.8.3 patch on its way (the user: "1.8.3 patch first") <<<
+### 2026-11-18 ~16:30 (Adam's PC): the 1.8.3 patch (the user: "1.8.3 patch first"); RELEASED, section above
+
+- **Checked by Claude after Codex (~17:45)**: origin heads = the seven release commits, seven `v1.8.3*` releases
+  (NeoForge Latest), no `wip/*` or `ci-*` left; the live description says "Version 1.8.3 works with" and "This is
+  version 1.8.3"; the seven CurseForge files (9687146 ... 9687239) were still in CurseForge's review (the public API
+  gives `data: null` until approved). Codex's CLAUDE.md commit `fea4f81` is local (main's origin is `3624717`).
+  **Next (ask him)**: TON 618 Addition 1.1.1 ports, SA 1.9.0, his review of the description draft and roadmap.
 
 - **1.8.3 = 1.8.2 + the block names (Fabric 26.3/1.21.11) + Luna's moon mixin (Forge) + the mod list's requirements**
   (the mod description in `gradle.properties`/`fabric.mod.json` still said "The Shooting Star (Demo) 1.5.2": now
