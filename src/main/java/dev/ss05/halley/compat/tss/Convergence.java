@@ -90,11 +90,11 @@ public final class Convergence {
      * through the convergence's film, into every panel. Check them when those addons update (docs/ADDONS.md).
      */
     /**
-     * Weapons Convergence never fires on this branch: The Shooting Star 1.5.2's own Fabric 1.21.1/1.20.1 build crashes the
-     * game building Gungnir's film (a VerifyError in its camera rig, `il1li1llii`; Gungnir alone crashes too, CI
-     * 2026-11-11). Hidden from the plate as well. Drop it once a TSS update fixes that.
+     * Weapons Convergence never fires on this branch (hidden from the plate as well). The Shooting Star 1.5.2's own Fabric
+     * 1.21.1/1.20.1 build crashed building Gungnir's film (a VerifyError in its camera rig; Gungnir alone too, CI
+     * 2026-11-11), so 1.8.1 skipped "gungnir" here; TSS 1.6.0 fixed it (Gungnir alone ran its whole film, CI 2026-11-18).
      */
-    public static final Set<String> SKIPPED = Set.of("gungnir");
+    public static final Set<String> SKIPPED = Set.of();
 
     private static final Map<String, Integer> ADDON_IMPACT = Map.of(
         "quasar", 758,
