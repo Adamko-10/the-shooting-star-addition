@@ -29,14 +29,24 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
 
 ### 2026-11-18 ~18:30 (Adam's PC): announcement, description draft, website; TON 618 ports under way
 
-- 1.8.3 Discord announcement: `..announcements.8.3 announcement (2026-11-18).md` (sent). Roadmap file has 1.8.3.
-- **Description draft** (`..eleasesdescription rework...draft 2026-11-18).md`): Adam's line "Supporting me on any
-  platform helps a lot", the links on one short row, new "Works with" and "Coming next" sections (his picks). He also
-  wants **a showcase video** in it: ask which video. Not on CurseForge yet (his OK first).
-- **Website** (his pick "New roadmap + TON 618"): local commit `ee3d671` in `C:Usersadam_DocumentsWebsite`
+- 1.8.3 Discord announcement: `..\announcements\1.8.3 announcement (2026-11-18).md` (sent). Roadmap file has 1.8.3.
+- **Description draft** (`..\releases\description rework\SA Series description (new format draft 2026-11-18).md`):
+  Adam's line "Supporting me on any platform helps a lot", the links on one short row, new "Works with" and "Coming
+  next" sections (his picks). He also wants **a showcase video** in it: ask which video. Not on CurseForge yet (his OK).
+- **Website** (his pick "New roadmap + TON 618"): local commit `ee3d671` in `C:\Users\adam_\Documents\Website`
   (today's roadmap, 1.8.3, requirements TSS 1.6.0/RimuLib 1.3.0, TON 618 Addition as a project and its own roadmap
   track "ton" with a filter button and gold colour). Not checked in a browser yet; not pushed (his OK).
-- TON 618 Addition 1.1.1 ports: status in TON's CLAUDE.md.
+- **Title cards (the user, ~19:30: "do the things have title cards i dont remember seeing them, are they a setting and
+  make them on by default and does proxima have one ... SA-04 Proxima")**: they existed (SA-01 HALLEY, SA-02 LUNA,
+  Proxima's PROXIMA CENTAURI, DYSON SPHERE, CORONAL MASS EJECTION and **SA-04 PROXIMA** at the flash) but were hidden
+  in RimuLib's legacy film style, which his NeoForge instance has on (`config/rimulib.properties`
+  `cutscenes.legacy=true`). Now their own client setting `title_cards` (`[looks]`, default true), shown in legacy style
+  too: main `331cce9`, built; game-tested with legacy on (`test scripts\autotest20.sh` with `LEGACY=true WORLD=flat`,
+  frames in `test builds\2026-11-07 auto test 26 proxima new film\2026-11-18 title cards with legacy style\`: SA-04
+  PROXIMA draws at film 18.5 s). Test jar `The Shooting Star Addition SA Series 1.8.3 + title cards TEST [NeoForge
+  1.21.1].jar` in his `NeoForge 1.21.1 (1)` instance (the 1.8.2 TEST there renamed `.disabled`; copy in `..\test
+  builds\2026-11-18 title cards on (NeoForge 1.21.1)\`). Main only (his main-first rule): port with the next update.
+- TON 618 Addition 1.1.1 ports: status in TON's CLAUDE.md (4 of 6 done; Fabric 1.21.11 and 26.3 left).
 
 ### 2026-11-18 ~16:30 (Adam's PC): the 1.8.3 patch (the user: "1.8.3 patch first"); RELEASED, section above
 
