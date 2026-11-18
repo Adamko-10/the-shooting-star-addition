@@ -39,7 +39,8 @@ const body = b => `
 - **Proxima's shock wave with a shader pack** (Iris, Oculus) was invisible when Proxima was the only strike running.`)}
 - **End gateways are protected** like bedrock and end portals: no strike breaks them.
 - **Safer servers**: an error in one strike, in Stellar Convergence or in the work left after a strike is now caught and logged, instead of stopping everything else.
-- **Stellar Convergence fires only the Stellar Remote's weapons**, not skills from other RimuLib menus.${only(b, ["main", "forge-1.21.1", "forge-1.20.1", "fabric-1.21.1", "fabric-1.20.1", "fabric-1.21.11"], `
+- **Stellar Convergence fires only the Stellar Remote's weapons**, not skills from other RimuLib menus.${only(b, ["fabric-1.21.1", "fabric-1.20.1"], `
+- **Stellar Convergence fires Gungnir again on this version.** The Shooting Star 1.6.0 fixed the crash in Gungnir's film that made 1.8.1 leave it out.`)}${only(b, ["main", "forge-1.21.1", "forge-1.20.1", "fabric-1.21.1", "fabric-1.20.1", "fabric-1.21.11"], `
 - **The plate's symbol keys** (such as - and =) show their real name for your keyboard layout.`)}
 `;
 fs.mkdirSync(OUT, { recursive: true });
