@@ -12,7 +12,47 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-18 ~09:30, Adam's PC): MERIDIAN IS OUT; main ported (1.8.2), the six branches wait <<<
+### >>> RESUME HERE (2026-11-18 ~13:30, Adam's PC): 1.8.2 RELEASED on all seven; comments read; drafts for Adam <<<
+
+- **1.8.2 is out** (Codex, ~12:10-13:00, from `releases\1.8.2\RELEASE-PROMPT.md`): GitHub `v1.8.2*` x7 (tags on
+  main `ac770fd`, forge-1.21.1 `580cd53`, forge-1.20.1 `7006728`, fabric-1.21.1 `f6db2f4`, fabric-1.20.1 `44f84e9`,
+  fabric-1.21.11 `e0fd61a`, fabric-26.3 `3e1c9fc`; assets = the CI jars), `wip/*` and 19 `ci-*` drafts deleted;
+  CurseForge files Forge 1.21.1 9682114, Forge 1.20.1 9682142, Fabric 1.21.1 9682164, Fabric 1.20.1 9682185, Fabric
+  1.21.11 9682197, Fabric 26.3 9682213 (NeoForge's id not read), all checks passed (Markdown changelogs, relations);
+  description updated (version lines). It first stopped, rightly, on a cherry-pick left "in progress" in both Forge
+  worktrees (from `git cherry-pick -n A B` stopping at A's conflict): `git cherry-pick --quit` cleared it. **Mind: after
+  a `-n` cherry-pick with a conflict, run `git cherry-pick --quit` once committed.** Codex asked to control Notepad for
+  a report screenshot: declined by Claude, then Adam accepted it himself ("u can approve or decline whatever").
+- **CurseForge comments read (the user: "read all the curseforge comments, mostly the recent ones ... maybe fix
+  them")**: `..\reviews\curseforge-comments-2026-11-18.json` (61 threads; replies are nested in `replies[]`, totalCount
+  157). Since 1.8.1: (1) TSS 1.6.0 needs RimuLib 1.3 -> 1.8.2; (2) **block names `item.shooting_star_addition.<id>` on
+  Fabric 26.3** -> **fixed** on fabric-26.3 `c78fa64` and fabric-1.21.11 `b70eaf5` (BlockItems with
+  `Properties().setId(key)` are named `item.<ns>.<id>` there; the lang now has both keys), CI #248/#249 green, test
+  jars in `..\test builds\2026-11-18 block names fix (Fabric 26.3, 1.21.11)\` (not released, not in an instance: the
+  Fabric instances need the Fabric TSS 1.6.0/RimuLib 1.3.0 jars first, not downloaded); (3) **Proxima's film "not
+  working" on NeoForge** (RyoKamiSei, 11-14, on 1.8.1): **not reproduced on 1.8.2**: `..\test scripts\autotest23.sh`
+  (`..\test builds\2026-11-18 auto test 29 proxima film report\flat\`): the whole film draws with Iris +
+  Complementary and with RimuLib's legacy film style (76 frames each); the first tries on `world=normal` refused (B3,
+  the mark under a hill): use `world=flat` for such tests; (4) **Proxima "not working" on Forge 1.20.1** (LeeHeTwo,
+  11-13): nothing found in its code (shader json and sound registrations as on the tested branches); Forge is never
+  run, so it needs the player's log or a real Forge game (the 1.8.2 Forge jars are in his `Forge 1.21.1` and `Forge
+  1.20.1 (1)` instances); (5) "a config to hide the little popup top-left when the remote is opened" = our plate:
+  `menu_plates = false` does it since 1.8.1; an in-game toggle could come with 1.9.0's settings; (6) NASA's 3D Earth
+  model request, SS-22 Hyperion: noted. Copy-paste replies: `..\announcements\CurseForge replies (2026-11-18).md`
+  (Adam posts them).
+- **The user, 2026-11-18 ~13:00**: "make a new roadmap ... write an announcement for discord for the new 1.8.2
+  version and make it easy to copy paste also write everything i told u to write down and hasnt been done yet so i can
+  see whats left"; and he'll read the CurseForge description "assuming i reworked it like i think i asked and i want a
+  new format which ... i want to later apply to all projects like ton addition". Made: `..\announcements\roadmap
+  2026-11-18.md` (1.8.2 done, SA-03A/SA-03B, educational mode, a TON 618 Addition section; the past R.E.P.O. line
+  dropped), `..\announcements\1.8.2 announcement (2026-11-18).md` (1.3k chars), `..\WHAT'S LEFT (2026-11-18).md`, and
+  **the reworked description as a draft** (it had NOT been reworked: 1.8.2 changed only its version lines):
+  `..\releases\description rework\SA Series description (new format draft 2026-11-18).md` (a link bar with Discord,
+  YouTube, Instagram, TikTok, source; "my other mods"; "What you need"; each skill with **its blocks under it**; controls,
+  servers, FAQ, credits). Nothing changed on CurseForge; once he likes the format it goes to TON 618 Addition and his
+  other projects.
+
+### >>> 2026-11-18 ~09:30 (Adam's PC): MERIDIAN IS OUT; main ported (1.8.2), the six branches wait <<<
 
 - **Meridian = The Shooting Star 1.6.0 + RimuLib 1.3.0** (CurseForge 2026-11-18 ~02:00 UTC). TSS 1.6.0: NeoForge
   9677111, Forge 9676949, Fabric 9676941 (35.9/35.9/38.3 MB); it needs RimuLib `[1.3.0,2.0)`. RimuLib 1.3.0: NeoForge
