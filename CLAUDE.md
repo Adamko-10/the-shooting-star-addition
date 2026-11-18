@@ -36,7 +36,9 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   the mark under a hill): use `world=flat` for such tests; (4) **Proxima "not working" on Forge 1.20.1** (LeeHeTwo,
   11-13): nothing found in its code (shader json and sound registrations as on the tested branches); Forge is never
   run, so it needs the player's log or a real Forge game (the 1.8.2 Forge jars are in his `Forge 1.21.1` and `Forge
-  1.20.1 (1)` instances); (5) "a config to hide the little popup top-left when the remote is opened" = our plate:
+  1.20.1 (1)` instances; the latter is Forge 47.4.26 with Oculus + Complementary, Embeddium, Jade, JEI, ModernFix,
+  ImmediatelyFast). The user first said "Yes, test it", then, when the Modrinth App access came back declined, picked
+  **"Skip it"**: no game test; wait for the player's log (the drafted reply asks for it); (5) "a config to hide the little popup top-left when the remote is opened" = our plate:
   `menu_plates = false` does it since 1.8.1; an in-game toggle could come with 1.9.0's settings; (6) NASA's 3D Earth
   model request, SS-22 Hyperion: noted. Copy-paste replies: `..\announcements\CurseForge replies (2026-11-18).md`
   (Adam posts them).
