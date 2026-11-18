@@ -27,6 +27,17 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   Markdown matched the original with exactly those two substitutions. Release instructions and jars are under
   `..\releases\1.8.3\`.
 
+### 2026-11-18 ~18:30 (Adam's PC): announcement, description draft, website; TON 618 ports under way
+
+- 1.8.3 Discord announcement: `..announcements.8.3 announcement (2026-11-18).md` (sent). Roadmap file has 1.8.3.
+- **Description draft** (`..eleasesdescription rework...draft 2026-11-18).md`): Adam's line "Supporting me on any
+  platform helps a lot", the links on one short row, new "Works with" and "Coming next" sections (his picks). He also
+  wants **a showcase video** in it: ask which video. Not on CurseForge yet (his OK first).
+- **Website** (his pick "New roadmap + TON 618"): local commit `ee3d671` in `C:Usersadam_DocumentsWebsite`
+  (today's roadmap, 1.8.3, requirements TSS 1.6.0/RimuLib 1.3.0, TON 618 Addition as a project and its own roadmap
+  track "ton" with a filter button and gold colour). Not checked in a browser yet; not pushed (his OK).
+- TON 618 Addition 1.1.1 ports: status in TON's CLAUDE.md.
+
 ### 2026-11-18 ~16:30 (Adam's PC): the 1.8.3 patch (the user: "1.8.3 patch first"); RELEASED, section above
 
 - **Checked by Claude after Codex (~17:45)**: origin heads = the seven release commits, seven `v1.8.3*` releases
