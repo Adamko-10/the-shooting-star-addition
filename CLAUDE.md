@@ -32,7 +32,7 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
 - 1.8.3 Discord announcement: `..\announcements\1.8.3 announcement (2026-11-18).md` (sent). Roadmap file has 1.8.3.
 - **Description draft** (`..\releases\description rework\SA Series description (new format draft 2026-11-18).md`):
   Adam's line "Supporting me on any platform helps a lot", the links on one short row, new "Works with" and "Coming
-  next" sections (his picks). He also wants **a showcase video** in it: ask which video. Not on CurseForge yet (his OK).
+  next" sections (his picks). Video: Adam said "pick any": the newest SA Short, https://www.youtube.com/shorts/dQIcFB531t8 ("See it in action" under the intro). Not on CurseForge yet (his OK).
 - **Website** (his pick "New roadmap + TON 618"): local commit `ee3d671` in `C:\Users\adam_\Documents\Website`
   (today's roadmap, 1.8.3, requirements TSS 1.6.0/RimuLib 1.3.0, TON 618 Addition as a project and its own roadmap
   track "ton" with a filter button and gold colour). Not checked in a browser yet; not pushed (his OK).
