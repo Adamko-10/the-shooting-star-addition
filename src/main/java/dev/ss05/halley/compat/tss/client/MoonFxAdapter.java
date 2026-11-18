@@ -78,7 +78,7 @@ final class MoonFxAdapter extends SpellFx {
 
     /** The film's subject: the caster, the strike's target and the way they faced. */
     Subject subject() {
-        return this.liiillli1l();
+        return FxSubject.of(this);
     }
 
     /** The remote's speed slider for this cast: the film's clock runs at it too. */
@@ -90,7 +90,8 @@ final class MoonFxAdapter extends SpellFx {
     private int planTicks = -1;
 
     @Override
-    public void beamTick(ClientLevel level, int t) {
+    // The Shooting Star's tick (1.6.0 added the Minecraft argument; the name isn't mapped)
+    public void liiillli1l(Minecraft minecraft, ClientLevel level, int t) {
         int due = (int) Math.floor(this.fx.plan.warp(t));
         if (this.planTicks < 0) {
             // from wherever The Shooting Star starts it, as before (never replaying ticks it skipped)

@@ -17,7 +17,7 @@ skills, whatever it adds.
 ![Halley in game](docs/screenshots/overview.jpg)
 
 > **Compatibility:** this is the **Fabric, Minecraft 1.21.1** version. It requires **Fabric API**, **The Shooting Star
-> [Demo] 1.5.2 [Fabric]** and **RimuLib 1.2.2** or newer. For The Shooting Star 1.5.0, use version 1.6.0 of this addon.
+> [Demo] 1.6.0 [Fabric]** and **RimuLib 1.3.0** or newer. For The Shooting Star 1.5.2, use version 1.8.1 of this addon.
 > Other builds are on `main` (NeoForge 1.21.1), `forge-1.21.1`, `forge-1.20.1` (Forge and NeoForge 1.20.1),
 > `fabric-26.3`, `fabric-1.21.11` and `fabric-1.20.1`. See
 > [Will it work with future versions?](#will-it-work-with-future-versions-of-the-shooting-star) below.
@@ -201,7 +201,7 @@ the remote's menu and in Controls, unbound until you set it.
 ## Installing
 
 1. Minecraft **1.21.1** with **Fabric Loader 0.17.0** or newer and **Fabric API**.
-2. **The Shooting Star [Demo] 1.5.2 [Fabric]** and **RimuLib 1.2.2** or newer for Fabric.
+2. **The Shooting Star [Demo] 1.6.0 [Fabric]** and **RimuLib 1.3.0** or newer for Fabric.
 3. This addon's jar ([CurseForge](https://www.curseforge.com/minecraft/mc-mods/the-shooting-star-addition))
    in the same `mods` folder. On a server, it goes on the server **and** on every player's client.
 
@@ -300,7 +300,7 @@ scrambled (`a`, `b`, `c`...) and change with every release. It has no official w
 this addon attaches to its internals by those names. It carries a separate attachment for each version of The
 Shooting Star it knows, and uses the one for the version you have:
 
-- This version works with **The Shooting Star 1.5.2** (older ones: earlier versions of this addon). With any other
+- This version works with **The Shooting Star 1.6.0** (older ones: earlier versions of this addon). With any other
   version the game says so when it starts, instead of crashing.
 - When The Shooting Star updates, wait for the next update of this addon. It adds the new version and keeps the old
   ones, so you can update the two mods in either order.
@@ -317,7 +317,7 @@ Shooting Star it knows, and uses the one for the version you have:
 
 ## Plans
 
-This is version 1.8.1. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
+This is version 1.8.2. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
 Shooting Star and keep improving it: more skills for the Stellar Remote, balancing and polish from your feedback,
 and versions for other loaders and Minecraft versions if there's demand. Bug reports, ideas and feedback are very
 welcome in the issues.
@@ -334,7 +334,7 @@ Gradle runs on JDK 25 (Loom 1.18 needs it) and fetches JDK 21 for the build. Put
 
 - `./gradlew build` → `build/libs/shooting_star_addition-<version>.jar`, for all of them
 - `./gradlew runClient` / `./gradlew runServer` → a dev game with the addon and the newest of them
-- `./gradlew prodClientTest -PtssTest=1.5.2 -Dss05.clienttest.skill=halley` → the release jar in a game with that
+- `./gradlew prodClientTest -PtssTest=1.6.0 -Dss05.clienttest.skill=halley` → the release jar in a game with that
   version's real jar (see `src/clienttest`)
 
 The code uses Mojang's names. Loom remaps the release jar, mixin refmap and mod dependencies to intermediary names.
