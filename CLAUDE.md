@@ -12,6 +12,21 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
+### 2026-11-18, Adam's PC — 1.8.3 published on GitHub and uploaded to CurseForge
+
+- All seven branches were fast-forwarded using CI #252–258. The GitHub tags were verified at `3624717` (main, Latest),
+  `6b55e95` (Forge 1.21.1), `4cdd09c` (Forge 1.20.1), `11d51c2` (Fabric 1.21.1), `b098e92` (Fabric 1.20.1),
+  `0cc7dfd` (Fabric 1.21.11), and `d13119d` (Fabric 26.3). Main's extra commit only updated this file. All seven
+  jar metadata and dependency-content checks passed. Each release page rendered its Markdown changelog and showed one
+  jar with the matching SHA-256. Removed seven `wip/*` branches and 11 `ci-*` draft releases.
+- CurseForge files, in upload order: NeoForge 1.21.1 `9687146`, Forge 1.21.1 `9687170`, Forge/NeoForge 1.20.1 `9687190`,
+  Fabric 1.21.1 `9687204`, Fabric 1.20.1 `9687211`, Fabric 1.21.11 `9687227`, Fabric 26.3 `9687239`. Verified all seven
+  file names, release types, environments, loaders, Minecraft and Java versions, required dependencies, rendered
+  changelogs, and API `changelogType: 5`. CurseForge was still processing all seven when checked.
+- Updated the two version mentions in the live CurseForge description. Reloaded the editor and verified that its
+  Markdown matched the original with exactly those two substitutions. Release instructions and jars are under
+  `..\releases\1.8.3\`.
+
 ### >>> RESUME HERE (2026-11-18 ~16:30, Adam's PC): 1.8.3 patch on its way (the user: "1.8.3 patch first") <<<
 
 - **1.8.3 = 1.8.2 + the block names (Fabric 26.3/1.21.11) + Luna's moon mixin (Forge) + the mod list's requirements**
