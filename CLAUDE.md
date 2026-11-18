@@ -38,7 +38,23 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   run, so it needs the player's log or a real Forge game (the 1.8.2 Forge jars are in his `Forge 1.21.1` and `Forge
   1.20.1 (1)` instances; the latter is Forge 47.4.26 with Oculus + Complementary, Embeddium, Jade, JEI, ModernFix,
   ImmediatelyFast). The user first said "Yes, test it", then, when the Modrinth App access came back declined, picked
-  **"Skip it"**: no game test; wait for the player's log (the drafted reply asks for it); (5) "a config to hide the little popup top-left when the remote is opened" = our plate:
+  **"Skip it"**, then (~15:40) "alr actually mind testing for me and finishing up pls": **tested in his `Forge 1.20.1
+  (1)` instance** (computer use: Modrinth App + `javaw.exe`; the instance launches minimized and fullscreen:
+  options.txt set to `fullscreen:false` for the test and back to `true` after; restore the window with Win32
+  ShowWindow from PowerShell; a "Clawd on Desk" overlay masks the title screen's Singleplayer button: Tab + Enter).
+  **Proxima works on Forge 1.20.1 with 1.8.2** (Oculus + Complementary on): the whole film, the bowl, charred trees,
+  magma veins, Solar Residue, no errors. **Found and fixed**: `LevelRendererMoonMixin`'s two `@Redirect` handlers were
+  `private static` in an instance method's class: Forge's Mixin 0.8.5 refused the whole class ("'static' modifier of
+  handler method does not match target"), so on Forge 1.20.1 (and likely Forge 1.21.1) Luna never hid the vanilla sun
+  and moon; NeoForge's and Fabric's Mixin accepted it. Now `private void` on main `fe251dc`, forge-1.21.1 `855a190`,
+  forge-1.20.1 `9f51ffa`, fabric-1.21.1 `4f7b10e`, fabric-1.20.1 `0983dd0` (1.21.11/26.3 use their own `MoonHideMixin`,
+  already fine). Built here: main, both Forge (40 references verified). Re-tested in the Forge 1.20.1 game: no mixin
+  failure, Luna's strike ran (44 chunks in 3.5 s, worst tick 26 ms, no errors). Jar in his instance: `The Shooting
+  Star Addition SA Series 1.8.2 + moon mixin fix TEST [Forge 1.20.1].jar` (copy in `..\test builds\2026-11-18 moon
+  mixin fix (Forge 1.20.1)\`; the 1.8.2 TEST jar there renamed `.disabled`). CI started for the two Fabric branches.
+  Not released: ships with the next update together with the 26.3/1.21.11 block names. The reply to LeeHeTwo now says
+  it works on 1.8.2. The user also asked to resume the R.E.P.O. mod conversation: [Jeff Doors mod for
+  Gale](#local_bff08752-625c-4608-bcf8-6d1373d7c890) got a message to pick up where it left off; (5) "a config to hide the little popup top-left when the remote is opened" = our plate:
   `menu_plates = false` does it since 1.8.1; an in-game toggle could come with 1.9.0's settings; (6) NASA's 3D Earth
   model request, SS-22 Hyperion: noted. Copy-paste replies: `..\announcements\CurseForge replies (2026-11-18).md`
   (Adam posts them).
