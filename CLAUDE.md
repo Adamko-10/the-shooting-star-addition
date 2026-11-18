@@ -29,7 +29,40 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   FxManager's `trauma`/`rumble`, `renderHud`/`renderFilmHud`, `applyShake`). RimuLib 1.3.0 still has every internal
   we hook (`CutsceneDirector.play/tick`, `PostFxRenderer.render`, `SkillKeys.register/KEYS/SKILLS`,
   `WhiteSpace.commit/leave`, `Carving.LIVE/LINGERING/level`, `SkillSet.rows/skills`).
-- **CI #237** (`wip/main` `011f188`) runs the five client tests on TSS 1.6.0.
+- **CI #237** (`wip/main` `011f188`): **green**, every line `ok:` (mappings to 1.6.0, build, halley, moon, tuned,
+  proxima, convergence; the frames show Luna's film overlays, the plate, Convergence's panel grid, Proxima's film).
+- **The user, 2026-11-18 ~09:50: "can u hand it to chatgpt in my app and test for me aswell and if it passes your
+  checks work on loaders"** = he hands his own game test of 1.8.2 to Claude, and OKs the six ports once it passes
+  (his main-first rule, step 2, done by Claude this time). Done:
+  - **TON 618 Addition 1.1.1** handed to the Codex app ("ChatGPT", GPT-6.1 Sol High) through computer use: a new Codex
+    project "TON 618 Addition" on `C:\Users\adam_\Documents\TON 618 Addition` (folder trusted), message "Read
+    releases\1.1.1\RELEASE-PROMPT.md ... do exactly what it says". Codex: pushed `main` (`e805b9f`), v1.1.1 Latest,
+    CurseForge file **9680692** (under review; TON 618 + RimuLib required, TSS + SS-21 optional); it asked about the
+    description's SS-21 Quasar link (ours is `/mc-addons/the-shooting-star-addition-ss-21-quasar`, 404; the live
+    description has a working one): answered "keep the working live URL". It made a local CLAUDE.md commit `1002104`
+    in the TON repo (not pushed). Folder picker trap: the computer-use tool can't type into a file dialog's address or
+    folder box; go through the left pane (its "Documents" is another folder: use the "Website" quick link, then up).
+  - **Game tests on Adam's GPU** (`..\test scripts\autotest22.sh`, results in `..\test builds\2026-11-18 auto test 28
+    1.8.2 on TSS 1.6.0\`): **Halley at 10x** by command on real land: 0 "Can't keep up" (B2 holds), no errors;
+    **Proxima with Iris 1.8.14 + Complementary r5.9.3** (from his instance, via `-PextraMods` and
+    `run/prodclient/shaderpacks` + `config/iris.properties`), films off, view `proximasky`: the sky gate, its swirl,
+    the flash, the red sky and the wave's glow all show (B4 holds).
+  - **His instance** `NeoForge 1.21.1 (1)`: in = `The Shooting Star Addition SA Series 1.8.2 TEST [NeoForge
+    1.21.1].jar` (copy in `..\test builds\2026-11-18 1.8.2 Meridian (NeoForge 1.21.1)\`), `the-shooting-star-demo-1.6.0-neo.jar`,
+    `rimulib-1.3.0-neoforge.jar`; renamed `.disabled`: TSS 1.5.2, RimuLib 1.2.3, the 1.8.1 bug-fix TEST jar.
+  - **The six ports** (Forge jars downloaded with his OK: TSS 1.6.0 Forge 9676949, RimuLib 1.3.0 Forge 9676536, into
+    both Forge worktrees' `libs/`; RimuLib 1.2.2 Forge moved to `old versions\rimulib\`): main's change cherry-picked
+    with `-n` (main's `dev/ci/branches/main.sh` restored), `gradle.properties` set by hand (a scripted conflict fix
+    took the wrong hunk on Fabric), prefixes fixed (`mc1201.` on forge-1.20.1, none on Fabric), each branch's CI
+    script on 1.6.0 + RimuLib 1.3.0, the READMEs' versions; commits forge-1.21.1 `580cd53`, forge-1.20.1 `7006728`,
+    fabric-1.21.1 `94acba9` (+ `7af57d8` CI), fabric-1.20.1 `af60dd2` (+ `e6f077b` CI), fabric-1.21.11 `e0fd61a`,
+    fabric-26.3 `3e1c9fc`. Both Forge branches build here (mappings 169/227 and 183/225 classes, 40 references
+    verified each); RimuLib 1.3.0's Forge internals all there (mc1211 and mc1201). The two Fabric 1.21.1/1.20.1 CI
+    scripts run **Gungnir alone** again (`tss_gungnir`): if TSS 1.6.0 no longer crashes there, drop
+    `Convergence.SKIPPED` on those two. CI round #239-244 started ~10:08.
+  - **Release texts** on main (`eebe166`): `dev/publish/changelog_182.js` (per-branch lines: close-on-pick main only,
+    the shader wave main + forge-1.21.1, the sky gate with a pack not on 1.21.11/26.3, the key names not on 26.3),
+    `github_182.sh`, README and description for TSS 1.6.0; changelogs written to `..\releases\1.8.2\changelogs\`.
 - **Checked against TSS 1.6.0 + RimuLib 1.3.0 (`dev/tools/RefCheck.java`, 0 missing each)**: SS-21 Quasar 1.8.0 (it
   also reflects `SkillSet.BY_NAMESPACE/OWNER/INDEX/skills/caster`: all still there), TON 618 1.1.0, TON 618 Addition
   1.1.1 (so its release can go ahead as is). Mind RefCheck needs the jar's classes extracted first (an `unzip` with a
