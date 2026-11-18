@@ -60,6 +60,26 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
     verified each); RimuLib 1.3.0's Forge internals all there (mc1211 and mc1201). The two Fabric 1.21.1/1.20.1 CI
     scripts run **Gungnir alone** again (`tss_gungnir`): if TSS 1.6.0 no longer crashes there, drop
     `Convergence.SKIPPED` on those two. CI round #239-244 started ~10:08.
+  - **CI: ALL SEVEN GREEN on TSS 1.6.0 + RimuLib 1.3.0** (every summary line `ok:`): main #237, forge-1.21.1 #239
+    (`580cd53`), forge-1.20.1 #240 (`7006728`), fabric-1.21.11 #243 (`e0fd61a`), fabric-26.3 #244 (`3e1c9fc`, all five
+    game tests), fabric-1.21.1 #245 (`f6db2f4`, code `c71ea78`), fabric-1.20.1 #246 (`44f84e9`, code `70bd9e2`).
+    **Gungnir is back in Convergence on Fabric 1.21.1/1.20.1**: Gungnir alone ran its whole film on TSS 1.6.0 (#241,
+    #242, 51 frames each), so `Convergence.SKIPPED = Set.of()` there (`c71ea78`, `70bd9e2`) and the changelog says so
+    (`6872151`). **Fabric 1.20.1's "proxima (2 screenshots)"** (#232, #242) was Proxima's B3 refusing on an unlucky
+    random test world (the command's `~` puts the mark at the player's height, under higher land); #246 struck (76
+    frames). Its CI now prints our harness lines and our chat messages to the public Actions log
+    (`dev/ci/common/.github/ci/client-test.sh` on fabric-1.20.1 only; copy it to main's `dev/ci/common` and the others
+    when next touched). Not pushed anywhere but `wip/*`.
+  - **TON 618 Addition 1.1.1 is LIVE** (Codex finished ~10:50): CurseForge file 9680692 approved, description published
+    with the working Quasar link; our source texts fixed to `/mc-mods/` (TON `3106402`).
+  - **Test jars**: the six CI jars as `..\test builds\2026-11-18 1.8.2 Meridian, six ports (CI)\The Shooting Star
+    Addition SA Series 1.8.2 TEST [<Loader> <MC>].jar`; the two Forge ones are in his instances `Forge 1.21.1` and
+    `Forge 1.20.1 (1)` with TSS 1.6.0 Forge + RimuLib 1.3.0 Forge (their old SA/TSS/RimuLib jars renamed `.disabled`).
+    The Fabric instances (`Fabric 1.21.1`, `Fabric 1.21.11 (1)`, `Fabric 26.3`) need TSS 1.6.0 Fabric (9676941,
+    38.3 MB) and RimuLib 1.3.0 Fabric (9676539, 3.5 MB): not downloaded (ask first).
+  - **Left: the release of 1.8.2 on all seven**, only on his word (a release prompt for Codex like 1.8.1's, from
+    `releases\1.8.1\RELEASE-PROMPT.md`; heads above; jars from these CI drafts; changelogs in `..\releases\1.8.2\
+    changelogs\`; the six `port/<branch>` refs pushed as `port/<branch>:<branch>`, fast-forward).
   - **Release texts** on main (`eebe166`): `dev/publish/changelog_182.js` (per-branch lines: close-on-pick main only,
     the shader wave main + forge-1.21.1, the sky gate with a pack not on 1.21.11/26.3, the key names not on 26.3),
     `github_182.sh`, README and description for TSS 1.6.0; changelogs written to `..\releases\1.8.2\changelogs\`.
