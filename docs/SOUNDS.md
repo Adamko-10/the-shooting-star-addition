@@ -14,6 +14,15 @@ to send). Keep every source file's name in `art/sounds/sources.md` so a pick can
 `.ogg`. Levels by role, as the first overhaul (measured against The Shooting Star's own, never copied): impacts about
 -11 to -12.5 LUFS, cues -15/-16, beds -16/-18, hums -19. Claude can't hear: every result is checked by the user in game.
 
+## 1.9.0 (2026-11-19): Luna's set applied
+
+Adam, after his 1.9.0 test: Luna's sounds "dont sound good". So the Sonniss set below (Luna) replaced the shipped ones
+(the 2026-11-04 overhaul of the old synthesised sounds): all 18 `luna_*` files except the music and the title cards,
+same lengths (a drop-in). Both inhales (`halley_inhale`, new in 1.9.0, and `luna_inhale`) were made louder (-12.5 LUFS
+aimed, about -14 after the limiter; Adam could barely hear Halley's). New in 1.9.0 as well: `convergence_panel` x3,
+`convergence_shatter`, `halley_title`, `luna_title_in`, `luna_title_out`. Halley's shipped sounds are still the
+2026-11-04 ones. Not heard by anyone yet.
+
 ## Status (2026-11-06, evening): all made, waiting for the user's ears
 
 - **`art/sonniss_sounds.sh <out dir> [names]`** makes all 52 files (the 40 the game plays + Proxima's 12 new film

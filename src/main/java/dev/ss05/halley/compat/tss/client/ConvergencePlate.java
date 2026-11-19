@@ -151,7 +151,9 @@ public final class ConvergencePlate {
         }
         int listTop = top + 48;
         int whereTop = listTop + weapons.size() * ROW + 6;
-        int addonsTop = whereTop + 2 * ROW + 6;
+        // 1.9.0: each setting with its explanation under it (as on the other cards)
+        int line = ROW + 9;
+        int addonsTop = whereTop + 2 * line + 6;
         int h = addonsTop - top + 12 + (ADDONS.length + 1) * 12 + 4 + 24;
 
         AdditionPanel.plate(g, 2, top + 3, w + 2, top + h + 3, 0x26000000);
@@ -192,12 +194,14 @@ public final class ConvergencePlate {
         AdditionPanel.keyCap(g, font, w - 22, whereTop, "R", true);
         Component where = Component.translatable(ring ? "gui.shooting_star_addition.convergence.ring" : "gui.shooting_star_addition.convergence.point");
         g.drawString(font, where, w - 26 - font.width(where), whereTop + 1, 0xFF000000 | AdditionPanel.GOLD, false);
-        g.drawString(font, Component.translatable("gui.shooting_star_addition.convergence.shake"), 11, whereTop + ROW + 1,
+        AdditionPanel.describe(g, font, whereTop, "convergence.where");
+        g.drawString(font, Component.translatable("gui.shooting_star_addition.convergence.shake"), 11, whereTop + line + 1,
             0xFF000000 | AdditionPanel.INK, false);
-        AdditionPanel.keyCap(g, font, w - 22, whereTop + ROW, "X", true);
+        AdditionPanel.keyCap(g, font, w - 22, whereTop + line, "X", true);
         Component shake = Component.translatable("gui.shooting_star_addition.convergence.shake."
             + HalleyClientConfig.convergenceShake().name().toLowerCase(Locale.ROOT));
-        g.drawString(font, shake, w - 26 - font.width(shake), whereTop + ROW + 1, 0xFF000000 | AdditionPanel.GOLD, false);
+        g.drawString(font, shake, w - 26 - font.width(shake), whereTop + line + 1, 0xFF000000 | AdditionPanel.GOLD, false);
+        AdditionPanel.describe(g, font, whereTop + line, "convergence.shake");
         g.fill(11, addonsTop - 4, w - 10, addonsTop - 3, 0xFF000000 | AdditionPanel.RULE);
 
         // which addons it can fire, installed or missing (Stellar Quartet unlocks it rather than firing)

@@ -52,14 +52,16 @@ with Proxima) and the switch is "Music" for both skills.
 default): a slower, more ominous fall that everyone watching sees, with the long cut of the music. The switch travels to
 the server in `ChoicePayload` (network version 3; `EpicMode` holds each player's), `MoonCasting` sets
 `MoonParams.FLAG_EPIC`, and the flag rides in the effect packet. The plan is not retimed: `MoonPlan.warp(clock)` maps the
-strike's clock to plan ticks, the alarm-to-impact stretch (320 plan ticks) taking `EPIC_FALL` = 480 clock ticks (24 s,
-the whole lead of the track before its drop), so everything in it runs at two thirds; before ALARM and after CONTACT
-the clock runs as usual (impact at clock 490, end at DURATION + 160). Applied in three places: the server spell
+strike's clock to plan ticks, the alarm-to-impact stretch (320 plan ticks) taking `EPIC_FALL` = 400 clock ticks (20 s;
+480 = 24 s until 1.9.0, Adam: "make epic mode last a little less long like 4 seconds less"), so everything in it runs
+at four fifths; before ALARM and after CONTACT the clock runs as usual (impact at clock 410, end at DURATION + 80).
+The sounds played inside the fall (alarm, build-up, crack, tear, the fall's roar, entry) are slowed by the same 0.8
+(`MoonFx.fallStretch`, 1.9.0: Adam found Epic mode "completely desynced": the fixed-length sounds ended early). Applied in three places: the server spell
 (`Spell.planClock`, `MoonSpell`), the client effect (`MoonFxAdapter`: its clock, the film's time, plan ticks dispatched
 one by one, `duration()` unwarped) and the film's shots (`MoonCutscene`: each take's start and end unwarped, so the
 fall's shots last longer). The rumble and the inhale are placed by clock time (`MoonFx.beforeContact`) so they still end
 on the impact. Music: `luna_music_epic.ogg` (`art/make_luna_epic_music.sh`), the full track rebuilt from Video Project
-48 + luna_music.ogg (CLAUDE.md), from 0.445 s, its drop 24 s on (measured: 5 ms late); `StrikeMusic` keeps it in step
+48 + luna_music.ogg (CLAUDE.md), from 4.445 s, its drop 20 s on (1.9.0; 0.445 s and 24 s before); `StrikeMusic` keeps it in step
 with the unwarped clock. Stellar Convergence times Luna's impact by the caster's switch (`MoonPlan.contactClock`).
 
 ## Rules

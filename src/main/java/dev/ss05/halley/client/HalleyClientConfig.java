@@ -110,7 +110,7 @@ public final class HalleyClientConfig {
         KEEP_MOON = b.comment("Luna's moon model stays where it landed instead of crumbling into the block moon, until you switch",
                 "this off or leave the world (for filming). L in the remote's menu.")
             .define("keep_moon", false);
-        EPIC_MODE = b.comment("Luna's Epic mode: the moon you call down falls slower and more ominously (24 s from the alarm to the",
+        EPIC_MODE = b.comment("Luna's Epic mode: the moon you call down falls slower and more ominously (20 s from the alarm to the",
                 "impact instead of 16; everyone watching sees it), with the long cut of her music. G in the remote's menu.")
             .define("epic_mode", false);
         IMPERIAL = b.comment("Distances in the films' readouts (altitude, the flare's front, the shock wave): false for kilometres",

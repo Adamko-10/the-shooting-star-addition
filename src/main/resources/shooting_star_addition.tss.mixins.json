@@ -12,6 +12,7 @@
   "client": [
     "CutsceneDirectorMixin",
     "FxManagerMixin",
+    "HudRescueMixin",
     "PostFxRendererMixin",
     "SkillKeysMixin",
     "WhiteSpaceMixin"

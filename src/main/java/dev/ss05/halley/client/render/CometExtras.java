@@ -3,6 +3,8 @@ package dev.ss05.halley.client.render;
 import dev.ss05.halley.HalleyPlan;
 import java.util.SplittableRandom;
 import javax.annotation.Nullable;
+import net.minecraft.client.CloudStatus;
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
@@ -301,15 +303,35 @@ public final class CometExtras {
             return;
         }
         float pulse = 0.8F + 0.2F * (float) Math.sin(t * 0.21);
-        world.column(tip, 420.0, 0.9, Shapes.STREAK, Shapes.ION, CometVisuals.PALE, 0.75F * on * pulse);
-        world.column(tip, 260.0, 4.5, Shapes.STREAK, Shapes.DUST, CometVisuals.ICE, 0.22F * on);
+        // 1.9.0 (Adam: "make it not display above clouds"): seen from under the clouds, it goes up into them, lighting
+        // them from below, instead of shining on over them
+        double top = 420.0;
+        double clouds = cloudHeight();
+        if (!Double.isNaN(clouds) && world.camera().y < clouds && tip.y < clouds) {
+            top = Math.max(8.0, clouds - tip.y);
+            world.billboard(tip.add(0.0, top, 0.0), 22.0, Shapes.GLOW, Shapes.HAZE, CometVisuals.ICE, 0.35F * on * pulse, 0.0);
+        }
+        world.column(tip, top, 0.9, Shapes.STREAK, Shapes.ION, CometVisuals.PALE, 0.75F * on * pulse);
+        world.column(tip, Math.min(260.0, top), 4.5, Shapes.STREAK, Shapes.DUST, CometVisuals.ICE, 0.22F * on);
         for (int i = 0; i < BEAM_MOTES; i++) {
-            double rise = (since * 0.9 + i * 31.0) % 240.0;
+            double rise = (since * 0.9 + i * 31.0) % Math.min(240.0, top);
             double ang = since * 0.07 + i * 0.628;
             double r = 2.5 + 1.5 * Math.sin(since * 0.05 + i);
             Vec3 p = tip.add(Math.cos(ang) * r, rise, Math.sin(ang) * r);
             world.billboard(p, 0.9, Shapes.GLOW, 0, CometVisuals.PALE, 0.8F * on * (float) (1.0 - rise / 240.0), 0.0);
         }
+    }
+
+    /**
+     * The cloud layer's height, or NaN where there is none (another dimension, or clouds off without a shader pack: a
+     * pack draws its own clouds at about the game's height whatever the game's cloud setting says).
+     */
+    static double cloudHeight() {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level == null || !ShaderPacks.active() && minecraft.options.getCloudsType() == CloudStatus.OFF) {
+            return Double.NaN;
+        }
+        return minecraft.level.effects().getCloudHeight();
     }
 
     /** Ice glittering in the air round the camera once the haze is up: tiny glints that catch the light and fall. */

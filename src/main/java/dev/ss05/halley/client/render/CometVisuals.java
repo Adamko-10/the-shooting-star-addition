@@ -273,15 +273,18 @@ public final class CometVisuals {
         double d = head.distanceTo(world.camera());
         float on = smooth((t - HalleyPlan.SIGHT) / 30.0);
         float near = (float) Mth.clamp(1.0 - d / 5000.0, 0.0, 1.0);
-        double coma = Math.max(COMA * this.size, d * COMA_MIN_ANGLE * boost * this.tailSize);
-        double nucleus = Math.max(NUCLEUS * this.size, d * NUCLEUS_MIN_ANGLE * boost * this.tailSize);
-        double glint = Math.max(COMA * 1.2 * this.size, d * GLINT_MIN_ANGLE * boost * this.tailSize);
+        // 1.9.0 (Adam: "a little bit bigger in the sky when u first see it"): 30% bigger while far off, back to its own
+        // size by the time it hits the air
+        double early = 1.0 + 0.3 * (1.0 - smooth((t - (HalleyPlan.SIGHT + 60.0)) / (HalleyPlan.ENTRY - HalleyPlan.SIGHT - 60.0)));
+        double coma = Math.max(COMA * this.size, d * COMA_MIN_ANGLE * boost * this.tailSize * early);
+        double nucleus = Math.max(NUCLEUS * this.size, d * NUCLEUS_MIN_ANGLE * boost * this.tailSize * early);
+        double glint = Math.max(COMA * 1.2 * this.size, d * GLINT_MIN_ANGLE * boost * this.tailSize * early);
 
         // the tails, which thin out once the comet is inside the atmosphere
         float tails = on * (1.0F - smooth((t - (HalleyPlan.ENTRY - 10)) / 35.0));
         if (tails > 0.003F) {
-            double ion = Math.max(ION_LENGTH * this.tailSize, d * ION_MIN_SHARE);
-            double dust = Math.max(DUST_LENGTH * this.tailSize, d * DUST_MIN_SHARE);
+            double ion = Math.max(ION_LENGTH * this.tailSize, d * ION_MIN_SHARE * early);
+            double dust = Math.max(DUST_LENGTH * this.tailSize, d * DUST_MIN_SHARE * early);
             Vec3 bend = this.dustBend.scale(dust / DUST_LENGTH);
             world.ribbon(head, head.add(this.ionDir.scale(ion)), Vec3.ZERO, coma * 0.6, coma * 0.6 + ion * 0.1, 24,
                 Shapes.STREAK, Shapes.ION, ION, 0.9F * tails);

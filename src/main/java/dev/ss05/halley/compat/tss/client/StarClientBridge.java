@@ -76,7 +76,9 @@ public final class StarClientBridge {
                     AdditionPanel.draw(graphics, card(), ConvergencePlate::drawCard);
                 }
             });
-            MenuApi.onKey(key -> MenuApi.capturesInput() && HalleyClientConfig.menuPlates() && !menuUses(key, 0)
+            // 1.9.0: a key the shown card uses wins over a skill's own key (Adam: G on Luna's card picked SS-21 Quasar);
+            // the menu's own keys (H, the films' key) and a key being rebound stay the menu's
+            MenuApi.onKey(key -> MenuApi.capturesInput() && HalleyClientConfig.menuPlates() && !menuReserves(key, 0)
                 && (AdditionPanel.key(key, card()) || ConvergencePlate.key(key)));
             // once the server has said hello, tell it this player's Stellar Convergence picks
             Runnable before = ServerSettings.onReceived;
@@ -160,11 +162,13 @@ public final class StarClientBridge {
      * the newest strike's only, as for the remote's own (see {@link #newestHudsOnly}).
      */
     public static void renderFilmHud(GuiGraphics graphics, float partial) {
-        // called from both of FxManager's overlay passes (see FxManagerMixin); a frame has one GuiGraphics
+        // called from both of FxManager's overlay passes (see FxManagerMixin); a frame has one GuiGraphics (the rescue
+        // after the HUD brings its own, and only draws when neither pass did, see hudRescue)
         if (graphics == lastFilmHud) {
             return;
         }
         lastFilmHud = graphics;
+        filmHudDrawn = true;
         // in RimuLib's overlay units (UiApi.overlay: one size at any GUI scale)
         if (!HalleyFx.active().isEmpty()) {
             UiApi.overlay(graphics, () -> {
@@ -196,6 +200,41 @@ public final class StarClientBridge {
     }
 
     private static GuiGraphics lastFilmHud;
+    /** Whether our film overlay was drawn since the frame's HUD began (1.9.0, {@link #hudRescue}). */
+    private static boolean filmHudDrawn;
+    private static boolean rescueFailed;
+    private static boolean rescued;
+
+    /** From HudRescueMixin, just before the game's HUD: a new frame's overlay is still to draw. */
+    public static void beforeHud() {
+        filmHudDrawn = false;
+    }
+
+    /**
+     * From HudRescueMixin, just after the game's HUD: when something cut the HUD short this frame (TON 618 does while a
+     * RimuLib film plays) and one of our strikes runs, its film overlay (and Proxima's late sky gate under a shader
+     * pack) is drawn here instead, on the same layer.
+     */
+    public static void hudRescue(GuiGraphics graphics, float partial) {
+        if (filmHudDrawn || HalleyFx.active().isEmpty() && MoonFx.active().isEmpty() && ProximaFx.active().isEmpty()) {
+            return;
+        }
+        try {
+            if (!rescued) {
+                rescued = true;
+                HalleyAddon.LOG.info("Another mod cut the game's HUD short while one of our strikes ran (TON 618 does during films): "
+                    + "our film overlays are drawn after it instead");
+            }
+            ProximaCosmos.renderSkyLate();
+            renderFilmHud(graphics, partial);
+            graphics.flush();
+        } catch (RuntimeException | LinkageError failed) {
+            if (!rescueFailed) {
+                rescueFailed = true;
+                HalleyAddon.LOG.warn("Couldn't draw the films' overlays after a HUD another mod cut short: {}", failed.toString());
+            }
+        }
+    }
 
     /** The remote's running effects, oldest first: FxManager's one static list, found by type (its name is obfuscated). */
     private static List<Object> running;
@@ -332,6 +371,15 @@ public final class StarClientBridge {
                 }
             }
             return false;
+        } catch (Throwable unsure) {
+            return true;
+        }
+    }
+
+    /** Whether the menu keeps this key for itself whatever the plates show: a key being rebound, H, the films' key. */
+    public static boolean menuReserves(int key, int scancode) {
+        try {
+            return MenuApi.binding() != null || matches(MenuApi.menuKey(), key, scancode) || matches(MenuApi.filmKey(), key, scancode);
         } catch (Throwable unsure) {
             return true;
         }

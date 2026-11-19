@@ -274,7 +274,7 @@ if want halley_inhale; then   # 1.9.0, 0.65 s ending on the impact (after the pl
   L "$BOOM011" $B 0.65 0 0 "areverse,highpass=f=250"
   L "$WIND_RUSH" 0 0.65 -3 0 "areverse"
   L "$ICE_SHATTER" 0.2 0.65 -5 0 "areverse,highpass=f=1200"
-  make halley_inhale 0.65 -17 "volume='pow(t/0.65,2.2)':eval=frame"
+  make halley_inhale 0.65 -12.5 "volume='pow(t/0.65,2.2)':eval=frame"
 fi
 
 if want halley_frost; then   # frost spreading over the crater: crackling ice
@@ -389,7 +389,7 @@ fi
 if want luna_inhale; then   # 0.65 s ending on CONTACT: the air drawn in, a boom and a rush played backwards
   L "$BOOM011" $B 0.65 0 0 "areverse,highpass=f=250"
   L "$WIND_RUSH" 0 0.65 -2 0 "areverse"
-  make luna_inhale 0.65 -17 "volume='pow(t/0.65,2.2)':eval=frame"
+  make luna_inhale 0.65 -12.5 "volume='pow(t/0.65,2.2)':eval=frame"
 fi
 
 if want luna_impact; then   # CONTACT: the biggest hit, two trailer booms on a sub drop, rock cracking, a long rolling tail

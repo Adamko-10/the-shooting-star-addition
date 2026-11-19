@@ -613,6 +613,21 @@ final class Harness {
             }
             finalFrames++;
             String view = HarnessParams.FINAL_VIEWS[finalView].trim();
+            // menu:<skill id>+<glfw key>+...: those keys pressed for real (through the game's keyboard handler, as a
+            // player would) once the menu is open, before its screenshot (1.9.0: the plates' keys against skill keys)
+            String[] keys = new String[0];
+            if (view.contains("+")) {
+                keys = view.substring(view.indexOf('+') + 1).split("\\+");
+                view = view.substring(0, view.indexOf('+'));
+            }
+            if ((view.equals("menu") || view.startsWith("menu:")) && finalFrames == 20) {
+                for (String code : keys) {
+                    int key = Integer.parseInt(code.trim());
+                    mc.keyboardHandler.keyPress(mc.getWindow().getWindow(), key, 0, org.lwjgl.glfw.GLFW.GLFW_PRESS, 0);
+                    mc.keyboardHandler.keyPress(mc.getWindow().getWindow(), key, 0, org.lwjgl.glfw.GLFW.GLFW_RELEASE, 0);
+                    log("pressed key " + key + " in the menu");
+                }
+            }
             if (view.equals("menu") || view.startsWith("menu:") || view.equals("skills")) {
                 // the remote's menu (H), through the caster's own eyes: opened once, filmed once it has opened fully;
                 // "skills" scrolls its list to the end first, where Halley and Luna are (with their sliders)

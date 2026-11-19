@@ -543,7 +543,7 @@ public final class MoonFx {
         if (this.music != null || !HalleyClientConfig.lunaMusic() || !film && camera.distanceTo(this.plan.target) > MUSIC_RANGE) {
             return;
         }
-        // Epic mode: the long cut (its drop 24 s on), kept in step with the clock, not the slowed plan
+        // Epic mode: the long cut (its drop 20 s on), kept in step with the clock, not the slowed plan
         this.music = StrikeMusic.play(this.plan.params.epic() ? "luna_music_epic" : "luna_music", this.host, MUSIC_AT,
             () -> this.plan.unwarp(this.realTime(0.0F)), () -> this.removed);
     }
@@ -575,8 +575,24 @@ public final class MoonFx {
         }
     }
 
+    /**
+     * 1.9.0 (Adam: "with epic mode its completely desynced"): in Epic mode the fall runs at {@link MoonPlan#EPIC_FALL}'s
+     * pace, slower than the sounds were cut for, so those played inside it (the alarm, the build-up, the crack, the
+     * tear, the fall's roar, the entry) are slowed by the same amount, and end where the moon has got to. The rumble and
+     * the inhale are placed by the clock to end on the impact, so stay as they are.
+     */
+    private float fallStretch(SoundEvent event) {
+        if (!this.plan.params.epic()) {
+            return 1.0F;
+        }
+        boolean inFall = event == HalleyContent.MOON_ALARM.get() || event == HalleyContent.MOON_BUILDUP.get()
+            || event == HalleyContent.MOON_CRACK.get() || event == HalleyContent.MOON_TEAR.get()
+            || event == HalleyContent.MOON_FALL.get() || event == HalleyContent.MOON_ENTRY.get();
+        return inFall ? (float) (MoonPlan.CONTACT - MoonPlan.ALARM) / MoonPlan.EPIC_FALL : 1.0F;
+    }
+
     private void play(SoundEvent event, Vec3 at, float volume, float pitch, boolean film) {
-        pitch *= this.pitch;
+        pitch *= this.pitch * this.fallStretch(event);
         SoundInstance instance;
         if (film) {
             // deep and drawn out while the film runs in slow motion
@@ -617,7 +633,7 @@ public final class MoonFx {
             this.volume = film ? Math.min(1.0F, volume) : volume * 16.0F;
             this.relative = film;
             this.attenuation = film ? SoundInstance.Attenuation.NONE : SoundInstance.Attenuation.LINEAR;
-            this.pitch = MoonFx.this.pitch;
+            this.pitch = MoonFx.this.pitch * MoonFx.this.fallStretch(event);
             this.place();
         }
 

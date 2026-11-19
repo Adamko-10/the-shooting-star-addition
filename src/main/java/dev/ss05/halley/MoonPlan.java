@@ -51,10 +51,11 @@ public final class MoonPlan {
     public static final int DURATION = SETTLE + AFTERMATH;
     /**
      * Epic mode (the caster's switch, G in the remote's menu): the alarm-to-impact stretch takes this many ticks of the
-     * strike's clock instead of 320 - 24 s, the whole lead of Luna's track before its drop - so everything in it runs at
-     * two thirds (the moon, the sky, the film). Before the alarm and after the impact the clock runs as usual.
+     * strike's clock instead of 320 - 20 s (24 s until 1.9.0, Adam: "4 seconds less"), the lead of the Epic cut of Luna's
+     * track before its drop - so everything in it runs at four fifths (the sounds played in it are slowed to match,
+     * MoonFx#fallStretch) (the moon, the sky, the film). Before the alarm and after the impact the clock runs as usual.
      */
-    public static final int EPIC_FALL = 480;
+    public static final int EPIC_FALL = 400;
 
     /** The plan's tick at clock tick {@code c} (ticks since the cast, at the speed slider): the same unless in Epic mode. */
     public double warp(double c) {
