@@ -130,7 +130,7 @@
   "gui.shooting_star_addition.group.less": "LESS USED",
   "gui.shooting_star_addition.group.weapons": "WEAPONS",
   "gui.shooting_star_addition.group.addons": "ADDONS IT CAN FIRE",
-  "gui.shooting_star_addition.group.open": "%s, open",
+  "gui.shooting_star_addition.group.open": "hide",
   "gui.shooting_star_addition.group.closed": "%s more",
   "gui.shooting_star_addition.sky": "Dark sky",
   "gui.shooting_star_addition.sky.hint": "The sky darkens as the comet comes in.",
