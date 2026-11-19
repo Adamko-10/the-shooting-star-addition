@@ -27,11 +27,14 @@ Written before a compaction (the user: "write stuff for claude md im gonna compa
   (RimuLib's selected skill), new client config `plates_folded`, `less_used_open`, 38 new lang strings. Not the arrow
   keys (RimuLib's menu uses them and Enter; our key hook runs first and would break its sliders and list): told in the
   plan, **tell Adam** (he had OK'd arrows from the mock's sticky). In the menu's own colours (white/gold), not the
-  mock's dark: **tell Adam**, offer the dark look. **A game run was going** when this was written: `test scripts\
-  autotest24.sh` (`final=menu:halley,menu:luna,menu:proxima,menu:stellar_convergence`, `less_used_open = true`);
-  look at `test builds\2026-11-19 auto test 30 settings menu 1.9.0\cards\final_menu-*.png`, fix what's off (sizes,
-  overlaps with RimuLib's menu), then a test jar into his `NeoForge 1.21.1 (1)` instance (the title-cards TEST jar is
-  in there now). The harness takes `final=menu:<skill id>,...` now (several cards in one run).
+  mock's dark: **tell Adam**, offer the dark look. **Game-tested 2026-11-19** (`test scripts\autotest24.sh`,
+  `final=menu:halley,menu:luna,menu:proxima,menu:stellar_convergence`, `less_used_open = true`; shots in `test
+  builds\2026-11-19 auto test 30 settings menu 1.9.0\cards\other_final_menu-*.png`): all four cards draw, no overlap
+  with RimuLib's menu at 1920x1080; the Convergence card is the tallest (bottom at ~74% of the screen; still fits a
+  21:9 screen). Fixed after: "LESS USED 2, open" -> "hide" / "2 more" (`aa4b36c`). **Test jar** `The Shooting Star
+  Addition SA Series 1.9.0 settings menu TEST [NeoForge 1.21.1].jar` (version inside still 1.8.3) in his `NeoForge
+  1.21.1 (1)` instance (copy in `test builds\2026-11-19 1.9.0 settings menu (NeoForge 1.21.1)\`; the title-cards TEST
+  jar there renamed `.disabled`). The harness takes `final=menu:<skill id>,...` now (several cards in one run).
 - **The mock-up canvas**: https://claude.ai/artifact/UtTcKRB3SpzUZr5vhFuwET (Halley, Convergence, folded, and the
   split-screen Convergence look with its sticky). Halley's board had a script error (an apostrophe in a JS string):
   fixed on the page's own saved version.
