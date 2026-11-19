@@ -2070,6 +2070,35 @@ From the CurseForge comments (reviewed 2026-11-03):
 - **Pulsar** (sound_dream): a gamma-ray beam sweeping a line, leaving radiation. Fits the neutron-star candidate.
 - Forge: players found it buggy, and since 1.6.0 Forge gets no in-game test (§16): test it once before a release.
 
+From Adam's Discord notes to himself (Carl-bot DMs, exported 2026-11-19; read that day: only what wasn't written down
+before; ideas already here or already built were left out):
+
+- **Stellar Convergence, another look** (2026-11-05): "instead of the current stellar convergence it splits the screen
+  and plays a cool vibrating animation with an animated border thats half the side, so like the border is half of each
+  side colored based on the selected skills visualize this in 2d in an svg cuz i wanna see it somewhat before we start
+  remaking it". Not done: a 2D SVG mock-up for him first, then decide whether it replaces or joins the panel montage.
+- **Settings, for 1.9.0's redo** (2026-11-09): drop-downs for categories of all the addon's settings, one of them for
+  the less useful settings; and a setting in the H menu to switch between new icons ("proper cool realistic renders")
+  and the old pixel-art ones. Mind his later rule (2026-11-17, personal rules): every icon is pixel art in one style,
+  so ask before making realistic ones.
+- **SA-X, SA-X-Y, SA-X-Y-Z: a particle accelerator that makes a black hole** (2026-11-14; he asked for a brainstorm):
+  a massive accelerator assembled above the Earth with lots of assembly animations, then it charges and tries to make
+  a black hole; test 1 fails (it should be impossible with a particle accelerator), but eventually a small one is made
+  and shot at the Earth: it visibly approaches and then blows up "or something". "idk whether to make the player
+  assemble it or like what and i dont want it to be like every other skill where you press a button and its done".
+  Not brainstormed yet: do it with him (clickable picks), keeping clear of TON 618's own black hole.
+- **Neutron star, more** (2026-11-15; the SA-05+ candidate above): "neutron star that sends waves so powerful and
+  theyre amplified by a device and it crushes the earth".
+- **TON 618 Addition's skills shown in the SA Series?** (2026-11-19): "Display ton618 addition skills when shooting
+  star addition is installed but lock it and tell what u need installed". His answer (2026-11-19, clickable): **"Both
+  ways"**: each addon lists the other's skills as locked until it's installed (the SA Series shows Last Light and
+  Quasar Jets locked: "install TON 618 Addition and TON 618"; TON 618 Addition shows ours the same way). Not built.
+- **Celestech compat** (2026-11-19): "So theres this new mod called celestech, i want compat with this somehow with
+  unique mechanics". He doesn't know yet whether it goes in a mod or its own addon; "look into it rn so we can plan"
+  ("like catching halley since that addon lets u catch meteors"). Looked up 2026-11-19: CelesTech (RushOnly, NeoForge
+  1.21.1, alpha, All Rights Reserved, no API; stars as energy, real stars shot down, mining rockets, black holes).
+  The compat ideas and what it is: `C:\Users\adam_\Documents\Claude notes\IDEAS.md` ("CelesTech compat").
+
 Visual/sound polish the user asked for but that was cut for budget:
 
 - **Luna's build-up**: the user finds it thin next to Halley ("Halley sounds cool and has super cool re-entry vfx").
