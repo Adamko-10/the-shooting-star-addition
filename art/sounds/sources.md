@@ -254,83 +254,24 @@ is first levelled to -20 LUFS). At: where the layer starts in our sound. Process
 | luna_debris_3 | InMotionAudio - Instrument Case/OBJLug_CaseDown_Concrete12_InMotionAudio_InstrumentCase.wav | 0 | 0.6 | -9.8 | 4.890 | asetrate=40704,aresample=44100,lowpass=f=4000 |
 | luna_debris_3 | 344 Audio - Cinematic Fight Vol. 1/FGHTImpt_4 x Punch, Body 02_344 Audio_Cinematic Fight Vol 1.wav | 0.1 | 0.5 | -10.3 | 5.298 | asetrate=33207,aresample=44100,lowpass=f=4000 |
 | luna_debris_3 | 344 Audio - Antique Books/PAPRMisc_Pile Of Antique Books Falling Over 8_344 Audio_Antiques - Books.wav | 0.85 | 0.55 | -8.4 | 5.773 | asetrate=36294,aresample=44100,lowpass=f=4000 |
-| proxima_beam | Epic Stock Media - Elemental Mutation Whooshes and Impacts/ELECMisc_Impact Electric Tonal Deep Movement Motion Hiss Glitch 01_ESM_EMWI.wav | 0 | 0.5 | -2 | 0 | areverse,volume='pow(t/0.5,2)':eval=frame |
-| proxima_beam | InMotionAudio - Arc/ELECArc_ArcPowerUpDesign04_InMotionAudio_Arc.wav | 4.6 | 0.5 | 0 | 0 | volume='pow(t/0.5,2.5)':eval=frame,highpass=f=600 |
-| proxima_beam | Epic Stock Media - Elemental Mutation Whooshes and Impacts/ELECMisc_Impact Electric Tonal Deep Movement Motion Hiss Glitch 01_ESM_EMWI.wav | 0 | 3.5 | 0 | 0.5 |  |
-| proxima_beam | Epic Stock Media - Fantasy Game 2 - Sound Kit for Enchanted Realms/UIAlert_Collect Scifi Futuristic Electronic Bass Burst Sweep Heavy 04_ESM_FG2.wav | 0 | 0.31 | 0 | 0.5 |  |
-| proxima_beam | InMotionAudio - Arc/ELECArc_ArcDesign15_InMotionAudio_Arc.wav | 0 | 1.0 | -3 | 0.5 |  |
-| proxima_beam | InMotionAudio - Arc/ELECBuzz_Buzz27_InMotionAudio_Arc.wav | 1 | 2.5 | -8 | 0.6 | volume='exp(-1.6*t)':eval=frame |
-| proxima_beam | 344 Audio - Bass Drops & Downers Vol. 2/DSGNBass_Bass Drop & Downer Fast 12_344 Audio_Bass Drops & Downers Vol 2.wav | 0 | 2.6 | -3 | 0.5 |  |
-| proxima_beam | Federico Soler - Effective Trailer Booms Vol. 2/EffectiveTrailer_Booms_Vol2_075.wav | 0.2 | 3.4 | -6 | 0.5 | lowpass=f=300 |
-| proxima_flash | Epic Stock Media - Elemental Mutation Whooshes and Impacts/ELECMisc_Impact Electric Tonal Deep Movement Motion Hiss Glitch 01_ESM_EMWI.wav | 0 | 2.6 | 0 | 0 | highpass=f=500 |
-| proxima_flash | Epic Stock Media - Elemental Mutation Whooshes and Impacts/FIREWhsh_Whoosh Fire Deep Growl Monster Saturated Crisp 03_ESM_EMWI.wav | 0.3 | 2.2 | -4 | 0 |  |
-| proxima_flash | Epic Stock Media - Synthesized Nature Loops and Sounds/FIREBurn_Loop Elements Fire Crackling Crunchy Flame Burn 03_ESM_SNLS.wav | 4.0 | 2.6 | -6 | 0 | highpass=f=1500 |
-| proxima_flash | Ivo Vicic - Campfire - Bonfire FX/24 Campfire, Dropping Fresh Pine Branches in Fire, Crackling, Sizzling Strong, Close 02.wav | 14 | 2.6 | -6 | 0.1 | highpass=f=1000 |
-| proxima_flash | 344 Audio - Bass Drops & Downers Vol. 1/DSGNBass_Bass Drop & Downer Fast 16_344 Audio_Bass Drops & Downers.wav | 0.05 | 1.5 | -5 | 0 |  |
-| proxima_radio | synthesised: radio whine | 0 | 8.5 | 0 | 0 |  |
-| proxima_radio | Epic Stock Media - Fake Advertisements and Radio Sound Effects Audio Construction Kit/COMStatic_Radio Ham Loop Static Hum Active Powered On Garbled Noise 01_ESM_FA.wav | 3 | 8.5 | -4 | 0 | bandpass=f=2200:width_type=h:w=2400,tremolo=f=11:d=0.5 |
-| proxima_radio | Sonic Bat - Vintage Radio/SBvr_AM EQ Sweeping 002.wav | 10 | 8.5 | -6 | 0 | highpass=f=200 |
-| proxima_radio | The Noisery - Rich Glitch/UIGlitch_Designed_Glitch_Corrupted_Data Error_The Noisery_Rich Glitch_06.wav | 0 | 5.43 | -12 | 1.5 | highpass=f=1000 |
-| proxima_impact | Epic Stock Media - Halloween Game - Haunted House and Horror Audio Scare Kit/GORESplt_Gore Designed Transient Heavy Impact Smash 01_ESM_HALG.wav | 0.05 | 1.7 | -3 | 0 |  |
-| proxima_impact | 344 Audio - Bass Drops & Downers Vol. 3/DSGNBass_Tone Downer (Reverb)_344 Audio_Bass Drops and Downers Vol 3.wav | 0.03 | 5.8 | 0 | 0 |  |
-| proxima_impact | Federico Soler - Effective Trailer Booms Vol. 2/EffectiveTrailer_Booms_Vol2_214.wav | 0.2 | 6.6 | 0 | 0 |  |
-| proxima_impact | Epic Stock Media - Elemental Mutation Whooshes and Impacts/ELECMisc_Impact Electric Tonal Deep Movement Motion Hiss Glitch 01_ESM_EMWI.wav | 0 | 3.7 | -5 | 0 |  |
-| proxima_impact | Epic Stock Media - Elemental Mutation Whooshes and Impacts/FIREWhsh_Whoosh Fire Deep Growl Monster Saturated Crisp 03_ESM_EMWI.wav | 0.3 | 2.2 | -4 | 0.1 |  |
-| proxima_impact | Ivo Vicic - Campfire - Bonfire FX/42 Campfire, Putting Out Fire, Water from Bottle, Variation, Close.wav | 0.3 | 4.0 | -9 | 0.5 | afade=t=in:d=0.4 |
-| proxima_impact | InMotionAudio - Arc/ELECArc_ArcDesign15_InMotionAudio_Arc.wav | 0 | 1.0 | -12 | 0.05 |  |
-| proxima_wave | SoundBits - Pass-By - Trains, Trucks & Cars 2/VEHFrght_Freight Truck Pass By 22_SNDBTS_PB-TTC2.wav | 1.2 | 2.8 | 0 | 0 | asetrate=35280,aresample=44100 |
-| proxima_wave | Epic Stock Media - Elemental Mutation Whooshes and Impacts/FIREWhsh_Whoosh Fire Deep Growl Monster Saturated Crisp 03_ESM_EMWI.wav | 0.05 | 2.4 | -3 | 0.3 |  |
-| proxima_wave | The Noisery - City Rain/WINDTonl_Wind Strong Gusts Hurricane Vents Rattle 06_The Noisery_City Rain.wav | 25 | 3.5 | -5 | 0 | volume='exp(-pow((t-0.9)/0.6,2))':eval=frame |
-| proxima_wave | 344 Audio - Bass Drops & Downers Vol. 2/DSGNBass_Bass Drop & Downer Fast 12_344 Audio_Bass Drops & Downers Vol 2.wav | 0 | 2.0 | -3 | 0.95 |  |
-| proxima_wave | Cinematic Sound Design - Colossal Impacts/Woosh Debris.wav | 0.3 | 2.0 | -6 | 1.0 |  |
-| proxima_uplink | Epic Stock Media - Strange Game Ambient Loops 3/DSGNSynth_Scifi Loop Ship Reactor Synth Layer Layered Saw Buzz_ESM_SGA3.wav | 10 | 3 | 0 | 0 | lowpass=f=900 |
-| proxima_uplink | Jake Fielding - Fridge Hums Vol.2/MACHAppl_Deep Fridge Hum, Buzz, Electric Tone, Deep_Jake Fielding_Fridge Hums Pt2.wav | 44 | 3 | -3 | 0 |  |
-| proxima_uplink | Sonic Bat - Vintage Radio/SBvr_Power Button 003.wav | 0 | 0.78 | -6 | 0 |  |
-| proxima_ascent | 344 Audio - Air Designed/AEROJet_Blast Off Clean_344 Audio_Air Designed.wav | 4.9 | 3.8 | 0 | 0 |  |
-| proxima_ascent | Epic Stock Media - Synthesized Nature Loops and Sounds/WINDInt_Loop Weather Wind Whipping Constricted Flow Turbulent 01_ESM_SNLS.wav | 0 | 3.8 | -3 | 0 |  |
-| proxima_ascent | 344 Audio - Elemental Palette Designed Vol. 1/WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav | 0 | 1.05 | -2 | 2.0 |  |
-| proxima_space | Cinematic Sound Design - Sci-Fi Drones/Roomtone Space Ship Interior Muted.wav | 10 | 10 | 0 | 0 |  |
-| proxima_space | InMotionAudio - The Death Whistle/CREAEthr_Aztec Death Whistle Drone_05_IMA_Death Whistle Samples.wav | 4 | 10 | -6 | 0 | lowpass=f=300 |
-| proxima_space | Cinematic Sound Design - Sci-Fi Drones/Dark Industrial Ambience.wav | 5 | 10 | -8 | 0 | lowpass=f=500 |
-| proxima_star | 344 Audio - Extreme Winds Vol. 1/WINDDsgn_EXT, Eye Of The Storm_344 Audio_Extreme Winds Vol 1.wav | 60 | 6 | 0 | 0 | asetrate=26460,aresample=44100,lowpass=f=400 |
-| proxima_star | Epic Stock Media - Synthesized Nature Loops and Sounds/FIREBurn_Loop Elements Fire Crackling Crunchy Flame Burn 03_ESM_SNLS.wav | 3 | 3 | -3 | 0 | asetrate=22050,aresample=44100,lowpass=f=600 |
-| proxima_star | Jake Fielding - Interior Wind Rain and Storms/THUN_Interior Thunder Rumble_JF_INT Storm_01.wav | 5 | 6 | -4 | 0 | lowpass=f=300 |
-| proxima_star | 344 Audio - Extreme Winds Vol. 1/WINDDsgn_EXT, Eye Of The Storm_344 Audio_Extreme Winds Vol 1.wav | 70 | 6 | -3 | 0 | asetrate=30870,aresample=44100,lowpass=f=3000,volume='if(lt(t,2.4),0,min(1,(t-2.4)/1.5))':eval=frame |
-| proxima_creak | Victor Ermakov - Industrial Ambiences - Ship Repair Factory/MACHInd_Crane Onboard Ride Squeaks Motors_CW.wav | 0 | 3 | -2 | 0 | highpass=f=200 |
-| proxima_creak | Epic Stock Media - HD Game Materials/ICEFric_Dry Ice Squeak Metal Animal Mouse Imitation Short 07_ESM_HDGM.wav | 0 | 2.18 | -8 | 0.3 | asetrate=22050,aresample=44100 |
-| proxima_creak | Epic Stock Media - HD Lock And Mechanism Sound Design Kit/METLTonl_Item Spring Wire Impact Flick Top Clatter Light Tap Roll Handling Short 01_ESM_HDLM.wav | 2 | 3 | -8 | 0 |  |
-| proxima_creak | Epic Stock Media - HD Game Materials/METLImpt_Metal Old File Impact Tap Against Tire Iron Metallic Hit 01_ESM_HDGM.wav | 0.1 | 0.37 | -6 | 1.4 | asetrate=26460,aresample=44100 |
-| proxima_iris | Epic Stock Media - Tower Defense Game/ROBTMvmt_Tower Deploy Hitech Robot Motor Dark Thump Servo Whine 04_ESM_TDG.wav | 0 | 1.04 | -2 | 0.000 | asetrate=30870,aresample=44100 |
-| proxima_iris | Epic Stock Media - HD Lock And Mechanism Sound Design Kit/MECHLtch_Click Deep Mechanism Latch Button Nearfield Thunk 02_ESM_HDLM.wav | 0 | 0.38 | 0 | 0.300 | asetrate=26460,aresample=44100,lowshelf=f=120:g=4 |
-| proxima_iris | Epic Stock Media - Tower Defense Game/ROBTMvmt_Tower Deploy Hitech Robot Motor Dark Thump Servo Whine 04_ESM_TDG.wav | 0 | 1.04 | -2 | 0.500 | asetrate=33075,aresample=44100 |
-| proxima_iris | Epic Stock Media - HD Lock And Mechanism Sound Design Kit/MECHLtch_Click Deep Mechanism Latch Button Nearfield Thunk 02_ESM_HDLM.wav | 0 | 0.38 | 0 | 0.800 | asetrate=26460,aresample=44100,lowshelf=f=120:g=4 |
-| proxima_iris | Epic Stock Media - Tower Defense Game/ROBTMvmt_Tower Deploy Hitech Robot Motor Dark Thump Servo Whine 04_ESM_TDG.wav | 0 | 1.04 | -2 | 1.000 | asetrate=35280,aresample=44100 |
-| proxima_iris | Epic Stock Media - HD Lock And Mechanism Sound Design Kit/MECHLtch_Click Deep Mechanism Latch Button Nearfield Thunk 02_ESM_HDLM.wav | 0 | 0.38 | 0 | 1.300 | asetrate=26460,aresample=44100,lowshelf=f=120:g=4 |
-| proxima_iris | Epic Stock Media - Tower Defense Game/ROBTMvmt_Tower Deploy Hitech Robot Motor Dark Thump Servo Whine 04_ESM_TDG.wav | 0 | 1.04 | -2 | 1.500 | asetrate=37485,aresample=44100 |
-| proxima_iris | Epic Stock Media - HD Lock And Mechanism Sound Design Kit/MECHLtch_Click Deep Mechanism Latch Button Nearfield Thunk 02_ESM_HDLM.wav | 0 | 0.38 | 0 | 1.800 | asetrate=26460,aresample=44100,lowshelf=f=120:g=4 |
-| proxima_iris | David Dumais Audio - Melee Weapons Sound Effects Pack 2/METLImpt_METAL SWING HIT Weapon Swing To Metallic Body Impact And Resonant Tail 01_DDUMAIS_MWP2.wav | 0.05 | 2.8 | -4 | 1.8 | asetrate=26460,aresample=44100 |
-| proxima_iris | Victor Ermakov - Industrial Ambiences - Ship Repair Factory/MACHInd_Crane Onboard Ride Squeaks Motors_CW.wav | 5.25 | 3 | -8 | 0 | lowpass=f=1500 |
-| proxima_reconnect | InMotionAudio - Arc/ELECArc_ArcPowerUpDesign04_InMotionAudio_Arc.wav | 4.0 | 0.9 | 0 | 0 | volume='pow(t/0.9,2.5)':eval=frame |
-| proxima_reconnect | InMotionAudio - Arc/ELECBuzz_Buzz27_InMotionAudio_Arc.wav | 1 | 0.9 | -4 | 0 | volume='pow(t/0.9,2)':eval=frame |
-| proxima_reconnect | InMotionAudio - Arc/ELECArc_ArcDesign15_InMotionAudio_Arc.wav | 0 | 0.4 | 0 | 0.88 |  |
-| proxima_reconnect | David Dumais Audio - Melee Weapons Sound Effects Pack 2/WEAPWhip_WHIP Snap Crack 05_DDUMAIS_MWP2.wav | 0.1 | 0.6 | -2 | 0.86 |  |
-| proxima_reconnect | 344 Audio - Elemental Palette Designed Vol. 1/WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav | 0.2 | 0.55 | -4 | 1.05 | areverse,highpass=f=400 |
-| proxima_lens | The Noisery - Moaning Metal/DSGNImpt_Metal Hit Thud Thump Low Ring Geofon 1_The Noisery_Moaning Metal.wav | 0 | 1.6 | 0 | 0 |  |
-| proxima_lens | Epic Stock Media - HD Lock And Mechanism Sound Design Kit/MECHLtch_Click Deep Mechanism Latch Button Nearfield Thunk 02_ESM_HDLM.wav | 0 | 0.38 | 0 | 0 | asetrate=24255,aresample=44100 |
-| proxima_lens | Epic Stock Media - HD Lock And Mechanism Sound Design Kit/MECHLtch_Click Deep Mechanism Latch Button Nearfield Thunk 02_ESM_HDLM.wav | 0 | 0.38 | -2 | 0.35 | asetrate=26460,aresample=44100 |
-| proxima_lens | Epic Stock Media - HD Lock And Mechanism Sound Design Kit/MECHLtch_Click Deep Mechanism Latch Button Nearfield Thunk 02_ESM_HDLM.wav | 0 | 0.38 | -3 | 0.6 | asetrate=28665,aresample=44100 |
-| proxima_lens | InMotionAudio - Sinister Textures 5/GOREMisc_Concrete_MetalPipe02_InMotionAudio_SinisterTextures5.wav | 0 | 0.44 | -8 | 0.35 | asetrate=22050,aresample=44100 |
-| proxima_lens | David Dumais Audio - Melee Weapons Sound Effects Pack 2/METLImpt_METAL SWING HIT Weapon Swing To Metallic Body Impact And Resonant Tail 01_DDUMAIS_MWP2.wav | 0.05 | 1.5 | -4 | 0.8 | asetrate=22050,aresample=44100 |
-| proxima_gate | Epic Stock Media - Tower Defense Game/DSGNStngr_Action Deploy Units Sword Slice Special Move Layered Swish 04_ESM_TDG.wav | 0.1 | 2.3 | -2 | 0 | asetrate=30870,aresample=44100 |
-| proxima_gate | The Noisery - Moaning Metal/DSGNTonl_Designed Metal Bowed Screech Tonal Reverb 7_The Noisery_Moaning Metal.wav | 2 | 2.0 | -3 | 0.4 | afade=t=in:d=0.4 |
-| proxima_gate | Epic Stock Media - Strange Game Ambient Loops 3/DSGNSynth_Scifi Loop Ship Reactor Synth Layer Layered Saw Buzz_ESM_SGA3.wav | 20 | 2.5 | -8 | 0 | bandpass=f=300:width_type=h:w=300 |
-| proxima_front | 344 Audio - Extreme Winds Vol. 1/WINDDsgn_EXT, Eye Of The Storm_344 Audio_Extreme Winds Vol 1.wav | 100 | 8 | 0 | 0 | lowpass=f=1200 |
-| proxima_front | Jake Fielding - Interior Wind Rain and Storms/THUN_Interior Thunder Rumble_JF_INT Storm_01.wav | 4 | 8 | -3 | 0 |  |
-| proxima_front | The Noisery - Transit Tunes - The German Train Collection/TRNElec_Train Electric Passenger By Close Right To_The Noisery_Transit Tunes_ The German Train Collection_01.wav | 12 | 4.8 | -6 | 0 | asetrate=26460,aresample=44100,lowpass=f=600 |
-| proxima_front | Epic Stock Media - Fake Advertisements and Radio Sound Effects Audio Construction Kit/COMStatic_Radio Ham Loop Static Hum Active Powered On Garbled Noise 01_ESM_FA.wav | 5 | 8 | -16 | 0 | highpass=f=2000,tremolo=f=9:d=0.7 |
-| proxima_inhale | Epic Stock Media - Elemental Mutation Whooshes and Impacts/FIREWhsh_Whoosh Fire Deep Growl Monster Saturated Crisp 03_ESM_EMWI.wav | 0.1 | 0.65 | 0 | 0 | areverse,highpass=f=200 |
-| proxima_inhale | 344 Audio - Elemental Palette Designed Vol. 1/WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav | 0 | 0.65 | -2 | 0 | areverse |
-| proxima_after | The Noisery - City Rain/WINDTonl_Wind Strong Gusts Hurricane Vents Rattle 06_The Noisery_City Rain.wav | 60 | 6 | -4 | 0 | lowpass=f=2000,afade=t=in:d=2.5 |
-| proxima_after | Ivo Vicic - Campfire - Bonfire FX/24 Campfire, Dropping Fresh Pine Branches in Fire, Crackling, Sizzling Strong, Close 02.wav | 20 | 6 | 0 | 0 | highpass=f=800 |
-| proxima_after | Alexander Kopeikin - 100 kHz Designed Ice/ice, movement, ice drift, ice field cracking up, initial, wide-001.wav | 74 | 6 | -8 | 0 | highpass=f=2500 |
-| proxima_after | Jake Fielding - Interior Wind Rain and Storms/THUN_Interior Thunder Rumble_JF_INT Storm_01.wav | 11 | 6 | -6 | 0.5 | lowpass=f=200 |
+| convergence_panel | Cinematic Sound Design - Interface & Infographics/Interface Accept Glassy Snap.wav | 0 | 0.30 | 0 | 0 | asetrate=44100,aresample=44100 |
+| convergence_panel | Epic Stock Media - Board Game - Sound Set Kit for Tabletop and Digital Games/PAPRHndl_Game Play Cards Dry Show Flip Toss Disgard Near 12_ESM_BG.wav | 0 | 0.17 | -4 | 0.02 | asetrate=30870,aresample=44100 |
+| convergence_panel | 344 Audio - Elemental Palette Designed Vol. 1/WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav | 0.05 | 0.30 | -9 | 0.03 | highpass=f=500,afade=t=in:d=0.12 |
+| convergence_panel | Epic Stock Media - Board Game - Sound Set Kit for Tabletop and Digital Games/PAPRHndl_Game Play Cards Dry Show Flip Toss Disgard Near 12_ESM_BG.wav | 0 | 0.17 | -1 | 0.33 | asetrate=50715,aresample=44100 |
+| convergence_panel | Epic Stock Media - HD Lock And Mechanism Sound Design Kit/MECHLtch_Click Deep Mechanism Latch Button Nearfield Thunk 02_ESM_HDLM.wav | 0 | 0.30 | -5 | 0.34 |  |
+| convergence_panel | Cinematic Sound Design - Interface & Infographics/Interface Percussion Snap.wav | 0 | 0.16 | -8 | 0.33 | lowpass=f=1200 |
+| convergence_panel_2 | Cinematic Sound Design - Interface & Infographics/Interface Accept Glassy Snap.wav | 0 | 0.30 | 0 | 0 | asetrate=39690,aresample=44100 |
+| convergence_panel_2 | Epic Stock Media - Board Game - Sound Set Kit for Tabletop and Digital Games/PAPRHndl_Game Play Cards Dry Show Flip Toss Disgard Near 12_ESM_BG.wav | 0 | 0.17 | -4 | 0.02 | asetrate=30870,aresample=44100 |
+| convergence_panel_2 | 344 Audio - Elemental Palette Designed Vol. 1/WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav | 0.05 | 0.30 | -9 | 0.03 | highpass=f=500,afade=t=in:d=0.12 |
+| convergence_panel_2 | Epic Stock Media - Board Game - Sound Set Kit for Tabletop and Digital Games/PAPRHndl_Game Play Cards Dry Show Flip Toss Disgard Near 12_ESM_BG.wav | 0 | 0.17 | -1 | 0.33 | asetrate=44100,aresample=44100 |
+| convergence_panel_2 | Epic Stock Media - HD Lock And Mechanism Sound Design Kit/MECHLtch_Click Deep Mechanism Latch Button Nearfield Thunk 02_ESM_HDLM.wav | 0 | 0.30 | -5 | 0.34 |  |
+| convergence_panel_2 | Cinematic Sound Design - Interface & Infographics/Interface Percussion Snap.wav | 0 | 0.16 | -8 | 0.33 | lowpass=f=1200 |
+| convergence_panel_3 | Cinematic Sound Design - Interface & Infographics/Interface Accept Glassy Snap.wav | 0 | 0.30 | 0 | 0 | asetrate=49392,aresample=44100 |
+| convergence_panel_3 | Epic Stock Media - Board Game - Sound Set Kit for Tabletop and Digital Games/PAPRHndl_Game Play Cards Dry Show Flip Toss Disgard Near 12_ESM_BG.wav | 0 | 0.17 | -4 | 0.02 | asetrate=30870,aresample=44100 |
+| convergence_panel_3 | 344 Audio - Elemental Palette Designed Vol. 1/WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav | 0.05 | 0.30 | -9 | 0.03 | highpass=f=500,afade=t=in:d=0.12 |
+| convergence_panel_3 | Epic Stock Media - Board Game - Sound Set Kit for Tabletop and Digital Games/PAPRHndl_Game Play Cards Dry Show Flip Toss Disgard Near 12_ESM_BG.wav | 0 | 0.17 | -1 | 0.33 | asetrate=57330,aresample=44100 |
+| convergence_panel_3 | Epic Stock Media - HD Lock And Mechanism Sound Design Kit/MECHLtch_Click Deep Mechanism Latch Button Nearfield Thunk 02_ESM_HDLM.wav | 0 | 0.30 | -5 | 0.34 |  |
+| convergence_panel_3 | Cinematic Sound Design - Interface & Infographics/Interface Percussion Snap.wav | 0 | 0.16 | -8 | 0.33 | lowpass=f=1200 |
+| convergence_shatter | Cinematic Sound Design - Interface & Infographics/Interface Accept Glassy Snap.wav | 0 | 0.40 | -2 | 0 | asetrate=26460,aresample=44100 |
+| convergence_shatter | Epic Stock Media - Tower Defense Game/ICEBrk_Skill Freeze Whoosh Break Impact Layered Movement Shatter 03_ESM_TDG.wav | 0.15 | 2.0 | 0 | 0 |  |
+| convergence_shatter | Epic Stock Media - Elemental Mutation Whooshes and Impacts/GLASMvmt_Whoosh Glass Crystal Fragments Sharp Shards Dry 05_ESM_EMWI.wav | 0.4 | 1.7 | -3 | 0.06 | highpass=f=1500 |
