@@ -33,6 +33,8 @@ import org.joml.Vector3f;
  * world pass leaves them out meanwhile ({@link #above}). TON 618 Addition does the same for its stars
  * ({@code QuasarAtlas.drawSky}). Complementary's sky program squares the colour it is given, so colours are given as
  * their square roots. Without a pack nothing changes: the game's own clouds already cover the moon (MoonSphere).
+ * Proxima's sky gate joined them later the same release (its own shader can't run here: it is painted onto a card at the
+ * frame's start, ProximaCosmos.paintSkyCard).
  */
 public final class SkyPass {
     private static final ByteBufferBuilder BYTES = new ByteBufferBuilder(1 << 20);
@@ -64,7 +66,8 @@ public final class SkyPass {
     /** From inside the game's sky drawing, where the stars are drawn; {@code pose}: the sky's camera turn. */
     public static void draw(Matrix4f pose, float partial, Camera camera) {
         Vec3 eye = camera.getPosition();
-        if (failed || Double.isNaN(clouds(eye)) || MoonFx.active().isEmpty() && HalleyFx.active().isEmpty()) {
+        if (failed || Double.isNaN(clouds(eye)) || MoonFx.active().isEmpty() && HalleyFx.active().isEmpty()
+            && !dev.ss05.halley.client.proxima.ProximaCosmos.inSky()) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
@@ -77,6 +80,8 @@ public final class SkyPass {
         // as in the world pass: ribbons are seen from either side
         RenderSystem.disableCull();
         try {
+            // Proxima's gate (painted onto a card at the frame's start, ProximaCosmos.paintSkyCard), farthest off
+            dev.ss05.halley.client.proxima.ProximaCosmos.renderSkyPass(pose, eye, far);
             // the bodies first (the moon hides the stars behind it), then the light round them
             for (MoonFx fx : MoonFx.active()) {
                 if (!fx.finished() && MoonSphere.inSky(fx, eye, partial)) {

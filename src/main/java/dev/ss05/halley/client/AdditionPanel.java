@@ -78,9 +78,9 @@ public final class AdditionPanel {
     public static final int KEY_0 = 48;
 
     /** Which of our skills is selected in the menu (the caller knows: compat/tss reads RimuLib's selection). */
-    public enum Card { NONE, HALLEY, LUNA, PROXIMA, CONVERGENCE }
+    public enum Card { NONE, HALLEY, LUNA, PROXIMA, CONVERGENCE, LOCKED }
 
-    /** Draws Stellar Convergence's card at {@code top} in the plate's space, {@code width} wide; returns its height. */
+    /** Draws Stellar Convergence's card (or a locked skill's: what to install) at {@code top} in the plate's space, {@code width} wide; returns its height. */
     public interface CardBody {
         int draw(GuiGraphics g, Font font, int top, int width);
     }
@@ -151,7 +151,7 @@ public final class AdditionPanel {
             return flip("evac", () -> HalleyClientConfig.setEvacLift(!HalleyClientConfig.evacLift()), true);
         }
         // the card's own
-        if (card == Card.NONE) {
+        if (card == Card.NONE || card == Card.LOCKED) {
             return false;
         }
         if (key == KEY_0 && hasLessUsed(card)) {
@@ -175,7 +175,7 @@ public final class AdditionPanel {
                     break;
             }
         }
-        if (key == KEY_0 + 6 && card != Card.CONVERGENCE && HalleyClientConfig.lessUsedOpen()) {
+        if (key == KEY_0 + 6 && hasLessUsed(card) && HalleyClientConfig.lessUsedOpen()) {
             HalleyClientConfig.PackMode[] modes = HalleyClientConfig.PackMode.values();
             HalleyClientConfig.setShaderPacks(modes[(HalleyClientConfig.shaderPacks().ordinal() + 1) % modes.length]);
             hint("shader_packs");
@@ -233,8 +233,8 @@ public final class AdditionPanel {
 
     // ---- Drawing. -------------------------------------------------------------------------------------------------
 
-    /** The plates: the general one and, under it, the selected skill's card ({@code convergence} draws SA-00's). */
-    public static void draw(GuiGraphics g, Card card, CardBody convergence) {
+    /** The plates: the general one and, under it, the selected skill's card ({@code body} draws SA-00's or a locked one's). */
+    public static void draw(GuiGraphics g, Card card, CardBody body) {
         Minecraft minecraft = Minecraft.getInstance();
         Font font = minecraft.font;
         g.pose().pushPose();
@@ -253,7 +253,7 @@ public final class AdditionPanel {
                 case HALLEY -> halley(g, font, top, w);
                 case LUNA -> luna(g, font, top, w);
                 case PROXIMA -> proxima(g, font, top, w);
-                case CONVERGENCE -> convergence.draw(g, font, top, w);
+                case CONVERGENCE, LOCKED -> body.draw(g, font, top, w);
                 default -> {
                 }
             }

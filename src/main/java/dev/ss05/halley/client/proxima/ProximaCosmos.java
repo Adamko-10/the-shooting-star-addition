@@ -4,6 +4,8 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.Tesselator;
@@ -16,6 +18,7 @@ import javax.annotation.Nullable;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.resources.ResourceLocation;
@@ -179,9 +182,13 @@ public final class ProximaCosmos {
             new Vec3(-left.x, -left.y, -left.z), new Vec3(up.x, up.y, up.z), (float) t);
         Vec3 ground = fx.plan.target.subtract(gate).scale(1.0 / SKY_SCALE);
         if (dev.ss05.halley.client.render.ShaderPacks.active()) {
-            // a shader pack masks what our own shader draws in the world pass: draw it once the frame is finished
-            // (renderSkyLate), over the land, which rarely shows as it hangs high in the sky (Fable's review, B4)
-            late = new LateSky(pass, ground);
+            // a shader pack masks what our own shader draws in the world pass. Under the clouds it was painted as a card
+            // and drawn in the sky this frame, behind the pack's clouds (1.9.0, paintSkyCard); else it is drawn once
+            // the frame is finished (renderSkyLate), over the land, which rarely shows as it hangs high in the sky
+            // (Fable's review, B4)
+            if (skyCard == null) {
+                late = new LateSky(pass, ground);
+            }
             return;
         }
         drawSkyGate(program, pass, ground);
@@ -201,6 +208,172 @@ public final class ProximaCosmos {
             return;
         }
         drawSkyGate(shader, sky.pass(), sky.ground());
+    }
+
+    // ---- With a shader pack: the gate behind the pack's clouds (1.9.0). -----------------------------------------------
+
+    /**
+     * The gate painted for this frame (see {@link #paintSkyCard}): where it hangs, the card's facing and sides (from the
+     * camera it was painted for) and its half-size in blocks; null when the gate isn't drawn in the sky this frame.
+     */
+    private record SkyCard(Vec3 gate, Vec3 forward, Vec3 right, Vec3 up, double half) {
+    }
+
+    @Nullable
+    private static SkyCard skyCard;
+    /** The card's half-size in the gate's units: room for its flash, the shot's streak fading out toward the edge. */
+    private static final double CARD_REACH = 2.0;
+    /**
+     * Two cards, as a pack's sky program throws away whatever is nearly see-through: its light (everything, its alpha
+     * then made solid, added to the sky) and its cover (only the dark panels, drawn over the sky first).
+     */
+    private static final dev.ss05.halley.client.render.BakedTexture CARD = new dev.ss05.halley.client.render.BakedTexture(
+        HalleyAddon.id("proxima_gate_sky"), 2048, 2048);
+    private static final dev.ss05.halley.client.render.BakedTexture COVER = new dev.ss05.halley.client.render.BakedTexture(
+        HalleyAddon.id("proxima_gate_sky_cover"), 1024, 1024);
+    private static final ByteBufferBuilder CARD_BYTES = new ByteBufferBuilder(1 << 14);
+    /** While the card is painted: added light leaves its alpha alone (the alpha is what the panels cover). */
+    private static boolean painting;
+    /** While the cover is painted: only the panels. */
+    private static boolean coverOnly;
+
+    /**
+     * At the start of a frame with a shader pack on (Adam, 2026-11-19: "do not display it over clouds", for every sky
+     * thing of ours; the moon and the comet went into the sky pass that night, client/render/SkyPass): the sky gate
+     * painted with its own shader, as the camera sees it, onto a card (an offscreen texture), while a mod's own shader
+     * can still run (Iris lets none run in the world pass). The sky pass then draws the card where the gate hangs
+     * ({@link #renderSkyPass}) with the game's textured sky shader, so the pack keeps it in its sky and draws its clouds
+     * over it. A card seen from the point it was painted from looks exactly like the gate drawn in place; it is painted
+     * from the camera's last position, a step away at most, from four hundred blocks off. Only while the camera is under
+     * the clouds.
+     */
+    public static void paintSkyCard(float partial) {
+        skyCard = null;
+        ShaderInstance program = shader;
+        Minecraft minecraft = Minecraft.getInstance();
+        if (program == null || minecraft.level == null || ProximaFx.active().isEmpty() || !dev.ss05.halley.client.render.ShaderPacks.active()
+            || dev.ss05.halley.client.render.SkyPass.broken()) {
+            return;
+        }
+        ProximaFx fx = ProximaFx.active().getLast();
+        double t = fx.time(partial) / 20.0;
+        if (fx.plan.params.natural() || fx.filmWeight() > 0.5F || t < T_LENS - 0.3 || t > T_FLASH + 0.5) {
+            return;
+        }
+        Vec3 gate = gatePosition(fx.plan);
+        Vec3 eye = minecraft.gameRenderer.getMainCamera().getPosition();
+        // the gate and its flash wholly above the clouds
+        if (!dev.ss05.halley.client.render.SkyPass.above(eye, gate.y - SKY_GATE_RADIUS * 1.6)) {
+            return;
+        }
+        Vec3 toGate = gate.subtract(eye);
+        double distance = toGate.length();
+        if (distance < SKY_GATE_RADIUS * 3.0) {
+            return;
+        }
+        Vec3 forward = toGate.scale(1.0 / distance);
+        Vec3 right = forward.cross(UP);
+        right = right.lengthSqr() < 1.0E-6 ? new Vec3(1.0, 0.0, 0.0) : right.normalize();
+        Vec3 up = right.cross(forward).normalize();
+        double half = CARD_REACH * SKY_SCALE;
+        Matrix4f view = new Matrix4f().lookAt(0.0F, 0.0F, 0.0F, (float) forward.x, (float) forward.y, (float) forward.z,
+                (float) up.x, (float) up.y, (float) up.z)
+            .translate((float) toGate.x, (float) toGate.y, (float) toGate.z).scale((float) SKY_SCALE);
+        Matrix4f proj = new Matrix4f().perspective((float) (2.0 * Math.atan(half / distance)), 1.0F, (float) (distance * 0.05),
+            (float) (distance + 40.0 * SKY_SCALE));
+        Pass pass = new Pass(view, proj, eye.subtract(gate).scale(1.0 / SKY_SCALE), right, up, (float) t);
+        Vec3 ground = fx.plan.target.subtract(gate).scale(1.0 / SKY_SCALE);
+        try {
+            painting = true;
+            coverOnly = true;
+            COVER.begin(true);
+            drawSkyGate(program, pass, ground);
+            COVER.end();
+            coverOnly = false;
+            com.mojang.blaze3d.pipeline.RenderTarget light = CARD.begin(true);
+            drawSkyGate(program, pass, ground);
+            // its light is added to the sky whatever its alpha: solid everywhere, so the pack keeps every bit of it
+            RenderSystem.colorMask(false, false, false, true);
+            light.setClearColor(0.0F, 0.0F, 0.0F, 1.0F);
+            light.clear(Minecraft.ON_OSX);
+            light.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+            RenderSystem.colorMask(true, true, true, true);
+            skyCard = new SkyCard(gate, forward, right, up, half);
+        } catch (RuntimeException failed) {
+            HalleyAddon.LOG.warn("Couldn't paint Proxima's gate for the sky; it is drawn over everything instead: {}", failed.toString());
+        } finally {
+            RenderSystem.colorMask(true, true, true, true);
+            painting = false;
+            coverOnly = false;
+            CARD.end();
+        }
+    }
+
+    /** Whether the gate is drawn in the sky pass this frame. */
+    public static boolean inSky() {
+        return skyCard != null;
+    }
+
+    /**
+     * From the sky pass: the card where the gate hangs, facing the camera it was painted for, its edge fading out (so the
+     * shot's streak comes in from nowhere); pulled in toward the camera if the game's far plane is nearer (the same on
+     * screen): its cover first, then its light.
+     */
+    public static void renderSkyPass(Matrix4f pose, Vec3 eye, double far) {
+        SkyCard card = skyCard;
+        if (card == null) {
+            return;
+        }
+        Vec3 rel = card.gate().subtract(eye);
+        double pull = Math.min(1.0, far * 0.5 / Math.max(1.0, rel.length()));
+        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        RenderSystem.enableBlend();
+        // the panels over the sky (their cover holds colour already multiplied by it), then all its light added
+        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
+            GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        drawCard(pose, card, rel, pull, COVER.location());
+        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE,
+            GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.ONE);
+        // twice: a pack's sky program squares the colour it is given, which dims the ring and the disc (a white ring
+        // came out pale pink, the disc faint); added twice they come back close to how they look without a pack
+        drawCard(pose, card, rel, pull, CARD.location());
+        drawCard(pose, card, rel, pull, CARD.location());
+        RenderSystem.defaultBlendFunc();
+    }
+
+    private static void drawCard(Matrix4f pose, SkyCard card, Vec3 rel, double pull, ResourceLocation texture) {
+        BufferBuilder builder = new BufferBuilder(CARD_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        dev.ss05.halley.client.render.SkyPass.Sky out = new dev.ss05.halley.client.render.SkyPass.Sky(builder, pose);
+        int cells = 8;
+        for (int i = 0; i < cells; i++) {
+            for (int j = 0; j < cells; j++) {
+                cardVertex(out, card, rel, pull, i, j, cells);
+                cardVertex(out, card, rel, pull, i + 1, j, cells);
+                cardVertex(out, card, rel, pull, i + 1, j + 1, cells);
+                cardVertex(out, card, rel, pull, i, j + 1, cells);
+            }
+        }
+        MeshData mesh = builder.build();
+        if (mesh == null) {
+            return;
+        }
+        RenderSystem.setShaderTexture(0, texture);
+        BufferUploader.drawWithShader(mesh);
+    }
+
+    private static void cardVertex(dev.ss05.halley.client.render.SkyPass.Sky out, SkyCard card, Vec3 rel, double pull, int i, int j,
+                                   int cells) {
+        float u = (float) i / cells;
+        float v = (float) j / cells;
+        double sx = u * 2.0 - 1.0;
+        double sy = v * 2.0 - 1.0;
+        Vec3 at = rel.add(card.right().scale(sx * card.half())).add(card.up().scale(sy * card.half())).scale(pull);
+        // the outer quarter fades out (the card's light and its cover alike)
+        float fade = (float) (1.0 - smooth((Math.max(Math.abs(sx), Math.abs(sy)) - 0.7) / 0.3));
+        out.addVertex((float) at.x, (float) at.y, (float) at.z);
+        out.setUv(u, v);
+        int c = Math.round(fade * 255.0F);
+        out.setColor(c, c, c, c);
     }
 
     private static void drawSkyGate(ShaderInstance program, Pass pass, Vec3 ground) {
@@ -258,6 +431,9 @@ public final class ProximaCosmos {
             seamLines[i] = new Vec3[]{centre.subtract(hx).subtract(hy), centre.add(hx).subtract(hy)};
         }
         draw(program, p, b);
+        if (coverOnly) {
+            return;
+        }
         additive();
         b = begin(VertexFormat.Mode.QUADS);
         for (Vec3[] line : seamLines) {
@@ -1087,14 +1263,24 @@ public final class ProximaCosmos {
 
     private static void additive() {
         RenderSystem.enableBlend();
-        RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
+        if (painting) {
+            RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE,
+                GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.ONE);
+        } else {
+            RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
+        }
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(false);
     }
 
     private static void blended() {
         RenderSystem.enableBlend();
-        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        if (painting) {
+            RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
+                GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        } else {
+            RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        }
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(false);
     }

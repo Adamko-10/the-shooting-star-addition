@@ -137,6 +137,13 @@ straight away, as their timing isn't known.
 - **No limits**: everything at once at high power can freeze a server. Aim far away: the biggest weapons reach
   hundreds of blocks.
 
+## TON 618 Addition's skills
+
+**TON 618 Addition** (by the same author, with rimuru_dev's TON 618) adds TA-01 · Last Light and TA-02 · Quasar Jets
+to the Stellar Remote. Without it they are listed at the end of the remote's menu as **locked**, greyed out with a
+padlock: picking one says what to install (TON 618 Addition and TON 618; Quasar Jets also SS-21 Quasar) and its card
+shows which of those you already have. Once TON 618 Addition is installed its own real skills take their place.
+
 ## Sliders
 
 Halley and Luna have the same three sliders as The Shooting Star's own skills, under them in the remote's menu
@@ -279,7 +286,7 @@ And your switches from the remote's menu (**H**), in the `[stellar_remote]` sect
 | `luna_music`     | true    | Luna's and Proxima's strike music (**M** in the menu). It follows Minecraft's Music volume. |
 | `stack_music`    | false   | Allow several strikes' music to play at once (**=**). |
 | `imperial_units` | false   | Show miles instead of kilometres in the films' readouts (**-**). |
-| `epic_mode`      | false   | Luna falls slower, 24 s instead of 16, for everyone watching (**G**). |
+| `epic_mode`      | false   | Luna falls slower, 20 s instead of 16, for everyone watching (**G**). |
 | `keep_moon`      | false   | Luna's moon model stays after it lands (**L**). |
 | `impact_frames`  | FULL    | Halley's and Luna's impact frames: `FULL`, `SOFT` or `OFF` (**F**). |
 | `evac_lift`      | true    | In creative, standing where your own strike lands: `true` lifts you straight up, `false` takes you to the crater's edge (**E**). |
@@ -291,6 +298,22 @@ And your switches from the remote's menu (**H**), in the `[stellar_remote]` sect
 | `convergence_plate` | true  | Its panel shown in full (`false` folds it to its name; **V**). |
 | `convergence_plate_old` | false | Its panel's older look, always shown (**T**). |
 | `menu_plates`    | true    | Show this addon's settings plate and Stellar Convergence's plate in the remote's menu (**H**). `false` hides them and their keys; the settings still apply, edit them in this file. |
+
+## Your own music
+
+Luna's and Proxima's music can be swapped for your own. Put an Ogg Vorbis file (`.ogg`) in
+`config/shooting_star_addition/music/` (the folder appears, with a README, once you've joined a world) under one of
+these names; it plays in place of ours from then on (no restart). Delete it to get ours back.
+
+| File            | Plays for                      | Starts                | Its drop should be at |
+|-----------------|--------------------------------|-----------------------|-----------------------|
+| `luna.ogg`      | SA-02 Luna                     | at the alarm          | 16.0 s (the impact)   |
+| `luna_epic.ogg` | SA-02 Luna in Epic mode        | at the alarm          | 20.0 s                |
+| `proxima.ogg`   | SA-04 Proxima                  | as the gate opens     | 22.5 s                |
+
+It is kept in step with the strike as it plays, follows the Speed slider and Minecraft's Music volume, and only plays
+while Music (**M**) is on. A file that won't open is logged and ours plays. Only use music you have the right to use.
+(A resource pack replacing `assets/shooting_star_addition/sounds/luna_music.ogg` and the others works too.)
 
 ## Will it work with future versions of The Shooting Star?
 

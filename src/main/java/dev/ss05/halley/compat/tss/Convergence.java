@@ -419,7 +419,7 @@ public final class Convergence {
         SkillSet set = remote();
         if (set != null) {
             for (Skill skill : set.skills) {
-                if (skill.id().equals(id)) {
+                if (skill.id().equals(id) && !(skill instanceof LockedSkill)) {
                     return skill;
                 }
             }

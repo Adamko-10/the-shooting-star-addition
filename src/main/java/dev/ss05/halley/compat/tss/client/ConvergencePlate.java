@@ -57,7 +57,7 @@ public final class ConvergencePlate {
             return weapons;
         }
         for (Skill skill : set.skills) {
-            if (skill != TssLink.CONVERGENCE && weapons.size() < 9) {
+            if (skill != TssLink.CONVERGENCE && !(skill instanceof dev.ss05.halley.compat.tss.LockedSkill) && weapons.size() < 9) {
                 weapons.add(skill);
             }
         }

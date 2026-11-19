@@ -50,6 +50,8 @@ public final class HalleyClient {
         // Proxima's Earth images (two 4096 maps, mipmapped) loaded as the world is joined, not mid-film (that stall made the
         // film's music and soundtrack stutter)
         NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingIn.class, event -> ProximaCosmos.preload());
+        // the folder for players' own music (with its README), there to find once a world has been joined
+        NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingIn.class, event -> StrikeMusic.ensureFolder());
         NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingOut.class, event -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
@@ -75,6 +77,8 @@ public final class HalleyClient {
             GlowAtlas.paint(HalleyRenderTypes.shader());
             HalleySky.paint(event.getPartialTick().getGameTimeDeltaPartialTick(true));
         }
+        // Proxima's gate behind a pack's clouds (1.9.0): painted now, drawn in the sky pass (or nothing this frame)
+        ProximaCosmos.paintSkyCard(event.getPartialTick().getGameTimeDeltaPartialTick(true));
     }
 
     /** Once every mod is constructed (The Shooting Star has set up its client by then). */

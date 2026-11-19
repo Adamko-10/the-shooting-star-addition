@@ -73,7 +73,9 @@ public final class StarClientBridge {
                 ConvergencePlate.sync(false);
                 if (HalleyClientConfig.menuPlates()) {
                     // 1.9.0's look B: the general plate, and under it the selected skill's own card
-                    AdditionPanel.draw(graphics, card(), ConvergencePlate::drawCard);
+                    AdditionPanel.Card card = card();
+                    AdditionPanel.draw(graphics, card, card == AdditionPanel.Card.LOCKED
+                        ? (g, font, top, w) -> LockedCard.draw(g, font, top, w, selectedLocked) : ConvergencePlate::drawCard);
                 }
             });
             // 1.9.0: a key the shown card uses wins over a skill's own key (Adam: G on Luna's card picked SS-21 Quasar);
@@ -94,6 +96,9 @@ public final class StarClientBridge {
     }
 
     /** Which of our skills is selected in the remote's menu: its card shows under the general plate. */
+    /** The locked skill (TON 618 Addition's) selected in the menu, when {@link #card()} says LOCKED. */
+    private static dev.ss05.halley.compat.tss.LockedSkill selectedLocked;
+
     private static AdditionPanel.Card card() {
         try {
             Skill selected = cyou.rimuru.rimulib.mc1211.client.magic.ClientSkills.selected(SkillSet.of(TssLink.SKILL));
@@ -108,6 +113,10 @@ public final class StarClientBridge {
             }
             if (selected == TssLink.CONVERGENCE) {
                 return AdditionPanel.Card.CONVERGENCE;
+            }
+            if (selected instanceof dev.ss05.halley.compat.tss.LockedSkill locked) {
+                selectedLocked = locked;
+                return AdditionPanel.Card.LOCKED;
             }
         } catch (RuntimeException | LinkageError unknown) {
             // RimuLib's selection is internal: if it changes, only the general plate shows

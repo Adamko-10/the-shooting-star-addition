@@ -70,7 +70,7 @@
   "gui.shooting_star_addition.on": "ON",
   "gui.shooting_star_addition.off": "OFF",
   "gui.shooting_star_addition.music": "Music",
-  "gui.shooting_star_addition.music.hint": "Luna's and Proxima's. Uses the Music volume.",
+  "gui.shooting_star_addition.music.hint": "Luna's and Proxima's. Your own: config/…/music",
   "gui.shooting_star_addition.stack_music": "Stack music",
   "gui.shooting_star_addition.stack_music.hint": "Casting again: both play, or the newest takes over.",
   "gui.shooting_star_addition.epic": "Epic mode",
@@ -98,6 +98,8 @@
   "gui.shooting_star_addition.convergence.hint.old": "Fires every ticked weapon at once. Each uses its own sliders",
   "gui.shooting_star_addition.convergence.hint2.old": "times SA-00's (set in this menu). 1-9 tick, T new look.",
   "gui.shooting_star_demo.tune.stellar_convergence": "every ticked weapon at %1$s its own power",
+  "skill.shooting_star_demo.stellar_remote.ton618_last_light.desc": "Locked: comes with TON 618 Addition (by the SA Series' author), with TON 618 by rimuru_dev; install both to use it. Once TON618 has devoured the world, let time go: the stars burn out, the eras pass, and after a googol of years TON618 has evaporated away by Hawking radiation. Its last light brings the world back.",
+  "skill.shooting_star_demo.stellar_remote.ton618_quasar_jets.desc": "Locked: comes with TON 618 Addition (by the SA Series' author), with TON 618 by rimuru_dev and SS-21 Quasar; install all three to use it. Lock one of the named stars at night and aim at the ground: a star engine pushes the star into TON618, which blazes as a quasar, and its jet comes in from the horizon to strike where you aimed.",
   "gui.shooting_star_addition.convergence.where": "Where they land",
   "gui.shooting_star_addition.convergence.point": "ON THE CROSSHAIR",
   "gui.shooting_star_addition.convergence.ring": "IN A RING",
@@ -157,5 +159,12 @@
   "gui.shooting_star_addition.shader_packs.never": "NEVER",
   "gui.shooting_star_addition.addon.fires": "installed",
   "gui.shooting_star_addition.addon.unlocks": "unlocks SA-00",
-  "gui.shooting_star_addition.addon.missing": "missing"
+  "gui.shooting_star_addition.addon.missing": "missing",
+  "gui.shooting_star_addition.locked.tier": "Locked: comes with TON 618 Addition.",
+  "gui.shooting_star_addition.group.install": "TO UNLOCK IT, INSTALL",
+  "gui.shooting_star_addition.locked.where": "On CurseForge. TON 618 Addition: same author as this one.",
+  "gui.shooting_star_addition.locked.ton618_last_light": "Fast-forward time until TON618 evaporates:",
+  "gui.shooting_star_addition.locked.ton618_last_light.2": "its last light brings the world back.",
+  "gui.shooting_star_addition.locked.ton618_quasar_jets": "Feed a named star to TON618: it blazes as a",
+  "gui.shooting_star_addition.locked.ton618_quasar_jets.2": "quasar, and its jet strikes where you aim."
 }
