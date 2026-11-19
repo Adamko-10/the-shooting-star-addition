@@ -62,7 +62,7 @@ public final class HalleyStrike {
     /** The trench is cut in pieces this long, each started as the nucleus reaches it (a single circle round it all
      *  would visit hundreds of chunks that the trench never touches). */
     private static final double SEGMENT = 32.0;
-    private static final int BLAST_TICKS = 28;
+    private static final int BLAST_TICKS = 36;
     /**
      * Ticks after the crater is finished at which the scar's chunks are sent to players again. The fast carver sends
      * each chunk the moment it is cut, before the light engine has caught up, so a fresh crater can look unlit.
@@ -502,15 +502,17 @@ public final class HalleyStrike {
         Map<BlockPos, BlockState> out = new HashMap<>();
         Vec3 c = this.plan.target;
         double radius = this.params.craterRadius();
-        int rays = 12 + (int) (this.plan.hash(77, 3) * 6.0);
+        // 1.9.0: out across the blast zone (they stopped near the rim), more of them, wider at the rim
+        double blast = radius * Math.max(1.3, this.params.blastReach()) - radius * 1.04;
+        int rays = 16 + (int) (this.plan.hash(77, 3) * 8.0);
         for (int i = 0; i < rays; i++) {
             double angle = (i + this.plan.hash(i, 101) * 0.7) / rays * Math.PI * 2.0;
-            double length = radius * (0.55 + this.plan.hash(i * 7, 13) * 0.75);
+            double length = blast * (0.35 + this.plan.hash(i * 7, 13) * 0.55);
             double cos = Math.cos(angle);
             double sin = Math.sin(angle);
             for (double d = radius * 1.04; d < radius * 1.04 + length; d += 1.0) {
                 double fade = 1.0 - (d - radius * 1.04) / length;
-                double half = 0.6 + 2.4 * fade;
+                double half = 0.8 + 3.2 * fade;
                 for (double w = -half; w <= half; w += 1.0) {
                     int x = Mth.floor(c.x + cos * d - sin * w);
                     int z = Mth.floor(c.z + sin * d + cos * w);

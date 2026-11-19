@@ -269,6 +269,14 @@ if want halley_impact; then   # the impact: a crack, a sub drop under a trailer 
   make halley_impact 9.43 -11 "volume='exp(-0.18*t)':eval=frame,afade=t=out:st=7.2:d=2.2"
 fi
 
+if want halley_inhale; then   # 1.9.0, 0.65 s ending on the impact (after the plough's hush): the air drawn in, icy: a
+  # boom, a rush and an ice shatter played backwards
+  L "$BOOM011" $B 0.65 0 0 "areverse,highpass=f=250"
+  L "$WIND_RUSH" 0 0.65 -3 0 "areverse"
+  L "$ICE_SHATTER" 0.2 0.65 -5 0 "areverse,highpass=f=1200"
+  make halley_inhale 0.65 -17 "volume='pow(t/0.65,2.2)':eval=frame"
+fi
+
 if want halley_frost; then   # frost spreading over the crater: crackling ice
   L "$ICE_SNAP" 0.47 3.2 0 0
   L "$ICE_FIELD" 74.0 3.2 -3 0 "highpass=f=400"

@@ -337,5 +337,13 @@
         "name": "shooting_star_addition:convergence_shatter"
       }
     ]
+  },
+  "halley_inhale": {
+    "subtitle": "subtitles.shooting_star_addition.halley_inhale",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:halley_inhale"
+      }
+    ]
   }
 }

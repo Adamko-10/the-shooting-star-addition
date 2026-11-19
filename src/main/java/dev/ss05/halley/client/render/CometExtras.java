@@ -55,7 +55,7 @@ public final class CometExtras {
     /** Blocks per tick per tick, for the ice thrown out of the crater. */
     static final double GRAVITY = 0.08;
     /** Ticks the shock front takes to cross the land (the same as CometVisuals and the server). */
-    private static final int BLAST_TICKS = 28;
+    private static final int BLAST_TICKS = 36;
     /** The glittering ice in the air: one glint per cell of this size round the camera, about half the cells. */
     private static final double GLITTER_CELL = 4.5;
 
@@ -99,7 +99,8 @@ public final class CometExtras {
             double from = Math.sqrt(r.nextDouble()) * radius * 0.35;
             Vec3 launch = plan.target.add(Math.cos(angle) * from, 2.0 + r.nextDouble() * 4.0, Math.sin(angle) * from);
             double heading = angle + r.nextGaussian() * 0.3;
-            double out = 0.9 + r.nextDouble() * 1.8;
+            // 1.9.0: thrown as far as the blast reaches (1.8: 0.9-2.7 at its 2.6)
+            double out = (0.9 + r.nextDouble() * 1.8) * Math.sqrt(Math.max(1.0, plan.params.blastReach()) / 2.6);
             double up = 1.6 + r.nextDouble() * 2.0;
             double drop = launch.y - (plan.target.y - 1.0);
             double flight = (up + Math.sqrt(up * up + 2.0 * GRAVITY * drop)) / GRAVITY;
@@ -276,7 +277,7 @@ public final class CometExtras {
         double reach = radius * this.plan.params.blastReach();
         double k = Math.pow(Mth.clamp(a / BLAST_TICKS, 0.0, 1.0), 0.6);
         double front = radius * 0.6 + (reach - radius * 0.6) * k + Math.max(0.0, a - BLAST_TICKS) * 0.6;
-        double height = 8.0 + radius * 0.5 * (1.0 - CometVisuals.smooth(a / 26.0));
+        double height = 8.0 + radius * 0.5 * (1.0 - CometVisuals.smooth(a / (BLAST_TICKS - 2.0)));
         float s = 0.7F * CometVisuals.smooth(a / 2.0) * (1.0F - CometVisuals.smooth((a - 4.0) / (BLAST_TICKS + 8.0)));
         Vec3 c = this.plan.target;
         Vec3 prev = null;

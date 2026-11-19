@@ -213,12 +213,13 @@ Convergence (or pick them in the remote's menu, **H**), aim at the ground and ri
 | skill    | `cooldown_seconds`         | 60      | Recharge time (the remote's own skills use 60). |
 | skill    | `reach`                    | 420     | How far away the crosshair can place the mark. |
 | impact   | `trench_length`            | 240     | Length of the trench ploughed toward the mark. |
-| impact   | `trench_width`             | 30      | Width of the trench where it meets the crater. |
-| impact   | `trench_depth`             | 22      | Depth of the trench. |
-| impact   | `crater_radius`            | 56      | Radius of the crater; everything inside dies. |
-| impact   | `crater_depth`             | 24      | Depth of the crater. |
-| impact   | `blast_reach`              | 2.6     | Shock wave reach, in crater radii (throws, hurts, freezes). |
+| impact   | `trench_width`             | 40      | Width of the trench where it meets the crater. |
+| impact   | `trench_depth`             | 28      | Depth of the trench. |
+| impact   | `crater_radius`            | 84      | Radius of the crater; everything inside dies. |
+| impact   | `crater_depth`             | 32      | Depth of the crater. |
+| impact   | `blast_reach`              | 3.4     | Shock wave reach, in crater radii (throws, hurts, freezes). |
 | impact   | `chunks_per_tick`          | 12      | Chunks of the trench cut per tick (the crater does twice as many); lower is gentler on a busy server. |
+| impact   | `defaults_version`         | 1       | Set by the addon (leave it): in 1.9.0 a file still holding 1.8's Halley sizes untouched was moved to the bigger ones once. |
 | world    | `carve_terrain`            | true    | `false` = the strike only hurts creatures, the land is untouched. |
 | world    | `leave_comet_heart`        | true    | The glowing heart crystal and the frozen trail down the trench. |
 | world    | `frost_rays`               | true    | Rays of snow painted out from the crater. |
