@@ -67,12 +67,21 @@ Written before a compaction (the user: "write stuff for claude md im gonna compa
   Railgun bound to G: `test scripts\autotest28.sh`, harness `final=menu:luna+71`). Explanations under every setting,
   the Less used bar. Epic 20 s + music recut + `MoonFx.fallStretch`. Luna's Sonniss sounds applied, inhales louder.
   Halley comet 1.3x early, aftermath +4 s, beam stops at the cloud layer. Test jar `The Shooting Star Addition SA
-  Series 1.9.0 polish 2 TEST [NeoForge 1.21.1].jar` in his instance (the polish jar `.disabled`). **Not done: the
-  moon, the comet and the other sky glows still draw over a shader pack's clouds** (Complementary draws its clouds
-  late, over whatever is sky; ours write depth or draw after it): the fix is TON 618 Addition's way (draw sky things
-  inside `LevelRenderer.renderSky`, after `getStarBrightness`, with `position_tex_color` = the pack's skytextured, see
-  TON's `QuasarAtlas.drawSky`), a bigger job: asked him first. Also in his instance: TON 618 Addition's `1.1.1 limits
-  TEST` jar (the TON session's), enabled.
+  Series 1.9.0 polish 2 TEST [NeoForge 1.21.1].jar` in his instance (the polish jar `.disabled`). Also in his instance:
+  TON 618 Addition's `1.1.1 limits TEST` jar (the TON session's), enabled.
+- **Behind a shader pack's clouds: BUILT 2026-11-19, `0d9df1a`** (Adam: "Yes, do it now"). Complementary draws its
+  clouds late, over whatever is sky; our sky things were drawn in the world pass (the moon writing depth), so they
+  stood in front. Now `client/render/SkyPass` (+ `compat/mixin/LevelRendererSkyMixin`, inside `LevelRenderer.renderSky`
+  after `getStarBrightness`, as TON 618 Addition's stars): with a pack on and the camera under the cloud layer, what is
+  wholly above it (Luna's moon `MoonSphere.renderSky` + `MoonVisuals.drawAttached`, Halley's comet/tails/fragments/
+  sparks `HalleyFx.renderSky`, `CometVisuals.SKY` parts) is drawn there with `position_tex_color` (the pack's sky
+  program), colours square-rooted (Complementary squares them), culling off; the world pass leaves those parts out.
+  `FilmLand.cloudHeight()` counts a pack's clouds even with the game's clouds off. Checked with Complementary in the
+  harness (`test scripts\autotest27.sh` `RUNS="luna halley" LEGACY=false`, `test builds\2026-11-19 auto test 33 his
+  setup\sky2\`): clouds pass in front of the comet and of the moon from the ground; the above-cloud shots sit above
+  them. Not covered: Proxima's sky gate (its own shader; still drawn late over everything with a pack). Without a pack
+  nothing changed. **In his instance now**: `The Shooting Star Addition SA Series 1.9.0 polish 3 clouds TEST [NeoForge
+  1.21.1].jar` (polish 2 `.disabled`).
 - **Gameplay note for him**: Halley's blast now reaches ~286 blocks, so a survival caster within that is thrown and
   hurt by their own blast (as before, only further out); creative casters are untouched.
 - **The mock-up canvas**: https://claude.ai/artifact/UtTcKRB3SpzUZr5vhFuwET (Halley, Convergence, folded, and the
