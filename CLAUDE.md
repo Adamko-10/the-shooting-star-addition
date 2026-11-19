@@ -47,13 +47,18 @@ Written before a compaction (the user: "write stuff for claude md im gonna compa
   blast (crater radius 84, blast reach 3.4, new effects; old 1.8 configs moved up once via `defaults_version`;
   game-tested, `test scripts\autotest25.sh`), the hush + `halley_inhale`, the title-card sounds. **In his instance
   now**: `The Shooting Star Addition SA Series 1.9.0 settings, panel sounds, Halley blast TEST [NeoForge 1.21.1].jar`
-  (the panel-sounds jar renamed `.disabled`); the new sounds also in `sounds to listen to\`. Left of the polish: Luna's
-  build-up, the films more cinematic (bigger jobs: asked him first).
+  (the panel-sounds jar renamed `.disabled`); the new sounds also in `sounds to listen to\`.
+- **Luna's build-up and both films reworked: BUILT 2026-11-19, `fe0ae53`** (Adam: "Keep building"; details in
+  `docs/1.9.0-PLAN.md` step 3; the films recorded frame by frame before/after, `test scripts\autotest26.sh`). **In his
+  instance now**: `The Shooting Star Addition SA Series 1.9.0 polish TEST [NeoForge 1.21.1].jar` (everything of 1.9.0
+  so far; the three earlier 1.9.0 TEST jars there renamed `.disabled`). Not tested by him.
+- **Gameplay note for him**: Halley's blast now reaches ~286 blocks, so a survival caster within that is thrown and
+  hurt by their own blast (as before, only further out); creative casters are untouched.
 - **The mock-up canvas**: https://claude.ai/artifact/UtTcKRB3SpzUZr5vhFuwET (Halley, Convergence, folded, and the
   split-screen Convergence look with its sticky). Halley's board had a script error (an apostrophe in a JS string):
   fixed on the page's own saved version.
-- **Next in 1.9.0, in order** (settings menu, panel sounds, Halley's blast, hush and title sounds done): Luna's
-  build-up and the films; locked TON skills in the SA remote; swappable music; Halley's icon
+- **Next in 1.9.0, in order** (settings menu, panel sounds, Halley's blast, hush, title sounds, Luna's build-up and the
+  films done): his test of the polish jar; locked TON skills in the SA remote; swappable music; Halley's icon
   shade (before/after); the CurseForge leftovers (Forge 1.20.1 sounds check, NASA 3D Earth request: ask him); his test;
   the six ports; CI; release prompt for Codex.
 - **TON 618 Addition 1.1.1 ports: all six built and committed locally** (forge-1.21.1 `6239002`, fabric-1.21.1
