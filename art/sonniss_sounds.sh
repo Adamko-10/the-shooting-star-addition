@@ -186,6 +186,8 @@ METAL_BOWED="The Noisery - Moaning Metal/DSGNTonl_Designed Metal Bowed Screech T
 METAL_SCRAPE="The Noisery - Moaning Metal/DSGNTonl_Metal Scrape Low Tonal LFE 4_The Noisery_Moaning Metal.wav"    # 332
 GLITCH_DATA="The Noisery - Rich Glitch/UIGlitch_Designed_Glitch_Corrupted_Data Error_The Noisery_Rich Glitch_06.wav"
 TRAIN_ELEC="The Noisery - Transit Tunes - The German Train Collection/TRNElec_Train Electric Passenger By Close Right To_The Noisery_Transit Tunes_ The German Train Collection_01.wav"
+CARD_FLICK="Epic Stock Media - Board Game - Sound Set Kit for Tabletop and Digital Games/PAPRHndl_Game Play Cards Dry Show Flip Toss Disgard Near 12_ESM_BG.wav"
+PERC_SNAP="Cinematic Sound Design - Interface & Infographics/Interface Percussion Snap.wav"
 CRANE="Victor Ermakov - Industrial Ambiences - Ship Repair Factory/MACHInd_Crane Onboard Ride Squeaks Motors_CW.wav"
 # Where the trailer booms start: their hit is 0.25 s in. Their tails hold loud for seconds, so the hits below get a
 # decay over the whole mix (volume exp(-k t)), or the limiter would level the attack and the tail into one wall.
@@ -444,6 +446,33 @@ if want luna_debris; then
   debris luna_debris 8.0 11
   debris luna_debris_2 8.89 23
   debris luna_debris_3 7.47 37
+fi
+
+# ======================================================================================================================
+# Stellar Convergence (SA-00): the comic panels of its film (1.9.0, ConvergenceFilm)
+# ======================================================================================================================
+if want convergence_panel; then   # a shot freezing into a panel: a glassy shutter snap, a card flicked across while it
+  # slides into its cell (FilmPanels.SLIDE, 0.35 s), then a card's slap and a latch's thunk as it lands; three takes
+  panel() {   # <name> <snap rate> <landing rate>
+    L "$GLASSY_SNAP" 0 0.30 0 0 "$(rate "$2")"
+    L "$CARD_FLICK" 0 0.17 -4 0.02 "$(rate 0.7)"
+    L "$WIND_RUSH" 0.05 0.30 -9 0.03 "highpass=f=500,afade=t=in:d=0.12"
+    L "$CARD_FLICK" 0 0.17 -1 0.33 "$(rate "$3")"
+    L "$LATCH" 0 0.30 -5 0.34
+    L "$PERC_SNAP" 0 0.16 -8 0.33 "lowpass=f=1200"
+    make "$1" 0.62 -16
+  }
+  panel convergence_panel 1.0 1.15
+  panel convergence_panel_2 0.9 1.0
+  panel convergence_panel_3 1.12 1.3
+fi
+
+if want convergence_shatter; then   # the grid shattering at the hit (FilmPanels.SHATTER: flung out over 0.7 s): a low
+  # glassy crack, the ice shatter's break on the hit, glass shards flying out after it
+  L "$GLASSY_SNAP" 0 0.40 -2 0 "$(rate 0.6)"
+  L "$ICE_SHATTER" 0.15 2.0 0 0
+  L "$GLASS_SHARDS" 0.4 1.7 -3 0.06 "highpass=f=1500"
+  make convergence_shatter 2.0 -14 "afade=t=out:st=1.3:d=0.7"
 fi
 
 # Proxima (SA-04): all of its sounds are made by art/make_proxima_film.sh since 2026-11-07 (its film soundtrack, and the

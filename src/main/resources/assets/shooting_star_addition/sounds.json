@@ -315,5 +315,27 @@
         "name": "shooting_star_addition:proxima_inhale"
       }
     ]
+  },
+  "convergence_panel": {
+    "subtitle": "subtitles.shooting_star_addition.convergence_panel",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:convergence_panel"
+      },
+      {
+        "name": "shooting_star_addition:convergence_panel_2"
+      },
+      {
+        "name": "shooting_star_addition:convergence_panel_3"
+      }
+    ]
+  },
+  "convergence_shatter": {
+    "subtitle": "subtitles.shooting_star_addition.convergence_shatter",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:convergence_shatter"
+      }
+    ]
   }
 }

@@ -5,6 +5,7 @@ import cyou.rimuru.rimulib.mc1211.client.cinematic.Cutscene;
 import cyou.rimuru.rimulib.mc1211.client.cinematic.CutsceneDirector;
 import cyou.rimuru.rimulib.mc1211.client.cinematic.Shot;
 import cyou.rimuru.rimulib.mc1211.client.cinematic.Subject;
+import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.FilmPanels;
 import dev.ss05.halley.client.film.FilmLand;
 import dev.ss05.halley.compat.tss.ConvergenceFx;
@@ -13,6 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
@@ -31,6 +35,7 @@ final class ConvergenceFilm {
     private static int hit;
     private static int montage;
     private static int[] colors = new int[0];
+    private static boolean shattered;
 
     private ConvergenceFilm() {
     }
@@ -48,6 +53,7 @@ final class ConvergenceFilm {
         }
         int n = Math.max(1, fx.colors().length);
         colors = fx.colors();
+        shattered = false;
         hit = (int) Math.max(40, fx.hitAt() - minecraft.level.getGameTime());
         // the cuts: about 14 ticks a weapon, in the last seconds before the hit
         montage = Mth.clamp(n * 14, 40, Math.min(110, hit - 20));
@@ -156,8 +162,22 @@ final class ConvergenceFilm {
         // the last frame of weapon "next"'s shot: freeze it before the cut
         if (next < n && t >= hit - montage + montage * (next + 1) / (float) n - 1.0F) {
             FilmPanels.freeze(g, colors[next], t);
+            if (FilmPanels.frozen() > next) {
+                sound("convergence_panel", 0.94F + 0.12F * (float) Math.random());
+            }
+        }
+        // the grid breaking apart as everything hits
+        if (!shattered && t >= hit && FilmPanels.frozen() > 0) {
+            shattered = true;
+            sound("convergence_shatter", 1.0F);
         }
         FilmPanels.draw(g, w, h, t, hit);
+    }
+
+    /** One of the film's own sounds (1.9.0), heard as if from the camera, on the Players volume like the other films'. */
+    private static void sound(String name, float pitch) {
+        Minecraft.getInstance().getSoundManager().play(new SimpleSoundInstance(HalleyAddon.id(name), SoundSource.PLAYERS, 1.0F,
+            pitch, SoundInstance.createUnseededRandom(), false, 0, SoundInstance.Attenuation.NONE, 0.0, 0.0, 0.0, true));
     }
 
     static void end() {
