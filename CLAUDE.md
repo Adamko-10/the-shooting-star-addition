@@ -12,9 +12,38 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-19 ~15:30, Adam's PC): SA 1.9.0 under way (settings menu built); TON ports all six built <<<
+### >>> RESUME HERE (2026-11-19 ~22:30, Adam's PC): SA 1.9.0, three items next; polish 4 jar in his instance <<<
 
-Written before a compaction (the user: "write stuff for claude md im gonna compact and then we resume").
+Written before a compaction (the user: "1 more thing, before all of that write claude md so i can compact").
+
+- **Do next, in this order (his picks, 2026-11-19 ~22:20, clickable)**: (1) **locked TON skills** in the SA remote
+  (the remote lists TON 618 Addition's skills, Last Light and Quasar Jets, locked until it's installed: "install TON 618
+  Addition and TON 618"; his idea, both ways: TON 618 Addition does the same for ours in its own update; CLAUDE.md §10,
+  TON's CLAUDE.md §10); (2) **swappable music** (Luna's and Proxima's music swappable for players' own files, e.g. a
+  `config/shooting_star_addition/music/` folder read at start, or a documented resource-pack path; a CurseForge request
+  of 2026-10-13); (3) **Proxima's sky gate behind a shader pack's clouds** (`ProximaCosmos.renderSky`, its own
+  `proxima_space` shader; with a pack it is saved and drawn late over everything, `LateSky`/`renderSkyLate`; the sky
+  pass `client/render/SkyPass` covers the moon and the comet but not this). Then his test, the six ports, CI, the release
+  prompt for Codex (`docs/1.9.0-PLAN.md` step 5). **Halley's icon: leave it** (his answer: "Leave it"; he also said
+  "halley is perfect leave it as is rn": no Halley changes beyond bug fixes).
+- **In his `NeoForge 1.21.1 (1)` instance now**: `The Shooting Star Addition SA Series 1.9.0 polish 4 TEST [NeoForge
+  1.21.1].jar` (= main `1424b4c` + notes; earlier 1.9.0 TEST jars `.disabled`). Also enabled there: TON 618 Addition's
+  `1.1.1 limits TEST` jar (the TON session's). He hasn't heard Luna's new impact set yet (copies in `test builds\
+  2026-11-19 1.9.0 settings menu (NeoForge 1.21.1)\sounds to listen to\luna impact, new\`).
+- **What 1.9.0 has on main so far** (details in the sections below and `docs/1.9.0-PLAN.md`): the settings menu (look B,
+  explanations under each setting, the Less used bar, card keys beating skill keys), Convergence's addon list and panel
+  sounds, Halley's bigger blast (+ hush/inhale, title sounds, beam stops at the clouds, comet 1.3x early, aftermath +4 s,
+  heart fix), Luna's build-up and both films reworked, Epic mode 20 s and synced, Luna's sounds per mode + a new impact
+  set, the TON 618 HUD rescue (`HudRescueMixin`), the sky pass behind a pack's clouds (`SkyPass`), title cards on by
+  default. Test scripts for all of it in the project folder's `test scripts\` (autotest24-28; 27 = his setup: Iris +
+  Complementary + legacy films + his client config, `TON=true` adds ton618, `RUNS="halley proxima luna"`).
+- **Watch-outs learned today**: the harness's client probes read the client's copy (air where a chunk isn't loaded:
+  count blocks on the server instead, as `HalleyStrike.countHeart` logs); a test options.txt needs `version:3955`;
+  stopping a background test leaves its Gradle and game `java.exe` running (check command lines, end only those).
+
+### >>> 2026-11-19 ~15:30, Adam's PC: SA 1.9.0 under way (settings menu built); TON ports all six built <<<
+
+Written before an earlier compaction (the user: "write stuff for claude md im gonna compact and then we resume").
 
 - **SA 1.9.0 (late November)**: the plan, his picks and progress: `docs/1.9.0-PLAN.md` (read it first). Main items: the
   settings menu redo (look B), Convergence's addon list, panel sounds, Halley's bigger blast + polish; extras: locked
