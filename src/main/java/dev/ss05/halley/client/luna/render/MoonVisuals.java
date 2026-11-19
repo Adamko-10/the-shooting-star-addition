@@ -41,6 +41,9 @@ public final class MoonVisuals {
     private static final int FLAMES = 12;
 
     private static final int FRAGMENTS = 6;
+    /** 1.9.0: sparks crackling off the seams as it cracks, and embers shed from its burning wake. */
+    private static final int SPARKS = 22;
+    private static final int EMBERS = 40;
 
     private MoonVisuals() {
     }
@@ -77,12 +80,21 @@ public final class MoonVisuals {
             // glow building on the leading face as it nears the atmosphere
             halo(world, p, t, map);
         }
+        if (t >= MoonPlan.ALARM && t < MoonPlan.FALL + 26.0) {
+            seamSparks(world, light, p, t, map);
+        }
         if (MoonPlan.dustTrail(t) > 0.0F) {
             approachTrail(world, p, t, map);
         }
         if (t >= MoonPlan.ENTRY - 15.0 && t <= MoonPlan.CONTACT + 10.0) {
             entry(world, light, p, t, map);
             fragments(world, light, p, t, map);
+        }
+        if (t >= MoonPlan.ENTRY && t < MoonPlan.ENTRY + 30.0) {
+            entryFlash(world, light, p, t, map);
+        }
+        if (t >= MoonPlan.ENTRY - 10.0 && t < MoonPlan.CONTACT) {
+            wakeEmbers(world, p, t, map);
         }
         if (t >= MoonPlan.CONTACT - 45.0 && t < MoonPlan.CONTACT + 6.0) {
             compression(world, light, p, t, land);
@@ -256,6 +268,102 @@ public final class MoonVisuals {
             FIRE, 0.85F * burn);
         world.ribbon(c, c.add(back.scale(reach * 0.55)), Vec3.ZERO, effR * 0.5, effR * 0.9, 22, Shapes.STREAK, Shapes.ION,
             HOT, 0.75F * burn);
+    }
+
+    /**
+     * 1.9.0, the build-up: while the moon cracks, sparks and short arcs crackle off its edge out of the seams, more and
+     * more of them up to {@link MoonPlan#BREAK}, dying away as it tears loose; a flash out of the seams as it splits.
+     */
+    private static void seamSparks(GlowBatch world, GlowBatch light, MoonPlan p, double t, Mapping map) {
+        double effR = map.size(p.params.moonRadius());
+        float build = CometVisuals.smooth((t - (MoonPlan.ALARM + 4.0)) / (MoonPlan.BREAK - MoonPlan.ALARM - 4.0))
+            * (1.0F - CometVisuals.smooth((t - (MoonPlan.FALL + 6.0)) / 18.0));
+        if (build <= 0.01F || effR < 0.05) {
+            return;
+        }
+        Vec3 c = map.displayCentre();
+        Vec3 heading = MoonFx.headingAt(p, t);
+        Vec3 side = side(world, c, heading);
+        Vec3 fwd = forward(world, c, heading, side);
+        for (int i = 0; i < SPARKS; i++) {
+            long h = hash(p.seed ^ 0x5EA4L, i);
+            double period = 7.0 + frac(h) * 9.0;
+            double cycle = (t + frac(h >>> 8) * period) / period;
+            int n = (int) Math.floor(cycle);
+            double age = (cycle - n) * period;
+            if (age > 4.0) {
+                continue;
+            }
+            long g = hash(h, n);
+            // fewer early on, a crackle all round it by the split
+            if (frac(g >>> 3) > 0.3 + 0.7 * build) {
+                continue;
+            }
+            double a = frac(g) * Math.PI * 2.0;
+            Vec3 out = fwd.scale(Math.cos(a)).add(side.scale(Math.sin(a)));
+            Vec3 root = c.add(out.scale(effR * 0.98));
+            Vec3 bend = side.scale((frac(g >>> 19) - 0.5) * effR * 0.3);
+            Vec3 tip = root.add(out.scale(effR * (0.25 + 0.55 * frac(g >>> 11)) * Math.min(1.0, age / 2.0))).add(bend.scale(age / 4.0));
+            float fade = 1.0F - (float) (age / 4.0);
+            world.ribbon(tip, root, bend.scale(0.5), effR * 0.04, effR * 0.015, 6, Shapes.STREAK, Shapes.ION, i % 3 == 0 ? GOLD : HOT,
+                0.9F * build * fade);
+            light.billboard(tip, effR * 0.12, Shapes.GLOW, 0, HOT, 0.8F * build * fade, 0.0);
+        }
+        double since = t - MoonPlan.BREAK;
+        if (since >= 0.0 && since < 20.0) {
+            light.billboard(c, effR * 2.6, Shapes.GLOW, 0, HOT, 0.9F * (float) Math.exp(-since / 3.5), 0.0);
+            world.billboard(c, effR * (1.4 + 2.2 * Math.sqrt(since / 20.0)), Shapes.SHOCK, 1, GOLD,
+                0.35F * (float) Math.pow(1.0 - since / 20.0, 1.5), 0.0);
+        }
+    }
+
+    /**
+     * 1.9.0: hitting the atmosphere: a flash, a cone of white-hot air thrown off its face and rings of shocked air blown
+     * out round it (as Halley's fragments burst).
+     */
+    private static void entryFlash(GlowBatch world, GlowBatch light, MoonPlan p, double t, Mapping map) {
+        double a = t - MoonPlan.ENTRY;
+        double effR = map.size(p.params.moonRadius());
+        if (a < 0.0 || a > 30.0 || effR < 0.05) {
+            return;
+        }
+        Vec3 c = map.displayCentre();
+        Vec3 heading = MoonFx.headingAt(p, t);
+        double angle = world.screenAngle(c, heading);
+        light.billboard(c, effR * 3.6, Shapes.GLOW, 0, HOT, 0.8F * (float) Math.exp(-a / 3.0), 0.0);
+        light.billboard(c.add(heading.scale(effR * 0.7)), effR * 1.9, Shapes.BOW, 0, WHITE, 0.4F * (float) Math.exp(-a / 5.0), angle);
+        double ring = effR * (1.6 + 8.0 * Math.sqrt(a / 30.0));
+        world.billboard(c, ring, Shapes.SHOCK, 1, PALE, 0.26F * (float) Math.pow(1.0 - a / 30.0, 2.0), 0.0);
+    }
+
+    /**
+     * 1.9.0: embers shed off its burning back, left behind along the wake, sinking and cooling from white-hot to dark
+     * red - at their true places, mapped as the sphere is.
+     */
+    private static void wakeEmbers(GlowBatch world, MoonPlan p, double t, Mapping map) {
+        if (MoonPlan.burn(t) <= 0.02F) {
+            return;
+        }
+        double trueR = p.params.moonRadius();
+        for (int i = 0; i < EMBERS; i++) {
+            long h = hash(p.seed ^ 0xE3BEL, i);
+            double life = 24.0 + frac(h) * 26.0;
+            double age = (t + frac(h >>> 7) * life) % life;
+            double born = t - age;
+            float hot = MoonPlan.burn(born);
+            if (hot <= 0.02F) {
+                continue;
+            }
+            Vec3 heading = MoonFx.headingAt(p, born);
+            Vec3 off = new Vec3(frac(h >>> 13) - 0.5, frac(h >>> 21) - 0.5, frac(h >>> 29) - 0.5);
+            off = off.lengthSqr() < 1.0E-6 ? Vec3.ZERO : off.normalize().scale(trueR * (0.9 + 0.5 * frac(h >>> 37)));
+            Vec3 start = p.centre(born).add(off).subtract(heading.scale(trueR * 0.6));
+            Vec3 drift = new Vec3((frac(h >>> 41) - 0.5) * 1.2, 0.0, (frac(h >>> 47) - 0.5) * 1.2);
+            Vec3 at = map.at(start.add(drift.scale(age)).add(0.0, -0.035 * age * age, 0.0));
+            float cool = (float) (1.0 - age / life);
+            double size = Math.max(0.25, map.size(trueR * (0.05 + 0.05 * frac(h >>> 53))));
+            world.billboard(at, size, Shapes.GLOW, 0, cool > 0.6F ? HOT : cool > 0.3F ? FIRE : EMBER, 0.9F * hot * cool, 0.0);
+        }
     }
 
     /** A unit vector across the moon's line of travel as seen from the camera (any, if it comes straight at it). */

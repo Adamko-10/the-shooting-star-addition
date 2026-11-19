@@ -31,6 +31,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
@@ -681,6 +682,24 @@ public final class MoonFx {
                 double out = 0.6 + 1.4 * k;
                 particle(level, i % 3 == 0 ? ParticleTypes.POOF : ParticleTypes.CLOUD, mark.add(Math.cos(a) * d, 0.4, Math.sin(a) * d),
                     Math.cos(a) * out, 0.03 + r.nextDouble() * 0.12, Math.sin(a) * out);
+            }
+            // 1.9.0: the pressure wave ahead of it tearing leaves, grass and soil off the land and blowing them out
+            for (int i = 0; i < this.count((int) (6 + 22 * k)); i++) {
+                double a = r.nextDouble() * Math.PI * 2.0;
+                double d = radius * (0.4 + r.nextDouble() * (0.8 + 2.4 * k));
+                int x = Mth.floor(mark.x + Math.cos(a) * d);
+                int z = Mth.floor(mark.z + Math.sin(a) * d);
+                if (!level.hasChunk(x >> 4, z >> 4)) {
+                    continue;
+                }
+                int top = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
+                BlockState state = level.getBlockState(new BlockPos(x, top - 1, z));
+                if (state.isAir() || !state.getFluidState().isEmpty()) {
+                    continue;
+                }
+                double out = 0.8 + 1.6 * k;
+                particle(level, new BlockParticleOption(ParticleTypes.BLOCK, state), new Vec3(x + 0.5, top + 0.3, z + 0.5),
+                    Math.cos(a) * out, 0.15 + r.nextDouble() * 0.4, Math.sin(a) * out);
             }
         }
         if (t == MoonPlan.CONTACT) {
