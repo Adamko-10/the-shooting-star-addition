@@ -82,15 +82,27 @@ Written before a compaction (the user: "write stuff for claude md im gonna compa
   them. Not covered: Proxima's sky gate (its own shader; still drawn late over everything with a pack). Without a pack
   nothing changed. **In his instance now**: `The Shooting Star Addition SA Series 1.9.0 polish 3 clouds TEST [NeoForge
   1.21.1].jar` (polish 2 `.disabled`).
+- **His test of polish 3 (2026-11-19 night), `1424b4c`**: "halley is perfect leave it as is rn" (then: "still fix that bug
+  with the comet heart"); Luna's "impact and post impact sfx ... are bad the rest is kinda fine but they kinda fit more
+  for epic mode while the old ones fit for main one ... lets try smth new"; the comet heart "dont spawn correctly ...
+  pretty frequent" (screenshot: no heart in the crater); he asked what 1P/Halley is (told: Halley's Comet's official
+  designation, the first periodic comet). Done: the heart is set down once all the land is cut (`HalleyStrike.allCut`;
+  the trench's last pieces, cut after the crater, erased it), logged with a server-side count (3839 of 3839 kept to the
+  strike's end, `test scripts\autotest25.sh` `AT="90 ~ 20" SHOTS=0,340,560,700`); Luna's fall sounds per mode (normal: the
+  2026-11-04 ones back from git; Epic: the Sonniss cuts as `luna_epic_*`, `MoonFx.forMode`); a third, new impact set
+  (`art/sonniss_sounds.sh`, docs/SOUNDS.md). Not heard by anyone yet. **In his instance now**: `The Shooting Star
+  Addition SA Series 1.9.0 polish 4 TEST [NeoForge 1.21.1].jar` (polish 3 `.disabled`); the new impact sounds also in
+  `test builds\2026-11-19 1.9.0 settings menu (NeoForge 1.21.1)\sounds to listen to\luna impact, new\`.
 - **Gameplay note for him**: Halley's blast now reaches ~286 blocks, so a survival caster within that is thrown and
   hurt by their own blast (as before, only further out); creative casters are untouched.
 - **The mock-up canvas**: https://claude.ai/artifact/UtTcKRB3SpzUZr5vhFuwET (Halley, Convergence, folded, and the
   split-screen Convergence look with its sticky). Halley's board had a script error (an apostrophe in a JS string):
   fixed on the page's own saved version.
 - **Next in 1.9.0, in order** (settings menu, panel sounds, Halley's blast, hush, title sounds, Luna's build-up and the
-  films done): his test of the polish jar; locked TON skills in the SA remote; swappable music; Halley's icon
-  shade (before/after); the CurseForge leftovers (Forge 1.20.1 sounds check, NASA 3D Earth request: ask him); his test;
-  the six ports; CI; release prompt for Codex.
+  films, the HUD rescue, key clash, explanations, Epic sync, sky pass, heart fix done): his listen to Luna's new impact
+  set; locked TON skills in the SA remote; swappable music; Halley's icon shade (he said "halley is perfect leave it as
+  is": ask before touching the icon); Proxima's sky gate behind a pack's clouds; the CurseForge leftovers (Forge 1.20.1
+  sounds check, NASA 3D Earth request: ask him); his test; the six ports; CI; release prompt for Codex.
 - **TON 618 Addition 1.1.1 ports: all six built and committed locally** (forge-1.21.1 `6239002`, fabric-1.21.1
   `326c135`, forge-1.20.1 `07260c7`, fabric-1.20.1 `1958413` by this session; fabric-1.21.11 `5edce9b` and fabric-26.3
   `1af746e` by [the TON ports session](#local_767018e5-bb55-4bd0-8b32-2cf3c28ff89e)); test jars in his instances
