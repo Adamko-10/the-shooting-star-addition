@@ -52,6 +52,27 @@ Written before a compaction (the user: "write stuff for claude md im gonna compa
   `docs/1.9.0-PLAN.md` step 3; the films recorded frame by frame before/after, `test scripts\autotest26.sh`). **In his
   instance now**: `The Shooting Star Addition SA Series 1.9.0 polish TEST [NeoForge 1.21.1].jar` (everything of 1.9.0
   so far; the three earlier 1.9.0 TEST jars there renamed `.disabled`). Not tested by him.
+- **Adam's test of the polish jar (2026-11-19 evening) and the fixes, `77d5fa2`**: his words: the Halley beacon "last a
+  little bit longer and make it not display above clouds"; G on Luna's card "just swaps it to the ss-21 quasar"; "do the
+  same with luna and anything and everything else, do not display it over clouds" (screenshot: Luna's moon over a
+  cloud, with Complementary on); "a little explanation under each config"; "less used ... more obvious"; Luna's sfx
+  "doesnt sound good", Epic mode "completely desynced", Epic "4 seconds less"; "proxima rn just zooms out and doesnt
+  work"; Halley "a little bit bigger in the sky when u first see it"; "i can barely hear halley's inhale"; "still no
+  title card"; "are u sure u put it in my instance". Found: the right jar was in; **TON 618 (rimuru's) cancels the game's
+  HUD during RimuLib films**, which hid our film overlays: the title cards and Proxima's whole space/Earth part (so its
+  film "just zooms out"). Reproduced his setup in the harness (`test scripts\autotest27.sh`: Iris + Complementary +
+  legacy films + his client config, `TON=true` adds ton618): fixed by `compat/tss/mixin/HudRescueMixin` +
+  `StarClientBridge.hudRescue` (draws our overlay after the HUD when it was cut short; logs "Another mod cut the game's
+  HUD short..." once: seen with TON 618). Key clash fixed (the card's keys win, each only while shown; proven with the
+  Railgun bound to G: `test scripts\autotest28.sh`, harness `final=menu:luna+71`). Explanations under every setting,
+  the Less used bar. Epic 20 s + music recut + `MoonFx.fallStretch`. Luna's Sonniss sounds applied, inhales louder.
+  Halley comet 1.3x early, aftermath +4 s, beam stops at the cloud layer. Test jar `The Shooting Star Addition SA
+  Series 1.9.0 polish 2 TEST [NeoForge 1.21.1].jar` in his instance (the polish jar `.disabled`). **Not done: the
+  moon, the comet and the other sky glows still draw over a shader pack's clouds** (Complementary draws its clouds
+  late, over whatever is sky; ours write depth or draw after it): the fix is TON 618 Addition's way (draw sky things
+  inside `LevelRenderer.renderSky`, after `getStarBrightness`, with `position_tex_color` = the pack's skytextured, see
+  TON's `QuasarAtlas.drawSky`), a bigger job: asked him first. Also in his instance: TON 618 Addition's `1.1.1 limits
+  TEST` jar (the TON session's), enabled.
 - **Gameplay note for him**: Halley's blast now reaches ~286 blocks, so a survival caster within that is thrown and
   hurt by their own blast (as before, only further out); creative casters are untouched.
 - **The mock-up canvas**: https://claude.ai/artifact/UtTcKRB3SpzUZr5vhFuwET (Halley, Convergence, folded, and the
