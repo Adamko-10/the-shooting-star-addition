@@ -26,8 +26,8 @@ Written before a compaction (the user: "write stuff for claude md im gonna compa
   cards), `ConvergencePlate.drawCard` (weapons, R, X, ADDONS IT CAN FIRE installed/missing), `StarClientBridge.card()`
   (RimuLib's selected skill), new client config `plates_folded`, `less_used_open`, 38 new lang strings. Not the arrow
   keys (RimuLib's menu uses them and Enter; our key hook runs first and would break its sliders and list): told in the
-  plan, **tell Adam** (he had OK'd arrows from the mock's sticky). In the menu's own colours (white/gold), not the
-  mock's dark: **tell Adam**, offer the dark look. **Game-tested 2026-11-19** (`test scripts\autotest24.sh`,
+  plan, told Adam 2026-11-19 (he had OK'd arrows from the mock's sticky). In the menu's own colours (white/gold; told 2026-11-19, he picked "Keep white/gold"), not the
+  mock's dark. **Game-tested 2026-11-19** (`test scripts\autotest24.sh`,
   `final=menu:halley,menu:luna,menu:proxima,menu:stellar_convergence`, `less_used_open = true`; shots in `test
   builds\2026-11-19 auto test 30 settings menu 1.9.0\cards\other_final_menu-*.png`): all four cards draw, no overlap
   with RimuLib's menu at 1920x1080; the Convergence card is the tallest (bottom at ~74% of the screen; still fits a
@@ -35,10 +35,16 @@ Written before a compaction (the user: "write stuff for claude md im gonna compa
   Addition SA Series 1.9.0 settings menu TEST [NeoForge 1.21.1].jar` (version inside still 1.8.3) in his `NeoForge
   1.21.1 (1)` instance (copy in `test builds\2026-11-19 1.9.0 settings menu (NeoForge 1.21.1)\`; the title-cards TEST
   jar there renamed `.disabled`). The harness takes `final=menu:<skill id>,...` now (several cards in one run).
+- **Convergence's panel sounds: BUILT 2026-11-19, `032ea14`** (details in `docs/1.9.0-PLAN.md` step 2):
+  `convergence_panel` x3 as each shot freezes, `convergence_shatter` at the hit, from the Sonniss bundle
+  (`art/sonniss_sounds.sh`), played by `ConvergenceFilm.sound`. Not game-run (Claude can't hear them; a run would only
+  show a missing-sound warning). Now in his instance: `The Shooting Star Addition SA Series 1.9.0 settings menu, panel
+  sounds TEST [NeoForge 1.21.1].jar` (the settings-menu-only TEST jar renamed `.disabled`); the four .ogg files to
+  listen to outside the game in `test builds\2026-11-19 1.9.0 settings menu (NeoForge 1.21.1)\sounds to listen to\`.
 - **The mock-up canvas**: https://claude.ai/artifact/UtTcKRB3SpzUZr5vhFuwET (Halley, Convergence, folded, and the
   split-screen Convergence look with its sticky). Halley's board had a script error (an apostrophe in a JS string):
   fixed on the page's own saved version.
-- **Next in 1.9.0, in order**: check the screenshots + test jar; Convergence's panel sounds; Halley's bigger blast and
+- **Next in 1.9.0, in order** (screenshots, test jar and panel sounds done): Halley's bigger blast and
   the polish (ask him which polish matters most); locked TON skills in the SA remote; swappable music; Halley's icon
   shade (before/after); the CurseForge leftovers (Forge 1.20.1 sounds check, NASA 3D Earth request: ask him); his test;
   the six ports; CI; release prompt for Codex.
