@@ -41,11 +41,19 @@ Written before a compaction (the user: "write stuff for claude md im gonna compa
   show a missing-sound warning). Now in his instance: `The Shooting Star Addition SA Series 1.9.0 settings menu, panel
   sounds TEST [NeoForge 1.21.1].jar` (the settings-menu-only TEST jar renamed `.disabled`); the four .ogg files to
   listen to outside the game in `test builds\2026-11-19 1.9.0 settings menu (NeoForge 1.21.1)\sounds to listen to\`.
+- **His picks (2026-11-19, clickable)**: Halley "1.5x but also a bigger blast with improved vfx and all of the stuff u
+  said in option 3"; polish: all four (Luna's build-up, a hush before Halley's hit, title-card sounds, films more
+  cinematic). **BUILT the same day** (`9959fe0`, `4d4b1c4`; details in `docs/1.9.0-PLAN.md` step 3): Halley's bigger
+  blast (crater radius 84, blast reach 3.4, new effects; old 1.8 configs moved up once via `defaults_version`;
+  game-tested, `test scripts\autotest25.sh`), the hush + `halley_inhale`, the title-card sounds. **In his instance
+  now**: `The Shooting Star Addition SA Series 1.9.0 settings, panel sounds, Halley blast TEST [NeoForge 1.21.1].jar`
+  (the panel-sounds jar renamed `.disabled`); the new sounds also in `sounds to listen to\`. Left of the polish: Luna's
+  build-up, the films more cinematic (bigger jobs: asked him first).
 - **The mock-up canvas**: https://claude.ai/artifact/UtTcKRB3SpzUZr5vhFuwET (Halley, Convergence, folded, and the
   split-screen Convergence look with its sticky). Halley's board had a script error (an apostrophe in a JS string):
   fixed on the page's own saved version.
-- **Next in 1.9.0, in order** (screenshots, test jar and panel sounds done): Halley's bigger blast and
-  the polish (ask him which polish matters most); locked TON skills in the SA remote; swappable music; Halley's icon
+- **Next in 1.9.0, in order** (settings menu, panel sounds, Halley's blast, hush and title sounds done): Luna's
+  build-up and the films; locked TON skills in the SA remote; swappable music; Halley's icon
   shade (before/after); the CurseForge leftovers (Forge 1.20.1 sounds check, NASA 3D Earth request: ask him); his test;
   the six ports; CI; release prompt for Codex.
 - **TON 618 Addition 1.1.1 ports: all six built and committed locally** (forge-1.21.1 `6239002`, fabric-1.21.1
