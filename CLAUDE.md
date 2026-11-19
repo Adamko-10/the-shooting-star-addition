@@ -12,6 +12,53 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
+### >>> RESUME HERE (2026-11-19 ~15:30, Adam's PC): SA 1.9.0 under way (settings menu built); TON ports all six built <<<
+
+Written before a compaction (the user: "write stuff for claude md im gonna compact and then we resume").
+
+- **SA 1.9.0 (late November)**: the plan, his picks and progress: `docs/1.9.0-PLAN.md` (read it first). Main items: the
+  settings menu redo (look B), Convergence's addon list, panel sounds, Halley's bigger blast + polish; extras: locked
+  skills both ways (SA lists TON 618 Addition's skills locked, and back), swappable music, Halley's icon in a new shade
+  (Tesseract clash; show him before/after); "all the stuff we havent done yet in the curseforge comments"; Convergence's
+  split-screen look: a mock-up first, decided later.
+- **The settings menu is BUILT on main, `0ba4931`** (not tested by him yet): `client/AdditionPanel` (general plate +
+  the selected skill's card, groups, "Less used" on 0, Backspace folds, digits 1-5 for Halley's look switches, `.` title
+  cards), `ConvergencePlate.drawCard` (weapons, R, X, ADDONS IT CAN FIRE installed/missing), `StarClientBridge.card()`
+  (RimuLib's selected skill), new client config `plates_folded`, `less_used_open`, 38 new lang strings. Not the arrow
+  keys (RimuLib's menu uses them and Enter; our key hook runs first and would break its sliders and list): told in the
+  plan, **tell Adam** (he had OK'd arrows from the mock's sticky). In the menu's own colours (white/gold), not the
+  mock's dark: **tell Adam**, offer the dark look. **A game run was going** when this was written: `test scripts\
+  autotest24.sh` (`final=menu:halley,menu:luna,menu:proxima,menu:stellar_convergence`, `less_used_open = true`);
+  look at `test builds\2026-11-19 auto test 30 settings menu 1.9.0\cards\final_menu-*.png`, fix what's off (sizes,
+  overlaps with RimuLib's menu), then a test jar into his `NeoForge 1.21.1 (1)` instance (the title-cards TEST jar is
+  in there now). The harness takes `final=menu:<skill id>,...` now (several cards in one run).
+- **The mock-up canvas**: https://claude.ai/artifact/UtTcKRB3SpzUZr5vhFuwET (Halley, Convergence, folded, and the
+  split-screen Convergence look with its sticky). Halley's board had a script error (an apostrophe in a JS string):
+  fixed on the page's own saved version.
+- **Next in 1.9.0, in order**: check the screenshots + test jar; Convergence's panel sounds; Halley's bigger blast and
+  the polish (ask him which polish matters most); locked TON skills in the SA remote; swappable music; Halley's icon
+  shade (before/after); the CurseForge leftovers (Forge 1.20.1 sounds check, NASA 3D Earth request: ask him); his test;
+  the six ports; CI; release prompt for Codex.
+- **TON 618 Addition 1.1.1 ports: all six built and committed locally** (forge-1.21.1 `6239002`, fabric-1.21.1
+  `326c135`, forge-1.20.1 `07260c7`, fabric-1.20.1 `1958413` by this session; fabric-1.21.11 `5edce9b` and fabric-26.3
+  `1af746e` by [the TON ports session](#local_767018e5-bb55-4bd0-8b32-2cf3c28ff89e)); test jars in his instances
+  (`Forge 1.21.1`, `Forge 1.20.1 (1)`, `Fabric 1.21.1`, `Fabric 1.21.11 (1)`, `Fabric 26.3`; SS-21 Quasar Forge 1.8.0
+  downloaded with his OK into both Forge ones). **His test of them was handed to that session** ("Claude tests for
+  me"): it got Fabric 1.21.11 running (an SS-21 Quasar multi-jar crash at first, not ours) and then **stopped waiting
+  for his OK to control the game window** (its question is open there). Nothing pushed; release after the test.
+- **Shared notes (new, 2026-11-19)**: `C:\Users\adam_\Documents\Claude notes\INBOX.md` (sessions merge entries for
+  their project at start; add what other sessions should know) and `IDEAS.md` (his idea parking lot: military mod
+  addon, Cinematic Interactions + the Supercharger, a Christmas event, Pet Skills/Circuit, CelesTech compat (he likes
+  those ideas: catch Halley, one sky, Proxima shot down, shared black holes; plan after 1.9.0), smaller ones). Rule in
+  his personal rules. Ask him now and then for a fresh Carl-bot DM export to sort (today's covered up to 2026-11-19).
+- **Other things done 2026-11-18/19**: 1.8.3 released (above); the 1.8.3 announcement; the description draft (new
+  format, links on one row, "Works with", "Coming next", the newest SA Short as "See it in action"; not on CurseForge
+  yet: his OK); the website (`C:\Users\adam_\Documents\Website`, local commit `ee3d671`: new roadmap, TON 618 Addition
+  as a project and a roadmap track; not pushed, not checked in a browser); title cards on by default (`331cce9`);
+  his Discord notes sorted into this file's §10 and TON's.
+- **Waiting on Adam**: his OK to the TON test session's computer-use question; his look at the 1.9.0 settings menu;
+  the description draft and website (publish?); the CurseForge replies file to post.
+
 ### 2026-11-18, Adam's PC — 1.8.3 published on GitHub and uploaded to CurseForge
 
 - All seven branches were fast-forwarded using CI #252–258. The GitHub tags were verified at `3624717` (main, Latest),
