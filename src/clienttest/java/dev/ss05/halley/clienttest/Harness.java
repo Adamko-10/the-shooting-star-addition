@@ -613,13 +613,14 @@ final class Harness {
             }
             finalFrames++;
             String view = HarnessParams.FINAL_VIEWS[finalView].trim();
-            if (view.equals("menu") || view.equals("skills")) {
+            if (view.equals("menu") || view.startsWith("menu:") || view.equals("skills")) {
                 // the remote's menu (H), through the caster's own eyes: opened once, filmed once it has opened fully;
                 // "skills" scrolls its list to the end first, where Halley and Luna are (with their sliders)
                 if (finalFrames == 1) {
                     mc.setCameraEntity(mc.player);
                     // -Dss05.clienttest.select=<skill id>: that skill selected first (e.g. Stellar Convergence's plate)
-                    String select = System.getProperty("ss05.clienttest.select");
+                    // menu:<skill id> picks that skill for this view (several cards in one run)
+                    String select = view.startsWith("menu:") ? view.substring(5) : System.getProperty("ss05.clienttest.select");
                     if (select != null) {
                         cyou.rimuru.rimulib.mc1211.skill.SkillSet.all().stream().flatMap(set -> set.skills.stream())
                             .filter(skill -> skill.id().equals(select)).findFirst()
@@ -633,7 +634,7 @@ final class Harness {
                     WhiteSpace.scroll(-1.0);
                 }
                 if (finalFrames > 30 && System.currentTimeMillis() - finalSince > (view.equals("skills") ? 7000L : 4000L)) {
-                    takeScreenshot(mc, "final_" + view);
+                    takeScreenshot(mc, "final_" + view.replace(':', '-'));
                     finalView++;
                     finalSince = System.currentTimeMillis();
                     finalFrames = 0;

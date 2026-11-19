@@ -18,29 +18,31 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Mth;
 
 /**
- * SA-00 · Stellar Convergence's plate in the remote's menu (H), in its top right corner beside the skill list (the
- * addon's own plate has the top left): every remote skill with a tick box (1-9 ticks one), where they land (R: on the
- * crosshair, or in a ring round it), the credit to The Shooting Star - Stellar Quartet (ikun520), whose idea this
- * follows, and the no-limits warning. The picks, with each ticked weapon's own sliders (which this same menu edits),
- * go to the server whenever they change, and as the game joins it.
+ * SA-00 · Stellar Convergence's card in the remote's menu (H), "look B" of 1.9.0: while SA-00 is the selected skill,
+ * under the addon's general plate (client/AdditionPanel draws both): every remote skill with a tick box (1-9 ticks
+ * one), where they land (R: on the crosshair, or in a ring round it), the screen shake (X), which addons it can fire
+ * and which are missing (the user, 2026-11-11), the credit to The Shooting Star - Stellar Quartet (ikun520), whose idea
+ * this follows, and the no-limits warning. The picks, with each ticked weapon's own sliders (which this same menu
+ * edits), go to the server whenever they change, and as the game joins it.
  */
 public final class ConvergencePlate {
-    /** GLFW key codes: 1-9, R, X, V and T. */
+    /** GLFW key codes: 1-9, R and X. */
     private static final int KEY_1 = 49;
-    private static final int KEY_STYLE = 84;
     private static final int KEY_RING = 82;
     private static final int KEY_SHAKE = 88;
-    private static final int KEY_HIDE = 86;
-    private static final int WIDTH = 200;
-    private static final int ROW = 12;
-    /** Smaller than the addon's own plate (the user, 2026-11-05: "overwhelming"). */
-    private static final float SIZE = 0.8F;
-    /** The old look (T switches, the user, 2026-11-05): always shown, the addon plate's size, roomier rows. */
-    private static final int OLD_WIDTH = 236;
-    private static final int OLD_ROW = 13;
+    private static final int ROW = 13;
+
+    /** The addons Convergence knows (docs/ADDONS.md): a name, and the remote skill ids that mean it is installed. */
+    private record Addon(String name, String... skills) {
+    }
+
+    private static final Addon[] ADDONS = {
+        new Addon("SS-21 Quasar", "quasar"),
+        new Addon("SX-01 Solar Flare", "solar_flare"),
+        new Addon("TON 618 Addition", "quasar_jets", "last_light")
+    };
 
     private static Convergence.Picks sent;
 
@@ -64,23 +66,9 @@ public final class ConvergencePlate {
 
     // ---- Input. ---------------------------------------------------------------------------------------------------
 
-    /** A key pressed while the menu is open (from WhiteSpaceMixin): true if it was one of the plate's. */
+    /** A key pressed while the menu is open: true if it was one of the card's (only while SA-00 is selected). */
     public static boolean key(int key) {
-        boolean old = HalleyClientConfig.convergencePlateOld();
-        if (!old && !selected()) {
-            return false;
-        }
-        if (key == KEY_STYLE) {
-            HalleyClientConfig.setConvergencePlateOld(!old);
-            AdditionPanel.click(true);
-            return true;
-        }
-        if (key == KEY_HIDE && !old) {
-            HalleyClientConfig.setConvergencePlate(!HalleyClientConfig.convergencePlate());
-            AdditionPanel.click(true);
-            return true;
-        }
-        if (!old && !HalleyClientConfig.convergencePlate()) {
+        if (!selected() || HalleyClientConfig.platesFolded()) {
             return false;
         }
         if (key == KEY_RING) {
@@ -142,63 +130,44 @@ public final class ConvergencePlate {
         return ClientSkills.selected(SkillSet.of(TssLink.CONVERGENCE)) == TssLink.CONVERGENCE;
     }
 
-    public static void draw(GuiGraphics g) {
-        // the picks go to the server whatever is shown: the sliders under the other skills change while they're selected
-        sync(false);
-        boolean old = HalleyClientConfig.convergencePlateOld();
-        if (!old && !selected()) {
-            return;
-        }
-        Font font = Minecraft.getInstance().font;
-        Component title = Component.translatable("gui.shooting_star_addition.convergence").withStyle(ChatFormatting.BOLD);
-        // smaller, but never below one screen pixel per font pixel (smaller text turns to mush)
-        float scale = Math.max(Mth.clamp(g.guiWidth() / 860.0F, AdditionPanel.MIN_SCALE, AdditionPanel.MAX_SCALE) * (old ? 1.0F : SIZE),
-            1.0F / (float) Minecraft.getInstance().getWindow().getGuiScale());
-        g.pose().pushPose();
-        if (!old && !HalleyClientConfig.convergencePlate()) {
-            // hidden: just its name and the key that brings it back
-            int w = font.width(title) + 40;
-            g.pose().translate(g.guiWidth() - 8.0F - w * scale, 8.0F, 400.0F);
-            g.pose().scale(scale, scale, 1.0F);
-            AdditionPanel.plate(g, 0, 0, w, 20, 0xF4000000 | AdditionPanel.PLATE);
-            g.fill(w - 3, 2, w, 18, 0xFF000000 | 0xB9A4FF);
-            g.drawString(font, title, 8, 6, 0xFF000000 | AdditionPanel.INK, false);
-            AdditionPanel.keyCap(g, font, w - 20, 5, "V", true);
-            g.pose().popPose();
-            return;
-        }
+    /** Whether SA-00 is selected (for StarClientBridge, which picks the card to draw). */
+    static boolean isSelected() {
+        return selected();
+    }
+
+    /** SA-00's card, at {@code top} in the plate's space, {@code w} wide (from AdditionPanel); returns its height. */
+    public static int drawCard(GuiGraphics g, Font font, int top, int w) {
         List<Skill> weapons = weapons();
         List<String> ticked = HalleyClientConfig.convergence();
         boolean ring = HalleyClientConfig.convergenceRing();
+        // without Stellar Quartet the card says how to unlock it, in place of its hint
+        boolean locked = dev.ss05.halley.StellarQuartet.REQUIRED && !dev.ss05.halley.StellarQuartet.installedHere();
+        Component hint = Component.translatable(locked ? "gui.shooting_star_addition.convergence.locked" : "gui.shooting_star_addition.convergence.hint");
         Component credit = Component.translatable("gui.shooting_star_addition.convergence.credit");
         Component warning = Component.translatable("gui.shooting_star_addition.convergence.warning");
-        // without Stellar Quartet the plate says how to unlock it, in place of its hint
-        boolean locked = dev.ss05.halley.StellarQuartet.REQUIRED && !dev.ss05.halley.StellarQuartet.installedHere();
-        Component hint = Component.translatable(locked ? "gui.shooting_star_addition.convergence.locked"
-            : old ? "gui.shooting_star_addition.convergence.hint.old" : "gui.shooting_star_addition.convergence.hint");
-        Component hint2 = old ? Component.translatable("gui.shooting_star_addition.convergence.hint2.old") : Component.empty();
-        int row = old ? OLD_ROW : ROW;
-        int w = Math.max(old ? OLD_WIDTH : WIDTH, Math.max(Math.max(font.width(credit), font.width(warning)), Math.max(font.width(hint), font.width(hint2))) + 22);
-        int listTop = old ? 49 : 38;
-        int ringTop = listTop + weapons.size() * row + 6;
-        int h = ringTop + (old ? 66 : 64);
+        java.util.Set<String> onRemote = new java.util.HashSet<>();
+        for (Skill skill : weapons) {
+            onRemote.add(skill.id());
+        }
+        int listTop = top + 48;
+        int whereTop = listTop + weapons.size() * ROW + 6;
+        int addonsTop = whereTop + 2 * ROW + 6;
+        int h = addonsTop - top + 12 + (ADDONS.length + 1) * 12 + 4 + 24;
 
-        // over the menu, in its top right corner
-        g.pose().translate(g.guiWidth() - 8.0F - w * scale, 8.0F, 400.0F);
-        g.pose().scale(scale, scale, 1.0F);
-        AdditionPanel.plate(g, 2, 3, w + 2, h + 3, 0x26000000);
-        AdditionPanel.plate(g, 0, 0, w, h, 0xF4000000 | AdditionPanel.PLATE);
-        g.fill(w - 3, 2, w, h - 2, 0xFF000000 | 0xB9A4FF);
-        g.drawString(font, title, 11, 7, 0xFF000000 | AdditionPanel.INK, false);
-        AdditionPanel.keyCap(g, font, w - 24, 6, old ? "T" : "V", true);
-        g.fill(11, 19, w - 10, 20, 0xFF000000 | AdditionPanel.RULE);
-        g.drawString(font, hint, 11, 24, 0xFF000000 | (locked ? AdditionPanel.WARN : AdditionPanel.GREY), false);
-        g.drawString(font, hint2, 11, 35, 0xFF000000 | AdditionPanel.GREY, false);
+        AdditionPanel.plate(g, 2, top + 3, w + 2, top + h + 3, 0x26000000);
+        AdditionPanel.plate(g, 0, top, w, top + h, 0xF4000000 | AdditionPanel.PLATE);
+        g.fill(0, top + 2, 3, top + h - 2, 0xFF000000 | 0xB9A4FF);
+        g.drawString(font, Component.translatable("gui.shooting_star_addition.convergence").withStyle(ChatFormatting.BOLD), 11, top + 7,
+            0xFF000000 | AdditionPanel.INK, false);
+        g.drawString(font, hint, 11, top + 18, 0xFF000000 | (locked ? AdditionPanel.WARN : AdditionPanel.GREY), false);
+        g.fill(11, top + 30, w - 10, top + 31, 0xFF000000 | AdditionPanel.RULE);
 
+        g.drawString(font, Component.translatable("gui.shooting_star_addition.group.weapons").withStyle(ChatFormatting.BOLD), 11, top + 36,
+            0xFF000000 | AdditionPanel.GREY, false);
         for (int i = 0; i < weapons.size(); i++) {
             Skill skill = weapons.get(i);
             boolean on = ticked.contains(skill.id());
-            int y = listTop + i * row;
+            int y = listTop + i * ROW;
             AdditionPanel.keyCap(g, font, 11, y, String.valueOf(i + 1), true);
             // the tick box, in the weapon's colour
             int color = 0xFF000000 | skill.color() & 0xFFFFFF;
@@ -217,21 +186,44 @@ public final class ConvergencePlate {
                 g.drawString(font, sliders, w - 12 - font.width(sliders), y + 1, 0xFF000000 | AdditionPanel.GREY, false);
             }
         }
-        g.fill(11, ringTop - 4, w - 10, ringTop - 3, 0xFF000000 | AdditionPanel.RULE);
+        g.fill(11, whereTop - 4, w - 10, whereTop - 3, 0xFF000000 | AdditionPanel.RULE);
 
-        g.drawString(font, Component.translatable("gui.shooting_star_addition.convergence.where").withStyle(ChatFormatting.BOLD), 11,
-            ringTop + 2, 0xFF000000 | AdditionPanel.INK, false);
-        AdditionPanel.keyCap(g, font, w - 24, ringTop + 1, "R", true);
+        g.drawString(font, Component.translatable("gui.shooting_star_addition.convergence.where"), 11, whereTop + 1, 0xFF000000 | AdditionPanel.INK, false);
+        AdditionPanel.keyCap(g, font, w - 22, whereTop, "R", true);
         Component where = Component.translatable(ring ? "gui.shooting_star_addition.convergence.ring" : "gui.shooting_star_addition.convergence.point");
-        g.drawString(font, where, w - 30 - font.width(where), ringTop + 2, 0xFF000000 | AdditionPanel.GOLD, false);
-        g.drawString(font, Component.translatable("gui.shooting_star_addition.convergence.shake").withStyle(ChatFormatting.BOLD), 11,
-            ringTop + 16, 0xFF000000 | AdditionPanel.INK, false);
-        AdditionPanel.keyCap(g, font, w - 24, ringTop + 15, "X", true);
+        g.drawString(font, where, w - 26 - font.width(where), whereTop + 1, 0xFF000000 | AdditionPanel.GOLD, false);
+        g.drawString(font, Component.translatable("gui.shooting_star_addition.convergence.shake"), 11, whereTop + ROW + 1,
+            0xFF000000 | AdditionPanel.INK, false);
+        AdditionPanel.keyCap(g, font, w - 22, whereTop + ROW, "X", true);
         Component shake = Component.translatable("gui.shooting_star_addition.convergence.shake."
             + HalleyClientConfig.convergenceShake().name().toLowerCase(Locale.ROOT));
-        g.drawString(font, shake, w - 30 - font.width(shake), ringTop + 16, 0xFF000000 | AdditionPanel.GOLD, false);
-        g.drawString(font, credit, 11, ringTop + 31, 0xFF000000 | AdditionPanel.GREY, false);
-        g.drawString(font, warning, 11, ringTop + 42, 0xFF000000 | AdditionPanel.WARN, false);
-        g.pose().popPose();
+        g.drawString(font, shake, w - 26 - font.width(shake), whereTop + ROW + 1, 0xFF000000 | AdditionPanel.GOLD, false);
+        g.fill(11, addonsTop - 4, w - 10, addonsTop - 3, 0xFF000000 | AdditionPanel.RULE);
+
+        // which addons it can fire, installed or missing (Stellar Quartet unlocks it rather than firing)
+        g.drawString(font, Component.translatable("gui.shooting_star_addition.group.addons").withStyle(ChatFormatting.BOLD), 11, addonsTop,
+            0xFF000000 | AdditionPanel.GREY, false);
+        int y = addonsTop + 12;
+        for (Addon addon : ADDONS) {
+            boolean installed = false;
+            for (String id : addon.skills()) {
+                installed |= onRemote.contains(id);
+            }
+            addonRow(g, font, y, w, Component.literal(addon.name()), installed, "gui.shooting_star_addition.addon.fires");
+            y += 12;
+        }
+        addonRow(g, font, y, w, Component.literal("Stellar Quartet"), dev.ss05.halley.StellarQuartet.installedHere(),
+            "gui.shooting_star_addition.addon.unlocks");
+        y += 16;
+        g.drawString(font, credit, 11, y, 0xFF000000 | AdditionPanel.GREY, false);
+        g.drawString(font, warning, 11, y + 11, 0xFF000000 | AdditionPanel.WARN, false);
+        return h;
+    }
+
+    private static void addonRow(GuiGraphics g, Font font, int y, int w, Component name, boolean installed, String doesKey) {
+        AdditionPanel.plate(g, 12, y + 2, 18, y + 8, 0xFF000000 | (installed ? 0x3FAE62 : AdditionPanel.GREY));
+        g.drawString(font, name, 23, y + 1, 0xFF000000 | (installed ? AdditionPanel.INK : AdditionPanel.GREY), false);
+        Component state = installed ? Component.translatable(doesKey) : Component.translatable("gui.shooting_star_addition.addon.missing");
+        g.drawString(font, state, w - 12 - font.width(state), y + 1, 0xFF000000 | (installed ? 0x2E8A4C : AdditionPanel.GOLD), false);
     }
 }

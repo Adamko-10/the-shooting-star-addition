@@ -41,6 +41,8 @@ public final class HalleyClientConfig {
     private static final ModConfigSpec.BooleanValue CONVERGENCE_PLATE;
     private static final ModConfigSpec.BooleanValue CONVERGENCE_PLATE_OLD;
     private static final ModConfigSpec.BooleanValue MENU_PLATES;
+    private static final ModConfigSpec.BooleanValue PLATES_FOLDED;
+    private static final ModConfigSpec.BooleanValue LESS_USED_OPEN;
     private static final ModConfigSpec.EnumValue<ConvergenceShake> CONVERGENCE_SHAKE;
     /** What Stellar Convergence fires out of the box: every weapon but Gravitia (which only the menu chooses). */
     private static final List<String> CONVERGENCE_DEFAULT = List.of("the_shooting_star", "gungnir", "seven_stars", "tesseract", "halley", "luna", "proxima");
@@ -141,6 +143,10 @@ public final class HalleyClientConfig {
         MENU_PLATES = b.comment("The addon's plates in the remote's menu (its settings, and Stellar Convergence's): false hides them and",
                 "their keys. The settings above still apply; change them in this file.")
             .define("menu_plates", true);
+        PLATES_FOLDED = b.comment("The plates folded away to a small tag in the remote's menu (Backspace there folds and unfolds them).")
+            .define("plates_folded", false);
+        LESS_USED_OPEN = b.comment("The \"Less used\" group of the selected skill's settings open (0 in the remote's menu).")
+            .define("less_used_open", false);
         b.pop();
         SPEC = b.build();
     }
@@ -152,16 +158,32 @@ public final class HalleyClientConfig {
         return get(SKY);
     }
 
+    public static void setSky(boolean on) {
+        set(SKY, on);
+    }
+
     public static boolean darkenLand() {
         return get(DARKEN_LAND);
+    }
+
+    public static void setDarkenLand(boolean on) {
+        set(DARKEN_LAND, on);
     }
 
     public static boolean extraEffects() {
         return get(EXTRA_EFFECTS);
     }
 
+    public static void setExtraEffects(boolean on) {
+        set(EXTRA_EFFECTS, on);
+    }
+
     public static boolean worldFlashes() {
         return get(WORLD_FLASHES);
+    }
+
+    public static void setWorldFlashes(boolean on) {
+        set(WORLD_FLASHES, on);
     }
 
     /** The films' title cards (on by default, also in RimuLib's legacy film style; the user, 2026-11-18). */
@@ -169,8 +191,38 @@ public final class HalleyClientConfig {
         return get(TITLE_CARDS);
     }
 
+    public static void setTitleCards(boolean on) {
+        set(TITLE_CARDS, on);
+    }
+
     public static boolean cometMarker() {
         return get(COMET_MARKER);
+    }
+
+    public static void setCometMarker(boolean on) {
+        set(COMET_MARKER, on);
+    }
+
+    public static void setShaderPacks(PackMode mode) {
+        set(SHADER_PACKS, mode);
+    }
+
+    /** The plates folded to a small tag in the remote's menu (Backspace; 1.9.0). */
+    public static boolean platesFolded() {
+        return get(PLATES_FOLDED);
+    }
+
+    public static void setPlatesFolded(boolean on) {
+        set(PLATES_FOLDED, on);
+    }
+
+    /** The selected skill's "Less used" group open (0; 1.9.0). */
+    public static boolean lessUsedOpen() {
+        return get(LESS_USED_OPEN);
+    }
+
+    public static void setLessUsedOpen(boolean on) {
+        set(LESS_USED_OPEN, on);
     }
 
     public static boolean lunaMusic() {

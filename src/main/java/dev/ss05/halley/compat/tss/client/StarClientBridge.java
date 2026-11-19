@@ -69,16 +69,15 @@ public final class StarClientBridge {
                 if (!MenuApi.capturesInput()) {
                     return;
                 }
+                // the Stellar Convergence picks go to the server whatever is shown (other skills' sliders change meanwhile)
+                ConvergencePlate.sync(false);
                 if (HalleyClientConfig.menuPlates()) {
-                    AdditionPanel.draw(graphics);
-                    ConvergencePlate.draw(graphics);
-                } else {
-                    // hidden by the client config: the Stellar Convergence picks still go to the server
-                    ConvergencePlate.sync(false);
+                    // 1.9.0's look B: the general plate, and under it the selected skill's own card
+                    AdditionPanel.draw(graphics, card(), ConvergencePlate::drawCard);
                 }
             });
             MenuApi.onKey(key -> MenuApi.capturesInput() && HalleyClientConfig.menuPlates() && !menuUses(key, 0)
-                && (AdditionPanel.key(key) || ConvergencePlate.key(key)));
+                && (AdditionPanel.key(key, card()) || ConvergencePlate.key(key)));
             // once the server has said hello, tell it this player's Stellar Convergence picks
             Runnable before = ServerSettings.onReceived;
             ServerSettings.onReceived = () -> {
@@ -90,6 +89,28 @@ public final class StarClientBridge {
             HalleyAddon.LOG.error("Halley and Luna couldn't hook their effects into The Shooting Star; strikes will "
                 + "happen but won't be shown. See compat/tss/client/StarClientBridge.java.", failed);
         }
+    }
+
+    /** Which of our skills is selected in the remote's menu: its card shows under the general plate. */
+    private static AdditionPanel.Card card() {
+        try {
+            Skill selected = cyou.rimuru.rimulib.mc1211.client.magic.ClientSkills.selected(SkillSet.of(TssLink.SKILL));
+            if (selected == TssLink.SKILL) {
+                return AdditionPanel.Card.HALLEY;
+            }
+            if (selected == TssLink.MOON) {
+                return AdditionPanel.Card.LUNA;
+            }
+            if (selected == TssLink.PROXIMA) {
+                return AdditionPanel.Card.PROXIMA;
+            }
+            if (selected == TssLink.CONVERGENCE) {
+                return AdditionPanel.Card.CONVERGENCE;
+            }
+        } catch (RuntimeException | LinkageError unknown) {
+            // RimuLib's selection is internal: if it changes, only the general plate shows
+        }
+        return AdditionPanel.Card.NONE;
     }
 
     /**
