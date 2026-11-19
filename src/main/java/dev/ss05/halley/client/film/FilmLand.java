@@ -1,5 +1,6 @@
 package dev.ss05.halley.client.film;
 
+import dev.ss05.halley.client.render.ShaderPacks;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -62,10 +63,13 @@ public final class FilmLand {
         return at;
     }
 
-    /** The height of the cloud layer here, or NaN where there are none (another dimension, or clouds switched off). */
+    /**
+     * The height of the cloud layer here, or NaN where there are none (another dimension, or clouds switched off without
+     * a shader pack: a pack draws its own clouds at about the game's height whatever the game's cloud setting says).
+     */
     public static double cloudHeight() {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level == null || minecraft.options.getCloudsType() == CloudStatus.OFF) {
+        if (minecraft.level == null || !ShaderPacks.active() && minecraft.options.getCloudsType() == CloudStatus.OFF) {
             return Double.NaN;
         }
         return minecraft.level.effects().getCloudHeight();

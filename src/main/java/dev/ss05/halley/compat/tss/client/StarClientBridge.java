@@ -222,7 +222,7 @@ public final class StarClientBridge {
         try {
             if (!rescued) {
                 rescued = true;
-                HalleyAddon.LOG.info("Another mod cut the game's HUD short while one of our strikes ran (TON 618 does during films): "
+                HalleyAddon.LOG.info("The game's HUD was cut short while one of our strikes ran (TON 618 does it during films): "
                     + "our film overlays are drawn after it instead");
             }
             ProximaCosmos.renderSkyLate();

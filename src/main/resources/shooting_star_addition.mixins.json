@@ -11,6 +11,7 @@
     "ClientLevelTimeMixin",
     "CompassSpinMixin",
     "LevelRendererMoonMixin",
+    "LevelRendererSkyMixin",
     "PlayerModelMixin"
   ],
   "injectors": {

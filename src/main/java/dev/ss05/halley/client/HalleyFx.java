@@ -7,6 +7,7 @@ import dev.ss05.halley.client.render.CometExtras;
 import dev.ss05.halley.client.render.CometVisuals;
 import dev.ss05.halley.client.render.GlowBatch;
 import dev.ss05.halley.client.render.GroundMarks;
+import dev.ss05.halley.client.render.SkyPass;
 import dev.ss05.halley.client.sky.SkyLook;
 import dev.ss05.halley.content.HalleyContent;
 import java.util.ArrayList;
@@ -720,11 +721,31 @@ public final class HalleyFx {
 
     public void render(GlowBatch world, GlowBatch light, float partial, double landRange, CometVisuals.Land land) {
         double t = this.time(partial);
-        this.visuals.draw(world, light, t, this.marks, landRange, land, this.host.filmWeight());
+        // 1.9.0: above a shader pack's clouds the comet is drawn in the sky instead (SkyPass, renderSky)
+        int parts = this.cometInSky(world.camera(), t) ? CometVisuals.GROUND : CometVisuals.ALL;
+        this.visuals.draw(world, light, t, this.marks, landRange, land, this.host.filmWeight(), parts);
         if (HalleyClientConfig.extraEffects()) {
             float glitter = this.veil(t) * this.skyReach(world.camera());
-            this.extras.draw(world, light, t, land, glitter, this.visuals.heartTip());
+            this.extras.draw(world, light, t, land, glitter, this.visuals.heartTip(), parts);
         }
+    }
+
+    /** 1.9.0: the comet, its tails and what it sheds, from inside the game's sky drawing while it is above a pack's clouds. */
+    public void renderSky(GlowBatch world, GlowBatch light, float partial) {
+        double t = this.time(partial);
+        if (!this.cometInSky(world.camera(), t)) {
+            return;
+        }
+        CometVisuals.Land none = (x, z) -> false;
+        this.visuals.draw(world, light, t, null, 0.0, none, this.host.filmWeight(), CometVisuals.SKY);
+        if (HalleyClientConfig.extraEffects()) {
+            this.extras.draw(world, light, t, none, 0.0F, null, CometVisuals.SKY);
+        }
+    }
+
+    /** Whether the comet is drawn in the sky pass now: a pack on, the camera under the clouds, the comet well above them. */
+    private boolean cometInSky(Vec3 camera, double t) {
+        return !SkyPass.broken() && t >= HalleyPlan.SIGHT && t <= HalleyPlan.TOUCHDOWN && SkyPass.above(camera, this.plan.comet(t).y - 40.0);
     }
 
     // ---- The sky (drawn by client/sky). ---------------------------------------------------------------------------

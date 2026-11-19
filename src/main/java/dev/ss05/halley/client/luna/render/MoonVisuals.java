@@ -70,6 +70,37 @@ public final class MoonVisuals {
             return;
         }
         mark(world, p, t, land);
+        // 1.9.0: above a shader pack's clouds what is attached to the moon is drawn in the sky instead (SkyPass)
+        if (!MoonSphere.inSkyAt(fx, world.camera(), t)) {
+            drawAttached(fx, placement, world, light, t);
+        }
+        if (t >= MoonPlan.CONTACT - 45.0 && t < MoonPlan.CONTACT + 6.0) {
+            compression(world, light, p, t, land);
+        }
+        if (t >= MoonPlan.CONTACT) {
+            detonation(world, light, p, t, land);
+            jets(world, light, p, t, land);
+            contactLine(world, light, p, t, land);
+            shockWall(world, p, t, land);
+            rimDust(world, p, t, land);
+            ejecta(world, light, p, t, land);
+            cracks(world, p, t, land);
+        }
+        if (t >= MoonPlan.SETTLE) {
+            embers(world, p, t, fx.sphereVisibilityAt(t));
+            handoverGlow(world, fx, p, t);
+        }
+    }
+
+    /**
+     * What is attached to the moon itself (its halo, its trails, its fire, the sparks and embers it sheds), drawn where
+     * the moon is drawn: the world pass, or the sky pass above a shader pack's clouds (1.9.0, SkyPass).
+     */
+    public static void drawAttached(MoonFx fx, MoonSphere.Placement placement, GlowBatch world, GlowBatch light, double t) {
+        MoonPlan p = fx.plan;
+        if (t < 0.0 || t > MoonPlan.DURATION) {
+            return;
+        }
         // the sphere is drawn at its true size, or pulled in and scaled down about the camera (see MoonSphere): the same
         // scale about the camera puts everything attached to it where it belongs
         Vec3 trueCentre = p.centre(t);
@@ -95,22 +126,6 @@ public final class MoonVisuals {
         }
         if (t >= MoonPlan.ENTRY - 10.0 && t < MoonPlan.CONTACT) {
             wakeEmbers(world, p, t, map);
-        }
-        if (t >= MoonPlan.CONTACT - 45.0 && t < MoonPlan.CONTACT + 6.0) {
-            compression(world, light, p, t, land);
-        }
-        if (t >= MoonPlan.CONTACT) {
-            detonation(world, light, p, t, land);
-            jets(world, light, p, t, land);
-            contactLine(world, light, p, t, land);
-            shockWall(world, p, t, land);
-            rimDust(world, p, t, land);
-            ejecta(world, light, p, t, land);
-            cracks(world, p, t, land);
-        }
-        if (t >= MoonPlan.SETTLE) {
-            embers(world, p, t, fx.sphereVisibilityAt(t));
-            handoverGlow(world, fx, p, t);
         }
     }
 

@@ -133,11 +133,21 @@ public final class CometExtras {
      * @param heartTip the top of the comet heart, or null when there is none
      */
     public void draw(GlowBatch world, GlowBatch light, double t, CometVisuals.Land land, float glitter, @Nullable Vec3 heartTip) {
-        if (t >= HalleyPlan.ENTRY - 50.0 && t <= HalleyPlan.TOUCHDOWN + 40.0) {
-            this.fragments(world, light, t);
+        this.draw(world, light, t, land, glitter, heartTip, CometVisuals.ALL);
+    }
+
+    /** {@code parts}: the comet's own (fragments, sparks: {@code CometVisuals.SKY}), the rest ({@code GROUND}). */
+    public void draw(GlowBatch world, GlowBatch light, double t, CometVisuals.Land land, float glitter, @Nullable Vec3 heartTip, int parts) {
+        if ((parts & CometVisuals.SKY) != 0) {
+            if (t >= HalleyPlan.ENTRY - 50.0 && t <= HalleyPlan.TOUCHDOWN + 40.0) {
+                this.fragments(world, light, t);
+            }
+            if (t >= HalleyPlan.ENTRY - 8.0 && t <= HalleyPlan.TOUCHDOWN + 24.0) {
+                this.sparks(world, t);
+            }
         }
-        if (t >= HalleyPlan.ENTRY - 8.0 && t <= HalleyPlan.TOUCHDOWN + 24.0) {
-            this.sparks(world, t);
+        if ((parts & CometVisuals.GROUND) == 0) {
+            return;
         }
         if (t >= this.plan.impact) {
             this.shards(world, t);

@@ -134,15 +134,28 @@ public final class CometVisuals {
      * @param film      how much of the screen the caster's cutscene has (0..1): outside it the comet is drawn bigger,
      *                  since nobody is framing it with a long lens
      */
+    /** 1.9.0: which parts to draw: the comet in the sky ({@code SKY}: SkyPass, above a shader pack's clouds), the rest. */
+    public static final int SKY = 1;
+    public static final int GROUND = 2;
+    public static final int ALL = SKY | GROUND;
+
     public void draw(GlowBatch world, GlowBatch light, double t, @Nullable GroundMarks marks, double markRange, Land land, float film) {
+        this.draw(world, light, t, marks, markRange, land, film, ALL);
+    }
+
+    public void draw(GlowBatch world, GlowBatch light, double t, @Nullable GroundMarks marks, double markRange, Land land, float film,
+                     int parts) {
         if (t < 0.0 || t > this.plan.duration) {
+            return;
+        }
+        if ((parts & SKY) != 0 && t >= HalleyPlan.SIGHT && t <= HalleyPlan.TOUCHDOWN) {
+            this.approach(world, light, t, 1.0 + 0.9 * (1.0 - film));
+        }
+        if ((parts & GROUND) == 0) {
             return;
         }
         if (marks != null && t >= HalleyPlan.MARK && t < this.plan.impact + 4) {
             this.marks(world, t, marks, markRange, land);
-        }
-        if (t >= HalleyPlan.SIGHT && t <= HalleyPlan.TOUCHDOWN) {
-            this.approach(world, light, t, 1.0 + 0.9 * (1.0 - film));
         }
         if (t > HalleyPlan.TOUCHDOWN) {
             this.skyTrail(world, t);
