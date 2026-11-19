@@ -188,6 +188,8 @@ GLITCH_DATA="The Noisery - Rich Glitch/UIGlitch_Designed_Glitch_Corrupted_Data E
 TRAIN_ELEC="The Noisery - Transit Tunes - The German Train Collection/TRNElec_Train Electric Passenger By Close Right To_The Noisery_Transit Tunes_ The German Train Collection_01.wav"
 CARD_FLICK="Epic Stock Media - Board Game - Sound Set Kit for Tabletop and Digital Games/PAPRHndl_Game Play Cards Dry Show Flip Toss Disgard Near 12_ESM_BG.wav"
 PERC_SNAP="Cinematic Sound Design - Interface & Infographics/Interface Percussion Snap.wav"
+FIREWORKS="Ivo Vicic - Fireworks FX/13 Fireworks_powerful explosions_multiples in a row_near.wav"
+WATER_HIT="Epic Stock Media - Elemental Mutation Whooshes and Impacts/WATRImpt_Impact Water Deep Submerge Bubble Drown Ship Hit 05_ESM_EMWI.wav"
 CRANE="Victor Ermakov - Industrial Ambiences - Ship Repair Factory/MACHInd_Crane Onboard Ride Squeaks Motors_CW.wav"
 # Where the trailer booms start: their hit is 0.25 s in. Their tails hold loud for seconds, so the hits below get a
 # decay over the whole mix (volume exp(-k t)), or the limiter would level the attack and the tail into one wall.
@@ -327,63 +329,65 @@ fi
 # ======================================================================================================================
 # Luna (SA-02)
 # ======================================================================================================================
-if want luna_uplink; then   # the remote's uplink (PRESS): a sci-fi confirm with a breath of radio
+# Luna's fall: Epic mode's own cuts since 1.9.0 (Adam: they "fit more for epic mode while the old ones fit for main one";
+# normal mode plays the earlier ones, art/overhaul_sounds.sh); MoonFx.forMode picks them
+if want luna_epic_uplink; then   # the remote's uplink (PRESS): a sci-fi confirm with a breath of radio
   L "$POWER_BTN" 0 0.78 0 0
   L "$SCIFI_BURST" 0 0.31 -3 0.04
   L "$TWINKLE" 0 1.6 -5 0.12
   L "$RADIO_STATIC" 3 1.5 -14 0.05 "bandpass=f=1800:width_type=h:w=2000"
-  make luna_uplink 1.7 -16 "afade=t=out:st=1.2:d=0.5"
+  make luna_epic_uplink 1.7 -16 "afade=t=out:st=1.2:d=0.5"
 fi
 
-if want luna_alarm; then   # EARTH SYSTEM SHUT DOWN (ALARM): a trailer alarm's hit and wail, a system glitch under it
+if want luna_epic_alarm; then   # EARTH SYSTEM SHUT DOWN (ALARM): a trailer alarm's hit and wail, a system glitch under it
   L "$ALARM_WHOLE" 0 4.0 0 0
   L "$GLITCH_DATA" 0 2.0 -12 0.1 "highpass=f=800"
-  make luna_alarm 4.0 -17 "afade=t=out:st=3.4:d=0.6"
+  make luna_epic_alarm 4.0 -17 "afade=t=out:st=3.4:d=0.6"
 fi
 
-if want luna_buildup; then   # ALARM to FALL (2 s): a rumble and a shuddering drone rising, a braam, the crust grinding
+if want luna_epic_buildup; then   # ALARM to FALL (2 s): a rumble and a shuddering drone rising, a braam, the crust grinding
   L "$THUNDER" 5.0 2.0 0 0 "lowpass=f=400"
   L "$DEATH_DRONE" 2.0 2.0 -3 0 "tremolo=f=6:d=0.4"
   L "$HORN32" 0 2.0 -6 0 "lowpass=f=1200"
   L "$METAL_SCRAPE" 0.2 1.2 -5 0.3 "$(rate 0.7)"
-  make luna_buildup 2.0 -16 "volume='0.08+0.92*pow(t/2.0,1.6)':eval=frame,afade=t=out:st=1.92:d=0.08"
+  make luna_epic_buildup 2.0 -16 "volume='0.08+0.92*pow(t/2.0,1.6)':eval=frame,afade=t=out:st=1.92:d=0.08"
 fi
 
-if want luna_crack; then   # BREAK: the moon cracking, ice snapping an octave down, metal stress groaning
+if want luna_epic_crack; then   # BREAK: the moon cracking, ice snapping an octave down, metal stress groaning
   L "$ICE_SNAP" 0.47 1.8 0 0 "$(rate 0.6)"
   L "$GORE_SMASH" 0.05 1.7 -3 0 "$(rate 0.7)"
   L "$DRYICE_SQUEAL" 0 2.0 -10 0.1 "$(rate 0.5),lowpass=f=2000"
   L "$BOOM075" $B 3.0 -8 0 "lowpass=f=300"
-  make luna_crack 3.0 -14.5 "afade=t=out:st=2.3:d=0.7"
+  make luna_epic_crack 3.0 -14.5 "afade=t=out:st=2.3:d=0.7"
 fi
 
-if want luna_tear; then   # FALL: the moon tearing loose, groaning metal and rock over a sub
+if want luna_epic_tear; then   # FALL: the moon tearing loose, groaning metal and rock over a sub
   L "$METAL_SCRAPE" 0.15 6.4 0 0
   L "$METAL_BOWED" 6 4.5 -3 0 "$(rate 0.7)"
   L "$ICE_FISSURE" 0.27 3.2 -4 0 "$(rate 0.5)"
   L "$DROP_SLOW07" 0 4.54 -3 0
-  make luna_tear 6.43 -13.5 "afade=t=out:st=5.2:d=1.2"
+  make luna_epic_tear 6.43 -13.5 "afade=t=out:st=5.2:d=1.2"
 fi
 
-if want luna_fall; then   # FALL to CONTACT (follows the moon): a deep roaring descent, growing
+if want luna_epic_fall; then   # FALL to CONTACT (follows the moon): a deep roaring descent, growing
   L "$ENCOUNTER" 20 12.75 0 0 "lowpass=f=3000"
   L "$HURRICANE" 22 12.75 -4 0
   L "$THUNDER" 2 12.75 -5 0 "lowpass=f=500"
-  make luna_fall 12.75 -15.5 "volume='0.3+0.7*pow(t/12.75,1.5)':eval=frame,afade=t=in:d=1.0,afade=t=out:st=12.2:d=0.55"
+  make luna_epic_fall 12.75 -15.5 "volume='0.3+0.7*pow(t/12.75,1.5)':eval=frame,afade=t=in:d=1.0,afade=t=out:st=12.2:d=0.55"
 fi
 
-if want luna_entry; then   # ENTRY: the moon hitting the air, a fire whoosh into a boom, burning after
+if want luna_epic_entry; then   # ENTRY: the moon hitting the air, a fire whoosh into a boom, burning after
   L "$FIRE_WHOOSH" 0.05 2.4 0 0
   L "$BOOM214" $B 6.5 0 0.35
   L "$EXPL_SMALL" 0 1.48 -4 0.35
   L "$FIRE_LOOP" 2 6.5 -10 0.4 "lowpass=f=3000,afade=t=out:st=3:d=3.5"
-  make luna_entry 6.93 -12.5 "volume='if(lt(t,0.4),1,exp(-0.3*(t-0.4)))':eval=frame,afade=t=out:st=5.4:d=1.5"
+  make luna_epic_entry 6.93 -12.5 "volume='if(lt(t,0.4),1,exp(-0.3*(t-0.4)))':eval=frame,afade=t=out:st=5.4:d=1.5"
 fi
 
-if want luna_rumble; then   # CONTACT - 60 (3 s): the ground's rumble swelling, then near-silence for its last 0.5 s
+if want luna_epic_rumble; then   # CONTACT - 60 (3 s): the ground's rumble swelling, then near-silence for its last 0.5 s
   L "$THUNDER" 5 3 0 0 "lowpass=f=800"
   L "$RATTLING" 0.1 3 -4 0
-  make luna_rumble 3.0 -15 "volume='if(lt(t,2.35),0.4+0.6*pow(t/2.35,1.7),max(0.06,1-(t-2.35)/0.12))':eval=frame"
+  make luna_epic_rumble 3.0 -15 "volume='if(lt(t,2.35),0.4+0.6*pow(t/2.35,1.7),max(0.06,1-(t-2.35)/0.12))':eval=frame"
 fi
 
 if want luna_inhale; then   # 0.65 s ending on CONTACT: the air drawn in, a boom and a rush played backwards
@@ -392,69 +396,80 @@ if want luna_inhale; then   # 0.65 s ending on CONTACT: the air drawn in, a boom
   make luna_inhale 0.65 -12.5 "volume='pow(t/0.65,2.2)':eval=frame"
 fi
 
-if want luna_impact; then   # CONTACT: the biggest hit, two trailer booms on a sub drop, rock cracking, a long rolling tail
-  L "$GORE_SMASH" 0.05 1.7 -2 0
-  L "$BOOM011" $B 13.5 0 0
-  L "$BOOM214" $B 13.5 -3 0.06
-  L "$DROP_SLOW10" 0 7.96 -2 0
-  L "$ICE_FISSURE" 0.27 3.0 -6 0 "$(rate 0.5)"
-  L "$WOOSH_DEBRIS" 0.3 2.0 -5 0.4
-  L "$THUNDER" 6 12.6 -2 1.0 "afade=t=in:d=1.0,lowpass=f=900"
-  make luna_impact 13.93 -10.5 "volume='exp(-0.12*t)':eval=frame,afade=t=out:st=10.9:d=3.0"
+# ---- Luna's impact and what follows, 1.9.0's third take (Adam, after hearing the Sonniss set: "impact and post impact
+# sfx for luna are bad ... lets try smth new"): physical rather than cinematic, no trailer booms: real explosions
+# (fireworks, near) pitched far down for the weight, a deep underwater impact for the body, crushed ice for the crust,
+# a thunder crash for the shock wave, concrete and stone knocks for the debris. -----------------------------------------
+if want luna_impact; then   # CONTACT: the biggest hit
+  L "$FIREWORKS" 18.28 1.9 -2 0 "$(rate 0.35)"
+  L "$STORM_CRASH" 4.5 10.0 -5 2.0 "afade=t=in:d=1.0,lowpass=f=500"
+  L "$FIREWORKS" 18.28 1.4 0 0 "$(rate 0.8)"
+  L "$FIREWORKS" 16.43 1.5 -6 0.02 "$(rate 0.5)"
+  L "$WATER_HIT" 0 2.1 -3 0 "$(rate 0.55)"
+  L "$METAL_THUD" 0 2.0 -7 0 "$(rate 0.7),lowpass=f=600"
+  L "$ICE_CRUSH" 0.1 2.7 -4 0.05 "$(rate 0.7),lowpass=f=4000"
+  L "$DROP_SLOW07" 0 4.5 -9 0
+  make luna_impact 13.93 -10.5 "highpass=f=35,acompressor=threshold=-20dB:ratio=4:attack=4:release=250:makeup=2,volume='exp(-0.3*t)':eval=frame,afade=t=out:st=10.4:d=3.5"
 fi
 
-if want luna_shockwave; then   # the shock wave rolling over: a wind blast, a boom's tail, debris, a low pass-by
-  L "$HURRICANE" 25 8.4 0 0 "volume='min(1,t/0.12)*exp(-0.3*t)':eval=frame"
-  L "$BOOM075" $B 8.2 -3 0 "lowpass=f=800"
-  L "$WOOSH_DEBRIS" 0.1 2.2 -4 0.05
-  L "$TRAIN_ELEC" 17 4.5 -6 0 "$(rate 0.6),lowpass=f=1500"
-  make luna_shockwave 8.43 -13.5 "afade=t=out:st=6.5:d=1.9"
+if want luna_shockwave; then   # the shock wave rolling over (later the further off you are): a crash, a turbulent wind,
+  # grit skittering, a far blast's roll under it
+  L "$STORM_CRASH" 3.0 6.0 0 0 "lowpass=f=2200"
+  L "$WIND_WHIP" 0 7.5 -3 0.1 "afade=t=in:d=0.3,volume='exp(-0.25*t)':eval=frame"
+  L "$GRAVEL" 3 5.0 -7 0.2 "$(rate 0.6),lowpass=f=2000,volume='exp(-0.3*t)':eval=frame"
+  L "$FIREWORKS" 2.6 2.0 -4 0 "$(rate 0.45),lowpass=f=900"
+  make luna_shockwave 8.43 -13.5 "afade=t=out:st=6.6:d=1.8"
 fi
 
-if want luna_settle; then   # CONTACT + 5: the moon grinding in, groaning
-  L "$METAL_SCRAPE" 2.0 3.6 0 0
-  L "$METAL_BOWED" 9.9 2.2 -4 0 "$(rate 0.6)"
-  L "$METALBOX_DRAG" 13 3.6 0 0 "lowpass=f=300"
-  L "$GRAVEL" 3 2.6 -8 0 "$(rate 0.7),lowpass=f=1500"
-  make luna_settle 3.6 -15 "afade=t=in:d=0.15,afade=t=out:st=2.8:d=0.8"
+if want luna_settle; then   # CONTACT + 5: the moon grinding into the ground: crushing, a low ringing thud, grit
+  L "$ICE_CRUSH" 0.1 2.7 0 0 "$(rate 0.45),lowpass=f=1800"
+  L "$METAL_THUD" 0 3.6 -4 0 "$(rate 0.6),lowpass=f=900"
+  L "$GRAVEL" 12 3.6 -7 0 "$(rate 0.5),lowpass=f=1200"
+  make luna_settle 3.6 -15 "afade=t=in:d=0.1,afade=t=out:st=2.8:d=0.8"
 fi
 
-if want luna_aftershock; then   # aftershocks (two takes): deep rumbles
-  L "$THUNDER" 9.0 4.5 0 0 "lowpass=f=700"
-  L "$RATTLING" 0.1 4.5 -4 0
-  make luna_aftershock 4.5 -16 "afade=t=in:d=0.3,afade=t=out:st=3.4:d=1.1"
-  L "$STORM_CRASH" 5.5 5.11 0 0 "lowpass=f=500"
-  L "$RATTLING" 0.1 4.0 -5 0.3 "$(rate 0.8)"
-  make luna_aftershock_2 5.11 -16 "afade=t=in:d=0.4,afade=t=out:st=3.9:d=1.21"
+if want luna_aftershock; then   # aftershocks (two takes): far blasts' rolls, deep and low, with grit
+  L "$FIREWORKS" 11.10 3.0 0 0 "$(rate 0.4),lowpass=f=600"
+  L "$DROP_SLOW07" 0 4.5 -6 0 "lowpass=f=300"
+  make luna_aftershock 4.5 -16 "afade=t=in:d=0.25,afade=t=out:st=3.3:d=1.2"
+  L "$FIREWORKS" 8.0 2.5 0 0.1 "$(rate 0.38),lowpass=f=500"
+  L "$GRAVEL" 20 4.5 -10 0.3 "$(rate 0.5),lowpass=f=900"
+  make luna_aftershock_2 5.11 -16 "afade=t=in:d=0.3,afade=t=out:st=3.9:d=1.21"
 fi
 
-if want luna_sizzle; then   # the molten seam: hissing steam, spitting, crackling
-  L "$FIRE_OUT" 0.3 3.2 0 0
-  L "$FIRE_LOOP" 2.0 3.2 -5 0
-  L "$CAMPFIRE" 12 3.2 -2 0
+if want luna_sizzle; then   # the molten seam: steam hissing off it, a crackle, a deep bubble
+  L "$FIRE_OUT" 1.5 3.2 0 0 "highpass=f=1500"
+  L "$CAMPFIRE" 20 3.2 -6 0
+  L "$WATER_HIT" 0.8 1.3 -10 0.4 "$(rate 0.7),lowpass=f=900"
   make luna_sizzle 3.2 -17 "afade=t=in:d=0.1,afade=t=out:st=2.6:d=0.6"
 fi
 
 if want luna_debris; then
-  # falling debris (three takes, every 5.5 s): a debris whoosh, gravel settling, then twenty small knocks thinning out
-  # (books, a case, wooden pieces, a rattle, punches, all pitched down to rocks), placed by a seeded random
-  POOL=("$BOOKS" "$BOOKS" "$CASE_DOWN" "$BOARD" "$ARROW_RATTLE" "$PUNCH")
-  POOL_AT=(0.85 1.5 0 0 0.25 0.1)
-  POOL_LEN=(0.55 0.6 0.6 0.9 0.8 0.5)
+  # falling debris (three takes, every 5.5 s): a debris whoosh, gravel settling, then twenty knocks of stone and
+  # concrete thinning out (a concrete thump, a pipe on concrete, a tap, an ice crack, gravel, a low thud), pitched down
+  POOL=("$CASE_DOWN" "$PIPE" "$METAL_TAP" "$ICE_SNAP" "$GRAVEL" "$METAL_THUD")
+  POOL_AT=(0.03 0.03 0.11 0.48 10.0 0.03)
+  POOL_LEN=(0.6 0.42 0.35 0.3 0.6 0.5)
   debris() {
-    L "$WOOSH_DEBRIS" 0.3 2.0 -3 0
-    L "$GRAVEL" 10 "$2" -12 0 "lowpass=f=2500,volume='exp(-0.3*t)':eval=frame"
+    L "$WOOSH_DEBRIS" 0.3 2.0 -4 0 "$(rate 0.8)"
+    L "$GRAVEL" 10 "$2" -12 0 "lowpass=f=2000,volume='exp(-0.3*t)':eval=frame"
     while read -r i at k g; do
-      L "${POOL[$i]}" "${POOL_AT[$i]}" "${POOL_LEN[$i]}" "$g" "$at" "$(rate "$k"),lowpass=f=4000"
+      L "${POOL[$i]}" "${POOL_AT[$i]}" "${POOL_LEN[$i]}" "$g" "$at" "$(rate "$k"),lowpass=f=3500"
     done < <(awk -v n=20 -v len="$2" -v seed="$3" -v m=${#POOL[@]} 'BEGIN{ srand(seed); for (j = 0; j < n; j++) {
       at = 0.1 + (len - 1.5) * (j / n) ^ 1.5 + rand() * 0.15
-      printf "%d %.3f %.3f %.1f\n", int(rand() * m), at, 0.55 + rand() * 0.4, -1 - 9 * at / len - rand() * 4 } }')
+      printf "%d %.3f %.3f %.1f\n", int(rand() * m), at, 0.45 + rand() * 0.35, -1 - 9 * at / len - rand() * 4 } }')
     make "$1" "$2" -18 "afade=t=out:st=$(calc "$2 - 1.2"):d=1.2"
   }
   debris luna_debris 8.0 11
   debris luna_debris_2 8.89 23
   debris luna_debris_3 7.47 37
 fi
+
+
+
+
+
+
 
 # ======================================================================================================================
 # Stellar Convergence (SA-00): the comic panels of its film (1.9.0, ConvergenceFilm)

@@ -114,6 +114,9 @@ public final class HalleyStrike {
     @Nullable
     private BlockPos spared;
     private boolean heartPlaced;
+    /** The heart's blocks, kept to check a second later that they are still there (1.9.0, logged). */
+    private java.util.List<BlockPos> heartBlocks = java.util.List.of();
+    private int heartAt = -1;
     private int craterDoneAt = -1;
     private boolean raysPainted;
     private double ploughedBefore;
@@ -224,6 +227,19 @@ public final class HalleyStrike {
                 }
             }
         }
+        // 1.9.0 (Adam: "the comet heart blocks dont spawn correctly ... pretty frequent"): set down once all the land is
+        // cut. It was set down two ticks after the impact, and whatever was cut after it erased it: the crater's own
+        // chunks (RimuLib doesn't cut from the middle out) and above all the trench's last pieces, which meet the crater at
+        // the mark and are cut once the crater is (everything over the trench's floor goes, most of the heart with it);
+        // 1.9.0's wider trench overlaps it more often. (end() still sets it down if the strike ends first.)
+        if (this.crater != null && this.params.heart() && !this.heartPlaced && t > this.plan.impact && this.allCut()) {
+            this.placeHeart();
+            this.heartAt = t;
+            HalleyAddon.LOG.info("Halley: the comet heart set down {} ticks after the impact", t - this.plan.impact);
+        }
+        if (this.heartAt >= 0 && t == this.heartAt + 20) {
+            this.countHeart("a second after it was set down");
+        }
         if (this.crater != null && this.crater.done() && !this.raysPainted) {
             this.raysPainted = true;
             this.craterDoneAt = t;
@@ -254,6 +270,7 @@ public final class HalleyStrike {
         if (this.crater != null && !this.heartPlaced && this.params.heart()) {
             this.placeHeart();
         }
+        this.countHeart("as the strike ends");
         this.releaseChunks();
     }
 
@@ -399,12 +416,9 @@ public final class HalleyStrike {
             this.crater = StarBridge.excavate(this.level, this.plan.target, this.params.craterRadius() * 1.22 + 10.0,
                 (x, z) -> this.plan.craterFloor(x, z, minY), this::craterSurface, this.spared,
                 "SS-05 Halley crater", 2 * HalleyConfig.chunksPerTick(), this.loader);
-            // the middle first, so the heart has its floor before it is set down
+            // a start on the cut now; the heart is set down once the crater is cut (tick, where the rays are painted)
             this.crater.tick();
             this.crater.tick();
-            if (this.params.heart()) {
-                this.placeHeart();
-            }
         }
 
         Vec3 t = this.plan.target;
@@ -446,6 +460,20 @@ public final class HalleyStrike {
         double k = this.plan.craterK(x + 0.5, z + 0.5) + (this.plan.hash(x, z) - 0.5) * 0.16;
         double roll = this.plan.hash(z * 7 + 3, x * 11 - 5);
         return (k < 0.24 ? CRATER_CORE : k < 0.66 ? CRATER_BOWL : CRATER_RIM).pick(roll);
+    }
+
+    /** Logs how many of the heart's blocks are still there (1.9.0: Adam found it missing; checked on the server). */
+    private void countHeart(String when) {
+        if (this.heartBlocks.isEmpty()) {
+            return;
+        }
+        int kept = 0;
+        for (BlockPos pos : this.heartBlocks) {
+            if (this.level.isLoaded(pos) && this.level.getBlockState(pos).is(HalleyContent.COMET_HEART.get())) {
+                kept++;
+            }
+        }
+        HalleyAddon.LOG.info("Halley: {} of the comet heart's {} blocks still there {}", kept, this.heartBlocks.size(), when);
     }
 
     /** The nucleus, left standing in the crater floor: a cluster of glowing ice crystals. */
@@ -494,6 +522,7 @@ public final class HalleyStrike {
                 }
             }
         }
+        this.heartBlocks = new java.util.ArrayList<>(out.keySet());
         StarBridge.paint(this.level, out);
     }
 

@@ -14,6 +14,17 @@ to send). Keep every source file's name in `art/sounds/sources.md` so a pick can
 `.ogg`. Levels by role, as the first overhaul (measured against The Shooting Star's own, never copied): impacts about
 -11 to -12.5 LUFS, cues -15/-16, beds -16/-18, hums -19. Claude can't hear: every result is checked by the user in game.
 
+## 1.9.0, Adam's second listen (2026-11-19 night)
+
+"impact and post impact sfx for luna are bad the rest is kinda fine but they kinda fit more for epic mode while the old
+ones fit for main one". So: Luna's fall in **normal mode** plays the earlier sounds again (the 2026-11-04 overhaul, back
+from git), and **Epic mode** plays the Sonniss cuts as `luna_epic_uplink/alarm/buildup/crack/tear/fall/entry/rumble`
+(`MoonFx.forMode`; still slowed 0.8 in Epic). The impact and everything after it (`luna_impact`, `luna_shockwave`,
+`luna_settle`, `luna_aftershock` x2, `luna_sizzle`, `luna_debris` x3) is a **third, new take** for both modes:
+physical rather than cinematic, no trailer booms (real fireworks explosions pitched far down, a deep underwater impact,
+crushed ice, a thunder crash, concrete and stone knocks); the impact compressed and decaying so it hits before it
+rolls (-12.3 LUFS). Recipes in `art/sonniss_sounds.sh`. Not heard by anyone yet.
+
 ## 1.9.0 (2026-11-19): Luna's set applied
 
 Adam, after his 1.9.0 test: Luna's sounds "dont sound good". So the Sonniss set below (Luna) replaced the shipped ones

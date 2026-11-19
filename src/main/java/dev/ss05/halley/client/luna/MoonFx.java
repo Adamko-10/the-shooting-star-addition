@@ -591,8 +591,24 @@ public final class MoonFx {
         return inFall ? (float) (MoonPlan.CONTACT - MoonPlan.ALARM) / MoonPlan.EPIC_FALL : 1.0F;
     }
 
+    /**
+     * 1.9.0 (Adam: the new sounds of the fall "fit more for epic mode while the old ones fit for main one"): in Epic
+     * mode the fall's sounds are its own cuts ({@code luna_epic_*}, the Sonniss set), otherwise the earlier ones.
+     */
+    private SoundEvent forMode(SoundEvent event) {
+        if (!this.plan.params.epic() || !event.getLocation().getNamespace().equals(HalleyAddon.MOD_ID)) {
+            return event;
+        }
+        String path = event.getLocation().getPath();
+        return EPIC_CUTS.contains(path) ? SoundEvent.createVariableRangeEvent(HalleyAddon.id("luna_epic_" + path.substring(5))) : event;
+    }
+
+    private static final java.util.Set<String> EPIC_CUTS = java.util.Set.of("luna_uplink", "luna_alarm", "luna_buildup", "luna_crack",
+        "luna_tear", "luna_fall", "luna_entry", "luna_rumble");
+
     private void play(SoundEvent event, Vec3 at, float volume, float pitch, boolean film) {
         pitch *= this.pitch * this.fallStretch(event);
+        event = this.forMode(event);
         SoundInstance instance;
         if (film) {
             // deep and drawn out while the film runs in slow motion
@@ -608,7 +624,7 @@ public final class MoonFx {
     }
 
     private void follow(SoundEvent event, float volume, boolean film, IntFunction<Vec3> where) {
-        Follow sound = new Follow(event, volume, film, where);
+        Follow sound = new Follow(this.forMode(event), this.fallStretch(event), volume, film, where);
         if (film) {
             this.filmSounds.add(sound);
         }
@@ -626,14 +642,14 @@ public final class MoonFx {
         private final IntFunction<Vec3> where;
         private final boolean film;
 
-        Follow(SoundEvent event, float volume, boolean film, IntFunction<Vec3> where) {
+        Follow(SoundEvent event, float stretch, float volume, boolean film, IntFunction<Vec3> where) {
             super(event, SoundSource.PLAYERS, SoundInstance.createUnseededRandom());
             this.where = where;
             this.film = film;
             this.volume = film ? Math.min(1.0F, volume) : volume * 16.0F;
             this.relative = film;
             this.attenuation = film ? SoundInstance.Attenuation.NONE : SoundInstance.Attenuation.LINEAR;
-            this.pitch = MoonFx.this.pitch * MoonFx.this.fallStretch(event);
+            this.pitch = MoonFx.this.pitch * stretch;
             this.place();
         }
 
