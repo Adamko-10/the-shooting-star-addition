@@ -345,5 +345,29 @@
         "name": "shooting_star_addition:halley_inhale"
       }
     ]
+  },
+  "halley_title": {
+    "subtitle": "subtitles.shooting_star_addition.halley_title",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:halley_title"
+      }
+    ]
+  },
+  "luna_title_in": {
+    "subtitle": "subtitles.shooting_star_addition.luna_title_in",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_title_in"
+      }
+    ]
+  },
+  "luna_title_out": {
+    "subtitle": "subtitles.shooting_star_addition.luna_title_out",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_title_out"
+      }
+    ]
   }
 }

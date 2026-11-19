@@ -483,6 +483,34 @@ if want convergence_shatter; then   # the grid shattering at the hit (FilmPanels
   make convergence_shatter 2.0 -14 "afade=t=out:st=1.3:d=0.7"
 fi
 
+# ======================================================================================================================
+# Title cards (1.9.0, compat/tss/client/FilmTitle): quieter than the films' own sounds, under them
+# ======================================================================================================================
+if want halley_title; then   # HALLEY (film tick 74): the letters streak in, lock one by one 0.3-0.63 s in (rising
+  # glassy ticks over an arpeggio), then sublimate away from 1.5 s (fine ice shards)
+  L "$WIND_RUSH" 0.05 0.32 -7 0 "highpass=f=900,afade=t=in:d=0.2"
+  L "$TWINKLE" 0 1.3 -3 0.28 "$(rate 1.25)"
+  for i in 0 1 2 3 4 5; do
+    L "$GLASSY_SNAP" 0 0.2 -9 "$(calc "0.30 + 0.065 * $i")" "$(rate "$(calc "1.4 + 0.1 * $i")")"
+  done
+  L "$GLASS_SHARDS" 0.6 0.9 -11 1.5 "highpass=f=3000,afade=t=in:d=0.3"
+  make halley_title 2.4 -19 "afade=t=out:st=1.95:d=0.45"
+fi
+
+if want luna_title_in; then   # LUNA (BREAK + 4): the letters crack in from the middle outward, molten and ringing
+  L "$ICE_SNAP" 0.48 0.4 0 0 "$(rate 0.55),lowpass=f=2500"
+  L "$ICE_SNAP" 0.98 0.4 -2 0.08 "$(rate 0.5),lowpass=f=2500"
+  L "$METAL_TAP" 0.11 0.36 -5 0 "$(rate 0.45)"
+  L "$FIRE_LOOP" 0 1.0 -12 0.05 "highpass=f=1500,afade=t=in:d=0.1"
+  make luna_title_in 1.2 -19 "afade=t=out:st=0.7:d=0.5"
+fi
+
+if want luna_title_out; then   # LUNA (FALL + 2): the letters breaking away as the moon tears loose, stone crumbling
+  L "$BOOKS" 0.85 0.75 -2 0.03 "$(rate 0.7),lowpass=f=3000"
+  L "$ICE_SNAP" 1.85 0.35 -6 0 "$(rate 0.6)"
+  make luna_title_out 1.0 -20 "afade=t=out:st=0.6:d=0.4"
+fi
+
 # Proxima (SA-04): all of its sounds are made by art/make_proxima_film.sh since 2026-11-07 (its film soundtrack, and the
 # land's world sounds cut from it).
 

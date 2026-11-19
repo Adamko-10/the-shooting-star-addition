@@ -56,6 +56,8 @@ public final class MoonFx {
     private static final int MAX_SOUND_DELAY = 30;
     /** How long luna_inhale.ogg is (0.65 s), so it ends on the impact. */
     private static final int INHALE = 13;
+    private static final SoundEvent TITLE_IN = SoundEvent.createVariableRangeEvent(HalleyAddon.id("luna_title_in"));
+    private static final SoundEvent TITLE_OUT = SoundEvent.createVariableRangeEvent(HalleyAddon.id("luna_title_out"));
     /**
      * When Luna's music starts: with the alarm, sixteen seconds before the impact - {@code luna_music.ogg} is the track
      * cut so that its drop comes sixteen seconds in (the original's drop is at 24.45 s, so it starts 8.45 s in).
@@ -460,6 +462,11 @@ public final class MoonFx {
         if (t == MoonPlan.BREAK) {
             Vec3 at = p.centre(t);
             this.play(HalleyContent.MOON_CRACK.get(), sky(camera, at), 1.2F, 1.0F, film);
+        }
+        // 1.9.0: the LUNA title card cracking in and breaking away (FilmTitle.LUNA_IN, LUNA_OUT); two sounds, as Epic
+        // mode stretches the time between them
+        if ((t == MoonPlan.BREAK + 4 || t == MoonPlan.FALL + 2) && film && HalleyClientConfig.titleCards()) {
+            this.play(t == MoonPlan.FALL + 2 ? TITLE_OUT : TITLE_IN, camera, 1.0F, 1.0F, true);
         }
         if (t == MoonPlan.FALL) {
             Vec3 at = p.centre(t);

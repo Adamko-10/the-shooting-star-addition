@@ -114,6 +114,9 @@ is first levelled to -20 LUFS). At: where the layer starts in our sound. Process
 | halley_impact | Epic Stock Media - Tower Defense Game/ICEBrk_Skill Freeze Whoosh Break Impact Layered Movement Shatter 03_ESM_TDG.wav | 0 | 2.5 | -4 | 0.03 |  |
 | halley_impact | Cinematic Sound Design - Colossal Impacts/Woosh Debris.wav | 0.3 | 2.0 | -6 | 0.5 |  |
 | halley_impact | Jake Fielding - Interior Wind Rain and Storms/THUN_Interior Thunder Rumble_JF_INT Storm_01.wav | 5.0 | 8.9 | -3 | 0.5 | afade=t=in:d=0.6,lowpass=f=1200 |
+| halley_inhale | Federico Soler - Effective Trailer Booms Vol. 2/EffectiveTrailer_Booms_Vol2_011.wav | 0.2 | 0.65 | 0 | 0 | areverse,highpass=f=250 |
+| halley_inhale | 344 Audio - Elemental Palette Designed Vol. 1/WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav | 0 | 0.65 | -3 | 0 | areverse |
+| halley_inhale | Epic Stock Media - Tower Defense Game/ICEBrk_Skill Freeze Whoosh Break Impact Layered Movement Shatter 03_ESM_TDG.wav | 0.2 | 0.65 | -5 | 0 | areverse,highpass=f=1200 |
 | halley_frost | Alexander Kopeikin - 100 kHz Designed Ice/ice, crack, ice block snapping-001.wav | 0.47 | 3.2 | 0 | 0 |  |
 | halley_frost | Alexander Kopeikin - 100 kHz Designed Ice/ice, movement, ice drift, ice field cracking up, initial, wide-001.wav | 74.0 | 3.2 | -3 | 0 | highpass=f=400 |
 | halley_frost | Epic Stock Media - Elemental Mutation Whooshes and Impacts/GLASMvmt_Whoosh Glass Crystal Fragments Sharp Shards Dry 05_ESM_EMWI.wav | 0.2 | 2.4 | -10 | 0.3 | highpass=f=3000 |
@@ -275,3 +278,18 @@ is first levelled to -20 LUFS). At: where the layer starts in our sound. Process
 | convergence_shatter | Cinematic Sound Design - Interface & Infographics/Interface Accept Glassy Snap.wav | 0 | 0.40 | -2 | 0 | asetrate=26460,aresample=44100 |
 | convergence_shatter | Epic Stock Media - Tower Defense Game/ICEBrk_Skill Freeze Whoosh Break Impact Layered Movement Shatter 03_ESM_TDG.wav | 0.15 | 2.0 | 0 | 0 |  |
 | convergence_shatter | Epic Stock Media - Elemental Mutation Whooshes and Impacts/GLASMvmt_Whoosh Glass Crystal Fragments Sharp Shards Dry 05_ESM_EMWI.wav | 0.4 | 1.7 | -3 | 0.06 | highpass=f=1500 |
+| halley_title | 344 Audio - Elemental Palette Designed Vol. 1/WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav | 0.05 | 0.32 | -7 | 0 | highpass=f=900,afade=t=in:d=0.2 |
+| halley_title | Cinematic Sound Design - User Interface/Button Arp Twinkle.wav | 0 | 1.3 | -3 | 0.28 | asetrate=55125,aresample=44100 |
+| halley_title | Cinematic Sound Design - Interface & Infographics/Interface Accept Glassy Snap.wav | 0 | 0.2 | -9 | 0.300 | asetrate=61740,aresample=44100 |
+| halley_title | Cinematic Sound Design - Interface & Infographics/Interface Accept Glassy Snap.wav | 0 | 0.2 | -9 | 0.365 | asetrate=66150,aresample=44100 |
+| halley_title | Cinematic Sound Design - Interface & Infographics/Interface Accept Glassy Snap.wav | 0 | 0.2 | -9 | 0.430 | asetrate=70560,aresample=44100 |
+| halley_title | Cinematic Sound Design - Interface & Infographics/Interface Accept Glassy Snap.wav | 0 | 0.2 | -9 | 0.495 | asetrate=74970,aresample=44100 |
+| halley_title | Cinematic Sound Design - Interface & Infographics/Interface Accept Glassy Snap.wav | 0 | 0.2 | -9 | 0.560 | asetrate=79380,aresample=44100 |
+| halley_title | Cinematic Sound Design - Interface & Infographics/Interface Accept Glassy Snap.wav | 0 | 0.2 | -9 | 0.625 | asetrate=83790,aresample=44100 |
+| halley_title | Epic Stock Media - Elemental Mutation Whooshes and Impacts/GLASMvmt_Whoosh Glass Crystal Fragments Sharp Shards Dry 05_ESM_EMWI.wav | 0.6 | 0.9 | -11 | 1.5 | highpass=f=3000,afade=t=in:d=0.3 |
+| luna_title_in | Alexander Kopeikin - 100 kHz Designed Ice/ice, crack, ice block snapping-001.wav | 0.48 | 0.4 | 0 | 0 | asetrate=24255,aresample=44100,lowpass=f=2500 |
+| luna_title_in | Alexander Kopeikin - 100 kHz Designed Ice/ice, crack, ice block snapping-001.wav | 0.98 | 0.4 | -2 | 0.08 | asetrate=22050,aresample=44100,lowpass=f=2500 |
+| luna_title_in | Epic Stock Media - HD Game Materials/METLImpt_Metal Old File Impact Tap Against Tire Iron Metallic Hit 01_ESM_HDGM.wav | 0.11 | 0.36 | -5 | 0 | asetrate=19845,aresample=44100 |
+| luna_title_in | Epic Stock Media - Synthesized Nature Loops and Sounds/FIREBurn_Loop Elements Fire Crackling Crunchy Flame Burn 03_ESM_SNLS.wav | 0 | 1.0 | -12 | 0.05 | highpass=f=1500,afade=t=in:d=0.1 |
+| luna_title_out | 344 Audio - Antique Books/PAPRMisc_Pile Of Antique Books Falling Over 8_344 Audio_Antiques - Books.wav | 0.85 | 0.75 | -2 | 0.03 | asetrate=30870,aresample=44100,lowpass=f=3000 |
+| luna_title_out | Alexander Kopeikin - 100 kHz Designed Ice/ice, crack, ice block snapping-001.wav | 1.85 | 0.35 | -6 | 0 | asetrate=26460,aresample=44100 |

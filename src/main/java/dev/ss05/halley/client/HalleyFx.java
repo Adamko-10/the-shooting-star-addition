@@ -58,6 +58,9 @@ public final class HalleyFx {
     private static final int HUM_EVERY = 100;
     /** 1.9.0: the inhale before the impact, as long as its sound (0.65 s), ending on it. */
     private static final int INHALE = 13;
+    /** 1.9.0: the HALLEY title card's sound, as the card comes in (FilmTitle.HALLEY_IN). */
+    private static final int TITLE_AT = 74;
+    private static final SoundEvent TITLE_SOUND = SoundEvent.createVariableRangeEvent(HalleyAddon.id("halley_title"));
     private static final SoundEvent INHALE_SOUND = SoundEvent.createVariableRangeEvent(HalleyAddon.id("halley_inhale"));
     /** Ticks the shock front takes to cross the land (as the server's blast and CometVisuals). */
     private static final int BLAST_TICKS = 36;
@@ -350,6 +353,10 @@ public final class HalleyFx {
         }
         if (t == HalleyPlan.SIGHT) {
             this.play(HalleyContent.SIGHT.get(), sky(camera, p.comet(t)), 1.0F, 1.0F, film);
+        }
+        if (t == TITLE_AT && film && HalleyClientConfig.titleCards()) {
+            // 1.9.0: the HALLEY title card streaking in and sublimating away (FilmTitle.halley)
+            this.play(TITLE_SOUND, camera, 1.0F, 1.0F, true);
         }
         if (t == APPROACH_SOUND) {
             this.follow(HalleyContent.APPROACH.get(), 1.4F, film, age -> age > HalleyPlan.TOUCHDOWN + 10 ? null : sky(camera(), p.comet(Math.min(age, HalleyPlan.TOUCHDOWN))));
