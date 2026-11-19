@@ -12,7 +12,40 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-19 ~22:30, Adam's PC): SA 1.9.0, three items next; polish 4 jar in his instance <<<
+### >>> RESUME HERE (2026-11-20 ~00:45, Adam's PC): SA 1.9.0, his three picks built; polish 5 jar in his instance <<<
+
+- **Built and game-tested 2026-11-20, main `e95a616`** (details in `docs/1.9.0-PLAN.md` "Extras"):
+  1. **Locked TON skills**: TA-01 · Last Light and TA-02 · Quasar Jets on the remote, locked, while TON 618 Addition
+     isn't loaded (`compat/tss/LockedSkill`, `LockedCard`, `OtherAddons`, icons `art/make_locked_icons.sh`). Seen in game
+     (`test scripts\autotest29.sh`, `test builds\2026-11-20 auto test 34 locked TON skills\`): both in the list with
+     padlock icons and "TON 618 Addition · locked", their cards tick what's installed, `/ssa strike` refuses them. Note:
+     the remote now has 12 skills (TSS 1.6.0 added SS-02 Meridian, so Halley is #7). **His instance has TON 618 Addition
+     enabled, so he sees its real skills there, not the locked ones** (correct). The reverse (TON 618 Addition listing
+     ours) is noted for the TON session in `C:\Users\adam_\Documents\Claude notes\INBOX.md`.
+  2. **Swappable music**: `config/shooting_star_addition/music/` (`luna.ogg` hit at 16.0 s, `luna_epic.ogg` 20.0 s,
+     `proxima.ogg` 22.5 s; README.txt made there when a world is joined), `StrikeMusic.getStream`. Tested
+     (`test scripts\autotest31.sh`, `test builds\2026-11-20 auto test 36 own music\`): a good file is picked up with no
+     error, a broken one logs a warning and ours plays. Not heard (Claude can't). README section "Your own music".
+  3. **Proxima's sky gate behind a pack's clouds**: painted at the frame's start onto two offscreen cards (cover = the
+     panels, light = everything with its alpha forced solid, because Complementary's sky program throws away see-through
+     pixels: the first try lost the ring and the disc), drawn in the sky pass, the light added twice (the pack squares
+     colours). Tested with Iris + Complementary (`test scripts\autotest30.sh`, `SET=3`, `test builds\2026-11-20 auto
+     test 35 proxima gate behind clouds\3\`): the flash, ring and disc show and clouds pass in front of them.
+- **In his `NeoForge 1.21.1 (1)` instance now**: `The Shooting Star Addition SA Series 1.9.0 polish 5 TEST [NeoForge
+  1.21.1].jar` (polish 4 `.disabled`; copy in `test builds\2026-11-19 1.9.0 settings menu (NeoForge 1.21.1)\`). Still
+  enabled there: TON 618 Addition `1.1.1 limits TEST`, `ton618-1.1.0-neoforge.jar`.
+- **He was at the PC during the tests** (2026-11-20 ~00:15: "i pressed e to exit the mc cuz it was in my face"): E
+  opened the creative inventory in the test game, which stalls the harness (it waits with a screen open); the stuck run
+  was stopped (only the test's own Gradle and game PIDs, checked by parent process), nothing of his touched. He then
+  said to run the tests anyway. Mind: test windows pop up in front of him; say so before running one.
+- **He asked what 1.9.0 brings** (answered 2026-11-20 ~00:20): the settings menu, Halley's bigger blast and polish,
+  Luna's build-up/Epic sync/sounds, the films, title cards on with sounds, Convergence's panel sounds and addon list,
+  everything behind a pack's clouds, the TON 618 HUD fix, the locked TON skills, swappable music.
+- **Next**: his test of polish 5 (Luna's new impact set too, and in-game listens), then the six ports, CI, the release
+  prompt for Codex (`docs/1.9.0-PLAN.md` step 5). Halley: no changes beyond bug fixes (his words); icon: leave it.
+
+
+### 2026-11-19 ~22:30 (Adam's PC): SA 1.9.0, three items next; polish 4 jar in his instance
 
 Written before a compaction (the user: "1 more thing, before all of that write claude md so i can compact").
 
