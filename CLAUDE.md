@@ -46,9 +46,11 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
 - **Porting (the user, 2026-11-20): "for porting, lets use gpt 6.2 astra for the easy ports"**: the easy ports go to
   his Codex app ("ChatGPT") on **GPT-6.2 Astra**, one `BRIEF.md` per branch worktree as for 1.8.0 (`ports\make-briefs.js`,
   two at a time, the usage-limit "continue" routine in the 1.8.0 notes below); Claude reviews each, builds the Forge
-  ones, CI for the Fabric ones. Proposed split (ask him): easy = forge-1.21.1 and fabric-1.21.1 (same Minecraft as
-  main), then forge-1.20.1 and fabric-1.20.1; Claude does fabric-1.21.11 and fabric-26.3 (their own render pipelines:
-  SkyPass, FilmSplit, the sky cards, by hand).
+  ones, CI for the Fabric ones. **His pick (2026-11-20, clickable: "Both 1.21.1 and 1.20.1")**: Astra ports
+  forge-1.21.1, fabric-1.21.1, forge-1.20.1 and fabric-1.20.1 (1.20.1: `mc1201` prefixes, `tags/entity_types/`,
+  Quasar's `mc1201` package in our two Quasar mixins, `StellarQuartet.REQUIRED` false); Claude does fabric-1.21.11 and
+  fabric-26.3 (their own render pipelines: SkyPass, FilmSplit, the sky cards, by hand). Only after his test of the
+  main version says it's good (his main-first rule): the briefs are written then, from main's final head.
 - **Next**: his test of polish 10 -> fixes -> the six ports -> one CI round -> `changelog_190.js`, the release prompt
   for Codex -> his OK -> a new session on this PC (below).
 
