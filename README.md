@@ -295,6 +295,7 @@ And your switches from the remote's menu (**H**), in the `[stellar_remote]` sect
 | `convergence`    | all but Gravitia | The weapons Stellar Convergence fires (**1-9** on its panel). |
 | `convergence_ring` | false | `true` = spread them in a ring round the crosshair (**R**). |
 | `convergence_shake` | CAPPED | Its camera shake: `CAPPED`, `FULL` or `OFF` (**X**). |
+| `convergence_film` | PANELS | Its film: `PANELS` (each weapon's shot frozen into a comic panel) or `SPLIT` (the screen split into a live part per weapon, each shaking in its colours) (**F**). |
 | `convergence_plate` | true  | Its panel shown in full (`false` folds it to its name; **V**). |
 | `convergence_plate_old` | false | Its panel's older look, always shown (**T**). |
 | `menu_plates`    | true    | Show this addon's settings plate and Stellar Convergence's plate in the remote's menu (**H**). `false` hides them and their keys; the settings still apply, edit them in this file. |

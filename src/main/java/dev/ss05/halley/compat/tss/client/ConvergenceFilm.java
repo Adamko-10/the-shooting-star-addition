@@ -7,6 +7,10 @@ import cyou.rimuru.rimulib.mc1211.client.cinematic.Shot;
 import cyou.rimuru.rimulib.mc1211.client.cinematic.Subject;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.client.FilmPanels;
+import dev.ss05.halley.client.FilmSplit;
+import dev.ss05.halley.client.HalleyClientConfig;
+import dev.ss05.halley.client.render.ShaderPacks;
+import dev.ss05.halley.compat.tss.Convergence;
 import dev.ss05.halley.client.film.FilmLand;
 import dev.ss05.halley.compat.tss.ConvergenceFx;
 import dev.ss05.halley.compat.tss.TssLink;
@@ -25,7 +29,9 @@ import net.minecraft.world.phys.Vec3;
  * turn round it while the sigil forms, then quick cuts to each weapon through its own film's camera (the films the
  * weapons would have played, held back by {@link ConvergenceClient}, keep running unseen and lend their cameras), each
  * shot freezing into a comic panel that slides into a grid ({@link FilmPanels}) until the screen is full; at the hit the
- * grid shatters onto a wide shot of everything landing at once.
+ * grid shatters onto a wide shot of everything landing at once. Or (1.9.0, a setting: F on its card) the split screen:
+ * for the montage the screen is split into a live part per weapon ({@link FilmSplit}), the camera visiting the weapons'
+ * cameras in turn, one a frame, each part keeping its weapon's last picture.
  */
 final class ConvergenceFilm {
     /** How long the film runs on after the hit. */
@@ -36,6 +42,10 @@ final class ConvergenceFilm {
     private static int montage;
     private static int[] colors = new int[0];
     private static boolean shattered;
+    /** The split screen this time (else the comic panels), and the weapon whose camera this frame shows in it. */
+    private static boolean split;
+    private static int visiting;
+    private static int framesHere;
 
     private ConvergenceFilm() {
     }
@@ -54,9 +64,13 @@ final class ConvergenceFilm {
         int n = Math.max(1, fx.colors().length);
         colors = fx.colors();
         shattered = false;
+        split = HalleyClientConfig.convergenceFilm() == HalleyClientConfig.ConvergenceFilm.SPLIT && fx.colors().length > 0;
+        visiting = 0;
+        framesHere = 0;
         hit = (int) Math.max(40, fx.hitAt() - minecraft.level.getGameTime());
-        // the cuts: about 14 ticks a weapon, in the last seconds before the hit
-        montage = Mth.clamp(n * 14, 40, Math.min(110, hit - 20));
+        // the cuts: about 14 ticks a weapon, in the last seconds before the hit (the split screen: a longer look at all
+        // of them at once)
+        montage = split ? Mth.clamp(60 + n * 12, 40, Math.min(160, hit - 20)) : Mth.clamp(n * 14, 40, Math.min(110, hit - 20));
         Vec3 target = fx.target();
         Vec3 look = minecraft.player.getLookAngle();
         Vec3 forward = new Vec3(look.x, 0.0, look.z).lengthSqr() < 1.0E-6 ? new Vec3(0.0, 0.0, 1.0) : new Vec3(look.x, 0.0, look.z).normalize();
@@ -99,12 +113,17 @@ final class ConvergenceFilm {
             Vec3 pos = target.add(Math.cos(a) * r, Mth.lerp(k, reach * 1.4, reach * 1.0), Math.sin(a) * r);
             return new CameraPose(FilmLand.keep(pos, s.feet(partial)), target.add(0.0, 4.0, 0.0), Mth.lerp(k, 62.0F, 70.0F), 0.0F);
         }));
-        // 3. each weapon through its own film's camera, in the order they were called
-        for (int i = 0; i < n; i++) {
-            int index = i;
-            int from = hit - montage + montage * i / n;
-            int to = hit - montage + montage * (i + 1) / n;
-            shots.add(Shot.cut(from, to, (s, partial, k) -> weaponCamera(index, partial, target, forward, reach, k)));
+        // 3. each weapon through its own film's camera, in the order they were called (the split screen: one shot, the
+        // camera visiting them in turn, one a frame)
+        if (split) {
+            shots.add(Shot.cut(hit - montage, hit, (s, partial, k) -> weaponCamera(visiting, partial, target, forward, reach, k)));
+        } else {
+            for (int i = 0; i < n; i++) {
+                int index = i;
+                int from = hit - montage + montage * i / n;
+                int to = hit - montage + montage * (i + 1) / n;
+                shots.add(Shot.cut(from, to, (s, partial, k) -> weaponCamera(index, partial, target, forward, reach, k)));
+            }
         }
         // 4. the hit, from high and wide, rising as everything lands at once
         shots.add(Shot.cut(hit, hit + AFTER, (s, partial, k) -> {
@@ -114,13 +133,35 @@ final class ConvergenceFilm {
                 Mth.lerp(k, 70.0F, 78.0F), 0.0F);
         }));
 
-        FilmPanels.begin(n);
+        FilmPanels.begin(split ? 0 : n);
+        if (split) {
+            FilmSplit.begin(fx.colors(), titles(fx.colors().length));
+        }
         FilmPanels.frame = ConvergenceFilm::frame;
         current = new Cutscene(subject, TssLink.CONVERGENCE.tier(), TssLink.CONVERGENCE.title(), TssLink.CONVERGENCE.color(), 0, shots)
             .hardCut()
             .fullFrame()
             .priority(3);
         CutsceneDirector.play(current);
+    }
+
+    /**
+     * The weapons this convergence fires, in the order the server took them (the player's ticked ones in the menu's order,
+     * Gravitia aside): their titles for the split screen's parts, or none if the count doesn't match what was sent.
+     */
+    private static List<String> titles(int count) {
+        List<String> titles = new ArrayList<>();
+        try {
+            java.util.List<String> ticked = HalleyClientConfig.convergence();
+            for (cyou.rimuru.rimulib.mc1211.skill.Skill skill : ConvergencePlate.weapons()) {
+                if (ticked.contains(skill.id()) && !Convergence.finale(skill)) {
+                    titles.add(skill.title());
+                }
+            }
+        } catch (RuntimeException | LinkageError ignored) {
+            titles.clear();
+        }
+        return titles.size() == count ? titles : List.of();
     }
 
     /** Weapon {@code i}'s own film's camera now, or (before it has one) a low look up from beside the mark. */
@@ -158,6 +199,24 @@ final class ConvergenceFilm {
         int h = g.guiHeight();
         float t = current.time(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true));
         int n = colors.length;
+        if (split) {
+            // this frame showed weapon "visiting": keep it as that part's picture, then on to the next (after two frames
+            // with a shader pack, whose smoothing over frames needs one to settle on the new camera)
+            if (t >= hit - montage && t < hit) {
+                framesHere++;
+                if (framesHere >= (ShaderPacks.active() ? 2 : 1)) {
+                    FilmSplit.capture(visiting);
+                    visiting = (visiting + 1) % Math.max(1, FilmSplit.count());
+                    framesHere = 0;
+                }
+            }
+            if (!shattered && t >= hit) {
+                shattered = true;
+                sound("convergence_shatter", 1.0F);
+            }
+            FilmSplit.draw(g, w, h, t, hit - montage, hit);
+            return;
+        }
         int next = FilmPanels.frozen();
         // the last frame of weapon "next"'s shot: freeze it before the cut
         if (next < n && t >= hit - montage + montage * (next + 1) / (float) n - 1.0F) {
@@ -184,5 +243,7 @@ final class ConvergenceFilm {
         current = null;
         FilmPanels.frame = null;
         FilmPanels.clear();
+        FilmSplit.clear();
+        split = false;
     }
 }

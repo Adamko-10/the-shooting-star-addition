@@ -35,6 +35,8 @@ public final class ConvergencePlate {
     private static final int PAGE = 9;
     private static final int KEY_RING = 82;
     private static final int KEY_SHAKE = 88;
+    /** F: the film's style (only while this card shows; on Halley's and Luna's cards F is their impact frames). */
+    private static final int KEY_FILM = 70;
     private static final int ROW = 13;
 
     /** The addons Convergence knows (docs/ADDONS.md): a name, and the remote skill ids that mean it is installed. */
@@ -44,6 +46,7 @@ public final class ConvergencePlate {
     private static final Addon[] ADDONS = {
         new Addon("SS-21 Quasar", "quasar"),
         new Addon("SX-01 Solar Flare", "solar_flare"),
+        new Addon("SS-22 Hyperion", "hyperion"),
         new Addon("TON 618 Addition", "quasar_jets", "last_light")
     };
 
@@ -100,6 +103,11 @@ public final class ConvergencePlate {
         }
         if (key == KEY_SHAKE) {
             HalleyClientConfig.setConvergenceShake(HalleyClientConfig.convergenceShake().next());
+            AdditionPanel.click(true);
+            return true;
+        }
+        if (key == KEY_FILM) {
+            HalleyClientConfig.setConvergenceFilm(HalleyClientConfig.convergenceFilm().next());
             AdditionPanel.click(true);
             return true;
         }
@@ -188,7 +196,7 @@ public final class ConvergencePlate {
         int whereTop = listTop + (pages > 1 ? PAGE : shown.size()) * ROW + 6;
         // 1.9.0: each setting with its explanation under it (as on the other cards)
         int line = ROW + 9;
-        int addonsTop = whereTop + 2 * line + 6;
+        int addonsTop = whereTop + 3 * line + 6;
         int h = addonsTop - top + 12 + (ADDONS.length + 1) * 12 + 4 + 24;
 
         AdditionPanel.plate(g, 2, top + 3, w + 2, top + h + 3, 0x26000000);
@@ -243,6 +251,13 @@ public final class ConvergencePlate {
             + HalleyClientConfig.convergenceShake().name().toLowerCase(Locale.ROOT));
         g.drawString(font, shake, w - 26 - font.width(shake), whereTop + line + 1, 0xFF000000 | AdditionPanel.GOLD, false);
         AdditionPanel.describe(g, font, whereTop + line, "convergence.shake");
+        g.drawString(font, Component.translatable("gui.shooting_star_addition.convergence.film"), 11, whereTop + 2 * line + 1,
+            0xFF000000 | AdditionPanel.INK, false);
+        AdditionPanel.keyCap(g, font, w - 22, whereTop + 2 * line, "F", true);
+        Component film = Component.translatable("gui.shooting_star_addition.convergence.film."
+            + HalleyClientConfig.convergenceFilm().name().toLowerCase(Locale.ROOT));
+        g.drawString(font, film, w - 26 - font.width(film), whereTop + 2 * line + 1, 0xFF000000 | AdditionPanel.GOLD, false);
+        AdditionPanel.describe(g, font, whereTop + 2 * line, "convergence.film");
         g.fill(11, addonsTop - 4, w - 10, addonsTop - 3, 0xFF000000 | AdditionPanel.RULE);
 
         // which addons it can fire, installed or missing (Stellar Quartet unlocks it rather than firing)

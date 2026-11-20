@@ -44,6 +44,7 @@ public final class HalleyClientConfig {
     private static final ModConfigSpec.BooleanValue PLATES_FOLDED;
     private static final ModConfigSpec.BooleanValue LESS_USED_OPEN;
     private static final ModConfigSpec.EnumValue<ConvergenceShake> CONVERGENCE_SHAKE;
+    private static final ModConfigSpec.EnumValue<ConvergenceFilm> CONVERGENCE_FILM;
     /** What Stellar Convergence fires out of the box: every weapon but Gravitia (which only the menu chooses). */
     private static final List<String> CONVERGENCE_DEFAULT = List.of("the_shooting_star", "gungnir", "seven_stars", "tesseract", "halley", "luna", "proxima");
 
@@ -58,6 +59,18 @@ public final class HalleyClientConfig {
         }
 
         public ImpactFrames next() {
+            return values()[(this.ordinal() + 1) % values().length];
+        }
+    }
+
+    /**
+     * Stellar Convergence's film (F on its card; 1.9.0, Adam's pick: a setting): PANELS = each weapon's shot frozen into
+     * a comic panel in turn; SPLIT = the screen split into a live part per weapon (his idea of 2026-11-05).
+     */
+    public enum ConvergenceFilm {
+        PANELS, SPLIT;
+
+        public ConvergenceFilm next() {
             return values()[(this.ordinal() + 1) % values().length];
         }
     }
@@ -140,6 +153,10 @@ public final class HalleyClientConfig {
         CONVERGENCE_SHAKE = b.comment("The screen shake while a Stellar Convergence is on its way and for 20 s after it hits: CAPPED (no",
                 "stronger than one big weapon's, though every weapon shakes), FULL (every weapon's added up) or OFF. X in the remote's menu.")
             .defineEnum("convergence_shake", ConvergenceShake.CAPPED);
+        CONVERGENCE_FILM = b.comment("Stellar Convergence's film: PANELS (each weapon's shot frozen into a comic panel, the grid shattering",
+                "as they hit) or SPLIT (the screen split into a live part for each weapon, each shaking in its colours). F in the",
+                "remote's menu, on Stellar Convergence's card.")
+            .defineEnum("convergence_film", ConvergenceFilm.PANELS);
         MENU_PLATES = b.comment("The addon's plates in the remote's menu (its settings, and Stellar Convergence's): false hides them and",
                 "their keys. The settings above still apply; change them in this file.")
             .define("menu_plates", true);
@@ -351,6 +368,14 @@ public final class HalleyClientConfig {
 
     public static void setConvergenceShake(ConvergenceShake shake) {
         set(CONVERGENCE_SHAKE, shake);
+    }
+
+    public static ConvergenceFilm convergenceFilm() {
+        return get(CONVERGENCE_FILM);
+    }
+
+    public static void setConvergenceFilm(ConvergenceFilm film) {
+        set(CONVERGENCE_FILM, film);
     }
 
     /** Sets and saves a switch (kept for this session if the config isn't loaded). */
