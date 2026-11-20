@@ -12,7 +12,39 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-20 ~15:10, Adam's PC): SA 1.9.0 + his three extras built; polish 7 jar in his instance <<<
+### >>> RESUME HERE (2026-11-20 ~16:00, Adam's PC): split screen reworked; polish 8 jar NOT yet in his instance (he was playing) <<<
+
+- **His test of the split screen (2026-11-20 afternoon)**: "make it say somewhere in a good spot that u can right click to
+  see a description of the skill youre hovering over and make live view better and last longer cuz it doesnt last logn
+  enough and catches other skills ... u cant evens ee the skill that its supposed to be in the split screen, also its
+  really low fps". **Done, `12dd43f`** (game-tested in his setup, `test builds\2026-11-20 auto test 37 his setup polish
+  5\convergence3\`, and Luna + Proxima alone, `...auto test 38 ...\split-debug\`):
+  - the general plate ends with a gold line "Right-click a skill in the list to read what it does." (RimuLib's menu
+    shows a skill's description on a right click);
+  - **one part live at a time, in turn**: the camera stays on it (nearly every frame kept; every 4th or so refreshes
+    another part), LIVE tag + full border, others dimmed 22% and drifting; split montage 100 + 30 per weapon, up to 320
+    ticks;
+  - **each part frames its own weapon** (`ConvergenceFilm.splitCamera`): Halley's comet, Luna's moon, Proxima's gate
+    then its bowl, zoomed to fit; other mods' weapons through their film camera only while it's in the world (else a
+    look at their landing spot: TSS's space shots are drawn in its own film pass, grey here);
+  - **parts matched to weapons by colour** (`ConvergenceFilm.skills(int[] colors)`, `heldFilm`): in ring mode the
+    server sorts the weapons, which had mixed up names, borders and cameras (the PANELS style borrowed the wrong held
+    films' cameras the same way: fixed too);
+  - Proxima's sky gate shows while a convergence holds its film (`!ConvergenceView.any()` in its film check), and with a
+    pack it is painted for this frame's camera (`client/render/FilmEye`, set by the split screen).
+  - Known: in ring mode a weapon landing far out over unloaded land gets its camera pulled back toward the caster
+    (`FilmLand.keep`), so it's framed from further away (Proxima's gate wasn't seen in his-setup run 3).
+- **He was playing when the last check started** (~15:50; javaw `Minecraft NeoForge* 1.21.1 - Singleplayer`): the test
+  was stopped at once (only its own 3 processes, by PID, after listing their parents; a broad kill was blocked by the
+  auto-mode classifier: list first, then stop exact PIDs). **Always check `Get-Process javaw` before every test run**
+  (tasklist's output was misread once: its header alone means a match).
+- **The polish 8 jar** (`12dd43f`) is in `test builds\2026-11-19 1.9.0 settings menu (NeoForge 1.21.1)\` only; **not
+  in his instance yet** (his game was running): swap it in (polish 7 `.disabled`) once he has closed the game.
+- **TON session**: also fixed TA-01/TA-02's default keys (TON main `ba14264`); his four TON keys are saved unbound:
+  he resets them in Controls.
+
+
+### 2026-11-20 ~15:10 (Adam's PC): SA 1.9.0 + his three extras built; polish 7 jar in his instance
 
 - **Tested 2026-11-20 in a copy of his setup** (`test scripts\autotest32.sh`: Iris + Complementary, legacy films, his
   client config, TON 618, TON 618 Addition (whichever jar is enabled in his instance), SS-21 Quasar, Stellar Quartet;
