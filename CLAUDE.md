@@ -12,7 +12,44 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-20 ~00:45, Adam's PC): SA 1.9.0, his three picks built; polish 5 jar in his instance <<<
+### >>> RESUME HERE (2026-11-20 ~15:10, Adam's PC): SA 1.9.0 + his three extras built; polish 7 jar in his instance <<<
+
+- **Tested 2026-11-20 in a copy of his setup** (`test scripts\autotest32.sh`: Iris + Complementary, legacy films, his
+  client config, TON 618, TON 618 Addition (whichever jar is enabled in his instance), SS-21 Quasar, Stellar Quartet;
+  `test builds\2026-11-20 auto test 37 his setup polish 5\`): the menu lists 13 skills with TON 618 Addition's real
+  ones (no locked copies); Halley's, Proxima's (space part shows with TON 618) and Luna's films all draw; no errors.
+  **Found and fixed**: Stellar Convergence's card held only 9 weapons (TSS 1.6.0's six + SS-21 + TON's two pushed
+  Halley, Luna and Proxima off, and ticked weapons past the ninth were never sent): pages of nine, **0 turns the page**
+  (`4dda965`).
+- **His extras (2026-11-20, clickable: "NASA's Earth in Proxima, SS-22 Hyperion in Convergence, Convergence
+  split-screen look"; downloads OK'd: NASA `Earth_1_12756.glb` 12.3 MB into `art sources\nasa\earth 3d model (2023)\`,
+  Hyperion 1.9.8 NeoForge 1.21.1 (CurseForge file 9682531) into `other mods\hyperion\`), `9a44a49`:**
+  - **NASA's Earth: not used** (same Blue Marble at the same sharpness, a cube map 1024 a face, a normal map, no clouds,
+    lights or shine; ours has those). Reply for dgadnecplayer: `..\announcements\CurseForge replies (2026-11-20).md`.
+  - **SS-22 Hyperion**: `ADDON_IMPACT` 240 (its sun hits on its clock's tick 240), reach 80; in the card's addon list;
+    `docs/ADDONS.md` row. It aims by itself (Convergence's ring and `/ssa strike ... at` don't move it). Default key M.
+    **SS-02 Meridian** (TSS 1.6.0) also timed: 213 ticks, reach 968 (`test scripts\autotest33.sh` + a temporary
+    `compat/mixin/DebugCarvingMixin` and a "[TIMING] cast" line in `StrikeCommand`, both removed, never committed; the
+    recipe is in §18). Seen in game: Convergence with Railgun, Halley, Luna, Proxima, Hyperion: "proxima+0, hyperion+270".
+  - **Split-screen film** (his pick: "A setting: pick the look"): client config `convergence_film` PANELS/SPLIT, **F on
+    Convergence's card**; `client/FilmSplit` + `ConvergenceFilm` (split = one shot whose camera visits the weapons one a
+    frame, two with a shader pack; each part keeps its weapon's last picture; montage 60 + 12 per weapon, up to 160
+    ticks; parts shaking, a half border running round in the weapon's colour, code/name/countdown, the banner under
+    the parts; flung apart at the hit). Game-tested without a pack (5 weapons) and with Complementary in his setup (4):
+    `test builds\2026-11-20 auto test 38 meridian hyperion timing\split\`, `...auto test 37 his setup polish 5\
+    convergence\`. Halley's part is mostly pale sky at that point of its film (its camera's view then).
+- **TON 618 Addition bug report** (a player on Discord, 2026-11-20: H menu in TON 618's dark, "quasar addition doesnt
+  work"): handled by [TON 618 Addition: H menu in the dark, Quasar bug](#local_95015445-e06a-4ce4-9a06-0d66d7ddd00e):
+  not reproducible with the newest versions; TON's dark hid the action bar (the "can't cast here" lines), fixed on TON
+  main `1331305`; TEST jar `TON 618 Addition 1.1.1 dark HUD and keys fix TEST` in his instance; reply for the player in
+  TON's `test builds\2026-11-20 player report, menu in the dark\`. Details in TON's CLAUDE.md.
+- **In his `NeoForge 1.21.1 (1)` instance now**: `The Shooting Star Addition SA Series 1.9.0 polish 7 TEST [NeoForge
+  1.21.1].jar` (polish 6 `.disabled`). Hyperion isn't in his instance (on CurseForge if he wants it).
+- **Next**: his test of polish 7 (split screen: F on Convergence's card; pages with 0; Luna's new impact set; his own
+  music), then the six ports, CI, the release prompt for Codex (`docs/1.9.0-PLAN.md` step 5).
+
+
+### 2026-11-20 ~00:45 (Adam's PC): SA 1.9.0, his three picks built; polish 5 jar in his instance
 
 - **Built and game-tested 2026-11-20, main `e95a616`** (details in `docs/1.9.0-PLAN.md` "Extras"):
   1. **Locked TON skills**: TA-01 · Last Light and TA-02 · Quasar Jets on the remote, locked, while TON 618 Addition
