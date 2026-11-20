@@ -12,37 +12,45 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-20 ~21:00, Adam's PC): his polish 9 feedback + Luna's old sounds, to build next <<<
-
-Written before a compaction (the user: "also for luna i prefer the other sfx like pre rework ... also wrtie clauyde md
-so i compact").
+### >>> RESUME HERE (2026-11-20 ~20:10, Adam's PC): polish 10 in his instance for his test; then the six ports <<<
 
 - **His test of polish 9 (2026-11-20 evening)**, his words: "still laggy but some of them feel better, luna appears in
   almost every view and the view disappears a littleearly still / also quasar still makes the thing look like this, if
   u cant fix this this time around we can leave it for fable to figure out / also make it more clear u can switch pages
-  in the stellar convergence / also gravitia activated very late imo" (screenshot: SS-21 Quasar's dark space scene, a
-  blue jet line and a star, over the whole screen during Convergence's film, "[J] skip"). Then: "for luna i prefer the
-  other sfx like pre rework and all, like the one where it was a big boom".
-- **To do now, in order** (nothing of it built yet; polish 9 = `c152c1e` is in his instance):
-  1. **Luna's old impact sounds back**: restore from 1.8.3 (`git checkout 66b19f4 -- <file>`) the ten files changed
-     since: `luna_impact`, `luna_shockwave`, `luna_settle`, `luna_aftershock`, `luna_aftershock_2`, `luna_sizzle`,
-     `luna_debris`, `luna_debris_2`, `luna_debris_3`, `luna_inhale` (all `.ogg` in `assets/shooting_star_addition/
-     sounds/`; check `sounds.json` and `MoonFx.forMode`: the Epic-mode `luna_epic_*` set stays as it is). docs/SOUNDS.md.
-  2. **SS-21 Quasar's scene over our film**: it draws from its own mixin at `Gui.render` HEAD, calling the static
-     `dev.ss21.quasar.mc1211.client.QuasarHud.render(GuiGraphics, float)`; a `@Pseudo` mixin cancelling it at HEAD while
-     `ConvergenceFilm` plays (a public `playing()`), in `shooting_star_addition.tss.mixins.json` client. If that can't
-     work: leave it for Fable (his words).
-  3. **The split screen ends too early**: keep it ~40 ticks past the hit (`SPLIT_AFTER`), the wide shot after it;
-     `splitting()`, the live window, the `FilmEye` supplier, the shatter; `FilmSplit.draw` with the impact and the end
-     apart (countdown and banner read the impact).
-  4. **"Luna appears in almost every view"**: most likely the PANELS style (the per-weapon filter is only in SPLIT):
-     give each panel's freeze the same `FilmView.only` / `onlySkill` filter.
-  5. **Pages clearer** on Convergence's card: a gold bar under the rows like `AdditionPanel.lessUsedBar` ("Page 1 of 2:
-     press 0 for the next nine"), and the hint says 0.
-  6. **Gravitia sooner**: `Convergence.FINALE_MIN` 100 -> 60, `FINALE_MAX` 1200 -> 240.
-  7. Build, a polish 10 jar into his instance (check `Get-Process javaw` first), docs, this file.
-- Still after that: the six ports, CI, `changelog_190.js`, the release prompt for Codex, his OK, then a new session on
-  this PC (below).
+  in the stellar convergence / also gravitia activated very late imo" (screenshot: a dark scene, a blue jet line and a
+  star, "[J] skip"). Then: "for luna i prefer the other sfx like pre rework and all, like the one where it was a big
+  boom".
+- **Done, polish 10** (main `3e6c74d` + `fa47d48`, nothing pushed):
+  - **Luna's impact and everything after it = 1.8.3's again** (`git checkout 66b19f4`: luna_impact, luna_shockwave,
+    luna_settle, luna_aftershock x2, luna_sizzle, luna_debris x3, both modes); the louder 1.9.0 `luna_inhale` and Epic
+    mode's fall kept. docs/SOUNDS.md says: don't re-run the Luna impact recipes of `art/sonniss_sounds.sh` into src.
+  - **Quasar**: his screenshot was two things. (1) SS-21 Quasar's space shot is a full-screen post effect of its own
+    `QuasarFx` (its own effect engine, not TSS's FxManager), switched on by `filmWeight()`; its film is held but keeps
+    running, so it thought it was filmed: `compat/mixin/QuasarFxMixin` returns 0 there while our film plays
+    (`FilmView.filmPlaying`, set every frame by the film); `QuasarHudMixin` skips its HUD (countdown/titles) too.
+    Quasar's part now shows the world. (2) In ring mode Quasar's reach made the ring huge, so the wide shot's camera
+    was ~1000 blocks out, past the render distance: only the sky and its jet. The far shots now stay within 75% of
+    the render distance (`ConvergenceFilm.within`). Seen: the wide shot shows Quasar's jet, rings and cracks on the
+    ground (`test builds\2026-11-20 auto test 37 his setup polish 5\convergence-polish10-quasar3\`). Both mixins
+    target `dev.ss21.quasar.mc1211.client.*` (pseudo, `remap = false`): on the 1.20.1 ports the package is `mc1201`.
+  - **Split screen 40 ticks past the hit** (`SPLIT_AFTER`): the parts show "IMPACT" and the weapons landing, then
+    fly apart onto the wide shot. 92-100 fps in his setup with 5 weapons incl. Quasar, slowest frame 37-62 ms.
+  - **"Luna in every view"**: the sky's look (`HalleySky.update`) now follows the part too, and `FilmView` is set
+    before it (`HalleyClient.frameStart`); the panels style filters each panel's shot like the split screen.
+  - **Pages**: a gold breathing bar under the card's list (`AdditionPanel.goldBar`, shared with the Less used bar):
+    "MORE WEAPONS: PAGE 2 · 4 more, press [0]" / "BACK TO PAGE 1".
+  - **Gravitia**: `FINALE_MIN` 60, `FINALE_MAX` 240 (3 s to 12 s after the hit; were 5 s to 60 s).
+- **In his instance now**: `The Shooting Star Addition SA Series 1.9.0 polish 10 TEST [NeoForge 1.21.1].jar` (polish 9
+  `.disabled`; copy in `test builds\2026-11-19 1.9.0 settings menu (NeoForge 1.21.1)\`). Not seen in a test: the pages
+  bar (his setup has 13 skills, one page), Luna's sounds (Claude can't hear), Gravitia's timing.
+- **Porting (the user, 2026-11-20): "for porting, lets use gpt 6.2 astra for the easy ports"**: the easy ports go to
+  his Codex app ("ChatGPT") on **GPT-6.2 Astra**, one `BRIEF.md` per branch worktree as for 1.8.0 (`ports\make-briefs.js`,
+  two at a time, the usage-limit "continue" routine in the 1.8.0 notes below); Claude reviews each, builds the Forge
+  ones, CI for the Fabric ones. Proposed split (ask him): easy = forge-1.21.1 and fabric-1.21.1 (same Minecraft as
+  main), then forge-1.20.1 and fabric-1.20.1; Claude does fabric-1.21.11 and fabric-26.3 (their own render pipelines:
+  SkyPass, FilmSplit, the sky cards, by hand).
+- **Next**: his test of polish 10 -> fixes -> the six ports -> one CI round -> `changelog_190.js`, the release prompt
+  for Codex -> his OK -> a new session on this PC (below).
 
 ### 2026-11-20 ~19:30 (Adam's PC): SA 1.9.0 built, polish 9 in his instance for his test; then ports, release, a new session
 
