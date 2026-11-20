@@ -92,6 +92,9 @@ final class ConvergenceFilm {
             spread = Math.max(spread, Math.hypot(point.x - target.x, point.z - target.z));
         }
         double reach = Math.max(40.0, spread * 1.2 + 30.0);
+        // the far shots stay within the render distance (a wide ring put the camera ~1000 blocks out, where only the sky
+        // and SS-21 Quasar's sky-high jet were left: Adam's polish 8 and 9 screenshots)
+        double far = Math.max(96.0, minecraft.options.getEffectiveRenderDistance() * 16.0 * 0.75);
         Subject subject = new Subject() {
             @Override
             public Vec3 feet(float partial) {
@@ -122,7 +125,7 @@ final class ConvergenceFilm {
         shots.add(Shot.sweep(intro, hit - montage, 8, (s, partial, k) -> {
             double a = Math.atan2(-forward.z, -forward.x) + Math.toRadians(Mth.lerp(k, -40.0, 50.0));
             double r = reach * 1.9;
-            Vec3 pos = target.add(Math.cos(a) * r, Mth.lerp(k, reach * 1.4, reach * 1.0), Math.sin(a) * r);
+            Vec3 pos = within(target, new Vec3(Math.cos(a) * r, Mth.lerp(k, reach * 1.4, reach * 1.0), Math.sin(a) * r), far);
             return new CameraPose(FilmLand.keep(pos, s.feet(partial)), target.add(0.0, 4.0, 0.0), Mth.lerp(k, 62.0F, 70.0F), 0.0F);
         }));
         // 3. each weapon through its own film's camera, in the order they were called (the split screen: one shot, the
@@ -150,7 +153,7 @@ final class ConvergenceFilm {
         int wide = split ? hit + SPLIT_AFTER : hit;
         shots.add(Shot.cut(wide, wide + AFTER, (s, partial, k) -> {
             Vec3 back = forward.scale(-reach * 2.2);
-            Vec3 pos = target.add(back).add(0.0, Mth.lerp(k, reach * 1.3, reach * 2.0), 0.0);
+            Vec3 pos = within(target, back.add(0.0, Mth.lerp(k, reach * 1.3, reach * 2.0), 0.0), far);
             return new CameraPose(FilmLand.keep(pos, s.feet(partial)), target.add(0.0, Mth.lerp(k, 8.0, 0.0), 0.0),
                 Mth.lerp(k, 70.0F, 78.0F), 0.0F);
         }));
@@ -171,6 +174,12 @@ final class ConvergenceFilm {
             .fullFrame()
             .priority(3);
         CutsceneDirector.play(current);
+    }
+
+    /** {@code target} moved by {@code offset}, the offset shortened to {@code far} at most. */
+    private static Vec3 within(Vec3 target, Vec3 offset, double far) {
+        double length = offset.length();
+        return target.add(length > far ? offset.scale(far / length) : offset);
     }
 
     /**
