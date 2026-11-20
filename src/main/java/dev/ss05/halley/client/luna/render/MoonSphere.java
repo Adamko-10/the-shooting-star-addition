@@ -114,7 +114,9 @@ public final class MoonSphere {
         Vec3 drawCentre = camera.add(dir.scale(distance));
 
         Vec3 axis = new Vec3(-p.travel.z, 0.0, p.travel.x);
-        float flicker = 0.85F + 0.15F * (float) Math.sin(t * 1.7 + (p.seed & 0xFF));
+        // its molten cracks flicker while it falls and settle down as it comes to rest (1.9.0, Adam: after landing its
+        // texture "starts flashing like the burny texture": the flicker, ~5 a second, never stopped)
+        float flicker = 0.85F + 0.15F * (float) (1.0 - MoonPlan.settle(t)) * (float) Math.sin(t * 1.7 + (p.seed & 0xFF));
         float approach = (float) MoonPlan.fall(t);
         int handover = fx.handoverAt();
         float cooling = handover < 0 ? 0.0F : (float) Mth.clamp(1.0 - (t - handover) / MoonFx.COOLING_TICKS, 0.0, 1.0);

@@ -154,7 +154,7 @@ public final class HalleyClientConfig {
                 "stronger than one big weapon's, though every weapon shakes), FULL (every weapon's added up) or OFF. X in the remote's menu.")
             .defineEnum("convergence_shake", ConvergenceShake.CAPPED);
         CONVERGENCE_FILM = b.comment("Stellar Convergence's film: PANELS (each weapon's shot frozen into a comic panel, the grid shattering",
-                "as they hit) or SPLIT (the screen split into a live part for each weapon, each shaking in its colours). F in the",
+                "as they hit) or SPLIT (experimental, heavy on big setups: the screen split into a live part for each weapon). F in the",
                 "remote's menu, on Stellar Convergence's card.")
             .defineEnum("convergence_film", ConvergenceFilm.PANELS);
         MENU_PLATES = b.comment("The addon's plates in the remote's menu (its settings, and Stellar Convergence's): false hides them and",
