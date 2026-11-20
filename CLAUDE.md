@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+### >>> 2026-11-20: porting 1.9.0 to this branch (fabric-26.3) <<<
+
+This branch is at the 1.8.3 release. **1.9.0 is finished on main** (NeoForge 1.21.1) and comes here next. The whole
+state and the steps are in main's CLAUDE.md, section "START HERE: a fresh session"
+(`C:\Users\adam_\Documents\Shooting Star Addition\the-shooting-star-addition\CLAUDE.md`). The port itself follows this
+folder's `BRIEF.md` once it is written (git-excluded, as are `REPORT.md` and `CHECK.md`). Adam's 2026-11-20 plan: his
+Codex app on GPT-6.2 Astra ports and tests, Claude reviews. Never push or `git stash` here; work-in-progress CI goes to
+`wip/fabric-26.3` with `dev/ci/push-wip.sh fabric-26.3 port/fabric-26.3` from this folder. The sections below are this branch's older
+notes and main's history at the time of the last port.
+
 ### Fabric 26.3 port handoff (2026-11-09)
 
 The local `port/fabric-26.3` branch now carries 1.8.0 from `604fb06`, ported in `be16496`.
