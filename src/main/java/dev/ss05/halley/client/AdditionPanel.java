@@ -301,7 +301,7 @@ public final class AdditionPanel {
                 ? "gui.shooting_star_addition.no_cooldown.everyone" : "gui.shooting_star_addition.no_cooldown.creative"));
             statusColor = INK;
         }
-        int h = 26 + 6 * LINE + 14;
+        int h = 26 + 6 * LINE + 14 + 13;
         plate(g, 2, 3, w + 2, h + 3, 0x26000000);
         plate(g, 0, 0, w, h, 0xF4000000 | PLATE);
         g.fill(0, 2, 3, h - 2, 0xFF000000 | GOLD);
@@ -327,6 +327,10 @@ public final class AdditionPanel {
         row(g, font, y, "no_cooldown", "C", cooldownOff, allowed, w);
         y += LINE;
         g.drawString(font, status, 11, y, 0xFF000000 | statusColor, false);
+        // 1.9.0 (Adam: "make it say somewhere in a good spot that u can right click to see a description of the skill"):
+        // RimuLib's menu shows a skill's description on a right click, which its own hint bar only mentions in passing
+        g.fill(11, y + 11, w - 10, y + 12, 0xFF000000 | RULE);
+        g.drawString(font, Component.translatable("gui.shooting_star_addition.right_click"), 11, y + 15, 0xFF000000 | GOLD, false);
         return h;
     }
 

@@ -167,7 +167,7 @@ public final class ProximaCosmos {
         ProximaFx fx = ProximaFx.active().getLast();
         float partial = event.getPartialTick().getGameTimeDeltaPartialTick(true);
         double t = fx.time(partial) / 20.0;
-        if (fx.plan.params.natural() || fx.filmWeight() > 0.5F || t < T_LENS - 0.3 || t > T_FLASH + 0.5) {
+        if (fx.plan.params.natural() || fx.filmWeight() > 0.5F && !dev.ss05.halley.client.ConvergenceView.any() || t < T_LENS - 0.3 || t > T_FLASH + 0.5) {
             return;
         }
         Vec3 gate = gatePosition(fx.plan);
@@ -257,11 +257,11 @@ public final class ProximaCosmos {
         }
         ProximaFx fx = ProximaFx.active().getLast();
         double t = fx.time(partial) / 20.0;
-        if (fx.plan.params.natural() || fx.filmWeight() > 0.5F || t < T_LENS - 0.3 || t > T_FLASH + 0.5) {
+        if (fx.plan.params.natural() || fx.filmWeight() > 0.5F && !dev.ss05.halley.client.ConvergenceView.any() || t < T_LENS - 0.3 || t > T_FLASH + 0.5) {
             return;
         }
         Vec3 gate = gatePosition(fx.plan);
-        Vec3 eye = minecraft.gameRenderer.getMainCamera().getPosition();
+        Vec3 eye = dev.ss05.halley.client.render.FilmEye.or(minecraft.gameRenderer.getMainCamera().getPosition());
         // the gate and its flash wholly above the clouds
         if (!dev.ss05.halley.client.render.SkyPass.above(eye, gate.y - SKY_GATE_RADIUS * 1.6)) {
             return;

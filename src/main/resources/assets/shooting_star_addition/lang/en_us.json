@@ -124,6 +124,7 @@
   "gui.shooting_star_addition.no_cooldown.not_survival": "Creative only here: no_cooldown_survival is off.",
   "gui.shooting_star_addition.no_cooldown.disabled": "Off here: no_cooldown in shooting_star_addition-common.toml.",
   "gui.shooting_star_addition.no_cooldown.unknown": "This server doesn't run the addon.",
+  "gui.shooting_star_addition.right_click": "Right-click a skill in the list to read what it does.",
   "gui.shooting_star_addition.no_cooldown.careful": "Careful: the strongest skills, back to back.",
   "gui.shooting_star_addition.toggled": "%s: %s",
   "gui.shooting_star_addition.panel.short": "SA Series",

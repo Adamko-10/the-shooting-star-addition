@@ -48,6 +48,8 @@ public final class FilmSplit {
 
     private static final List<Pane> PANES = new ArrayList<>();
     private static final List<TextureTarget> FRAMES = new ArrayList<>();
+    /** The part shown live now (the camera stays on it), or -1. */
+    private static int live = -1;
 
     private FilmSplit() {
     }
@@ -66,6 +68,11 @@ public final class FilmSplit {
 
     public static int count() {
         return PANES.size();
+    }
+
+    /** Which part is live now (it gets a full border and a LIVE tag; the others are dimmed a little). */
+    public static void live(int i) {
+        live = i;
     }
 
     /** Keeps the frame now on the screen as part {@code i}'s picture (at the end of the frame, before the split is drawn). */
@@ -153,13 +160,30 @@ public final class FilmSplit {
             float hh = rowH * 0.5F;
             Pane pane = PANES.get(i);
             TextureTarget frame = FRAMES.get(i);
+            boolean isLive = i == live;
             fill(g, -hw, -hh, hw, hh, argb(0x0B0D18, alpha));
             if (frame != null) {
-                image(g, frame, -hw, -hh, hw, hh, cellW / rowH, alpha);
+                // a held picture drifts in slowly, so it keeps moving between its refreshes
+                float drift = isLive ? 1.0F : 1.0F + 0.04F * (float) Math.sin(now * 0.05F + i * 1.7F) * 0.5F + 0.02F;
+                image(g, frame, -hw, -hh, hw, hh, cellW / rowH, drift, alpha);
+            }
+            if (!isLive && live >= 0) {
+                fill(g, -hw, -hh, hw, hh, argb(0x000000, 0.22F * alpha));
             }
             // the weapon's colour, faint, rising from the bottom (under its name)
             gradient(g, -hw, hh - rowH * 0.45F, hw, hh, argb(pane.color(), 0.0F), argb(pane.color(), 0.45F * alpha));
             border(g, -hw, -hh, hw, hh, 3.0F * u, pane.color(), now / RUN, alpha);
+            if (isLive) {
+                // the live part: a full frame in its colour and a tag
+                float t2 = 1.5F * u;
+                fill(g, -hw, -hh, hw, -hh + t2, argb(pane.color(), 0.85F * alpha));
+                fill(g, -hw, hh - t2, hw, hh, argb(pane.color(), 0.85F * alpha));
+                fill(g, -hw, -hh, -hw + t2, hh, argb(pane.color(), 0.85F * alpha));
+                fill(g, hw - t2, -hh, hw, hh, argb(pane.color(), 0.85F * alpha));
+                float blink = 0.6F + 0.4F * (float) Math.sin(now * 0.6F);
+                fill(g, -hw + 14.0F * u, -hh + 14.0F * u, -hw + 20.0F * u, -hh + 20.0F * u, argb(0xFF3B3B, blink * alpha));
+                text(g, font, "LIVE", -hw + 24.0F * u, -hh + 13.0F * u, 1.1F * u, argb(0xFFFFFF, 0.9F * alpha), true);
+            }
             // its code and name, bottom left; the countdown, top right
             text(g, font, pane.code(), -hw + 14.0F * u, hh - 12.0F * u - 30.0F * u, 0.9F * u * 1.25F, argb(0xFFFFFF, 0.7F * alpha), false);
             text(g, font, pane.name(), -hw + 14.0F * u, hh - 12.0F * u - 20.0F * u, 2.0F * u, argb(0xF2F0FF, alpha), true);
@@ -198,6 +222,7 @@ public final class FilmSplit {
         }
         FRAMES.clear();
         PANES.clear();
+        live = -1;
     }
 
     // ---- Drawing helpers. ------------------------------------------------------------------------------------------
@@ -244,8 +269,12 @@ public final class FilmSplit {
         g.flush();
     }
 
-    /** The picture, cropped from its middle to the part's shape ({@code aspect}: the part's width over its height). */
-    private static void image(GuiGraphics g, TextureTarget frame, float x0, float y0, float x1, float y1, float aspect, float alpha) {
+    /**
+     * The picture, cropped from its middle to the part's shape ({@code aspect}: the part's width over its height),
+     * {@code zoom} times closer.
+     */
+    private static void image(GuiGraphics g, TextureTarget frame, float x0, float y0, float x1, float y1, float aspect, float zoom,
+                              float alpha) {
         float frameAspect = frame.width / (float) Math.max(1, frame.height);
         float uw = 1.0F;
         float vh = 1.0F;
@@ -254,6 +283,8 @@ public final class FilmSplit {
         } else {
             vh = frameAspect / aspect;
         }
+        uw /= Math.max(1.0F, zoom);
+        vh /= Math.max(1.0F, zoom);
         float u0 = 0.5F - uw * 0.5F;
         float u1 = 0.5F + uw * 0.5F;
         float v0 = 0.5F - vh * 0.5F;

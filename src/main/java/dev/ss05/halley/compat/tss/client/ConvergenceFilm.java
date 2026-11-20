@@ -46,6 +46,12 @@ final class ConvergenceFilm {
     private static boolean split;
     private static int visiting;
     private static int framesHere;
+    /** The convergence's weapons, in the order the server sent them (null where the client can't tell which it is). */
+    private static List<cyou.rimuru.rimulib.mc1211.skill.Skill> weaponSkills = List.of();
+    private static Vec3[] splitPoints = new Vec3[0];
+    private static Vec3 splitForward = new Vec3(0.0, 0.0, 1.0);
+    /** The next part (other than the live one) to refresh between the live one's frames. */
+    private static int nextOther;
 
     private ConvergenceFilm() {
     }
@@ -70,7 +76,8 @@ final class ConvergenceFilm {
         hit = (int) Math.max(40, fx.hitAt() - minecraft.level.getGameTime());
         // the cuts: about 14 ticks a weapon, in the last seconds before the hit (the split screen: a longer look at all
         // of them at once)
-        montage = split ? Mth.clamp(60 + n * 12, 40, Math.min(160, hit - 20)) : Mth.clamp(n * 14, 40, Math.min(110, hit - 20));
+        // (Adam, after the first split screen: "make live view better and last longer"): a part each in turn live
+        montage = split ? Mth.clamp(100 + n * 30, 40, Math.min(320, hit - 30)) : Mth.clamp(n * 14, 40, Math.min(110, hit - 20));
         Vec3 target = fx.target();
         Vec3 look = minecraft.player.getLookAngle();
         Vec3 forward = new Vec3(look.x, 0.0, look.z).lengthSqr() < 1.0E-6 ? new Vec3(0.0, 0.0, 1.0) : new Vec3(look.x, 0.0, look.z).normalize();
@@ -116,7 +123,16 @@ final class ConvergenceFilm {
         // 3. each weapon through its own film's camera, in the order they were called (the split screen: one shot, the
         // camera visiting them in turn, one a frame)
         if (split) {
-            shots.add(Shot.cut(hit - montage, hit, (s, partial, k) -> weaponCamera(visiting, partial, target, forward, reach, k)));
+            splitPoints = fx.points();
+            splitForward = forward;
+            nextOther = 0;
+            shots.add(Shot.cut(hit - montage, hit, (s, partial, k) -> splitCamera(visiting, partial, target, forward, reach, k)));
+            dev.ss05.halley.client.render.FilmEye.next = () -> {
+                Minecraft mc = Minecraft.getInstance();
+                float partial = mc.getTimer().getGameTimeDeltaPartialTick(true);
+                return current != null && current.time(partial) >= hit - montage && current.time(partial) < hit
+                    ? splitCamera(visiting, partial, target, forward, reach, 0.5F).position() : null;
+            };
         } else {
             for (int i = 0; i < n; i++) {
                 int index = i;
@@ -134,8 +150,13 @@ final class ConvergenceFilm {
         }));
 
         FilmPanels.begin(split ? 0 : n);
+        weaponSkills = skills(fx.colors());
         if (split) {
-            FilmSplit.begin(fx.colors(), titles(fx.colors().length));
+            List<String> titles = new ArrayList<>();
+            for (cyou.rimuru.rimulib.mc1211.skill.Skill skill : weaponSkills) {
+                titles.add(skill == null ? "" : skill.title());
+            }
+            FilmSplit.begin(fx.colors(), titles);
         }
         FilmPanels.frame = ConvergenceFilm::frame;
         current = new Cutscene(subject, TssLink.CONVERGENCE.tier(), TssLink.CONVERGENCE.title(), TssLink.CONVERGENCE.color(), 0, shots)
@@ -146,36 +167,145 @@ final class ConvergenceFilm {
     }
 
     /**
-     * The weapons this convergence fires, in the order the server took them (the player's ticked ones in the menu's order,
-     * Gravitia aside): their titles for the split screen's parts, or none if the count doesn't match what was sent.
+     * The weapons this convergence fires, in the order the server sent them: each found among the player's ticked ones by
+     * its colour (the server sends their colours; in a ring it sorts them by size, so the menu's order won't do); null
+     * where none matches.
      */
-    private static List<String> titles(int count) {
-        List<String> titles = new ArrayList<>();
+    private static List<cyou.rimuru.rimulib.mc1211.skill.Skill> skills(int[] colors) {
+        List<cyou.rimuru.rimulib.mc1211.skill.Skill> ticked = new ArrayList<>();
         try {
-            java.util.List<String> ticked = HalleyClientConfig.convergence();
+            java.util.List<String> ids = HalleyClientConfig.convergence();
             for (cyou.rimuru.rimulib.mc1211.skill.Skill skill : ConvergencePlate.weapons()) {
-                if (ticked.contains(skill.id()) && !Convergence.finale(skill)) {
-                    titles.add(skill.title());
+                if (ids.contains(skill.id()) && !Convergence.finale(skill)) {
+                    ticked.add(skill);
                 }
             }
         } catch (RuntimeException | LinkageError ignored) {
-            titles.clear();
+            ticked.clear();
         }
-        return titles.size() == count ? titles : List.of();
+        List<cyou.rimuru.rimulib.mc1211.skill.Skill> skills = new ArrayList<>();
+        for (int color : colors) {
+            cyou.rimuru.rimulib.mc1211.skill.Skill found = null;
+            for (cyou.rimuru.rimulib.mc1211.skill.Skill skill : ticked) {
+                if ((skill.color() & 0xFFFFFF) == (color & 0xFFFFFF)) {
+                    found = skill;
+                    break;
+                }
+            }
+            if (found != null) {
+                ticked.remove(found);
+            }
+            skills.add(found);
+        }
+        return skills;
+    }
+
+    /**
+     * The weapon's own film, held back while the convergence is on its way: found by the weapon's colour or title (the
+     * films are held in the order they started, which isn't the server's order); by position if the weapon is unknown.
+     */
+    private static Cutscene heldFilm(int i) {
+        List<Cutscene> held = ConvergenceClient.held();
+        cyou.rimuru.rimulib.mc1211.skill.Skill skill = i < weaponSkills.size() ? weaponSkills.get(i) : null;
+        if (skill == null) {
+            return i < held.size() ? held.get(i) : null;
+        }
+        for (Cutscene film : held) {
+            if (film.title != null && film.title.equals(skill.title())) {
+                return film;
+            }
+        }
+        for (Cutscene film : held) {
+            if ((film.color & 0xFFFFFF) == (skill.color() & 0xFFFFFF)) {
+                return film;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The split screen's camera on weapon {@code i} (Adam: "u cant even see the skill that its supposed to be in the split
+     * screen"): our own skills framed on their own thing (Halley's comet, Luna's moon, Proxima's gate and then its bowl),
+     * zoomed to fit it; the others through their own film's camera, as the comic panels are.
+     */
+    private static CameraPose splitCamera(int i, float partial, Vec3 target, Vec3 forward, double reach, float k) {
+        cyou.rimuru.rimulib.mc1211.skill.Skill skill = i < weaponSkills.size() ? weaponSkills.get(i) : null;
+        Vec3 mark = i < splitPoints.length && splitPoints[i] != null ? splitPoints[i] : target;
+        try {
+            Minecraft minecraft = Minecraft.getInstance();
+            int me = minecraft.player != null ? minecraft.player.getId() : -1;
+            if (skill == TssLink.SKILL) {
+                dev.ss05.halley.client.HalleyFx fx = newest(dev.ss05.halley.client.HalleyFx.active(), f -> f.casterId == me);
+                if (fx != null) {
+                    double t = fx.time(partial);
+                    double size = 45.0 * Math.max(0.3, fx.plan.params.scale());
+                    return lookAt(eye(fx.plan.target, forward, 70.0 + size, 14.0), fx.plan.comet(Math.min(t, dev.ss05.halley.HalleyPlan.TOUCHDOWN + 10.0)),
+                        size, 14.0F, 70.0F, fx.plan.target);
+                }
+            } else if (skill == TssLink.MOON) {
+                dev.ss05.halley.client.luna.MoonFx fx = newest(dev.ss05.halley.client.luna.MoonFx.active(), f -> f.casterId == me);
+                if (fx != null) {
+                    double radius = fx.plan.params.moonRadius();
+                    return lookAt(eye(fx.plan.target, forward, 90.0 + radius, 20.0), fx.plan.centre(fx.time(partial)), radius * 1.7,
+                        16.0F, 75.0F, fx.plan.target);
+                }
+            } else if (skill == TssLink.PROXIMA) {
+                dev.ss05.halley.client.proxima.ProximaFx fx = newest(dev.ss05.halley.client.proxima.ProximaFx.active(), f -> true);
+                if (fx != null) {
+                    boolean gate = fx.time(partial) < dev.ss05.halley.ProximaPlan.FLASH + 10;
+                    Vec3 at = gate ? dev.ss05.halley.client.proxima.ProximaCosmos.gatePosition(fx.plan) : fx.plan.target;
+                    return lookAt(eye(fx.plan.target, forward, 110.0, 24.0), at, gate ? 130.0 : 60.0, 18.0F, 75.0F, fx.plan.target);
+                }
+            }
+        } catch (RuntimeException | LinkageError ignored) {
+            // the framing can't be worked out: the weapon's own film camera below
+        }
+        // another mod's weapon: its own film's camera while that is in the world; when its film is out in space (drawn
+        // in that mod's own film pass, so only grey here) or far off, a look at where it lands and the sky above it
+        CameraPose film = weaponCamera(i, partial, mark, forward, reach, k);
+        if (film.position().distanceTo(mark) < 500.0 && film.position().y < mark.y + 260.0) {
+            return film;
+        }
+        double a = Math.PI * 2.0 * i / Math.max(1, splitPoints.length) + 0.6;
+        Vec3 side = new Vec3(Math.cos(a), 0.0, Math.sin(a));
+        Vec3 home = Minecraft.getInstance().player != null ? Minecraft.getInstance().player.position() : mark;
+        Vec3 pos = FilmLand.keep(mark.add(side.scale(70.0)).add(forward.scale(-40.0)).add(0.0, 14.0, 0.0), home);
+        return new CameraPose(pos, mark.add(0.0, 26.0 + 30.0 * k, 0.0), 62.0F, 0.0F);
+    }
+
+    private static <T> T newest(List<T> active, java.util.function.Predicate<T> mine) {
+        for (int i = active.size() - 1; i >= 0; i--) {
+            if (mine.test(active.get(i))) {
+                return active.get(i);
+            }
+        }
+        return null;
+    }
+
+    /** A camera back from {@code mark} along the caster's line, {@code back} out and {@code up} above it. */
+    private static Vec3 eye(Vec3 mark, Vec3 forward, double back, double up) {
+        Vec3 right = new Vec3(-forward.z, 0.0, forward.x);
+        Vec3 pos = mark.add(forward.scale(-back)).add(right.scale(back * 0.35)).add(0.0, up, 0.0);
+        Vec3 home = Minecraft.getInstance().player != null ? Minecraft.getInstance().player.position() : mark;
+        return FilmLand.keep(pos, home);
+    }
+
+    /** From {@code eye} at {@code at}, zoomed so something {@code size} across fills about half the part. */
+    private static CameraPose lookAt(Vec3 eye, Vec3 at, double size, float minFov, float maxFov, Vec3 mark) {
+        double distance = Math.max(1.0, eye.distanceTo(at));
+        float fov = (float) Math.toDegrees(2.0 * Math.atan(size / distance));
+        return new CameraPose(eye, at, Mth.clamp(fov, minFov, maxFov), 0.0F);
     }
 
     /** Weapon {@code i}'s own film's camera now, or (before it has one) a low look up from beside the mark. */
     private static CameraPose weaponCamera(int i, float partial, Vec3 target, Vec3 forward, double reach, float k) {
-        List<Cutscene> held = ConvergenceClient.held();
-        if (i < held.size()) {
-            try {
-                Cutscene film = held.get(i);
-                if (film.started() && !film.finished()) {
-                    return film.pose(partial);
-                }
-            } catch (RuntimeException ignored) {
-                // its film can't say (it may be over): the stand-in below
+        try {
+            Cutscene film = heldFilm(i);
+            if (film != null && film.started() && !film.finished()) {
+                return film.pose(partial);
             }
+        } catch (RuntimeException ignored) {
+            // its film can't say (it may be over): the stand-in below
         }
         double a = Math.PI * 2.0 * i / 7.0;
         Vec3 pos = target.add(Math.cos(a) * reach * 0.6, 3.0, Math.sin(a) * reach * 0.6);
@@ -200,15 +330,32 @@ final class ConvergenceFilm {
         float t = current.time(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true));
         int n = colors.length;
         if (split) {
-            // this frame showed weapon "visiting": keep it as that part's picture, then on to the next (after two frames
-            // with a shader pack, whose smoothing over frames needs one to settle on the new camera)
+            // One part is live at a time, in turn (Adam: "its really low fps"): the camera stays on it, keeping every
+            // frame, and every fourth frame or so visits one of the others so they keep moving too. With a shader pack the
+            // camera needs a frame to settle after each switch (its smoothing over frames), and that frame isn't kept.
+            int count = Math.max(1, FilmSplit.count());
             if (t >= hit - montage && t < hit) {
+                int live = Mth.clamp((int) ((t - (hit - montage)) / Math.max(1.0F, montage / (float) count)), 0, count - 1);
+                int settle = ShaderPacks.active() ? 2 : 1;
                 framesHere++;
-                if (framesHere >= (ShaderPacks.active() ? 2 : 1)) {
+                if (visiting == live) {
+                    if (framesHere >= settle) {
+                        FilmSplit.capture(visiting);
+                    }
+                    if (count > 1 && framesHere >= settle + 3) {
+                        nextOther = (nextOther + 1) % count;
+                        if (nextOther == live) {
+                            nextOther = (nextOther + 1) % count;
+                        }
+                        visiting = nextOther;
+                        framesHere = 0;
+                    }
+                } else if (framesHere >= settle) {
                     FilmSplit.capture(visiting);
-                    visiting = (visiting + 1) % Math.max(1, FilmSplit.count());
+                    visiting = live;
                     framesHere = 0;
                 }
+                FilmSplit.live(live);
             }
             if (!shattered && t >= hit) {
                 shattered = true;
@@ -245,5 +392,6 @@ final class ConvergenceFilm {
         FilmPanels.clear();
         FilmSplit.clear();
         split = false;
+        dev.ss05.halley.client.render.FilmEye.next = null;
     }
 }
