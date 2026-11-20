@@ -48,7 +48,7 @@ place; the dated sections under it are the history (read them by `grep`, not in 
 - Nothing of 1.9.0 is pushed (origin/main = `3624717`, the 1.8.3 release). The six other branches = origin = the 1.8.3
   release heads: forge-1.21.1 `6b55e95`, forge-1.20.1 `4cdd09c`, fabric-1.21.1 `11d51c2`, fabric-1.20.1 `b098e92`,
   fabric-1.21.11 `0cc7dfd`, fabric-26.3 `d13119d`; worktrees already exist at `..\ports\<branch>` on local
-  `port/<branch>` refs at those commits (clean).
+  `port/<branch>` refs at those commits plus one CLAUDE.md commit each (a pointer here, 2026-11-20; clean).
 - **What 1.9.0 has** (for the changelog; details in the dated sections and `docs/1.9.0-PLAN.md`):
   - **Settings menu redone** (look B): the general plate plus a card for the selected skill, grouped settings with a
     short explanation under each, a "Less used" bar (0), Backspace folds, the card's keys win over skill keys, a gold
