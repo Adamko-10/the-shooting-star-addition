@@ -193,7 +193,9 @@ public final class ConvergencePlate {
         int pages = pages(weapons.size());
         int first = page(weapons.size()) * PAGE;
         List<Skill> shown = weapons.subList(first, Math.min(weapons.size(), first + PAGE));
-        int whereTop = listTop + (pages > 1 ? PAGE : shown.size()) * ROW + 6;
+        // (Adam, polish 9: "make it more clear u can switch pages"): a gold bar under the list says so
+        int pagesTop = listTop + PAGE * ROW + 4;
+        int whereTop = pages > 1 ? pagesTop + AdditionPanel.goldBarHeight() + 4 : listTop + shown.size() * ROW + 6;
         // 1.9.0: each setting with its explanation under it (as on the other cards)
         int line = ROW + 9;
         int addonsTop = whereTop + 3 * line + 6;
@@ -210,10 +212,16 @@ public final class ConvergencePlate {
         g.drawString(font, Component.translatable("gui.shooting_star_addition.group.weapons").withStyle(ChatFormatting.BOLD), 11, top + 36,
             0xFF000000 | AdditionPanel.GREY, false);
         if (pages > 1) {
-            String more = Component.translatable("gui.shooting_star_addition.convergence.page", page + 1, pages).getString();
-            int capX = w - 22;
-            AdditionPanel.keyCap(g, font, capX, top + 35, "0", true);
-            g.drawString(font, more, capX - 4 - font.width(more), top + 36, 0xFF000000 | AdditionPanel.GOLD, false);
+            String at = Component.translatable("gui.shooting_star_addition.convergence.page", page + 1, pages).getString();
+            g.drawString(font, at, w - 10 - font.width(at), top + 36, 0xFF000000 | AdditionPanel.GOLD, false);
+            boolean last = page + 1 >= pages;
+            int after = weapons.size() - (first + shown.size());
+            Component name = Component.literal(last ? "◀ " : "▶ ").append(Component.translatable(last
+                ? "gui.shooting_star_addition.convergence.pages.back" : "gui.shooting_star_addition.convergence.pages.more",
+                last ? 1 : page + 2).withStyle(ChatFormatting.BOLD));
+            Component state = last ? Component.translatable("gui.shooting_star_addition.convergence.pages.first")
+                : Component.translatable("gui.shooting_star_addition.convergence.pages.count", after);
+            AdditionPanel.goldBar(g, font, pagesTop, w, name, state, "0", true);
         }
         for (int i = 0; i < shown.size(); i++) {
             Skill skill = shown.get(i);

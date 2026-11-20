@@ -72,9 +72,12 @@ public final class Convergence {
      * cutting in that world and none of the addon's strikes still working ({@link #othersDone}), but not before this long
      * after the hit (Seven Stars starts its constellation lines ~2.5 s after it)...
      */
-    private static final int FINALE_MIN = 100;
-    /** ...and at the latest this long after it (a carving waiting for land that never loads). Its own film plays then. */
-    private static final int FINALE_MAX = 1200;
+    private static final int FINALE_MIN = 60;
+    /**
+     * ...and at the latest this long after it (a carving waiting for land that never loads, or a big one still cutting).
+     * Its own film plays then. (1.9.0, Adam: "gravitia activated very late imo": 3 s and 12 s, were 5 s and 60 s.)
+     */
+    private static final int FINALE_MAX = 240;
 
     /**
      * Ticks from the cast to the impact at speed 1, power 1, for The Shooting Star 1.5.1's weapons: measured in a game

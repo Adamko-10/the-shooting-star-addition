@@ -109,15 +109,15 @@ public final class FilmSplit {
 
     /**
      * Draws the split at film time {@code now} over a screen {@code w} x {@code h} (overlay units): in from {@code from},
-     * flying apart from {@code hit}.
+     * the weapons landing at {@code hit}, flying apart from {@code end}.
      */
-    public static void draw(GuiGraphics g, int w, int h, float now, float from, float hit) {
+    public static void draw(GuiGraphics g, int w, int h, float now, float from, float hit, float end) {
         int n = PANES.size();
         if (n == 0 || now < from) {
             return;
         }
         float in = smooth((now - from) / IN);
-        float broken = Mth.clamp((now - hit) / SHATTER, 0.0F, 1.0F);
+        float broken = Mth.clamp((now - end) / SHATTER, 0.0F, 1.0F);
         if (broken >= 1.0F) {
             return;
         }
@@ -190,7 +190,7 @@ public final class FilmSplit {
             // its code and name, bottom left; the countdown, top right
             text(g, font, pane.code(), -hw + 14.0F * u, hh - 12.0F * u - 30.0F * u, 0.9F * u * 1.25F, argb(0xFFFFFF, 0.7F * alpha), false);
             text(g, font, pane.name(), -hw + 14.0F * u, hh - 12.0F * u - 20.0F * u, 2.0F * u, argb(0xF2F0FF, alpha), true);
-            String count = String.format(Locale.ROOT, "T-%04.1f", Math.max(0.0F, (hit - now) / 20.0F));
+            String count = now >= hit ? "IMPACT" : String.format(Locale.ROOT, "T-%04.1f", Math.max(0.0F, (hit - now) / 20.0F));
             float cs = 1.2F * u;
             text(g, font, count, hw - 14.0F * u - font.width(count) * cs, -hh + 12.0F * u, cs, argb(0xFFFFFF, 0.8F * alpha), false);
             pose.popPose();
@@ -199,7 +199,7 @@ public final class FilmSplit {
         float bannerAlpha = in * (1.0F - broken);
         String label = "SA-00";
         String title = "STELLAR CONVERGENCE";
-        String when = String.format(Locale.ROOT, "ALL IMPACTS IN %.1f s", Math.max(0.0F, (hit - now) / 20.0F));
+        String when = now >= hit ? "ALL WEAPONS HIT" : String.format(Locale.ROOT, "ALL IMPACTS IN %.1f s", Math.max(0.0F, (hit - now) / 20.0F));
         float s1 = 1.0F * u;
         float s2 = 1.5F * u;
         float wide = (font.width(label) * s1 + font.width(title) * s2 + font.width(when) * s1) + 28.0F * u + 36.0F * u;

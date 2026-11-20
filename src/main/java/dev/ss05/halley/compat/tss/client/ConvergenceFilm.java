@@ -36,6 +36,11 @@ import net.minecraft.world.phys.Vec3;
 final class ConvergenceFilm {
     /** How long the film runs on after the hit. */
     private static final int AFTER = 70;
+    /**
+     * How long the split screen stays after the hit (Adam, polish 9: "the view disappears a little early still"): the
+     * parts show the weapons landing, then fly apart onto the wide shot.
+     */
+    private static final int SPLIT_AFTER = 40;
 
     private static Cutscene current;
     private static int hit;
@@ -126,11 +131,11 @@ final class ConvergenceFilm {
             splitPoints = fx.points();
             splitForward = forward;
             nextOther = 0;
-            shots.add(Shot.cut(hit - montage, hit, (s, partial, k) -> splitCamera(visiting, partial, target, forward, reach, k)));
+            shots.add(Shot.cut(hit - montage, hit + SPLIT_AFTER, (s, partial, k) -> splitCamera(visiting, partial, target, forward, reach, k)));
             dev.ss05.halley.client.render.FilmEye.next = () -> {
                 Minecraft mc = Minecraft.getInstance();
                 float partial = mc.getTimer().getGameTimeDeltaPartialTick(true);
-                return current != null && current.time(partial) >= hit - montage && current.time(partial) < hit
+                return current != null && current.time(partial) >= hit - montage && current.time(partial) < hit + SPLIT_AFTER
                     ? splitCamera(visiting, partial, target, forward, reach, 0.5F).position() : null;
             };
         } else {
@@ -141,8 +146,9 @@ final class ConvergenceFilm {
                 shots.add(Shot.cut(from, to, (s, partial, k) -> weaponCamera(index, partial, target, forward, reach, k)));
             }
         }
-        // 4. the hit, from high and wide, rising as everything lands at once
-        shots.add(Shot.cut(hit, hit + AFTER, (s, partial, k) -> {
+        // 4. the hit, from high and wide, rising as everything lands at once (after the split screen's last look)
+        int wide = split ? hit + SPLIT_AFTER : hit;
+        shots.add(Shot.cut(wide, wide + AFTER, (s, partial, k) -> {
             Vec3 back = forward.scale(-reach * 2.2);
             Vec3 pos = target.add(back).add(0.0, Mth.lerp(k, reach * 1.3, reach * 2.0), 0.0);
             return new CameraPose(FilmLand.keep(pos, s.feet(partial)), target.add(0.0, Mth.lerp(k, 8.0, 0.0), 0.0),
@@ -329,9 +335,18 @@ final class ConvergenceFilm {
         return set;
     }
 
-    /** Whether this frame is one of the split screen's (the montage). */
+    /** Whether this frame is one of the split screen's (the montage, and a last look at the hit). */
     private static boolean splitting(float t) {
-        return split && current != null && t >= hit - montage && t < hit;
+        return split && current != null && t >= hit - montage && t < hit + SPLIT_AFTER;
+    }
+
+    /** Which comic panel's shot this frame is (the panels style), or -1 outside the montage. */
+    private static int panelShot(float t) {
+        int n = colors.length;
+        if (split || current == null || n == 0 || t < hit - montage || t >= hit) {
+            return -1;
+        }
+        return Mth.clamp((int) ((t - (hit - montage)) * n / Math.max(1.0F, montage)), 0, n - 1);
     }
 
     /**
@@ -343,21 +358,25 @@ final class ConvergenceFilm {
         StarClientBridge.allSkills();
         dev.ss05.halley.client.FilmView.reset();
         capturedThisFrame = false;
+        dev.ss05.halley.client.FilmView.filmPlaying = current != null && !current.finished();
         if (current == null) {
             return;
         }
         float t = current.time(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true));
-        if (!splitting(t)) {
+        // the weapon this frame shows: the part the camera is on (split screen), or the panel being filmed (Adam, polish 9:
+        // "luna appears in almost every view")
+        int shown = splitting(t) ? visiting : panelShot(t);
+        if (shown < 0) {
             return;
         }
-        cyou.rimuru.rimulib.mc1211.skill.Skill skill = visiting < weaponSkills.size() ? weaponSkills.get(visiting) : null;
+        cyou.rimuru.rimulib.mc1211.skill.Skill skill = shown < weaponSkills.size() ? weaponSkills.get(shown) : null;
         if (skill == null) {
             return;
         }
         dev.ss05.halley.client.FilmView.only = skill == TssLink.SKILL ? dev.ss05.halley.client.FilmView.HALLEY
             : skill == TssLink.MOON ? dev.ss05.halley.client.FilmView.LUNA
             : skill == TssLink.PROXIMA ? dev.ss05.halley.client.FilmView.PROXIMA : 0;
-        dev.ss05.halley.client.FilmView.holdListener = visiting != FilmSplit.liveIndex() && FilmSplit.liveIndex() >= 0;
+        dev.ss05.halley.client.FilmView.holdListener = split && visiting != FilmSplit.liveIndex() && FilmSplit.liveIndex() >= 0;
         StarClientBridge.onlySkill(skill, weaponSet());
     }
 
@@ -392,7 +411,7 @@ final class ConvergenceFilm {
      */
     private static void keepSplit(float t) {
         if (!splitting(t)) {
-            if (statsFrames > 0 && t >= hit) {
+            if (statsFrames > 0 && t >= hit + SPLIT_AFTER) {
                 double seconds = (statsLast - statsFrom) / 1.0E9;
                 HalleyAddon.LOG.info("Stellar Convergence's split screen: {} frames in {} s ({} fps), the slowest {} ms", statsFrames,
                     String.format(java.util.Locale.ROOT, "%.1f", seconds), String.format(java.util.Locale.ROOT, "%.0f",
@@ -411,7 +430,7 @@ final class ConvergenceFilm {
         statsLast = now;
         statsFrames++;
         int count = Math.max(1, FilmSplit.count());
-        int live = Mth.clamp((int) ((t - (hit - montage)) / Math.max(1.0F, montage / (float) count)), 0, count - 1);
+        int live = Mth.clamp((int) ((t - (hit - montage)) / Math.max(1.0F, (montage + SPLIT_AFTER) / (float) count)), 0, count - 1);
         int settle = ShaderPacks.active() ? 2 : 1;
         framesHere++;
         if (visiting == live) {
@@ -468,11 +487,11 @@ final class ConvergenceFilm {
             }
         }
         if (split) {
-            if (!shattered && t >= hit) {
+            if (!shattered && t >= hit + SPLIT_AFTER) {
                 shattered = true;
                 sound("convergence_shatter", 1.0F);
             }
-            FilmSplit.draw(g, w, h, t, hit - montage, hit);
+            FilmSplit.draw(g, w, h, t, hit - montage, hit, hit + SPLIT_AFTER);
             return;
         }
         // the grid breaking apart as everything hits
@@ -497,6 +516,7 @@ final class ConvergenceFilm {
         split = false;
         dev.ss05.halley.client.render.FilmEye.next = null;
         dev.ss05.halley.client.FilmView.frameStart = null;
+        dev.ss05.halley.client.FilmView.filmPlaying = false;
         dev.ss05.halley.client.FilmView.reset();
         StarClientBridge.allSkills();
     }

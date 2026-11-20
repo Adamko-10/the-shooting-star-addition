@@ -20,6 +20,11 @@ public final class FilmView {
     public static volatile int only = -1;
     /** True while this frame's camera is on a part that isn't the live one. */
     public static volatile boolean holdListener;
+    /**
+     * True while Stellar Convergence's film plays: other mods' full-screen overlays drawn from the HUD (SS-21 Quasar's
+     * space scene) are kept out of it (QuasarHudMixin). Set every frame by the film, so a skipped film can't leave it on.
+     */
+    public static volatile boolean filmPlaying;
     /** Run at the start of every frame while the split screen plays (set by the film). */
     @Nullable
     public static volatile Runnable frameStart;

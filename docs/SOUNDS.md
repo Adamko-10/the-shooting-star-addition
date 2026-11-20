@@ -14,6 +14,14 @@ to send). Keep every source file's name in `art/sounds/sources.md` so a pick can
 `.ogg`. Levels by role, as the first overhaul (measured against The Shooting Star's own, never copied): impacts about
 -11 to -12.5 LUFS, cues -15/-16, beds -16/-18, hums -19. Claude can't hear: every result is checked by the user in game.
 
+## 1.9.0, Adam's third listen (2026-11-20 evening)
+
+"for luna i prefer the other sfx like pre rework and all, like the one where it was a big boom". So Luna's impact and
+everything after it is **1.8.3's again** (the 2026-11-04 overhaul, `git checkout 66b19f4`): `luna_impact`,
+`luna_shockwave`, `luna_settle`, `luna_aftershock` x2, `luna_sizzle`, `luna_debris` x3, in both modes. The louder
+`luna_inhale` of 1.9.0 stays, and Epic mode's fall (`luna_epic_*`) too. **Don't re-run the Luna impact recipes in
+`art/sonniss_sounds.sh` into `src`**: they would put the third take back.
+
 ## 1.9.0, Adam's second listen (2026-11-19 night)
 
 "impact and post impact sfx for luna are bad the rest is kinda fine but they kinda fit more for epic mode while the old

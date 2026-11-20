@@ -69,6 +69,8 @@ public final class HalleyClient {
      */
     private static void frameStart(RenderFrameEvent.Pre event) {
         ShaderPacks.update();
+        // Stellar Convergence's film: what this frame shows (before the sky's look and anything painted for it)
+        FilmView.runFrameStart();
         HalleySky.update(event);
         if (ShaderPacks.active() && Minecraft.getInstance().level != null
             && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty()
@@ -77,8 +79,6 @@ public final class HalleyClient {
             GlowAtlas.paint(HalleyRenderTypes.shader());
             HalleySky.paint(event.getPartialTick().getGameTimeDeltaPartialTick(true));
         }
-        // Stellar Convergence's split screen: what this frame shows (before anything is painted for it)
-        FilmView.runFrameStart();
         // Proxima's gate behind a pack's clouds (1.9.0): painted now, drawn in the sky pass (or nothing this frame)
         ProximaCosmos.paintSkyCard(event.getPartialTick().getGameTimeDeltaPartialTick(true));
     }

@@ -13,7 +13,8 @@
     "LevelRendererMoonMixin",
     "LevelRendererSkyMixin",
     "PlayerModelMixin",
-    "SoundListenerMixin"
+    "SoundListenerMixin",
+    "QuasarHudMixin"
   ],
   "injectors": {
     "defaultRequire": 0

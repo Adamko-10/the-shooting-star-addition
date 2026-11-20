@@ -481,17 +481,30 @@ public final class AdditionPanel {
      */
     private static int lessUsedBar(GuiGraphics g, Font font, int y, int w, int count) {
         boolean open = HalleyClientConfig.lessUsedOpen();
-        float breath = open ? 0.0F : 0.5F + 0.5F * (float) Math.sin(Util.getMillis() / 320.0);
-        plate(g, 8, y - 3, w - 7, y + BAR - 4, 0xFF000000 | lerp(0xFFF4DA, 0xFFE2A0, breath));
-        g.fill(8, y - 2, 10, y + BAR - 5, 0xFF000000 | GOLD);
         Component name = Component.literal(open ? "▼ " : "▶ ")
             .append(Component.translatable("gui.shooting_star_addition.group.less").withStyle(ChatFormatting.BOLD));
-        g.drawString(font, name, 14, y + 1, 0xFF000000 | INK, false);
         Component state = Component.translatable(open ? "gui.shooting_star_addition.group.open" : "gui.shooting_star_addition.group.closed", count);
-        int capX = w - 12 - capWidth(font, "0");
-        keyCap(g, font, capX, y, "0", true);
-        g.drawString(font, state, capX - 4 - font.width(state), y + 1, 0xFF000000 | (open ? GREY : INK), false);
+        return goldBar(g, font, y, w, name, state, "0", !open);
+    }
+
+    /**
+     * A gold bar across the card with a name on the left and, on the right, what its key does and the key (the Less used
+     * bar; Stellar Convergence's pages, 1.9.0); it breathes gently while it asks to be pressed. Returns the y under it.
+     */
+    public static int goldBar(GuiGraphics g, Font font, int y, int w, Component name, Component state, String key, boolean breathe) {
+        float breath = breathe ? 0.5F + 0.5F * (float) Math.sin(Util.getMillis() / 320.0) : 0.0F;
+        plate(g, 8, y - 3, w - 7, y + BAR - 4, 0xFF000000 | lerp(0xFFF4DA, 0xFFE2A0, breath));
+        g.fill(8, y - 2, 10, y + BAR - 5, 0xFF000000 | GOLD);
+        g.drawString(font, name, 14, y + 1, 0xFF000000 | INK, false);
+        int capX = w - 12 - capWidth(font, key);
+        keyCap(g, font, capX, y, key, true);
+        g.drawString(font, state, capX - 4 - font.width(state), y + 1, 0xFF000000 | (breathe ? INK : GREY), false);
         return y + BAR;
+    }
+
+    /** The height of a {@link #goldBar}. */
+    public static int goldBarHeight() {
+        return BAR;
     }
 
     /** A label, a key cap and a value (no switch: more than two values). */
