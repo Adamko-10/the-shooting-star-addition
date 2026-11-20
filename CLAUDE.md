@@ -12,6 +12,156 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
+## >>> START HERE: a fresh session (written 2026-11-20 ~21:00 by the session that built 1.9.0) <<<
+
+Adam moved this work to a completely fresh session ("write a really detailed claude md for yourself ... give me a prompt
+and everything i need to continue this from a completely fresh session"). This section is the whole state in one
+place; the dated sections under it are the history (read them by `grep`, not in full: this file is ~110k tokens).
+
+### 1. Who, where, how
+- **Adam** (`Adamko-10`): his personal rules are in `C:\Users\adam_\.claude\CLAUDE.md` (loaded every session): short
+  replies, every question as clickable choices, "what to do / what to test" lists, no ponytail, main version first,
+  test jars into his Modrinth instance, rename instead of delete, no push/release/CurseForge without his word, the 2 AM
+  shutdown rule, shared notes in `C:\Users\adam_\Documents\Claude notes\` (`INBOX.md` empty on 2026-11-20, `IDEAS.md`).
+- **This PC** (not the VM; his pick 2026-11-20, "On this PC"). Repo: `C:\Users\adam_\Documents\Shooting Star
+  Addition\the-shooting-star-addition` (branch `main`); the project folder around it holds `ports\`, `test builds\`,
+  `test scripts\`, `releases\`, `announcements\`, `other mods\` (others' jars, never committed), `art sources\`.
+- **His game**: Modrinth instance `D:\ModrinthApp\profiles\NeoForge 1.21.1 (1)` (Iris + Complementary, Sodium,
+  Distant Horizons, C2ME, render distance 20, RimuLib legacy film style, TON 618 + TON 618 Addition + SS-21 Quasar +
+  Stellar Quartet). Other instances: `Forge 1.21.1`, `Forge 1.20.1 (1)`, `Fabric 1.21.1`, `Fabric 1.21.11 (1)`,
+  `Fabric 26.3` (no Fabric 1.20.1 one). **Before any game test or jar swap: `Get-Process javaw`** (his game is javaw;
+  our test games are java.exe under Gradle); if it runs, ask.
+- **Budget (2026-11-20)**: Pro plan, weekly ~82% used then (resets 2026-11-25 ~16:00 UTC). His words: "make sure
+  chatgpt does testing and u can maybe do a few short tests but this is a one time thing since im running low on usage
+  and i wanna finish this update". So **ChatGPT does the heavy work** (his Codex app, "ChatGPT" on Windows, model
+  **GPT-6.2 Astra**, effort High): the ports and their screenshot checks. Claude writes the briefs, reviews each port's
+  diff and report, reads CI, writes the changelog and the release prompt. Keep tool output small; don't re-read big
+  files.
+
+### 2. Where 1.9.0 stands
+- **Built and tested on main (NeoForge 1.21.1)**, his game tests done round after round (polish 1-11). The last jar in
+  his instance: `The Shooting Star Addition SA Series 1.9.0 polish 11 TEST [NeoForge 1.21.1].jar` (main `afb655d`).
+  His verdict on polish 10: "i think all of the other stuff is fixed, quasar thing, luna sfx and all"; polish 11 only
+  fixed Luna's resting-moon flicker (his last bug) and marked the split screen experimental: **ask him whether Luna's
+  moon still flashes** (keep_moon on in his config), then the ports.
+- `gradle.properties` still says `mod_version=1.8.3`: bump to 1.9.0 on every branch at release.
+- Nothing of 1.9.0 is pushed (origin/main = `3624717`, the 1.8.3 release). The six other branches = origin = the 1.8.3
+  release heads: forge-1.21.1 `6b55e95`, forge-1.20.1 `4cdd09c`, fabric-1.21.1 `11d51c2`, fabric-1.20.1 `b098e92`,
+  fabric-1.21.11 `0cc7dfd`, fabric-26.3 `d13119d`; worktrees already exist at `..\ports\<branch>` on local
+  `port/<branch>` refs at those commits (clean).
+- **What 1.9.0 has** (for the changelog; details in the dated sections and `docs/1.9.0-PLAN.md`):
+  - **Settings menu redone** (look B): the general plate plus a card for the selected skill, grouped settings with a
+    short explanation under each, a "Less used" bar (0), Backspace folds, the card's keys win over skill keys, a gold
+    hint "Right-click a skill in the list to read what it does"; title cards on by default (also in the legacy style).
+  - **Halley**: a bigger blast (crater 84, reach 3.4; old configs moved up once via `defaults_version`), new blast
+    effects, a hush and an inhale before the hit, title-card sounds, the comet 1.3x bigger at first sight, aftermath
+    +4 s, the beam stops at the clouds, the Comet Heart always placed (`HalleyStrike.allCut`).
+  - **Luna**: a build-up, both films reworked, Epic mode 20 s and synced with its music, its fall's sounds per mode
+    (Epic: the Sonniss cuts), the impact and aftermath sounds = 1.8.3's again (his pick), no flicker at rest.
+  - **Everything behind a shader pack's clouds** (`client/render/SkyPass`, inside `LevelRenderer.renderSky`): Luna's
+    moon, Halley's comet, Proxima's sky gate (painted onto offscreen cards, `ProximaCosmos.paintSkyCard`).
+  - **TON 618's HUD rescue** (`compat/tss/mixin/HudRescueMixin`): TON 618 cuts the HUD during films; our film
+    overlays, title cards and Proxima's space part are drawn after it.
+  - **Stellar Convergence**: an addon list on its card (installed/missing, incl. SS-22 Hyperion), panel sounds, pages of
+    nine weapons (0 turns the page, a gold bar says so), SS-22 Hyperion (240 ticks) and SS-02 Meridian (213) timed,
+    Gravitia's finale 3-12 s after the hit, a **split-screen film style, experimental** (F on its card; PANELS is the
+    default; one part live at a time, each part showing only its own weapon, ~2 s past the hit), SS-21 Quasar's space
+    shot and HUD kept out of the film (`compat/mixin/QuasarFxMixin`, `QuasarHudMixin`), the far shots within the
+    render distance, the sky and every effect filtered per part/panel (`client/FilmView`).
+  - **TON 618 Addition's skills listed locked** when it isn't installed (`compat/tss/LockedSkill`, `LockedCard`,
+    `OtherAddons`).
+  - **Players' own music**: `config/shooting_star_addition/music/` (`luna.ogg` hit at 16.0 s, `luna_epic.ogg` 20.0 s,
+    `proxima.ogg` 22.5 s; a README.txt is made there; `StrikeMusic.getStream`).
+  - Credits as before (DOM_MusicST and FarzanNB for the music, NASA/Solar System Scope imagery, Stellar Quartet by
+    ikun520 for Convergence's idea, Sonniss GDC sounds need no credit).
+- The whole change: `git diff --stat 3624717 main -- src` (67 files, +3399/-448). New files: `OtherAddons`,
+  `client/FilmSplit`, `client/FilmView`, `client/render/FilmEye`, `client/render/SkyPass`,
+  `compat/mixin/LevelRendererSkyMixin`, `QuasarFxMixin`, `QuasarHudMixin`, `SoundListenerMixin`,
+  `compat/tss/LockedSkill`, `compat/tss/client/LockedCard`, `compat/tss/mixin/HudRescueMixin`.
+
+### 3. What to do next, in order
+1. **Ask Adam (clickable)**: (a) does Luna's resting moon still flash in polish 11? (b) the ports: GPT-6.2 Astra ports
+   **all six** (recommended: his budget), or Astra four (forge-1.21.1, fabric-1.21.1, forge-1.20.1, fabric-1.20.1, his
+   pick of 2026-11-20 before the budget check) and Claude fabric-1.21.11 + fabric-26.3 (their own render pipelines:
+   SkyPass, FilmSplit/FilmPanels, the sky cards and the HUD hooks by hand; likely too much for his budget).
+2. **The port base**: one commit with all of 1.9.0 on top of origin/main, as 1.8.0's `604fb06`:
+   `git commit-tree -p origin/main -m "1.9.0 port base (main's tree at <main head>)" "main^{tree}"` (prints the sha; tag
+   it locally, e.g. `git branch port-1.9.0 <sha>`). Each branch cherry-picks it.
+3. **The briefs**: `..\ports\make-briefs.js` (1.8.0's; `make-briefs-1.7.0.js` the one before) writes
+   `..\ports\<branch>\BRIEF.md` for each branch: copy it to `make-briefs-1.9.0.js`, set `PORT`, the version, and per
+   branch the 1.9.0 notes below. `BRIEF.md`/`REPORT.md`/`CHECK.md` are git-excluded (`.git/info/exclude`). Every brief
+   says: cherry-pick the base, resolve (CLAUDE.md: keep the branch's own; config: the branch's style; prefixes;
+   `.get()`), build, report in `REPORT.md`, never push or stash, never commit libs/. The 1.9.0 parts each branch needs
+   (hooks per loader):
+   - `SkyPass` + `LevelRendererSkyMixin` (inside `LevelRenderer.renderSky` after `getStarBrightness`; 1.21.11/26.3 have
+     no such method: they draw the sky their own way, TON 618 Addition's 1.21.11/26.3 ports solved the same: its
+     `QuasarAtlas.drawSky`; if hard, skip the pass there: then the moon/comet/gate draw as in 1.8.3, over a pack's clouds);
+   - `HudRescueMixin` (`Gui.render` cut short by TON 618; Forge 1.21.1 has no `RenderGuiEvent`: a `GameRendererMixin`
+     before `Gui.render`, as forge-1.21.1 did for the 1.8.2 sky gate);
+   - `FilmSplit` (GUI-drawn copies of the screen: GL branches copy at the end of the frame like `FilmPanels`;
+     1.21.11/26.3 copy at `GameRenderer.render` TAIL like their `FilmPanels`), `FilmView`, `FilmEye`;
+   - `ProximaCosmos.paintSkyCard` (offscreen `TextureTarget`s; 1.21.11/26.3: GpuTextures);
+   - `SoundListenerMixin` (`SoundManager.updateSource(Camera)`), `QuasarFxMixin`/`QuasarHudMixin` (targets
+     `dev.ss21.quasar.mc1211.client.QuasarFx`/`QuasarHud`: check the class names inside SS-21 Quasar's jar for that
+     loader/version, e.g. `mc1201` on 1.20.1; the Fabric multi jar is `..\other mods\quasar\ss-21-quasar-1.8.0.jar`);
+   - `StrikeMusic.getStream` (players' music): NeoForge/Forge `SoundInstance.getStream`, Fabric API
+     `FabricSoundInstance.getAudioStream`;
+   - the settings menu (`AdditionPanel`, `ConvergencePlate`, RimuLib `UiApi`; 26.3's takes `GuiGraphicsExtractor`), the
+     new client config entries in each branch's config style (Fabric: `config/ConfigFile`), new lang strings, new
+     sounds in `sounds.json`, `defaults_version`;
+   - `StellarQuartet.REQUIRED` false on forge-1.20.1, fabric-1.20.1, fabric-1.21.11 (no Stellar Quartet there); 26.3's
+     keys (Halley G, Proxima ], Epic mode Z) checked against the card keys;
+   - `Convergence.ADDON_IMPACT`/`TSS_REACH` (Hyperion, Meridian) as on main; `LockedSkill` reads TON 618 Addition's ids.
+4. **Run them in Codex** (computer use on the app "ChatGPT"; 1.8.0's way, the "How the Codex agents were run" note in
+   the 2026-11-09 section): one Codex project per worktree ("TSSA port <branch>", folder trusted), model picker (click the
+   model label at the bottom right of the composer) -> **GPT-6.2 Astra**, effort High; the one-line prompt "Read
+   BRIEF.md in this folder and do exactly what it says"; **two at a time**; when Codex says "You've hit your usage
+   limit", Adam resets it, then each stopped chat gets "The usage limit has reset. Continue where you left off".
+5. **Review + CI**: read each `REPORT.md` and the diff; build the Forge ones here (JDK 21:
+   `C:\Program Files\Eclipse Adoptium\jdk-21.0.11.10-hotspot`, `./gradlew --no-daemon build -x test`); push each to
+   `wip/<branch>` with `dev/ci/push-wip.sh <branch> port/<branch>` **from that branch's own worktree** (main's copies of
+   the other CI scripts are stale); read the draft release `ci-<branch>-<n>`'s `summary.txt` (`gh release download`) and
+   failures from `gh run view <id> --log`. The CI's Proxima test can refuse on a random world (B3): not a port bug.
+6. **Screenshot checks by Codex**: `..\ports\check-prompt.txt` (set the run numbers: the branch's CI draft and main's);
+   main's reference needs one CI run of main too (`dev/ci/push-wip.sh main`).
+7. **Test jars**: the CI jars renamed `The Shooting Star Addition SA Series 1.9.0 TEST [<Loader> <MC>].jar` into
+   `..\test builds\<date> 1.9.0 ports (CI)\` and his instances (old SA jars `.disabled`; the Fabric instances need TSS
+   1.6.0 Fabric 9676941 + RimuLib 1.3.0 Fabric 9676539: check if there, download only with his OK). His main-first rule
+   says he tests; with his budget he may hand it to ChatGPT: ask.
+8. **Release** (only on his word): `mod_version=1.9.0` and the READMEs' "This is version" on all seven;
+   `dev/publish/changelog_190.js` from `changelog_183.js` (per-branch lines: what a branch lacks) writing to
+   `..\releases\1.9.0\changelogs\` (pass that folder as its argument); `github_190.sh` from `github_183.sh`;
+   `dev/publish/curseforge-description.md` (1.9.0 lines); one CI round from the final heads; then
+   `..\releases\1.9.0\RELEASE-PROMPT.md` from `..\releases\1.8.3\RELEASE-PROMPT.md` (A0 = the seven heads and CI runs;
+   Codex runs it: pushes `port/<branch>:<branch>`, tags, GitHub releases, CurseForge files, the description's version
+   lines, deletes `wip/*` and `ci-*`). Check the result after (origin heads, releases, CurseForge files through the API).
+9. **After 1.9.0**: a Discord announcement and the roadmap (models in `..\announcements\`); then TON 618 Addition's
+   pending work (below); his extras kept in mind: a survival recipe for the remote behind a config switch, Halley's own
+   music, promo captions for 1.9.0; `IDEAS.md` (a Christmas surprise, CelesTech compat, the SA-X brainstorm).
+
+### 4. Other projects this session ran
+- **TON 618 Addition** (`C:\Users\adam_\Documents\TON 618 Addition\ton 618 addition`, its own CLAUDE.md, current):
+  1.1.1 is released on NeoForge (2026-11-18); its six 1.1.1 ports are built locally (worktrees in its `ports\`), never
+  tested by him (that test session paused waiting for his computer-use OK); main has two fixes after 1.1.1 (`1331305`
+  the action bar in TON 618's dark, `ba14264` the default keys) as a TEST jar in his instance. Left: his test, those
+  fixes into the six ports, his test of the ports, then a release (a release prompt for Codex as for 1.1.1).
+- **Website** (`C:\Users\adam_\Documents\Website`): local commits not pushed (`ee3d671`: the new roadmap, TON 618
+  Addition); Cloudflare Pages on hold ("not yet").
+- Drafts waiting for his OK: the new CurseForge description (`..\releases\description rework\`), the CurseForge replies
+  (`..\announcements\CurseForge replies (2026-11-18).md` and `(2026-11-20).md`).
+
+### 5. Traps learned (2026-11-19/20)
+- Edit scripts: files are CRLF (normalise `\r\n` first, write back as found); `\2026` in a JS template string is an
+  octal-escape error (write text blocks with the Write tool and read them from the script); apostrophes break
+  `node -e` inside bash single quotes.
+- `tasklist`'s header alone means a match; use `Get-Process javaw`. A test game sometimes hangs on close: list the java
+  processes with their parents and stop only the test's three PIDs (a broad kill is blocked).
+- `test scripts\autotest32.sh` (his setup): `RUNS="menu halley proxima luna convergence"`, `CONVNAME` **without
+  spaces**, `CONVLIST='["the_shooting_star", "halley", ...]'`; results in `..\test builds\2026-11-20 auto test 37 his
+  setup polish 5\<name>\` with contact sheets; the split screen logs its fps once a film.
+- RimuLib's `CameraPose(position, look, fov, roll)` takes a look-at point. SS-21 Quasar has its own effect engine
+  (`dev.ss21.quasar.<mc>.compat.client.fx`), not TSS's FxManager.
+
 ### >>> RESUME HERE (2026-11-20 ~20:10, Adam's PC): polish 10 in his instance for his test; then the six ports <<<
 
 - **His test of polish 9 (2026-11-20 evening)**, his words: "still laggy but some of them feel better, luna appears in
