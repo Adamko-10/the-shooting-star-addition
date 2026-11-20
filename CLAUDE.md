@@ -51,8 +51,24 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   Quasar's `mc1201` package in our two Quasar mixins, `StellarQuartet.REQUIRED` false); Claude does fabric-1.21.11 and
   fabric-26.3 (their own render pipelines: SkyPass, FilmSplit, the sky cards, by hand). Only after his test of the
   main version says it's good (his main-first rule): the briefs are written then, from main's final head.
-- **Next**: his test of polish 10 -> fixes -> the six ports -> one CI round -> `changelog_190.js`, the release prompt
-  for Codex -> his OK -> a new session on this PC (below).
+- **His test of polish 10 (2026-11-20 ~20:30)**: "i think all of the other stuff is fixed, quasar thing, luna sfx and
+  all"; the split screen "still laggy and delayed ... showed up after much too long and was super laggy, to be fair i
+  have a lot running" (his instance: render distance 20, Distant Horizons, C2ME, Iris; the camera jumping to far-off
+  weapons is the likely cost; the split starts only ~12 s before the hit, so with Quasar ~25 s of the overhead shot
+  first). His picks (clickable): **split screen kept as "experimental"** (PANELS stays the default; its card row reads
+  "SPLIT (EXPERIMENTAL)", hint "experimental: heavy on big setups"); **nothing more for 1.9.0** ("but keep those in
+  mind too": a survival recipe for the remote behind a config switch, Halley's own music, promo captions for 1.9.0).
+  Then a bug: "the texture of luna after its down on the floor starts flashing like the burny texture" (screenshot: the
+  resting moon with its crack network): the cracks' flicker (~5 a second, `MoonSphere.placement`) never stopped after
+  landing; now it fades out as the moon settles. **polish 11** (`afb655d`) in his instance (polish 10 `.disabled`).
+- **His budget (2026-11-20)**: "will 20% weekly usage be enough ... make sure chatgpt does testing and u can maybe do a
+  few short tests but this is a one time thing since im running low on usage and i wanna finish this update in this
+  session". Measured then (Pro plan): weekly 82% used (resets 2026-11-25), 5-hour 65%; this session's context ~410k
+  (each turn re-reads it: compacting cuts the cost). So: ChatGPT (Codex, GPT-6.2 Astra) ports and tests (the 1.8.0
+  `ports\check-prompt.txt` screenshot checks); Claude only writes briefs, reviews, reads CI, writes the changelog and
+  the release prompt, a few short tests at most.
+- **Next**: his OK on polish 11 -> the six ports -> one CI round -> `changelog_190.js`, the release prompt for Codex ->
+  his OK -> a new session on this PC (below).
 
 ### 2026-11-20 ~19:30 (Adam's PC): SA 1.9.0 built, polish 9 in his instance for his test; then ports, release, a new session
 
