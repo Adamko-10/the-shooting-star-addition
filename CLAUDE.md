@@ -12,7 +12,7 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-20 ~16:00, Adam's PC): split screen reworked; polish 8 jar NOT yet in his instance (he was playing) <<<
+### >>> RESUME HERE (2026-11-20 ~16:00, Adam's PC): split screen reworked; polish 8 jar in his instance <<<
 
 - **His test of the split screen (2026-11-20 afternoon)**: "make it say somewhere in a good spot that u can right click to
   see a description of the skill youre hovering over and make live view better and last longer cuz it doesnt last logn
@@ -38,8 +38,8 @@ documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`
   was stopped at once (only its own 3 processes, by PID, after listing their parents; a broad kill was blocked by the
   auto-mode classifier: list first, then stop exact PIDs). **Always check `Get-Process javaw` before every test run**
   (tasklist's output was misread once: its header alone means a match).
-- **The polish 8 jar** (`12dd43f`) is in `test builds\2026-11-19 1.9.0 settings menu (NeoForge 1.21.1)\` only; **not
-  in his instance yet** (his game was running): swap it in (polish 7 `.disabled`) once he has closed the game.
+- **The polish 8 jar** (`12dd43f`) is in `test builds\2026-11-19 1.9.0 settings menu (NeoForge 1.21.1)\` and, since he
+  closed the game ("Yes, it's closed"), in his `NeoForge 1.21.1 (1)` instance (polish 7 `.disabled`).
 - **TON session**: also fixed TA-01/TA-02's default keys (TON main `ba14264`); his four TON keys are saved unbound:
   he resets them in Controls.
 
