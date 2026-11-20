@@ -12,13 +12,26 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-20 ~16:20, Adam's PC): SA 1.9.0 built, he is testing polish 8; then ports, release, a new session <<<
+### >>> RESUME HERE (2026-11-20 ~19:30, Adam's PC): SA 1.9.0 built, polish 9 in his instance for his test; then ports, release, a new session <<<
 
 Written before a compaction (the user: "write claude md cuz m gonna compact ... i will test rn btw").
 
-- **Right now he is testing polish 8 in his game**: `The Shooting Star Addition SA Series 1.9.0 polish 8 TEST [NeoForge
-  1.21.1].jar` in `NeoForge 1.21.1 (1)` (main `12dd43f` + notes; polish 7 `.disabled`; TON 618 Addition's `1.1.1 dark
-  HUD and keys fix TEST` enabled beside it). **No game tests while he plays**: run `Get-Process javaw` before every test
+- **His test of polish 8 (2026-11-20 evening)**: "the live thing is still laggy and cuts sfx, maybe its cuz im casting a
+  lot at the same time but also get rid of the shake on the individual screens and maybe just make certain other if not
+  all of the weapons except the one that it's supposed to show just make everything else invisible in that screen, also
+  the ss-21 quasar completelu breaks the thing too". **Done, `c152c1e`** (`client/FilmView`, `compat/mixin/
+  SoundListenerMixin`, `StarClientBridge.onlySkill/allSkills`, `ConvergenceFilm.frameStart/beforeHud/keepSplit/
+  keepPanel`): each part shows only its own weapon (ours filtered in our renderers; TSS's others out of FxManager's list
+  until the HUD; **our own adapters must stay in that list**: removing them hid Halley's comet and Proxima's gate in
+  their own parts); pictures kept before the HUD (SS-21 Quasar draws its full-screen scene at `Gui.render` HEAD, now
+  outside the parts and the comic panels); the sound listener held while the camera visits a non-live part; others
+  visited every 8th frame; no shake; a log line per film with the split screen's fps. Measured in his setup
+  (`test scripts\autotest32.sh RUNS=convergence CONVNAME=... CONVLIST='[...]'`): 57 fps with Quasar (5 weapons), 98-106
+  fps with 4-5 weapons, slowest frame 24-61 ms. Left as known: other addons' own visuals (Quasar's jet) still show in
+  every part (their renderers aren't ours); in ring mode a far-out weapon (Proxima's gate) can be out of view; the test
+  game sometimes hangs while closing after the run (stop its 3 processes by PID after listing parents).
+- **In his instance now**: `The Shooting Star Addition SA Series 1.9.0 polish 9 TEST [NeoForge 1.21.1].jar` in `NeoForge
+  1.21.1 (1)` (polish 8 `.disabled`; TON 618 Addition's `1.1.1 dark HUD and keys fix TEST` enabled beside it). **No game tests while he plays**: run `Get-Process javaw` before every test
   (his game = javaw with a "Minecraft NeoForge* 1.21.1" window, started by the Modrinth App; our test games are java.exe
   under a Gradle java.exe). If a test must be stopped: list the java processes with their parents, stop exact PIDs.
 - **What he tests** (told him): the gold right-click line at the bottom of the settings plate; Stellar Convergence with
