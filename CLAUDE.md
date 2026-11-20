@@ -12,7 +12,47 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-20 ~16:00, Adam's PC): split screen reworked; polish 8 jar in his instance <<<
+### >>> RESUME HERE (2026-11-20 ~16:20, Adam's PC): SA 1.9.0 built, he is testing polish 8; then ports, release, a new session <<<
+
+Written before a compaction (the user: "write claude md cuz m gonna compact ... i will test rn btw").
+
+- **Right now he is testing polish 8 in his game**: `The Shooting Star Addition SA Series 1.9.0 polish 8 TEST [NeoForge
+  1.21.1].jar` in `NeoForge 1.21.1 (1)` (main `12dd43f` + notes; polish 7 `.disabled`; TON 618 Addition's `1.1.1 dark
+  HUD and keys fix TEST` enabled beside it). **No game tests while he plays**: run `Get-Process javaw` before every test
+  (his game = javaw with a "Minecraft NeoForge* 1.21.1" window, started by the Modrinth App; our test games are java.exe
+  under a Gradle java.exe). If a test must be stopped: list the java processes with their parents, stop exact PIDs.
+- **What he tests** (told him): the gold right-click line at the bottom of the settings plate; Stellar Convergence with
+  Split screen (F on its card): the LIVE tag moving part to part, each part showing its own weapon; ring mode on and off
+  (R); Luna's new impact sounds; his own music in `config/shooting_star_addition/music/`; pages on Convergence's card
+  (0); his four TON skill keys need resetting in Controls (the TON session's key fix).
+- **Everything in 1.9.0 on main** (local, nothing pushed; details in the sections below and `docs/1.9.0-PLAN.md`):
+  settings menu look B (explanations, Less used bar, card keys win, right-click hint), Convergence's addon list, panel
+  sounds, pages of 9 weapons, split-screen film style (setting `convergence_film`, F), SS-22 Hyperion and SS-02 Meridian
+  timed; Halley's bigger blast + hush/inhale + title sounds + heart fix; Luna's build-up, Epic 20 s synced, sounds per
+  mode + new impact set; both films reworked; title cards on; the TON 618 HUD rescue; everything behind a shader pack's
+  clouds (moon, comet, Proxima's gate); TON 618 Addition's skills listed locked when it isn't installed; players' own
+  music. Commits since 1.8.3 on main: `git log --oneline 66b19f4..main` (code commits: 0ba4931 ... 12dd43f).
+- **Next, in order (his rule: main first)**: his feedback on polish 8 -> fixes -> **the six ports** (forge-1.21.1,
+  forge-1.20.1, fabric-1.21.1, fabric-1.20.1, fabric-1.21.11, fabric-26.3; §3; much new rendering: SkyPass,
+  HudRescueMixin, FilmSplit, ProximaCosmos's sky card, the music stream hook per loader: NeoForge/Forge
+  `SoundInstance.getStream`, Fabric API `FabricSoundInstance.getAudioStream`; StellarQuartet.REQUIRED false on
+  1.20.1/1.21.11) -> one CI round -> version 1.9.0, changelog (`dev/publish/changelog_190.js`, to write), release prompt
+  for Codex (`docs/1.9.0-PLAN.md` step 5; model: `..\releases\1.8.3\RELEASE-PROMPT.md`) -> his OK to release.
+- **After 1.9.0 is done: a completely new session** (the user, 2026-11-20: "after we done with 1.9.0 lets export this to
+  a completely new entire session"): when 1.9.0 is released, write a short hand-off (this file is the main one; a
+  `HANDOFF PROMPT (<date>).md` in the project folder with what to read first) and tell him to start a fresh session.
+  Where (clickable, 2026-11-20): **"On this PC"**: a fresh session in this same project folder (no bundle or zip).
+- **Test scripts made today** (project folder `test scripts\`): autotest29 (locked TON skills menu), autotest30
+  (Proxima's gate with Complementary, `SET=`), autotest31 (own music), autotest32 (his whole setup: Iris + Complementary,
+  legacy films, his client config, TON 618 + TON 618 Addition + SS-21 + Stellar Quartet from his instance; `RUNS="menu
+  halley proxima luna convergence"`, `CONVNAME=`, `MENUNAME=`/`FINALMENU=`), autotest33 (timing with Hyperion as an
+  extra mod, `NAME`/`FILM`/`VIEW`/`TOML`/`CMD`; the timing mixin recipe in §18).
+- **Watch-outs learned today**: edit scripts break on `\2026` in Windows paths inside JS template strings and on files
+  with CRLF (normalise `\r\n` first, as the `rep()` helper in the scratchpad scripts does); `tasklist`'s header alone
+  means a match (a game IS running); RimuLib's `CameraPose(position, look, fov, roll)` takes a look-at point.
+
+
+### 2026-11-20 ~16:00 (Adam's PC): split screen reworked; polish 8 jar in his instance
 
 - **His test of the split screen (2026-11-20 afternoon)**: "make it say somewhere in a good spot that u can right click to
   see a description of the skill youre hovering over and make live view better and last longer cuz it doesnt last logn
