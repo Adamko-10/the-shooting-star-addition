@@ -83,8 +83,9 @@ public final class SkyPass {
             // Proxima's gate (painted onto a card at the frame's start, ProximaCosmos.paintSkyCard), farthest off
             dev.ss05.halley.client.proxima.ProximaCosmos.renderSkyPass(pose, eye, far);
             // the bodies first (the moon hides the stars behind it), then the light round them
+            boolean luna = dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.LUNA);
             for (MoonFx fx : MoonFx.active()) {
-                if (!fx.finished() && MoonSphere.inSky(fx, eye, partial)) {
+                if (luna && !fx.finished() && MoonSphere.inSky(fx, eye, partial)) {
                     MoonSphere.renderSky(fx, eye, far, partial, pose);
                 }
             }
@@ -96,12 +97,12 @@ public final class SkyPass {
             GlowBatch worldBatch = new GlowBatch(GlowAtlas.sink(new Sky(world, pose)), eye, camera.getLeftVector(), camera.getUpVector(), far);
             GlowBatch glareBatch = new GlowBatch(GlowAtlas.sink(new Sky(glare, pose)), eye, camera.getLeftVector(), camera.getUpVector(), far);
             for (MoonFx fx : MoonFx.active()) {
-                if (!fx.finished() && MoonSphere.inSky(fx, eye, partial)) {
+                if (luna && !fx.finished() && MoonSphere.inSky(fx, eye, partial)) {
                     MoonVisuals.drawAttached(fx, MoonSphere.placement(fx, eye, far, partial), worldBatch, glareBatch, fx.time(partial));
                 }
             }
             for (HalleyFx fx : HalleyFx.active()) {
-                if (!fx.finished()) {
+                if (!fx.finished() && dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.HALLEY)) {
                     fx.renderSky(worldBatch, glareBatch, partial);
                 }
             }

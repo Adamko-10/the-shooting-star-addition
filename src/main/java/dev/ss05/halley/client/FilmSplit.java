@@ -75,6 +75,10 @@ public final class FilmSplit {
         live = i;
     }
 
+    public static int liveIndex() {
+        return live;
+    }
+
     /** Keeps the frame now on the screen as part {@code i}'s picture (at the end of the frame, before the split is drawn). */
     public static void capture(int i) {
         if (i < 0 || i >= FRAMES.size()) {
@@ -137,10 +141,9 @@ public final class FilmSplit {
             float y0 = margin + row * (rowH + gap);
             float cx = x0 + cellW * 0.5F;
             float cy = y0 + rowH * 0.5F;
-            // shaking: a small jump a few times a second, each part its own
-            int step = (int) Math.floor(now * 0.55F) + i * 7;
-            float dx = (hash(step) - 0.5F) * 3.0F * u;
-            float dy = (hash(step + 101) - 0.5F) * 3.0F * u;
+            // (no shaking: Adam, 2026-11-20: "get rid of the shake on the individual screens")
+            float dx = 0.0F;
+            float dy = 0.0F;
             float alpha = in * (1.0F - broken);
             float angle = 0.0F;
             if (broken > 0.0F) {

@@ -77,6 +77,8 @@ public final class HalleyClient {
             GlowAtlas.paint(HalleyRenderTypes.shader());
             HalleySky.paint(event.getPartialTick().getGameTimeDeltaPartialTick(true));
         }
+        // Stellar Convergence's split screen: what this frame shows (before anything is painted for it)
+        FilmView.runFrameStart();
         // Proxima's gate behind a pack's clouds (1.9.0): painted now, drawn in the sky pass (or nothing this frame)
         ProximaCosmos.paintSkyCard(event.getPartialTick().getGameTimeDeltaPartialTick(true));
     }

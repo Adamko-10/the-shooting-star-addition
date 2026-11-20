@@ -88,7 +88,7 @@ public final class MoonRenderer {
             eye, camera.getLeftVector(), camera.getUpVector(), far);
 
         for (MoonFx fx : MoonFx.active()) {
-            if (!fx.finished()) {
+            if (!fx.finished() && dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.LUNA)) {
                 MoonSphere.Placement placement = MoonSphere.placement(fx, eye, far, partial);
                 MoonVisuals.draw(fx, placement, worldBatch, glareBatch, fx.time(partial), land, fx.filmWeight());
             }

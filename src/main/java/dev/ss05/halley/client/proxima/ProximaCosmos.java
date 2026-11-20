@@ -164,6 +164,9 @@ public final class ProximaCosmos {
         if (program == null || minecraft.level == null || ProximaFx.active().isEmpty()) {
             return;
         }
+        if (!dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.PROXIMA)) {
+            return;
+        }
         ProximaFx fx = ProximaFx.active().getLast();
         float partial = event.getPartialTick().getGameTimeDeltaPartialTick(true);
         double t = fx.time(partial) / 20.0;
@@ -252,6 +255,7 @@ public final class ProximaCosmos {
         ShaderInstance program = shader;
         Minecraft minecraft = Minecraft.getInstance();
         if (program == null || minecraft.level == null || ProximaFx.active().isEmpty() || !dev.ss05.halley.client.render.ShaderPacks.active()
+            || !dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.PROXIMA)
             || dev.ss05.halley.client.render.SkyPass.broken()) {
             return;
         }

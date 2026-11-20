@@ -12,7 +12,8 @@
     "CompassSpinMixin",
     "LevelRendererMoonMixin",
     "LevelRendererSkyMixin",
-    "PlayerModelMixin"
+    "PlayerModelMixin",
+    "SoundListenerMixin"
   ],
   "injectors": {
     "defaultRequire": 0

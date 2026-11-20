@@ -167,7 +167,7 @@ public final class MoonSphere {
         BufferBuilder seamGlow = new BufferBuilder(SEAM_GLOW_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.NEW_ENTITY);
         for (MoonFx fx : MoonFx.active()) {
             // (above a shader pack's clouds it is drawn in the sky instead: SkyPass)
-            if (fx.finished() || inSky(fx, camera, partial)) {
+            if (fx.finished() || inSky(fx, camera, partial) || !dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.LUNA)) {
                 continue;
             }
             Placement placement = placement(fx, camera, maxDistance, partial);

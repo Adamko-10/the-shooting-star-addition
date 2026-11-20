@@ -217,6 +217,9 @@ public final class StarClientBridge {
     /** From HudRescueMixin, just before the game's HUD: a new frame's overlay is still to draw. */
     public static void beforeHud() {
         filmHudDrawn = false;
+        // Stellar Convergence's film: everything back for the HUD, and this frame's picture kept before the HUD (SS-21
+        // Quasar draws its own full-screen scene at the HUD's start, which got into every part and panel)
+        ConvergenceFilm.beforeHud();
     }
 
     /**
@@ -275,6 +278,75 @@ public final class StarClientBridge {
             list.clear();
             list.addAll(newest);
         }
+    }
+
+    /** The effects taken out for a split-screen part's frame (put back before the HUD), else null. */
+    private static List<Object> splitHidden;
+    private static Field skillField;
+    private static boolean skillLooked;
+
+    /**
+     * 1.9.0, Stellar Convergence's split screen (Adam: "make everything else invisible in that screen"): for this frame,
+     * only {@code keep}'s effects (and those of skills that aren't in {@code weapons}) stay in the remote's effect list,
+     * so the others aren't drawn into this part. Each effect knows its skill (SpellFx's one field of RimuLib's Skill type).
+     * Put back by {@link #allSkills}, before the HUD, and at every frame's start.
+     */
+    static void onlySkill(cyou.rimuru.rimulib.mc1211.skill.Skill keep, java.util.Collection<cyou.rimuru.rimulib.mc1211.skill.Skill> weapons) {
+        allSkills();
+        List<Object> list = running();
+        if (list == null || keep == null) {
+            return;
+        }
+        Field field = skillField();
+        if (field == null) {
+            return;
+        }
+        List<Object> kept = new ArrayList<>(list.size());
+        for (Object fx : list) {
+            Object skill;
+            try {
+                skill = field.get(fx);
+            } catch (ReflectiveOperationException | RuntimeException failed) {
+                skill = null;
+            }
+            // our own strikes stay: FilmView keeps them out of the other parts, and they need their effect to draw at all
+            // (taken out, Halley's comet and Proxima's gate vanished from their own parts too)
+            boolean ours = fx instanceof HalleyFxAdapter || fx instanceof MoonFxAdapter || fx instanceof ProximaFxAdapter;
+            if (ours || skill == null || skill == keep || !weapons.contains(skill)) {
+                kept.add(fx);
+            }
+        }
+        if (kept.size() < list.size()) {
+            splitHidden = new ArrayList<>(list);
+            list.clear();
+            list.addAll(kept);
+        }
+    }
+
+    /** Every effect back in the remote's list (after a split-screen part's frame). */
+    static void allSkills() {
+        if (splitHidden != null && running != null) {
+            running.clear();
+            running.addAll(splitHidden);
+        }
+        splitHidden = null;
+    }
+
+    private static Field skillField() {
+        if (!skillLooked) {
+            skillLooked = true;
+            for (Field field : cyou.rimuru.shootingstardemo.mc1211.client.fx.SpellFx.class.getDeclaredFields()) {
+                if (!Modifier.isStatic(field.getModifiers()) && field.getType() == cyou.rimuru.rimulib.mc1211.skill.Skill.class) {
+                    field.setAccessible(true);
+                    skillField = field;
+                    break;
+                }
+            }
+            if (skillField == null) {
+                HalleyAddon.LOG.warn("Couldn't tell the remote's effects apart by skill; the split screen shows every strike in each part");
+            }
+        }
+        return skillField;
     }
 
     /** From compat/mixin, after the remote drew its overlays: the older effects go back into its list. */

@@ -159,6 +159,7 @@ final class ConvergenceFilm {
             FilmSplit.begin(fx.colors(), titles);
         }
         FilmPanels.frame = ConvergenceFilm::frame;
+        dev.ss05.halley.client.FilmView.frameStart = ConvergenceFilm::frameStart;
         current = new Cutscene(subject, TssLink.CONVERGENCE.tier(), TssLink.CONVERGENCE.title(), TssLink.CONVERGENCE.color(), 0, shots)
             .hardCut()
             .fullFrame()
@@ -317,6 +318,135 @@ final class ConvergenceFilm {
      * At the end of each frame while the film plays ({@link FilmPanels#frame}): freezes the shot being cut away from into
      * its panel, and draws the panels over the finished picture.
      */
+    /** The weapons this convergence fires (those the client could tell), for the split screen's effect filter. */
+    private static java.util.Set<cyou.rimuru.rimulib.mc1211.skill.Skill> weaponSet() {
+        java.util.Set<cyou.rimuru.rimulib.mc1211.skill.Skill> set = new java.util.HashSet<>();
+        for (cyou.rimuru.rimulib.mc1211.skill.Skill skill : weaponSkills) {
+            if (skill != null) {
+                set.add(skill);
+            }
+        }
+        return set;
+    }
+
+    /** Whether this frame is one of the split screen's (the montage). */
+    private static boolean splitting(float t) {
+        return split && current != null && t >= hit - montage && t < hit;
+    }
+
+    /**
+     * At the start of every frame while the film plays: in the split screen, this frame shows only the weapon whose part
+     * the camera is on (the others' effects hidden: ours through FilmView, The Shooting Star's out of its list until the
+     * HUD), and the sound listener stays put while that part isn't the live one.
+     */
+    private static void frameStart() {
+        StarClientBridge.allSkills();
+        dev.ss05.halley.client.FilmView.reset();
+        capturedThisFrame = false;
+        if (current == null) {
+            return;
+        }
+        float t = current.time(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true));
+        if (!splitting(t)) {
+            return;
+        }
+        cyou.rimuru.rimulib.mc1211.skill.Skill skill = visiting < weaponSkills.size() ? weaponSkills.get(visiting) : null;
+        if (skill == null) {
+            return;
+        }
+        dev.ss05.halley.client.FilmView.only = skill == TssLink.SKILL ? dev.ss05.halley.client.FilmView.HALLEY
+            : skill == TssLink.MOON ? dev.ss05.halley.client.FilmView.LUNA
+            : skill == TssLink.PROXIMA ? dev.ss05.halley.client.FilmView.PROXIMA : 0;
+        dev.ss05.halley.client.FilmView.holdListener = visiting != FilmSplit.liveIndex() && FilmSplit.liveIndex() >= 0;
+        StarClientBridge.onlySkill(skill, weaponSet());
+    }
+
+    private static boolean capturedThisFrame;
+    /** The split screen's frame rate, logged once at the hit (how smooth it ran on this computer). */
+    private static long statsFrom;
+    private static long statsLast;
+    private static long statsWorst;
+    private static int statsFrames;
+
+    /** Just before the HUD: every effect back, and this frame's picture kept (before any HUD layer is drawn over it). */
+    static void beforeHud() {
+        StarClientBridge.allSkills();
+        dev.ss05.halley.client.FilmView.reset();
+        if (current == null || current.finished() || capturedThisFrame) {
+            return;
+        }
+        capturedThisFrame = true;
+        float t = current.time(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true));
+        if (split) {
+            keepSplit(t);
+        } else {
+            keepPanel(t);
+        }
+    }
+
+    /**
+     * The split screen's picture of this frame: one part is live at a time, in turn (Adam: "its really low fps"): the
+     * camera stays on it, keeping every frame, and every eighth frame or so visits one of the others so they keep
+     * moving too (each visit costs a jump of the camera: fewer of them, smoother). With a shader pack the camera needs
+     * a frame to settle after each switch (its smoothing over frames), and that frame isn't kept.
+     */
+    private static void keepSplit(float t) {
+        if (!splitting(t)) {
+            if (statsFrames > 0 && t >= hit) {
+                double seconds = (statsLast - statsFrom) / 1.0E9;
+                HalleyAddon.LOG.info("Stellar Convergence's split screen: {} frames in {} s ({} fps), the slowest {} ms", statsFrames,
+                    String.format(java.util.Locale.ROOT, "%.1f", seconds), String.format(java.util.Locale.ROOT, "%.0f",
+                        seconds > 0.0 ? statsFrames / seconds : 0.0), statsWorst / 1_000_000L);
+                statsFrames = 0;
+            }
+            return;
+        }
+        long now = System.nanoTime();
+        if (statsFrames == 0) {
+            statsFrom = now;
+            statsWorst = 0L;
+        } else {
+            statsWorst = Math.max(statsWorst, now - statsLast);
+        }
+        statsLast = now;
+        statsFrames++;
+        int count = Math.max(1, FilmSplit.count());
+        int live = Mth.clamp((int) ((t - (hit - montage)) / Math.max(1.0F, montage / (float) count)), 0, count - 1);
+        int settle = ShaderPacks.active() ? 2 : 1;
+        framesHere++;
+        if (visiting == live) {
+            if (framesHere >= settle) {
+                FilmSplit.capture(visiting);
+            }
+            if (count > 1 && framesHere >= settle + 7) {
+                nextOther = (nextOther + 1) % count;
+                if (nextOther == live) {
+                    nextOther = (nextOther + 1) % count;
+                }
+                visiting = nextOther;
+                framesHere = 0;
+            }
+        } else if (framesHere >= settle) {
+            FilmSplit.capture(visiting);
+            visiting = live;
+            framesHere = 0;
+        }
+        FilmSplit.live(live);
+    }
+
+    /** The comic panels: the last frame of weapon "next"'s shot frozen before the cut. */
+    private static void keepPanel(float t) {
+        int n = colors.length;
+        int next = FilmPanels.frozen();
+        if (next < n && t >= hit - montage + montage * (next + 1) / (float) n - 1.0F) {
+            Minecraft minecraft = Minecraft.getInstance();
+            FilmPanels.freeze(new GuiGraphics(minecraft, minecraft.renderBuffers().bufferSource()), colors[next], t);
+            if (FilmPanels.frozen() > next) {
+                sound("convergence_panel", 0.94F + 0.12F * (float) Math.random());
+            }
+        }
+    }
+
     private static void frame(GuiGraphics g) {
         if (current == null) {
             return;
@@ -328,49 +458,22 @@ final class ConvergenceFilm {
         int w = g.guiWidth();
         int h = g.guiHeight();
         float t = current.time(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true));
-        int n = colors.length;
-        if (split) {
-            // One part is live at a time, in turn (Adam: "its really low fps"): the camera stays on it, keeping every
-            // frame, and every fourth frame or so visits one of the others so they keep moving too. With a shader pack the
-            // camera needs a frame to settle after each switch (its smoothing over frames), and that frame isn't kept.
-            int count = Math.max(1, FilmSplit.count());
-            if (t >= hit - montage && t < hit) {
-                int live = Mth.clamp((int) ((t - (hit - montage)) / Math.max(1.0F, montage / (float) count)), 0, count - 1);
-                int settle = ShaderPacks.active() ? 2 : 1;
-                framesHere++;
-                if (visiting == live) {
-                    if (framesHere >= settle) {
-                        FilmSplit.capture(visiting);
-                    }
-                    if (count > 1 && framesHere >= settle + 3) {
-                        nextOther = (nextOther + 1) % count;
-                        if (nextOther == live) {
-                            nextOther = (nextOther + 1) % count;
-                        }
-                        visiting = nextOther;
-                        framesHere = 0;
-                    }
-                } else if (framesHere >= settle) {
-                    FilmSplit.capture(visiting);
-                    visiting = live;
-                    framesHere = 0;
-                }
-                FilmSplit.live(live);
+        // (if the game skipped the before-HUD hook this frame, keep the picture now, as before 1.9.0)
+        if (!capturedThisFrame) {
+            capturedThisFrame = true;
+            if (split) {
+                keepSplit(t);
+            } else {
+                keepPanel(t);
             }
+        }
+        if (split) {
             if (!shattered && t >= hit) {
                 shattered = true;
                 sound("convergence_shatter", 1.0F);
             }
             FilmSplit.draw(g, w, h, t, hit - montage, hit);
             return;
-        }
-        int next = FilmPanels.frozen();
-        // the last frame of weapon "next"'s shot: freeze it before the cut
-        if (next < n && t >= hit - montage + montage * (next + 1) / (float) n - 1.0F) {
-            FilmPanels.freeze(g, colors[next], t);
-            if (FilmPanels.frozen() > next) {
-                sound("convergence_panel", 0.94F + 0.12F * (float) Math.random());
-            }
         }
         // the grid breaking apart as everything hits
         if (!shattered && t >= hit && FilmPanels.frozen() > 0) {
@@ -393,5 +496,8 @@ final class ConvergenceFilm {
         FilmSplit.clear();
         split = false;
         dev.ss05.halley.client.render.FilmEye.next = null;
+        dev.ss05.halley.client.FilmView.frameStart = null;
+        dev.ss05.halley.client.FilmView.reset();
+        StarClientBridge.allSkills();
     }
 }
