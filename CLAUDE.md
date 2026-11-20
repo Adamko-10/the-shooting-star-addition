@@ -12,7 +12,39 @@ weapon at once (§18).
 Everything here was true of the code at that point; if the code disagrees, the code wins. The player-facing
 documentation is `README.md`; Luna's design and code map is `docs/SS-06-LUNA.md`.
 
-### >>> RESUME HERE (2026-11-20 ~19:30, Adam's PC): SA 1.9.0 built, polish 9 in his instance for his test; then ports, release, a new session <<<
+### >>> RESUME HERE (2026-11-20 ~21:00, Adam's PC): his polish 9 feedback + Luna's old sounds, to build next <<<
+
+Written before a compaction (the user: "also for luna i prefer the other sfx like pre rework ... also wrtie clauyde md
+so i compact").
+
+- **His test of polish 9 (2026-11-20 evening)**, his words: "still laggy but some of them feel better, luna appears in
+  almost every view and the view disappears a littleearly still / also quasar still makes the thing look like this, if
+  u cant fix this this time around we can leave it for fable to figure out / also make it more clear u can switch pages
+  in the stellar convergence / also gravitia activated very late imo" (screenshot: SS-21 Quasar's dark space scene, a
+  blue jet line and a star, over the whole screen during Convergence's film, "[J] skip"). Then: "for luna i prefer the
+  other sfx like pre rework and all, like the one where it was a big boom".
+- **To do now, in order** (nothing of it built yet; polish 9 = `c152c1e` is in his instance):
+  1. **Luna's old impact sounds back**: restore from 1.8.3 (`git checkout 66b19f4 -- <file>`) the ten files changed
+     since: `luna_impact`, `luna_shockwave`, `luna_settle`, `luna_aftershock`, `luna_aftershock_2`, `luna_sizzle`,
+     `luna_debris`, `luna_debris_2`, `luna_debris_3`, `luna_inhale` (all `.ogg` in `assets/shooting_star_addition/
+     sounds/`; check `sounds.json` and `MoonFx.forMode`: the Epic-mode `luna_epic_*` set stays as it is). docs/SOUNDS.md.
+  2. **SS-21 Quasar's scene over our film**: it draws from its own mixin at `Gui.render` HEAD, calling the static
+     `dev.ss21.quasar.mc1211.client.QuasarHud.render(GuiGraphics, float)`; a `@Pseudo` mixin cancelling it at HEAD while
+     `ConvergenceFilm` plays (a public `playing()`), in `shooting_star_addition.tss.mixins.json` client. If that can't
+     work: leave it for Fable (his words).
+  3. **The split screen ends too early**: keep it ~40 ticks past the hit (`SPLIT_AFTER`), the wide shot after it;
+     `splitting()`, the live window, the `FilmEye` supplier, the shatter; `FilmSplit.draw` with the impact and the end
+     apart (countdown and banner read the impact).
+  4. **"Luna appears in almost every view"**: most likely the PANELS style (the per-weapon filter is only in SPLIT):
+     give each panel's freeze the same `FilmView.only` / `onlySkill` filter.
+  5. **Pages clearer** on Convergence's card: a gold bar under the rows like `AdditionPanel.lessUsedBar` ("Page 1 of 2:
+     press 0 for the next nine"), and the hint says 0.
+  6. **Gravitia sooner**: `Convergence.FINALE_MIN` 100 -> 60, `FINALE_MAX` 1200 -> 240.
+  7. Build, a polish 10 jar into his instance (check `Get-Process javaw` first), docs, this file.
+- Still after that: the six ports, CI, `changelog_190.js`, the release prompt for Codex, his OK, then a new session on
+  this PC (below).
+
+### 2026-11-20 ~19:30 (Adam's PC): SA 1.9.0 built, polish 9 in his instance for his test; then ports, release, a new session
 
 Written before a compaction (the user: "write claude md cuz m gonna compact ... i will test rn btw").
 
