@@ -28,8 +28,11 @@ import net.minecraft.network.chat.Component;
  * edits), go to the server whenever they change, and as the game joins it.
  */
 public final class ConvergencePlate {
-    /** GLFW key codes: 1-9, R and X. */
+    /** GLFW key codes: 1-9, 0 (the next page), R and X. */
     private static final int KEY_1 = 49;
+    private static final int KEY_0 = 48;
+    /** Weapons on a page: the keys 1-9. */
+    private static final int PAGE = 9;
     private static final int KEY_RING = 82;
     private static final int KEY_SHAKE = 88;
     private static final int ROW = 13;
@@ -45,11 +48,17 @@ public final class ConvergencePlate {
     };
 
     private static Convergence.Picks sent;
+    /**
+     * The page of weapons shown (1.9.0): with The Shooting Star 1.6.0's six skills and a few addons there are more than
+     * nine (in Adam's game SS-21 Quasar and TON 618 Addition's two pushed Halley, Luna and Proxima off the list, so they
+     * couldn't be ticked or fired); 0 turns the page.
+     */
+    private static int page;
 
     private ConvergencePlate() {
     }
 
-    /** The weapons it can fire, in the menu's order (the remote's skills, other addons' on it too), at most nine. */
+    /** The weapons it can fire, in the menu's order (the remote's skills, other addons' on it too), every one of them. */
     static List<Skill> weapons() {
         List<Skill> weapons = new ArrayList<>();
         SkillSet set = SkillSet.of(TssLink.SKILL);
@@ -57,11 +66,23 @@ public final class ConvergencePlate {
             return weapons;
         }
         for (Skill skill : set.skills) {
-            if (skill != TssLink.CONVERGENCE && !(skill instanceof dev.ss05.halley.compat.tss.LockedSkill) && weapons.size() < 9) {
+            if (skill != TssLink.CONVERGENCE && !(skill instanceof dev.ss05.halley.compat.tss.LockedSkill)) {
                 weapons.add(skill);
             }
         }
         return weapons;
+    }
+
+    private static int pages(int weapons) {
+        return Math.max(1, (weapons + PAGE - 1) / PAGE);
+    }
+
+    /** The page shown (kept in range as the list changes). */
+    private static int page(int weapons) {
+        if (page >= pages(weapons)) {
+            page = 0;
+        }
+        return page;
     }
 
     // ---- Input. ---------------------------------------------------------------------------------------------------
@@ -82,11 +103,21 @@ public final class ConvergencePlate {
             AdditionPanel.click(true);
             return true;
         }
-        int index = key - KEY_1;
         List<Skill> weapons = weapons();
-        if (index < 0 || index >= 9) {
+        if (key == KEY_0) {
+            if (pages(weapons.size()) < 2) {
+                AdditionPanel.click(false);
+            } else {
+                page = (page(weapons.size()) + 1) % pages(weapons.size());
+                AdditionPanel.click(true);
+            }
+            return true;
+        }
+        int row = key - KEY_1;
+        if (row < 0 || row >= PAGE) {
             return false;
         }
+        int index = page(weapons.size()) * PAGE + row;
         if (index >= weapons.size()) {
             AdditionPanel.click(false);
             return true;
@@ -150,7 +181,11 @@ public final class ConvergencePlate {
             onRemote.add(skill.id());
         }
         int listTop = top + 48;
-        int whereTop = listTop + weapons.size() * ROW + 6;
+        // a page of at most nine; the card keeps the full page's height while there are more pages
+        int pages = pages(weapons.size());
+        int first = page(weapons.size()) * PAGE;
+        List<Skill> shown = weapons.subList(first, Math.min(weapons.size(), first + PAGE));
+        int whereTop = listTop + (pages > 1 ? PAGE : shown.size()) * ROW + 6;
         // 1.9.0: each setting with its explanation under it (as on the other cards)
         int line = ROW + 9;
         int addonsTop = whereTop + 2 * line + 6;
@@ -166,8 +201,14 @@ public final class ConvergencePlate {
 
         g.drawString(font, Component.translatable("gui.shooting_star_addition.group.weapons").withStyle(ChatFormatting.BOLD), 11, top + 36,
             0xFF000000 | AdditionPanel.GREY, false);
-        for (int i = 0; i < weapons.size(); i++) {
-            Skill skill = weapons.get(i);
+        if (pages > 1) {
+            String more = Component.translatable("gui.shooting_star_addition.convergence.page", page + 1, pages).getString();
+            int capX = w - 22;
+            AdditionPanel.keyCap(g, font, capX, top + 35, "0", true);
+            g.drawString(font, more, capX - 4 - font.width(more), top + 36, 0xFF000000 | AdditionPanel.GOLD, false);
+        }
+        for (int i = 0; i < shown.size(); i++) {
+            Skill skill = shown.get(i);
             boolean on = ticked.contains(skill.id());
             int y = listTop + i * ROW;
             AdditionPanel.keyCap(g, font, 11, y, String.valueOf(i + 1), true);

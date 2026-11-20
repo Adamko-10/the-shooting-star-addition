@@ -139,6 +139,7 @@
   "gui.shooting_star_addition.group.fall": "THE FALL",
   "gui.shooting_star_addition.group.less": "LESS USED",
   "gui.shooting_star_addition.group.weapons": "WEAPONS",
+  "gui.shooting_star_addition.convergence.page": "page %s of %s, next",
   "gui.shooting_star_addition.group.addons": "ADDONS IT CAN FIRE",
   "gui.shooting_star_addition.group.open": "hide",
   "gui.shooting_star_addition.group.closed": "%s more settings",
