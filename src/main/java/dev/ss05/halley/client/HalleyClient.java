@@ -48,6 +48,7 @@ public final class HalleyClient {
         // Proxima's Earth images (two 4096 maps, mipmapped) loaded as the world is joined, not mid-film (that stall made the
         // film's music and soundtrack stutter)
         MinecraftForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingIn event) -> ProximaCosmos.preload());
+        MinecraftForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingIn event) -> StrikeMusic.ensureFolder());
         MinecraftForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> {
             HalleyFx.clearAll();
             MoonFx.clearAll();
@@ -65,6 +66,8 @@ public final class HalleyClient {
      */
     private static void frameStart(TickEvent.RenderTickEvent.Pre event) {
         ShaderPacks.update();
+        // Stellar Convergence's film: what this frame shows (before the sky's look and anything painted for it)
+        FilmView.runFrameStart();
         HalleySky.update(event);
         if (ShaderPacks.active() && Minecraft.getInstance().level != null
             && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty() || !ProximaFx.active().isEmpty()
@@ -72,6 +75,8 @@ public final class HalleyClient {
             GlowAtlas.paint(HalleyRenderTypes.shader());
             HalleySky.paint(event.getTimer().getGameTimeDeltaPartialTick(true));
         }
+        // Proxima's gate behind a pack's clouds (1.9.0): painted now, drawn in the sky pass (or nothing this frame)
+        ProximaCosmos.paintSkyCard(event.getTimer().getGameTimeDeltaPartialTick(true));
     }
 
     /** Once every mod is constructed (The Shooting Star has set up its client by then). */

@@ -5,11 +5,13 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.client.render.CometVisuals;
+import dev.ss05.halley.client.render.SkyPass;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
@@ -19,6 +21,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
+import org.joml.Matrix4f;
 
 /**
  * SS-06's moon as a solid, textured sphere: {@code surface.png} for the albedo, {@code seams.png} (an emissive RGBA
@@ -111,7 +114,9 @@ public final class MoonSphere {
         Vec3 drawCentre = camera.add(dir.scale(distance));
 
         Vec3 axis = new Vec3(-p.travel.z, 0.0, p.travel.x);
-        float flicker = 0.85F + 0.15F * (float) Math.sin(t * 1.7 + (p.seed & 0xFF));
+        // its molten cracks flicker while it falls and settle down as it comes to rest (1.9.0, Adam: after landing its
+        // texture "starts flashing like the burny texture": the flicker, ~5 a second, never stopped)
+        float flicker = 0.85F + 0.15F * (float) (1.0 - MoonPlan.settle(t)) * (float) Math.sin(t * 1.7 + (p.seed & 0xFF));
         float approach = (float) MoonPlan.fall(t);
         int handover = fx.handoverAt();
         float cooling = handover < 0 ? 0.0F : (float) Mth.clamp(1.0 - (t - handover) / MoonFx.COOLING_TICKS, 0.0, 1.0);
@@ -163,7 +168,8 @@ public final class MoonSphere {
         BufferBuilder heat = new BufferBuilder(HEAT_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.NEW_ENTITY);
         BufferBuilder seamGlow = new BufferBuilder(SEAM_GLOW_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.NEW_ENTITY);
         for (MoonFx fx : MoonFx.active()) {
-            if (fx.finished()) {
+            // (above a shader pack's clouds it is drawn in the sky instead: SkyPass)
+            if (fx.finished() || inSky(fx, camera, partial) || !dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.LUNA)) {
                 continue;
             }
             Placement placement = placement(fx, camera, maxDistance, partial);
@@ -189,7 +195,44 @@ public final class MoonSphere {
         }
     }
 
-    private record Sinks(BufferBuilder base, BufferBuilder seam, BufferBuilder heat, BufferBuilder seamGlow) {
+    private record Sinks(VertexConsumer base, VertexConsumer seam, VertexConsumer heat, VertexConsumer seamGlow) {
+    }
+
+    /**
+     * 1.9.0: whether this moon is drawn in the sky this frame, not the world pass: a shader pack on, the camera under the
+     * clouds and the moon wholly above them (see {@link SkyPass}).
+     */
+    public static boolean inSky(MoonFx fx, Vec3 camera, float partial) {
+        return inSkyAt(fx, camera, fx.time(partial));
+    }
+
+    /** {@link #inSky} at the strike's time {@code t}. */
+    public static boolean inSkyAt(MoonFx fx, Vec3 camera, double t) {
+        if (SkyPass.broken() || t >= MoonPlan.CONTACT) {
+            return false;
+        }
+        return SkyPass.above(camera, fx.plan.centre(t).y - fx.plan.params.moonRadius() - MoonFx.restOversizeAt(t));
+    }
+
+    /**
+     * 1.9.0: the moon drawn inside the game's sky drawing ({@link SkyPass}), the same sphere as {@link #renderSolid}
+     * builds, turned by the sky's {@code pose}: its rock over the stars, its seams and its fire added.
+     */
+    public static void renderSky(MoonFx fx, Vec3 camera, double maxDistance, float partial, Matrix4f pose) {
+        Placement placement = placement(fx, camera, maxDistance, partial);
+        if (placement.radius() <= 0.05 || placement.solid() <= 0.002F) {
+            return;
+        }
+        BufferBuilder base = new BufferBuilder(BASE_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        BufferBuilder seam = new BufferBuilder(SEAM_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        BufferBuilder heat = new BufferBuilder(HEAT_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        BufferBuilder seamGlow = new BufferBuilder(SEAM_GLOW_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        build(new Sinks(new SkyPass.Sky(base, pose), new SkyPass.Sky(seam, pose), new SkyPass.Sky(heat, pose),
+            new SkyPass.Sky(seamGlow, pose)), camera, placement, (float) fx.time(partial));
+        SkyPass.drawMesh(base, SURFACE, false);
+        SkyPass.drawMesh(seam, SEAMS, false);
+        SkyPass.drawMesh(seamGlow, SEAMS, true);
+        SkyPass.drawMesh(heat, GLOW, true);
     }
 
     private static void build(Sinks out, Vec3 camera, Placement placement, float time) {

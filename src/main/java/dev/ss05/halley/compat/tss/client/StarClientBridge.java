@@ -69,16 +69,19 @@ public final class StarClientBridge {
                 if (!MenuApi.capturesInput()) {
                     return;
                 }
+                // the Stellar Convergence picks go to the server whatever is shown (other skills' sliders change meanwhile)
+                ConvergencePlate.sync(false);
                 if (HalleyClientConfig.menuPlates()) {
-                    AdditionPanel.draw(graphics);
-                    ConvergencePlate.draw(graphics);
-                } else {
-                    // hidden by the client config: the Stellar Convergence picks still go to the server
-                    ConvergencePlate.sync(false);
+                    // 1.9.0's look B: the general plate, and under it the selected skill's own card
+                    AdditionPanel.Card card = card();
+                    AdditionPanel.draw(graphics, card, card == AdditionPanel.Card.LOCKED
+                        ? (g, font, top, w) -> LockedCard.draw(g, font, top, w, selectedLocked) : ConvergencePlate::drawCard);
                 }
             });
-            MenuApi.onKey(key -> MenuApi.capturesInput() && HalleyClientConfig.menuPlates() && !menuUses(key, 0)
-                && (AdditionPanel.key(key) || ConvergencePlate.key(key)));
+            // 1.9.0: a key the shown card uses wins over a skill's own key (Adam: G on Luna's card picked SS-21 Quasar);
+            // the menu's own keys (H, the films' key) and a key being rebound stay the menu's
+            MenuApi.onKey(key -> MenuApi.capturesInput() && HalleyClientConfig.menuPlates() && !menuReserves(key, 0)
+                && (AdditionPanel.key(key, card()) || ConvergencePlate.key(key)));
             // once the server has said hello, tell it this player's Stellar Convergence picks
             Runnable before = ServerSettings.onReceived;
             ServerSettings.onReceived = () -> {
@@ -90,6 +93,35 @@ public final class StarClientBridge {
             HalleyAddon.LOG.error("Halley and Luna couldn't hook their effects into The Shooting Star; strikes will "
                 + "happen but won't be shown. See compat/tss/client/StarClientBridge.java.", failed);
         }
+    }
+
+    /** Which of our skills is selected in the remote's menu: its card shows under the general plate. */
+    /** The locked skill (TON 618 Addition's) selected in the menu, when {@link #card()} says LOCKED. */
+    private static dev.ss05.halley.compat.tss.LockedSkill selectedLocked;
+
+    private static AdditionPanel.Card card() {
+        try {
+            Skill selected = cyou.rimuru.rimulib.mc1211.client.magic.ClientSkills.selected(SkillSet.of(TssLink.SKILL));
+            if (selected == TssLink.SKILL) {
+                return AdditionPanel.Card.HALLEY;
+            }
+            if (selected == TssLink.MOON) {
+                return AdditionPanel.Card.LUNA;
+            }
+            if (selected == TssLink.PROXIMA) {
+                return AdditionPanel.Card.PROXIMA;
+            }
+            if (selected == TssLink.CONVERGENCE) {
+                return AdditionPanel.Card.CONVERGENCE;
+            }
+            if (selected instanceof dev.ss05.halley.compat.tss.LockedSkill locked) {
+                selectedLocked = locked;
+                return AdditionPanel.Card.LOCKED;
+            }
+        } catch (RuntimeException | LinkageError unknown) {
+            // RimuLib's selection is internal: if it changes, only the general plate shows
+        }
+        return AdditionPanel.Card.NONE;
     }
 
     /**
@@ -139,11 +171,13 @@ public final class StarClientBridge {
      * the newest strike's only, as for the remote's own (see {@link #newestHudsOnly}).
      */
     public static void renderFilmHud(GuiGraphics graphics, float partial) {
-        // called from both of FxManager's overlay passes (see FxManagerMixin); a frame has one GuiGraphics
+        // called from both of FxManager's overlay passes (see FxManagerMixin); a frame has one GuiGraphics (the rescue
+        // after the HUD brings its own, and only draws when neither pass did, see hudRescue)
         if (graphics == lastFilmHud) {
             return;
         }
         lastFilmHud = graphics;
+        filmHudDrawn = true;
         // in RimuLib's overlay units (UiApi.overlay: one size at any GUI scale)
         if (!HalleyFx.active().isEmpty()) {
             UiApi.overlay(graphics, () -> {
@@ -175,6 +209,44 @@ public final class StarClientBridge {
     }
 
     private static GuiGraphics lastFilmHud;
+    /** Whether our film overlay was drawn since the frame's HUD began (1.9.0, {@link #hudRescue}). */
+    private static boolean filmHudDrawn;
+    private static boolean rescueFailed;
+    private static boolean rescued;
+
+    /** From HudRescueMixin, just before the game's HUD: a new frame's overlay is still to draw. */
+    public static void beforeHud() {
+        filmHudDrawn = false;
+        // Stellar Convergence's film: everything back for the HUD, and this frame's picture kept before the HUD (SS-21
+        // Quasar draws its own full-screen scene at the HUD's start, which got into every part and panel)
+        ConvergenceFilm.beforeHud();
+    }
+
+    /**
+     * From HudRescueMixin, just after the game's HUD: when something cut the HUD short this frame (TON 618 does while a
+     * RimuLib film plays) and one of our strikes runs, its film overlay (and Proxima's late sky gate under a shader
+     * pack) is drawn here instead, on the same layer.
+     */
+    public static void hudRescue(GuiGraphics graphics, float partial) {
+        if (filmHudDrawn || HalleyFx.active().isEmpty() && MoonFx.active().isEmpty() && ProximaFx.active().isEmpty()) {
+            return;
+        }
+        try {
+            if (!rescued) {
+                rescued = true;
+                HalleyAddon.LOG.info("The game's HUD was cut short while one of our strikes ran (TON 618 does it during films): "
+                    + "our film overlays are drawn after it instead");
+            }
+            ProximaCosmos.renderSkyLate();
+            renderFilmHud(graphics, partial);
+            graphics.flush();
+        } catch (RuntimeException | LinkageError failed) {
+            if (!rescueFailed) {
+                rescueFailed = true;
+                HalleyAddon.LOG.warn("Couldn't draw the films' overlays after a HUD another mod cut short: {}", failed.toString());
+            }
+        }
+    }
 
     /** The remote's running effects, oldest first: FxManager's one static list, found by type (its name is obfuscated). */
     private static List<Object> running;
@@ -206,6 +278,75 @@ public final class StarClientBridge {
             list.clear();
             list.addAll(newest);
         }
+    }
+
+    /** The effects taken out for a split-screen part's frame (put back before the HUD), else null. */
+    private static List<Object> splitHidden;
+    private static Field skillField;
+    private static boolean skillLooked;
+
+    /**
+     * 1.9.0, Stellar Convergence's split screen (Adam: "make everything else invisible in that screen"): for this frame,
+     * only {@code keep}'s effects (and those of skills that aren't in {@code weapons}) stay in the remote's effect list,
+     * so the others aren't drawn into this part. Each effect knows its skill (SpellFx's one field of RimuLib's Skill type).
+     * Put back by {@link #allSkills}, before the HUD, and at every frame's start.
+     */
+    static void onlySkill(cyou.rimuru.rimulib.mc1211.skill.Skill keep, java.util.Collection<cyou.rimuru.rimulib.mc1211.skill.Skill> weapons) {
+        allSkills();
+        List<Object> list = running();
+        if (list == null || keep == null) {
+            return;
+        }
+        Field field = skillField();
+        if (field == null) {
+            return;
+        }
+        List<Object> kept = new ArrayList<>(list.size());
+        for (Object fx : list) {
+            Object skill;
+            try {
+                skill = field.get(fx);
+            } catch (ReflectiveOperationException | RuntimeException failed) {
+                skill = null;
+            }
+            // our own strikes stay: FilmView keeps them out of the other parts, and they need their effect to draw at all
+            // (taken out, Halley's comet and Proxima's gate vanished from their own parts too)
+            boolean ours = fx instanceof HalleyFxAdapter || fx instanceof MoonFxAdapter || fx instanceof ProximaFxAdapter;
+            if (ours || skill == null || skill == keep || !weapons.contains(skill)) {
+                kept.add(fx);
+            }
+        }
+        if (kept.size() < list.size()) {
+            splitHidden = new ArrayList<>(list);
+            list.clear();
+            list.addAll(kept);
+        }
+    }
+
+    /** Every effect back in the remote's list (after a split-screen part's frame). */
+    static void allSkills() {
+        if (splitHidden != null && running != null) {
+            running.clear();
+            running.addAll(splitHidden);
+        }
+        splitHidden = null;
+    }
+
+    private static Field skillField() {
+        if (!skillLooked) {
+            skillLooked = true;
+            for (Field field : cyou.rimuru.shootingstardemo.mc1211.client.fx.SpellFx.class.getDeclaredFields()) {
+                if (!Modifier.isStatic(field.getModifiers()) && field.getType() == cyou.rimuru.rimulib.mc1211.skill.Skill.class) {
+                    field.setAccessible(true);
+                    skillField = field;
+                    break;
+                }
+            }
+            if (skillField == null) {
+                HalleyAddon.LOG.warn("Couldn't tell the remote's effects apart by skill; the split screen shows every strike in each part");
+            }
+        }
+        return skillField;
     }
 
     /** From compat/mixin, after the remote drew its overlays: the older effects go back into its list. */
@@ -311,6 +452,15 @@ public final class StarClientBridge {
                 }
             }
             return false;
+        } catch (Throwable unsure) {
+            return true;
+        }
+    }
+
+    /** Whether the menu keeps this key for itself whatever the plates show: a key being rebound, H, the films' key. */
+    public static boolean menuReserves(int key, int scancode) {
+        try {
+            return MenuApi.binding() != null || matches(MenuApi.menuKey(), key, scancode) || matches(MenuApi.filmKey(), key, scancode);
         } catch (Throwable unsure) {
             return true;
         }

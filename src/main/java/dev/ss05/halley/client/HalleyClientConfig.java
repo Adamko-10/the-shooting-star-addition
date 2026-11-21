@@ -26,12 +26,14 @@ public final class HalleyClientConfig {
     private static final ForgeConfigSpec.BooleanValue WORLD_FLASHES;
     private static final ForgeConfigSpec.BooleanValue COMET_MARKER;
     private static final ForgeConfigSpec.EnumValue<PackMode> SHADER_PACKS;
+    private static final ForgeConfigSpec.BooleanValue TITLE_CARDS;
     private static final ForgeConfigSpec.BooleanValue LUNA_MUSIC;
     private static final ForgeConfigSpec.BooleanValue NO_COOLDOWN;
     private static final ForgeConfigSpec.BooleanValue EVAC_LIFT;
     private static final ForgeConfigSpec.BooleanValue KEEP_MOON;
     private static final ForgeConfigSpec.BooleanValue EPIC_MODE;
     private static final ForgeConfigSpec.BooleanValue IMPERIAL;
+    private static final ForgeConfigSpec.BooleanValue CLOSE_ON_PICK;
     private static final ForgeConfigSpec.BooleanValue STACK_MUSIC;
     private static final ForgeConfigSpec.EnumValue<ImpactFrames> IMPACT_FRAMES;
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> CONVERGENCE;
@@ -39,7 +41,10 @@ public final class HalleyClientConfig {
     private static final ForgeConfigSpec.BooleanValue CONVERGENCE_PLATE;
     private static final ForgeConfigSpec.BooleanValue CONVERGENCE_PLATE_OLD;
     private static final ForgeConfigSpec.BooleanValue MENU_PLATES;
+    private static final ForgeConfigSpec.BooleanValue PLATES_FOLDED;
+    private static final ForgeConfigSpec.BooleanValue LESS_USED_OPEN;
     private static final ForgeConfigSpec.EnumValue<ConvergenceShake> CONVERGENCE_SHAKE;
+    private static final ForgeConfigSpec.EnumValue<ConvergenceFilm> CONVERGENCE_FILM;
     /** What Stellar Convergence fires out of the box: every weapon but Gravitia (which only the menu chooses). */
     private static final List<String> CONVERGENCE_DEFAULT = List.of("the_shooting_star", "gungnir", "seven_stars", "tesseract", "halley", "luna", "proxima");
 
@@ -54,6 +59,18 @@ public final class HalleyClientConfig {
         }
 
         public ImpactFrames next() {
+            return values()[(this.ordinal() + 1) % values().length];
+        }
+    }
+
+    /**
+     * Stellar Convergence's film (F on its card; 1.9.0, Adam's pick: a setting): PANELS = each weapon's shot frozen into
+     * a comic panel in turn; SPLIT = the screen split into a live part per weapon (his idea of 2026-11-05).
+     */
+    public enum ConvergenceFilm {
+        PANELS, SPLIT;
+
+        public ConvergenceFilm next() {
             return values()[(this.ordinal() + 1) % values().length];
         }
     }
@@ -89,6 +106,9 @@ public final class HalleyClientConfig {
                 "shader pack on, the comet and the sky then won't show).",
                 "AUTO only sees Iris (and ports that keep Iris's API). With OptiFine's shaders, set ALWAYS.")
             .defineEnum("shader_packs", PackMode.AUTO);
+        TITLE_CARDS = b.comment("The skills' title cards in their films (SA-01 HALLEY, SA-02 LUNA, and Proxima's PROXIMA CENTAURI,",
+                "DYSON SPHERE, CORONAL MASS EJECTION and SA-04 PROXIMA). Shown with RimuLib's legacy film style too.")
+            .define("title_cards", true);
         b.pop();
 
         b.comment("Your switches in the Stellar Remote's menu (H). They are saved here when you flip them there.").push("stellar_remote");
@@ -103,7 +123,7 @@ public final class HalleyClientConfig {
         KEEP_MOON = b.comment("Luna's moon model stays where it landed instead of crumbling into the block moon, until you switch",
                 "this off or leave the world (for filming). L in the remote's menu.")
             .define("keep_moon", false);
-        EPIC_MODE = b.comment("Luna's Epic mode: the moon you call down falls slower and more ominously (24 s from the alarm to the",
+        EPIC_MODE = b.comment("Luna's Epic mode: the moon you call down falls slower and more ominously (20 s from the alarm to the",
                 "impact instead of 16; everyone watching sees it), with the long cut of her music. G in the remote's menu.")
             .define("epic_mode", false);
         IMPERIAL = b.comment("Distances in the films' readouts (altitude, the flare's front, the shock wave): false for kilometres",
@@ -112,6 +132,9 @@ public final class HalleyClientConfig {
         STACK_MUSIC = b.comment("Strikes cast one after another each keep their own music playing (true), or the newest one's music",
                 "takes over (false). The = key in the remote's menu.")
             .define("stack_music", false);
+        CLOSE_ON_PICK = b.comment("Clicking a skill in the remote's menu picks it and closes the menu (true), or the menu stays open",
+                "(false, as before). The [ key in the remote's menu.")
+            .define("close_menu_on_pick", false);
         IMPACT_FRAMES = b.comment("Halley's and Luna's impact frames (the screen flashing to negative at an impact): FULL, SOFT",
                 "(fainter) or OFF. F in the remote's menu.")
             .defineEnum("impact_frames", ImpactFrames.FULL);
@@ -130,9 +153,17 @@ public final class HalleyClientConfig {
         CONVERGENCE_SHAKE = b.comment("The screen shake while a Stellar Convergence is on its way and for 20 s after it hits: CAPPED (no",
                 "stronger than one big weapon's, though every weapon shakes), FULL (every weapon's added up) or OFF. X in the remote's menu.")
             .defineEnum("convergence_shake", ConvergenceShake.CAPPED);
+        CONVERGENCE_FILM = b.comment("Stellar Convergence's film: PANELS (each weapon's shot frozen into a comic panel, the grid shattering",
+                "as they hit) or SPLIT (experimental, heavy on big setups: the screen split into a live part for each weapon). F in the",
+                "remote's menu, on Stellar Convergence's card.")
+            .defineEnum("convergence_film", ConvergenceFilm.PANELS);
         MENU_PLATES = b.comment("The addon's plates in the remote's menu (its settings, and Stellar Convergence's): false hides them and",
                 "their keys. The settings above still apply; change them in this file.")
             .define("menu_plates", true);
+        PLATES_FOLDED = b.comment("The plates folded away to a small tag in the remote's menu (Backspace there folds and unfolds them).")
+            .define("plates_folded", false);
+        LESS_USED_OPEN = b.comment("The \"Less used\" group of the selected skill's settings open (0 in the remote's menu).")
+            .define("less_used_open", false);
         b.pop();
         SPEC = b.build();
     }
@@ -144,20 +175,71 @@ public final class HalleyClientConfig {
         return get(SKY);
     }
 
+    public static void setSky(boolean on) {
+        set(SKY, on);
+    }
+
     public static boolean darkenLand() {
         return get(DARKEN_LAND);
+    }
+
+    public static void setDarkenLand(boolean on) {
+        set(DARKEN_LAND, on);
     }
 
     public static boolean extraEffects() {
         return get(EXTRA_EFFECTS);
     }
 
+    public static void setExtraEffects(boolean on) {
+        set(EXTRA_EFFECTS, on);
+    }
+
     public static boolean worldFlashes() {
         return get(WORLD_FLASHES);
     }
 
+    public static void setWorldFlashes(boolean on) {
+        set(WORLD_FLASHES, on);
+    }
+
+    /** The films' title cards (on by default, also in RimuLib's legacy film style; the user, 2026-11-18). */
+    public static boolean titleCards() {
+        return get(TITLE_CARDS);
+    }
+
+    public static void setTitleCards(boolean on) {
+        set(TITLE_CARDS, on);
+    }
+
     public static boolean cometMarker() {
         return get(COMET_MARKER);
+    }
+
+    public static void setCometMarker(boolean on) {
+        set(COMET_MARKER, on);
+    }
+
+    public static void setShaderPacks(PackMode mode) {
+        set(SHADER_PACKS, mode);
+    }
+
+    /** The plates folded to a small tag in the remote's menu (Backspace; 1.9.0). */
+    public static boolean platesFolded() {
+        return get(PLATES_FOLDED);
+    }
+
+    public static void setPlatesFolded(boolean on) {
+        set(PLATES_FOLDED, on);
+    }
+
+    /** The selected skill's "Less used" group open (0; 1.9.0). */
+    public static boolean lessUsedOpen() {
+        return get(LESS_USED_OPEN);
+    }
+
+    public static void setLessUsedOpen(boolean on) {
+        set(LESS_USED_OPEN, on);
     }
 
     public static boolean lunaMusic() {
@@ -211,6 +293,15 @@ public final class HalleyClientConfig {
 
     public static void setStackMusic(boolean on) {
         set(STACK_MUSIC, on);
+    }
+
+    /** Whether picking a skill in the remote's menu closes it. */
+    public static boolean closeMenuOnPick() {
+        return get(CLOSE_ON_PICK);
+    }
+
+    public static void setCloseMenuOnPick(boolean on) {
+        set(CLOSE_ON_PICK, on);
     }
 
     /** Your keep-the-moon switch: Luna's moon model stays after it lands. */
@@ -277,6 +368,14 @@ public final class HalleyClientConfig {
 
     public static void setConvergenceShake(ConvergenceShake shake) {
         set(CONVERGENCE_SHAKE, shake);
+    }
+
+    public static ConvergenceFilm convergenceFilm() {
+        return get(CONVERGENCE_FILM);
+    }
+
+    public static void setConvergenceFilm(ConvergenceFilm film) {
+        set(CONVERGENCE_FILM, film);
     }
 
     /** Sets and saves a switch (kept for this session if the config isn't loaded). */
