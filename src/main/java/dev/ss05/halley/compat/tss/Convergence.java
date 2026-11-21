@@ -53,12 +53,17 @@ public final class Convergence {
     private static final double RING_GAP = 16.0;
     /** How far outside every weapon's reach the ring keeps its caster, in blocks. */
     private static final double SAFE = 24.0;
-    /** How far The Shooting Star 1.5.1's weapons reach from where they land at power 1 (the measuring run's carvings). */
+    /**
+     * How far The Shooting Star 1.5.1's weapons reach from where they land at power 1 (the measuring run's carvings), and
+     * other addons' known ones by skill id: SS-22 Hyperion 1.9.8 (`HyperionCasting.RADIUS_AT_POWER_ONE`).
+     */
     private static final Map<String, Double> TSS_REACH = Map.of(
         "the_shooting_star", 200.0,
         "gungnir", 412.0,
         "seven_stars", 160.0,
-        "tesseract", 96.0);
+        "tesseract", 96.0,
+        "meridian", 968.0,
+        "hyperion", 80.0);
     /** The slowest known weapon's ticks to impact at speed 1 (the skill's duration is counted from it). */
     static final int LONGEST = 353;
     /**
@@ -67,31 +72,40 @@ public final class Convergence {
      * cutting in that world and none of the addon's strikes still working ({@link #othersDone}), but not before this long
      * after the hit (Seven Stars starts its constellation lines ~2.5 s after it)...
      */
-    private static final int FINALE_MIN = 100;
-    /** ...and at the latest this long after it (a carving waiting for land that never loads). Its own film plays then. */
-    private static final int FINALE_MAX = 1200;
+    private static final int FINALE_MIN = 60;
+    /**
+     * ...and at the latest this long after it (a carving waiting for land that never loads, or a big one still cutting).
+     * Its own film plays then. (1.9.0, Adam: "gravitia activated very late imo": 3 s and 12 s, were 5 s and 60 s.)
+     */
+    private static final int FINALE_MAX = 240;
 
     /**
      * Ticks from the cast to the impact at speed 1, power 1, for The Shooting Star 1.5.1's weapons: measured in a game
      * run (2026-11-04, the server tick its carving started on, `test builds\2026-11-04 auto test 11 convergence`).
      * Seven Stars' stars land one every 16 ticks from 291 on; 339 is the middle one, on the mark. Tesseract carves no
      * land and Gravitia turns the world into its space stage, so neither has a moment to time: they fire at once, with
-     * the slowest. Halley's and Luna's come from their plans.
+     * the slowest. Halley's and Luna's come from their plans. SS-02 Meridian (The Shooting Star 1.6.0, 2026-11-20,
+     * `test builds\2026-11-20 auto test 38 meridian hyperion timing`): its beam walls cut the land 213 ticks after the cast
+     * (the film's 10.6 s; it also makes a carving at 91, while the film is still in space), about 968 blocks across.
      */
     private static final Map<String, Integer> TSS_IMPACT = Map.of(
         "the_shooting_star", 353,
         "gungnir", 323,
-        "seven_stars", 339);
+        "seven_stars", 339,
+        "meridian", 213);
 
     /**
      * The same for other addons' skills on the remote (by skill id), read from their spells' timelines (2026-11-11):
      * SS-21 Quasar 1.8.0's jet touches down at 758 (its burst at 998), SX-01 Solar Flare 1.1.1's whip touches the
-     * ground at 365. Without an entry a weapon fires at once, and a long one (Quasar) then runs its whole build-up
-     * through the convergence's film, into every panel. Check them when those addons update (docs/ADDONS.md).
+     * ground at 365, SS-22 Hyperion 1.9.8's sun hits at 240 (`HyperionStrike.tick`: its impact on its clock's tick 240,
+     * the clock running at its speed slider; 2026-11-20, his pick to add it). Without an entry a weapon fires at once,
+     * and a long one (Quasar) then runs its whole build-up through the convergence's film, into every panel. Check them
+     * when those addons update (docs/ADDONS.md).
      */
     private static final Map<String, Integer> ADDON_IMPACT = Map.of(
         "quasar", 758,
-        "solar_flare", 365);
+        "solar_flare", 365,
+        "hyperion", 240);
 
     private static final Map<UUID, Picks> PICKS = new ConcurrentHashMap<>();
     private static final List<Pending> PENDING = new ArrayList<>();
@@ -419,7 +433,7 @@ public final class Convergence {
         SkillSet set = remote();
         if (set != null) {
             for (Skill skill : set.skills) {
-                if (skill.id().equals(id)) {
+                if (skill.id().equals(id) && !(skill instanceof LockedSkill)) {
                     return skill;
                 }
             }

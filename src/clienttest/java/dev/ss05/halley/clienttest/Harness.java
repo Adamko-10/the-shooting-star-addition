@@ -453,13 +453,29 @@ final class Harness {
             }
             finalFrames++;
             String view = HarnessParams.FINAL_VIEWS[finalView].trim();
-            if (view.equals("menu") || view.equals("skills")) {
+            // menu:<skill id>+<glfw key>+...: those keys pressed for real (through the game's keyboard handler, as a
+            // player would) once the menu is open, before its screenshot (1.9.0: the plates' keys against skill keys)
+            String[] keys = new String[0];
+            if (view.contains("+")) {
+                keys = view.substring(view.indexOf('+') + 1).split("\\+");
+                view = view.substring(0, view.indexOf('+'));
+            }
+            if ((view.equals("menu") || view.startsWith("menu:")) && finalFrames == 20) {
+                for (String code : keys) {
+                    int key = Integer.parseInt(code.trim());
+                    mc.keyboardHandler.keyPress(mc.getWindow().getWindow(), key, 0, org.lwjgl.glfw.GLFW.GLFW_PRESS, 0);
+                    mc.keyboardHandler.keyPress(mc.getWindow().getWindow(), key, 0, org.lwjgl.glfw.GLFW.GLFW_RELEASE, 0);
+                    log("pressed key " + key + " in the menu");
+                }
+            }
+            if (view.equals("menu") || view.startsWith("menu:") || view.equals("skills")) {
                 // the remote's menu (H), through the caster's own eyes: opened once, filmed once it has opened fully;
                 // "skills" scrolls its list to the end first, where Halley and Luna are (with their sliders)
                 if (finalFrames == 1) {
                     mc.setCameraEntity(mc.player);
                     // -Dss05.clienttest.select=<skill id>: that skill selected first (e.g. Stellar Convergence's plate)
-                    String select = System.getProperty("ss05.clienttest.select");
+                    // menu:<skill id> picks that skill for this view (several cards in one run)
+                    String select = view.startsWith("menu:") ? view.substring(5) : System.getProperty("ss05.clienttest.select");
                     if (select != null) {
                         cyou.rimuru.rimulib.mc1201.skill.SkillSet.all().stream().flatMap(set -> set.skills.stream())
                             .filter(skill -> skill.id().equals(select)).findFirst()
@@ -473,7 +489,7 @@ final class Harness {
                     WhiteSpace.scroll(-1.0);
                 }
                 if (finalFrames > 30 && System.currentTimeMillis() - finalSince > (view.equals("skills") ? 7000L : 4000L)) {
-                    takeScreenshot(mc, "final_" + view);
+                    takeScreenshot(mc, "final_" + view.replace(':', '-'));
                     finalView++;
                     finalSince = System.currentTimeMillis();
                     finalFrames = 0;

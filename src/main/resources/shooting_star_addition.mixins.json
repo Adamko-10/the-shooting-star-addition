@@ -12,7 +12,11 @@
     "ClientLevelTimeMixin",
     "CompassSpinMixin",
     "LevelRendererMoonMixin",
-    "PlayerModelMixin"
+    "LevelRendererSkyMixin",
+    "PlayerModelMixin",
+    "SoundListenerMixin",
+    "QuasarFxMixin",
+    "QuasarHudMixin"
   ],
   "injectors": {
     "defaultRequire": 0

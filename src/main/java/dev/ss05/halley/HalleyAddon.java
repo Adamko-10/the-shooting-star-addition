@@ -63,6 +63,12 @@ public final class HalleyAddon {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, HalleyConfig.SPEC);
         HalleyContent.register(modBus);
         AddonNetwork.register(modBus);
+        // 1.9.0's bigger Halley for files that still hold 1.8's sizes untouched
+        modBus.addListener((ModConfigEvent.Loading event) -> {
+            if (event.getConfig().getSpec() == HalleyConfig.SPEC) {
+                HalleyConfig.upgrade();
+            }
+        });
         // the no-cooldown settings, to every player whenever the config file changes
         modBus.addListener((ModConfigEvent.Reloading event) -> {
             if (event.getConfig().getSpec() == HalleyConfig.SPEC && ServerLifecycleHooks.getCurrentServer() != null) {

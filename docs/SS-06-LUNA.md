@@ -52,14 +52,16 @@ with Proxima) and the switch is "Music" for both skills.
 default): a slower, more ominous fall that everyone watching sees, with the long cut of the music. The switch travels to
 the server in `ChoicePayload` (network version 3; `EpicMode` holds each player's), `MoonCasting` sets
 `MoonParams.FLAG_EPIC`, and the flag rides in the effect packet. The plan is not retimed: `MoonPlan.warp(clock)` maps the
-strike's clock to plan ticks, the alarm-to-impact stretch (320 plan ticks) taking `EPIC_FALL` = 480 clock ticks (24 s,
-the whole lead of the track before its drop), so everything in it runs at two thirds; before ALARM and after CONTACT
-the clock runs as usual (impact at clock 490, end at DURATION + 160). Applied in three places: the server spell
+strike's clock to plan ticks, the alarm-to-impact stretch (320 plan ticks) taking `EPIC_FALL` = 400 clock ticks (20 s;
+480 = 24 s until 1.9.0, Adam: "make epic mode last a little less long like 4 seconds less"), so everything in it runs
+at four fifths; before ALARM and after CONTACT the clock runs as usual (impact at clock 410, end at DURATION + 80).
+The sounds played inside the fall (alarm, build-up, crack, tear, the fall's roar, entry) are slowed by the same 0.8
+(`MoonFx.fallStretch`, 1.9.0: Adam found Epic mode "completely desynced": the fixed-length sounds ended early). Applied in three places: the server spell
 (`Spell.planClock`, `MoonSpell`), the client effect (`MoonFxAdapter`: its clock, the film's time, plan ticks dispatched
 one by one, `duration()` unwarped) and the film's shots (`MoonCutscene`: each take's start and end unwarped, so the
 fall's shots last longer). The rumble and the inhale are placed by clock time (`MoonFx.beforeContact`) so they still end
 on the impact. Music: `luna_music_epic.ogg` (`art/make_luna_epic_music.sh`), the full track rebuilt from Video Project
-48 + luna_music.ogg (CLAUDE.md), from 0.445 s, its drop 24 s on (measured: 5 ms late); `StrikeMusic` keeps it in step
+48 + luna_music.ogg (CLAUDE.md), from 4.445 s, its drop 20 s on (1.9.0; 0.445 s and 24 s before); `StrikeMusic` keeps it in step
 with the unwarped clock. Stellar Convergence times Luna's impact by the caster's switch (`MoonPlan.contactClock`).
 
 ## Rules
@@ -170,57 +172,3 @@ surface textures for the sky moon: `assets/shooting_star_addition/textures/luna/
 | The rim, slabs, cracks, debris; the floor's veins | `world/MoonLand`, `world/MoonVeins` |
 | Client effects | `client/luna/` (`MoonFx`, rendering, HUD), `client/film/MoonStoryboard` (+ `FilmLand`), `compat/tss/client/MoonFxAdapter`, `MoonCutscene` |
 | Blocks, items, effect, sounds | `content/` |
-
-## Forge 1.20.1
-
-Ported from `main` (NeoForge 1.21.1) onto the `forge-1.20.1` branch, after SS-05 Halley had already been ported there.
-The design above is identical; only these things changed, all the usual 1.21.1 → 1.20.1 / NeoForge → Forge
-differences already documented for SS-05 (see `CLAUDE.md` §0), applied the same way to SS-06's own files:
-
-- **The Strength amplifier (vanilla quirk, server-side):** `MobEffectInstance` saves its amplifier as a signed byte
-  in 1.20.1 (1.21 saves an int). Strength's amplifier for Molten Might is 254 (`molten_strength` 255 by default),
-  which overflows a byte to -2 after a world save/reload. The attack-damage boost itself is unaffected (vanilla's own
-  `MobEffect.addAttributeModifiers` adds Strength's attribute modifier as a permanent one, saved and restored
-  independently of the amplifier), but anything reading `MobEffectInstance.getAmplifier()` afterwards would see -2.
-  Worked around in `content/MoltenMightEffect.java`: Molten Might ticks once a second and, if the Strength effect's
-  amplifier has gone negative, re-applies Strength fresh at the configured amplifier with its current remaining
-  duration.
-- **No `onEffectStarted` (server-side):** that hook is a later addition; 1.20.1's `MobEffect` doesn't have it. But
-  unlike the 1.21.1 original, 1.20.1's `addAttributeModifiers` is handed the `LivingEntity` directly, so the "heal to
-  the new full health" step that lived in `onEffectStarted` on `main` is folded into `addAttributeModifiers` instead
-  (`content/MoltenMightEffect.java`). It still runs every time the effect (re)starts, after the max-health modifier
-  has been (re)applied, so "full health" already means the raised max.
-- **The vanilla moon-hiding mixin (client-side, `compat/mixin/LevelRendererMoonMixin.java`):** same redirect
-  (`LevelRenderer.renderSky`, the third `BufferUploader.drawWithShader` call, `ordinal = 2` - the sunset glow fan,
-  the sun, then the moon), but the type redirected is different: 1.21.1's `BufferBuilder.end()` returns a `MeshData`
-  (closed with `.close()`); 1.20.1's returns a `BufferBuilder.RenderedBuffer` (released with `.release()`). The
-  redirect's target descriptor changed accordingly
-  (`Lcom/mojang/blaze3d/vertex/BufferUploader;drawWithShader(Lcom/mojang/blaze3d/vertex/BufferBuilder$RenderedBuffer;)V`).
-  `require = 0`, as with every other optional mixin: if Minecraft's own sky rendering changes shape, the vanilla
-  moon just shows up alongside SS-06's own, a visual nit rather than a crash.
-- **Model-view handling for every SS-06 draw (client-side, `client/luna/render/`):** `MoonRenderer` (the glow:
-  entry shroud, fragments, the detonation, embers - same `halley_glow` shader and shapes SS-05's comet uses, only the
-  tint differs) and `MoonSphere` (the solid, lit, textured moon, drawn with vanilla's `entity_cutout_no_cull` /
-  `entity_translucent_emissive` render types) both build camera-relative vertices, same as SS-05's `CometRenderer`.
-  In 1.20.1, `RenderLevelStageEvent.getPoseStack()` holds the camera's rotation at every stage, but the shared
-  model-view (`RenderSystem.getModelViewStack()`) is back to identity by `AFTER_PARTICLES`/`AFTER_ENTITIES`. So both
-  push the event's pose onto the model-view stack around their draws (`view.mulPoseMatrix(event.getPoseStack().last().pose())`
-  before, `view.popPose()` after), exactly as `CometRenderer`/`HalleySky` do, and draw with
-  `RenderType.end(bufferBuilder, RenderSystem.getVertexSorting())` rather than building a `MeshData` and calling
-  `RenderType.draw(mesh)`.
-- **Vertex building (client-side, `client/luna/render/`):** 1.21's `BufferBuilder.addVertex(x, y, z).setUv(u, v)
-  .setColor(...)` (etc.) became 1.20.1's `BufferBuilder.vertex(x, y, z).uv(u, v).color(...)....endVertex()`. 1.20.1's
-  `BufferBuilder` is a single reused, growable buffer per draw site (`begin(mode, format)` / `end()`), not a fresh
-  one built from a `ByteBufferBuilder` each frame; `begin()` throws if the previous `end()` was skipped, so both
-  `MoonRenderer.render` and `MoonSphere.renderSolid` always call `end()` (through `RenderType.end`) even when nothing
-  was added that frame - it no-ops the draw itself on an empty buffer.
-- **The sky palette uniforms (client-side, `client/sky/HalleySky.java`, `halley_sky.fsh`/`.json`):** unchanged by
-  the loader port itself, but worth noting here since it is the one piece SS-06 added to a file SS-05 already owned.
-  `SkyLook` gained a `palette` field (`PALETTE_HALLEY` / `PALETTE_LUNA`); the dark sky's and haze's colours became
-  shader uniforms (`NightZenith`/`NightMiddle`/`NightHorizon`/`VeilTop`/`VeilHorizon`) set per strike instead of GLSL
-  constants, so SS-06's sick red-orange night and warm dusty haze can share the dome and the shader with SS-05's icy
-  blue one. `HalleySky.fog()` picks the same per-palette horizon colours so the fog still matches the dome exactly.
-- **Not checked (needs a real client, see `CLAUDE.md` §0):** anything visual - the moon sphere's look and scale as
-  it falls, the entry shroud and fragments, the impact, the vanilla-moon-hiding mixin actually firing, the alarm HUD
-  and marker, the cutscene, the raised-arm pose fallback in `PlayerModelMixin`, SS-06's palette under a shader pack
-  (Oculus), and sounds.

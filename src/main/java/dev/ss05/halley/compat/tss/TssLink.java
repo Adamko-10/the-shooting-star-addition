@@ -127,6 +127,14 @@ public final class TssLink implements StarLink {
             SkillApi.extend(set, new Skill[]{SKILL, MOON, PROXIMA, CONVERGENCE}, (player, skill, tuning) -> skill == SKILL
                 ? HalleyCasting.cast(player, tune(tuning)) : skill == MOON ? MoonCasting.cast(player, tune(tuning))
                 : skill == PROXIMA ? ProximaCasting.cast(player, tune(tuning)) : Convergence.cast(player, tuning));
+            // 1.9.0: TON 618 Addition's skills, locked, while it isn't installed (they say what to install)
+            List<LockedSkill> locked = LockedSkill.toList();
+            if (!locked.isEmpty()) {
+                SkillApi.extend(set, locked.toArray(new LockedSkill[0]), (player, skill, tuning) -> {
+                    dev.ss05.halley.compat.StarBridge.deny(player, skill.refusal());
+                    return false;
+                });
+            }
             showInMenu(set);
             for (Skill ours : List.<Skill>of(SKILL, MOON, PROXIMA, CONVERGENCE)) {
                 HalleyAddon.LOG.info("{} joined the Stellar Remote as skill #{} (key slot {}).", ours.title(), set.skills.indexOf(ours) + 1,

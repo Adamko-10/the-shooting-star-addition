@@ -2,6 +2,7 @@
   "required": false,
   "minVersion": "0.8",
   "package": "dev.ss05.halley.compat.tss.mixin",
+  "refmap": "shooting_star_addition.refmap.json",
   "plugin": "dev.ss05.halley.compat.TssMixins",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
@@ -12,8 +13,10 @@
   "client": [
     "CutsceneDirectorMixin",
     "FxManagerMixin",
+    "HudRescueMixin",
     "PostFxRendererMixin",
-    "SkillKeysMixin"
+    "SkillKeysMixin",
+    "WhiteSpaceMixin"
   ],
   "injectors": {
     "defaultRequire": 0

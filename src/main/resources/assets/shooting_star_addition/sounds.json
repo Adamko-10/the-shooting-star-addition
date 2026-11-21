@@ -315,5 +315,123 @@
         "name": "shooting_star_addition:proxima_inhale"
       }
     ]
+  },
+  "convergence_panel": {
+    "subtitle": "subtitles.shooting_star_addition.convergence_panel",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:convergence_panel"
+      },
+      {
+        "name": "shooting_star_addition:convergence_panel_2"
+      },
+      {
+        "name": "shooting_star_addition:convergence_panel_3"
+      }
+    ]
+  },
+  "convergence_shatter": {
+    "subtitle": "subtitles.shooting_star_addition.convergence_shatter",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:convergence_shatter"
+      }
+    ]
+  },
+  "halley_inhale": {
+    "subtitle": "subtitles.shooting_star_addition.halley_inhale",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:halley_inhale"
+      }
+    ]
+  },
+  "halley_title": {
+    "subtitle": "subtitles.shooting_star_addition.halley_title",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:halley_title"
+      }
+    ]
+  },
+  "luna_title_in": {
+    "subtitle": "subtitles.shooting_star_addition.luna_title_in",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_title_in"
+      }
+    ]
+  },
+  "luna_title_out": {
+    "subtitle": "subtitles.shooting_star_addition.luna_title_out",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_title_out"
+      }
+    ]
+  },
+  "luna_epic_uplink": {
+    "subtitle": "subtitles.shooting_star_addition.luna_uplink",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_epic_uplink"
+      }
+    ]
+  },
+  "luna_epic_alarm": {
+    "subtitle": "subtitles.shooting_star_addition.luna_alarm",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_epic_alarm"
+      }
+    ]
+  },
+  "luna_epic_buildup": {
+    "subtitle": "subtitles.shooting_star_addition.luna_buildup",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_epic_buildup"
+      }
+    ]
+  },
+  "luna_epic_crack": {
+    "subtitle": "subtitles.shooting_star_addition.luna_crack",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_epic_crack"
+      }
+    ]
+  },
+  "luna_epic_tear": {
+    "subtitle": "subtitles.shooting_star_addition.luna_tear",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_epic_tear"
+      }
+    ]
+  },
+  "luna_epic_fall": {
+    "subtitle": "subtitles.shooting_star_addition.luna_fall",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_epic_fall"
+      }
+    ]
+  },
+  "luna_epic_entry": {
+    "subtitle": "subtitles.shooting_star_addition.luna_entry",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_epic_entry"
+      }
+    ]
+  },
+  "luna_epic_rumble": {
+    "subtitle": "subtitles.shooting_star_addition.luna_rumble",
+    "sounds": [
+      {
+        "name": "shooting_star_addition:luna_epic_rumble"
+      }
+    ]
   }
 }

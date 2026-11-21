@@ -49,7 +49,7 @@ final class StrikeCommand {
                 .executes(StrikeCommand::help)
                 .then(Commands.argument("skill", StringArgumentType.word())
                     .suggests((c, builder) -> SharedSuggestionProvider.suggest(SkillSet.all().stream().filter(set -> !set.hidden)
-                        .flatMap(set -> set.skills.stream()).map(Skill::id), builder))
+                        .flatMap(set -> set.skills.stream()).filter(skill -> !(skill instanceof LockedSkill)).map(Skill::id), builder))
                     .executes(c -> strike(c, false, 0))
                     .then(tuned(false))
                     .then(Commands.literal("at")
@@ -122,7 +122,7 @@ final class StrikeCommand {
         ServerPlayer player = c.getSource().getPlayerOrException();
         String id = StringArgumentType.getString(c, "skill");
         Skill skill = SkillSet.all().stream().filter(set -> !set.hidden).flatMap(set -> set.skills.stream())
-            .filter(s -> s.id().equalsIgnoreCase(id)).findFirst()
+            .filter(s -> s.id().equalsIgnoreCase(id) && !(s instanceof LockedSkill)).findFirst()
             .orElseThrow(() -> new SimpleCommandExceptionType(Component.literal("No remote skill called " + id)).create());
         Tuning base = Tuning.initial(skill);
         float power = given >= 1 ? FloatArgumentType.getFloat(c, "power") : base.power();

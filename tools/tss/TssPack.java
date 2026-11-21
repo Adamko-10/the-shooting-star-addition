@@ -76,6 +76,13 @@ public class TssPack {
                     String config = mixinConfig.replace(".tss.", "." + v.tag + ".");
                     String json = new String(addon.get(mixinConfig), StandardCharsets.UTF_8)
                         .replace("\"" + MIXIN_PACKAGE + "\"", "\"" + (target + "mixin").replace('/', '.') + "\"");
+                    // Forge's HUD hooks target vanilla SRG methods. Mixin looks them up by the
+                    // relocated mixin class name, so each variant needs its matching refmap.
+                    String refmap = mixinConfig.replace(".tss.mixins.json", ".refmap.json");
+                    String variantRefmap = config.replace(".mixins.json", ".refmap.json");
+                    String mappings = new String(addon.get(refmap), StandardCharsets.UTF_8).replace(SOURCE, target);
+                    result.put(variantRefmap, mappings.getBytes(StandardCharsets.UTF_8));
+                    json = json.replace("\"" + refmap + "\"", "\"" + variantRefmap + "\"");
                     result.put(config, json.getBytes(StandardCharsets.UTF_8));
                     configs.add(config);
                 }
