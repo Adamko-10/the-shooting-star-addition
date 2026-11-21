@@ -85,18 +85,20 @@ public final class CometRenderer {
             eye, camera.getLeftVector(), camera.getUpVector(), far);
 
         for (HalleyFx fx : HalleyFx.active()) {
-            if (!fx.finished()) {
+            if (!fx.finished() && dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.HALLEY)) {
                 fx.render(worldBatch, glareBatch, partial, landRange, land);
             }
         }
         // Proxima's coronal front and shock wave, and Stellar Convergence's own effect, use the same glow shapes
         for (ProximaFx fx : ProximaFx.active()) {
-            if (!fx.finished(partial)) {
+            if (!fx.finished(partial) && dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.PROXIMA)) {
                 fx.render(worldBatch, glareBatch, partial, level);
             }
         }
         for (ConvergenceView view : ConvergenceView.active(level.getGameTime())) {
-            view.render(worldBatch, level.getGameTime() + partial);
+            if (dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.CONVERGENCE)) {
+                view.render(worldBatch, level.getGameTime() + partial);
+            }
         }
 
         MeshData worldMesh = world.build();

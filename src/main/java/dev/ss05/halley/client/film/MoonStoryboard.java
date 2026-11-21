@@ -70,7 +70,6 @@ public final class MoonStoryboard {
         Vec3 travel = plan.travel;
         double radius = plan.params.craterRadius();
         double moonR = plan.params.moonRadius();
-        Vec3 up = new Vec3(0.0, 1.0, 0.0);
 
         // 1. Uplink: the cover flips open, the button goes down; the alarm.
         takes.add(Take.cut(0, MoonPlan.ALARM + 18, safe(plan, (x, p, k) -> {
@@ -88,22 +87,19 @@ public final class MoonStoryboard {
             return new Pose(pos, plan.centre(x.time(p)), (float) l(k, 34.0, 20.0), (float) l(k, 0.0, -1.5));
         })));
 
-        // 3. Low on the land beside the mark, looking up: the red sky, the moon starting to come down over the horizon.
+        // 3. and 4. (1.9.0) Above the clouds: filmed from the ground the moon spent seven seconds behind the cloud layer, so
+        //    the long approach is watched from over it, the moon coming down over a sea of cloud lit red, growing until it
+        //    catches fire. Where there are no clouds (another dimension, clouds off) the same shots stand high over the land.
+        double clouds = FilmLand.cloudHeight();
+        double sea = Double.isNaN(clouds) ? mark.y + 110.0 : Math.max(clouds, mark.y + 40.0);
         takes.add(Take.cut(MoonPlan.FALL + 12, MoonPlan.FALL + 70, safe(plan, (x, p, k) -> {
-            Vec3 pos = mark.add(side.scale(radius * l(k, 0.5, 0.42))).add(travel.scale(-radius * 0.18)).add(0.0, 2.4, 0.0);
-            Vec3 moon = plan.centre(x.time(p));
-            return new Pose(x.keep(pos, x.feet(p)), moon, (float) l(k, 74.0, 70.0), 0.0F);
+            Vec3 pos = x.keep(overClouds(x, p, mark, side, radius, l(k, -14.0, -6.0), sea + l(k, 46.0, 40.0)), x.feet(p));
+            return skyShot(pos, plan.centre(x.time(p)), moonR, 58.0, l(k, 1.5, 0.0));
         })));
-
-        // 4. The long approach: a slow half-orbit round the mark at a distance, the moon growing over the land it will hit,
-        //    its dust trail behind it, until it catches fire.
         takes.add(Take.cut(MoonPlan.FALL + 70, MoonPlan.ENTRY + 10, safe(plan, (x, p, k) -> {
-            double angle = Math.toRadians(l(k, -20.0, 28.0));
-            Vec3 around = side.scale(-Math.cos(angle)).add(travel.scale(Math.sin(angle)));
-            Vec3 pos = mark.add(around.scale(radius * 0.95 + moonR * 0.5)).add(0.0, 6.0 + moonR * 0.18, 0.0);
-            Vec3 moon = plan.centre(x.time(p));
-            Vec3 look = mark.add(up.scale(moonR * 0.3)).lerp(moon, 0.72);
-            return new Pose(x.keep(pos, x.feet(p)), look, (float) l(k, 64.0, 72.0), 0.0F);
+            float e = k * k * (3.0F - 2.0F * k);
+            Vec3 pos = x.keep(overClouds(x, p, mark, side, radius, l(e, -4.0, 22.0), sea + l(e, 40.0, 14.0)), x.feet(p));
+            return skyShot(pos, plan.centre(x.time(p)), moonR, l(e, 60.0, 70.0), l(e, 0.0, -2.0));
         })));
 
         // 5. Entry: tracking alongside its line of fall, the burning moon and the ground it is about to hit both in frame.
@@ -178,6 +174,41 @@ public final class MoonStoryboard {
     }
 
     // ---- Helpers. -------------------------------------------------------------------------------------------------
+
+    /**
+     * High at height {@code y}, a little past the caster as seen from the mark (land this game has), turned
+     * {@code degrees} round the mark.
+     */
+    private static Vec3 overClouds(Stage x, float p, Vec3 mark, Vec3 side, double radius, double degrees, double y) {
+        Vec3 feet = x.feet(p);
+        Vec3 away = new Vec3(feet.x - mark.x, 0.0, feet.z - mark.z);
+        double d = away.length();
+        Vec3 h = d < 1.0 ? side : away.scale(1.0 / d);
+        double reach = Math.max(d + 40.0, radius * 1.6);
+        double a = Math.toRadians(degrees);
+        Vec3 around = new Vec3(h.x * Math.cos(a) - h.z * Math.sin(a), 0.0, h.x * Math.sin(a) + h.z * Math.cos(a));
+        return new Vec3(mark.x + around.x * reach, y, mark.z + around.z * reach);
+    }
+
+    /**
+     * 1.9.0: a shot over the clouds framed so the moon and the cloud sea under the horizon are both in it: the moon near
+     * the top, the horizon low, the lens opened wider (up to 90 degrees) while the moon stands high.
+     */
+    private static Pose skyShot(Vec3 pos, Vec3 moon, double moonRadius, double baseFov, double roll) {
+        Vec3 to = moon.subtract(pos);
+        double elev = Math.toDegrees(Math.atan2(to.y, Math.max(1.0E-3, Math.hypot(to.x, to.z))));
+        // how far its disc reaches from its centre, in degrees, plus a little room above it
+        double room = Math.toDegrees(Math.asin(Math.min(1.0, moonRadius / Math.max(moonRadius, to.length())))) + 4.0;
+        double fov = Math.min(90.0, Math.max(baseFov, elev + room + 16.0));
+        // the lowest the gaze may go with the moon still inside the top, the highest with the sea of cloud in the bottom
+        double lo = elev - fov * 0.5 + room;
+        double hi = fov * 0.5 - 14.0;
+        double look = Math.min(elev, lo <= hi ? (lo + hi) * 0.5 : lo);
+        double yaw = Math.atan2(to.z, to.x);
+        double flat = Math.cos(Math.toRadians(look));
+        Vec3 dir = new Vec3(Math.cos(yaw) * flat, Math.sin(Math.toRadians(look)), Math.sin(yaw) * flat);
+        return new Pose(pos, pos.add(dir.scale(100.0)), (float) fov, (float) roll);
+    }
 
     private static double l(float k, double a, double b) {
         return a + (b - a) * k;

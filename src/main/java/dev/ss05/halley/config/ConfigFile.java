@@ -260,6 +260,10 @@ public final class ConfigFile {
             this.max = max;
         }
 
+        public void set(int value) {
+            this.value = value;
+        }
+
         @Override
         boolean read(String text) {
             try {
@@ -293,6 +297,10 @@ public final class ConfigFile {
             super(key, fallback, comment);
             this.min = min;
             this.max = max;
+        }
+
+        public void set(double value) {
+            this.value = value;
         }
 
         @Override

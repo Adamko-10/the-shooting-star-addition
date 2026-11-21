@@ -78,6 +78,7 @@ public final class HalleyClient implements ClientModInitializer {
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             HalleyClientConfig.SPEC.load();
             ProximaCosmos.preload();
+            StrikeMusic.ensureFolder();
         });
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             HalleyFx.clearAll();
@@ -102,6 +103,7 @@ public final class HalleyClient implements ClientModInitializer {
      */
     public static void frameStart(DeltaTracker deltaTracker) {
         ShaderPacks.update();
+        FilmView.runFrameStart();
         float partial = deltaTracker.getGameTimeDeltaPartialTick(true);
         HalleySky.update(partial);
         if (ShaderPacks.active() && Minecraft.getInstance().level != null
@@ -110,6 +112,7 @@ public final class HalleyClient implements ClientModInitializer {
             GlowAtlas.paint(HalleyRenderTypes.shader());
             HalleySky.paint(partial);
         }
+        ProximaCosmos.paintSkyCard(partial);
     }
 
     /** From compat/mixin, right after the vanilla sky: the strike's sky dome. */
