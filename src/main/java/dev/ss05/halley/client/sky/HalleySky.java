@@ -99,8 +99,11 @@ public final class HalleySky {
         Vec3 camera = minecraft.gameRenderer.mainCamera().position();
         SkyLook best = null;
         float bestStrength = 0.0F;
+        boolean halley = dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.HALLEY);
+        boolean luna = dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.LUNA);
+        boolean proxima = dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.PROXIMA);
         for (HalleyFx fx : HalleyFx.active()) {
-            if (fx.finished()) {
+            if (fx.finished() || !halley) {
                 continue;
             }
             SkyLook look = fx.sky(partial, camera);
@@ -111,7 +114,7 @@ public final class HalleySky {
             }
         }
         for (MoonFx fx : MoonFx.active()) {
-            if (fx.finished()) {
+            if (fx.finished() || !luna) {
                 continue;
             }
             SkyLook look = fx.sky(partial, camera);
@@ -122,7 +125,7 @@ public final class HalleySky {
             }
         }
         // after a flare: auroras for a night or two (when nothing else is changing the sky)
-        if (best == null) {
+        if (best == null && proxima) {
             SkyLook aurora = ProximaFx.aurora(partial, camera);
             if (aurora != null && aurora.visible()) {
                 best = aurora;
@@ -130,7 +133,7 @@ public final class HalleySky {
             }
         }
         for (ProximaFx fx : ProximaFx.active()) {
-            if (fx.finished(partial)) {
+            if (fx.finished(partial) || !proxima) {
                 continue;
             }
             SkyLook look = fx.sky(partial, camera);

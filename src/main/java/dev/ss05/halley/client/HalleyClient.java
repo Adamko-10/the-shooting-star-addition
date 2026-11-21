@@ -49,6 +49,8 @@ public final class HalleyClient implements ClientModInitializer {
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             HalleyClientConfig.SPEC.load();
             ProximaCosmos.preload();
+            // the folder for players' own music (with its README), there to find once a world has been joined
+            StrikeMusic.ensureFolder();
         });
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             HalleyFx.clearAll();
@@ -74,6 +76,8 @@ public final class HalleyClient implements ClientModInitializer {
     public static void frameStart(DeltaTracker deltaTracker) {
         ShaderPacks.update();
         float partial = deltaTracker.getGameTimeDeltaPartialTick(true);
+        // Stellar Convergence's film: what this frame shows (before the sky's look and anything painted for it)
+        FilmView.runFrameStart();
         HalleySky.update(partial);
         if (ShaderPacks.active() && Minecraft.getInstance().level != null
             && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty() || ConvergenceView.any() || !ProximaFx.active().isEmpty() || ProximaFx.auroras())) {

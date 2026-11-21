@@ -30,6 +30,7 @@ public final class HalleyConfig {
     private static final ConfigFile.BoolValue NO_COOLDOWN;
     private static final ConfigFile.BoolValue NO_COOLDOWN_SURVIVAL;
     private static final ConfigFile.IntValue CHUNKS_PER_TICK;
+    private static final ConfigFile.IntValue DEFAULTS_VERSION;
     private static final ConfigFile.DoubleValue MAX_POWER;
     private static final ConfigFile.DoubleValue MAX_DAMAGE;
     private static final ConfigFile.DoubleValue MAX_SPEED;
@@ -47,15 +48,19 @@ public final class HalleyConfig {
         b.section("impact", "The shape of the scar. Bigger numbers mean more blocks to cut, so very large values cost more time",
             "on the server tick the comet lands.");
         TRENCH_LENGTH = b.defineInRange("trench_length", 240, 32, 640, "Length of the trench the comet ploughs before it reaches the mark, in blocks.");
-        TRENCH_WIDTH = b.defineInRange("trench_width", 30, 8, 64, "Width of the trench where it meets the crater, in blocks (it starts narrower).");
-        TRENCH_DEPTH = b.defineInRange("trench_depth", 22, 2, 64, "Depth of the trench at its deepest, in blocks.");
-        CRATER_RADIUS = b.defineInRange("crater_radius", 56, 12, 128, "Radius of the crater on the mark, in blocks. Everything inside it is erased.");
-        CRATER_DEPTH = b.defineInRange("crater_depth", 24, 4, 96, "Depth of the crater, in blocks.");
-        BLAST_REACH = b.defineInRange("blast_reach", 2.6, 1.0, 5.0,
+        TRENCH_WIDTH = b.defineInRange("trench_width", 40, 8, 64, "Width of the trench where it meets the crater, in blocks (it starts narrower).");
+        TRENCH_DEPTH = b.defineInRange("trench_depth", 28, 2, 64, "Depth of the trench at its deepest, in blocks.");
+        CRATER_RADIUS = b.defineInRange("crater_radius", 84, 12, 128, "Radius of the crater on the mark, in blocks. Everything inside it is erased.");
+        CRATER_DEPTH = b.defineInRange("crater_depth", 32, 4, 96, "Depth of the crater, in blocks.");
+        BLAST_REACH = b.defineInRange("blast_reach", 3.4, 1.0, 5.0,
             "How far the shock wave throws, hurts and frosts things, as a multiple of the crater radius.");
         CHUNKS_PER_TICK = b.defineInRange("chunks_per_tick", 12, 1, 64,
             "How many chunks of the trench are cut each tick (the crater cuts twice as many). Higher finishes",
             "big strikes sooner but makes each tick heavier; lower is gentler on a busy server.");
+        DEFAULTS_VERSION = b.defineInRange("defaults_version", 1, 1, 99,
+            "Which of the addon's default sizes this file was last brought up to; the addon sets it, leave it.",
+            "1.9.0 made Halley's crater 1.5x as big and its blast reach much further: a file that still held 1.8's",
+            "sizes untouched was moved to the new ones once (a file with sizes of its own is left as it is).");
 
         b.section("world", "What the strike leaves behind.");
         CARVE_TERRAIN = b.define("carve_terrain", true, "Cut the trench and crater into the world. If false the strike is purely visual and",
@@ -98,7 +103,34 @@ public final class HalleyConfig {
     public record Tuning(int cooldownTicks, int reach, int trenchLength, int trenchWidth, int trenchDepth,
                          int craterRadius, int craterDepth, double blastReach, boolean carveTerrain,
                          boolean leaveHeart, boolean frostRays, boolean evacuateCreative) {
-        public static final Tuning DEFAULTS = new Tuning(60 * 20, 420, 240, 30, 22, 56, 24, 2.6, true, true, true, true);
+        public static final Tuning DEFAULTS = new Tuning(60 * 20, 420, 240, 40, 28, 84, 32, 3.4, true, true, true, true);
+    }
+
+    /**
+     * When the common config loads: a file still holding 1.8's Halley sizes untouched (trench 30 wide and 22 deep, crater
+     * radius 56 and depth 24, blast reach 2.6) gets 1.9.0's bigger ones, once ({@code defaults_version} 1 -> 2). A new
+     * file gets 1 too (the key's default, so an older file that lacks it reads the same), already has the new sizes and is
+     * only marked.
+     */
+    public static void upgrade() {
+        if (!SPEC.isLoaded()) {
+            return; // nothing to bring up to date yet
+        }
+        if (DEFAULTS_VERSION.get() >= 2) {
+            return;
+        }
+        if (TRENCH_WIDTH.get() == 30 && TRENCH_DEPTH.get() == 22 && CRATER_RADIUS.get() == 56 && CRATER_DEPTH.get() == 24
+                && Math.abs(BLAST_REACH.get() - 2.6) < 1.0E-6) {
+            TRENCH_WIDTH.set(TRENCH_WIDTH.getDefault());
+            TRENCH_DEPTH.set(TRENCH_DEPTH.getDefault());
+            CRATER_RADIUS.set(CRATER_RADIUS.getDefault());
+            CRATER_DEPTH.set(CRATER_DEPTH.getDefault());
+            BLAST_REACH.set(BLAST_REACH.getDefault());
+            HalleyAddon.LOG.info("Halley's crater and blast moved to 1.9.0's defaults (crater radius {}, depth {}, blast reach {})",
+                CRATER_RADIUS.getDefault(), CRATER_DEPTH.getDefault(), BLAST_REACH.getDefault());
+        }
+        DEFAULTS_VERSION.set(2);
+        SPEC.save();
     }
 
     public static Tuning tuning() {

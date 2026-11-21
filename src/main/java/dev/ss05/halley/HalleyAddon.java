@@ -49,6 +49,8 @@ public final class HalleyAddon implements ModInitializer {
     @Override
     public void onInitialize() {
         HalleyConfig.SPEC.load();
+        // 1.9.0's bigger Halley for files that still hold 1.8's sizes untouched
+        HalleyConfig.upgrade();
         HalleyContent.register();
         AddonNetwork.register();
 
@@ -58,6 +60,7 @@ public final class HalleyAddon implements ModInitializer {
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             HalleyConfig.SPEC.load();
+            HalleyConfig.upgrade();
             StarBridge.install();
         });
         ServerTickEvents.END_SERVER_TICK.register(server -> {

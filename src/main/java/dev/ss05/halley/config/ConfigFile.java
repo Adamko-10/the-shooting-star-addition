@@ -204,6 +204,11 @@ public final class ConfigFile {
             return this.value;
         }
 
+        /** The value this key has in a new file. */
+        public T getDefault() {
+            return this.fallback;
+        }
+
         /** Changes the value in memory; call {@link ConfigFile#save()} to write it back. */
         public void set(T value) {
             this.value = value;

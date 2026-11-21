@@ -2,6 +2,8 @@ package dev.ss05.halley.client;
 
 import dev.ss05.halley.net.ChoicePayload;
 import dev.ss05.halley.net.ServerSettings;
+import java.util.HashMap;
+import java.util.Map;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -15,15 +17,21 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
 
 /**
- * The addon's own plate in the Stellar Remote's menu (H, The Shooting Star's "White Space"), in the menu's colours, in
- * its top left corner: eight switches - the skills' music (M, Luna's and Proxima's), Luna's Epic mode (Z: a slower fall; G on the other
- * versions, but on 26.3 G is Halley's key), keeping Luna's moon model after it lands (L), the impact frames (F: full,
- * soft, off), where the evac takes you (E: up, or to the edge) no-cooldown (C), music stacking (=) and units (-) - and what the server allows. The menu holds
- * the mouse (you pick things in it by looking at them), so these are flipped with their keys, shown on the plate.
+ * The addon's settings in the Stellar Remote's menu (H), "look B" of 1.9.0 (the user's pick of 2026-11-12, built after
+ * his OK of the mock-up on 2026-11-19): in the menu's top left, a plate with the general settings (music, stacking,
+ * units, title cards, close on pick, no cooldown), and under it a card with only the selected skill's own settings,
+ * grouped, the less used ones folded into a group of their own (0 opens it). Stellar Convergence's card is drawn by
+ * {@code compat/tss/client/ConvergencePlate} in the same place. Backspace folds everything to a small tag (the
+ * in-game switch players asked for on CurseForge; {@code menu_plates = false} still hides it all).
+ *
+ * <p>The menu holds the mouse (you pick things in it by looking at them), and RimuLib's own menu uses the arrow keys
+ * (its sliders, its list), Enter (its pages) and Escape, so every setting is flipped by its key, shown on its key cap:
+ * the old letters, and digits for the rows that never had a key. A line at the bottom of the card says what the last
+ * flipped setting does.
  *
  * <p>No-cooldown is the server's to allow ({@code no_cooldown}, and {@code no_cooldown_survival} for survival players);
  * the server tells this game its settings as it joins ({@link ServerSettings}), and this game tells it the player's own
- * switch back ({@link ChoicePayload}).
+ * switches back ({@link ChoicePayload}).
  */
 public final class AdditionPanel {
     /** The menu's own plate white, ink, grey text and gold. */
@@ -37,9 +45,19 @@ public final class AdditionPanel {
     public static final float MIN_SCALE = 0.5F;
     public static final float MAX_SCALE = 0.75F;
     private static final int WIDTH = 236;
-    /** This plate a little smaller than the remote's other plates (the user, 2026-11-07). */
+    /** A little smaller than the remote's other plates (the user, 2026-11-07). */
     private static final float SIZE = 0.82F;
-    /** GLFW key codes, converted from SDL by StarClientBridge. */
+    private static final int ROW = 14;
+    /** 1.9.0 (Adam: "add a little explanation under each config"): each row's explanation under it, and the step to the next. */
+    private static final int DESC = 9;
+    private static final int LINE = ROW + DESC;
+    /** The less-used settings' bar (taller than a group's heading, so it isn't missed). */
+    private static final int BAR = 17;
+    /** How long the card's bottom line explains the last flipped setting. */
+    private static final long HINT_MILLIS = 6000L;
+    private static final float SLIDE_MILLIS = 160.0F;
+
+    /** GLFW key codes (StarClientBridge converts RimuLib's SDL scancodes to these on 26.3). */
     public static final int KEY_MUSIC = 77;
     public static final int KEY_COOLDOWN = 67;
     public static final int KEY_EVAC = 69;
@@ -50,85 +68,141 @@ public final class AdditionPanel {
     /** - and =: every free letter is taken in the menu (WASD move, Q drops, P is Stellar Quartet's, the rest skills). */
     public static final int KEY_UNITS = 45;
     public static final int KEY_STACK = 61;
-    private static final float SLIDE_MILLIS = 160.0F;
+    /** [ : close the menu when a skill is picked. */
+    public static final int KEY_CLOSE = 91;
+    /** . : the films' title cards. */
+    public static final int KEY_TITLES = 46;
+    /** Backspace folds the plates (RimuLib uses it only while a key is being rebound, when ours stand aside). */
+    public static final int KEY_FOLD = 259;
+    /** 0 opens and closes the selected skill's "Less used" group; 1-6 the rows that had no key (Halley's card). */
+    public static final int KEY_0 = 48;
 
-    private static long musicFlippedAt;
-    private static long keepMoonFlippedAt;
-    private static long framesFlippedAt;
-    private static long cooldownFlippedAt;
-    private static long evacFlippedAt;
-    private static long epicFlippedAt;
-    private static long unitsFlippedAt;
-    private static long stackFlippedAt;
+    /** Which of our skills is selected in the menu (the caller knows: compat/tss reads RimuLib's selection). */
+    public enum Card { NONE, HALLEY, LUNA, PROXIMA, CONVERGENCE, LOCKED }
+
+    /** Draws Stellar Convergence's card (or a locked skill's: what to install) at {@code top} in the plate's space, {@code width} wide; returns its height. */
+    public interface CardBody {
+        int draw(GuiGraphicsExtractor g, Font font, int top, int width);
+    }
+
+    private static final Map<String, Long> FLIPPED = new HashMap<>();
+    private static String lastHint;
+    private static long lastHintAt;
 
     private AdditionPanel() {
     }
 
     // ---- Input. ---------------------------------------------------------------------------------------------------
 
-    /** A key pressed while the menu is open (from compat/tss/client/StarClientBridge): true if it was one of ours. */
-    public static boolean key(int key) {
-        // StarClientBridge converts RimuLib's SDL scancodes to these GLFW key codes.
-        if (key == KEY_MUSIC || key == 'm') {
-            HalleyClientConfig.setLunaMusic(!HalleyClientConfig.lunaMusic());
-            musicFlippedAt = Util.getMillis();
+    /** A key pressed while the menu is open: true if it was one of ours. */
+    public static boolean key(int key, Card card) {
+        if (key == KEY_FOLD) {
+            HalleyClientConfig.setPlatesFolded(!HalleyClientConfig.platesFolded());
             click(true);
             return true;
         }
-        if (key == KEY_EPIC || key == 'z') {
-            HalleyClientConfig.setEpicMode(!HalleyClientConfig.epicMode());
-            epicFlippedAt = Util.getMillis();
-            sendChoice();
-            click(true);
-            return true;
+        if (HalleyClientConfig.platesFolded()) {
+            return false;
         }
-        if (key == KEY_KEEP_MOON || key == 'l') {
-            HalleyClientConfig.setKeepMoon(!HalleyClientConfig.keepMoon());
-            keepMoonFlippedAt = Util.getMillis();
-            click(true);
-            return true;
+        // the general plate: always
+        if (key == KEY_MUSIC) {
+            return flip("music", () -> HalleyClientConfig.setLunaMusic(!HalleyClientConfig.lunaMusic()), false);
         }
-        if (key == KEY_FRAMES || key == 'f') {
+        if (key == KEY_STACK) {
+            return flip("stack_music", () -> HalleyClientConfig.setStackMusic(!HalleyClientConfig.stackMusic()), false);
+        }
+        if (key == KEY_UNITS) {
+            return flip("units", () -> HalleyClientConfig.setImperial(!HalleyClientConfig.imperial()), false);
+        }
+        if (key == KEY_TITLES) {
+            return flip("title_cards", () -> HalleyClientConfig.setTitleCards(!HalleyClientConfig.titleCards()), false);
+        }
+        if (key == KEY_CLOSE) {
+            return flip("close_on_pick", () -> HalleyClientConfig.setCloseMenuOnPick(!HalleyClientConfig.closeMenuOnPick()), false);
+        }
+        if (key == KEY_COOLDOWN) {
+            if (!allowedHere()) {
+                hint("no_cooldown");
+                click(false);
+                return true;
+            }
+            return flip("no_cooldown", () -> HalleyClientConfig.setNoCooldown(!HalleyClientConfig.noCooldown()), true);
+        }
+        // 1.9.0 (Adam: G on Luna's card picked SS-21 Quasar, whose key it is): a card's keys win over the skills' own
+        // keys, so each acts only while its row is shown (on 26.3 Epic mode is Z)
+        if (key == KEY_EPIC && card == Card.LUNA) {
+            return flip("epic", () -> HalleyClientConfig.setEpicMode(!HalleyClientConfig.epicMode()), true);
+        }
+        if (key == KEY_KEEP_MOON && card == Card.LUNA) {
+            return flip("keep_moon", () -> HalleyClientConfig.setKeepMoon(!HalleyClientConfig.keepMoon()), false);
+        }
+        if (key == KEY_FRAMES && (card == Card.HALLEY || card == Card.LUNA)) {
             HalleyClientConfig.ImpactFrames was = HalleyClientConfig.impactFrames();
             HalleyClientConfig.setImpactFrames(was.next());
             // the switch only slides between on and off (FULL -> SOFT stays on)
             if (was == HalleyClientConfig.ImpactFrames.SOFT || was == HalleyClientConfig.ImpactFrames.OFF) {
-                framesFlippedAt = Util.getMillis();
+                FLIPPED.put("frames", Util.getMillis());
             }
+            hint("frames");
             click(true);
             return true;
         }
-        if (key == KEY_EVAC || key == 'e') {
-            HalleyClientConfig.setEvacLift(!HalleyClientConfig.evacLift());
-            evacFlippedAt = Util.getMillis();
-            sendChoice();
+        if (key == KEY_EVAC && (card == Card.HALLEY || card == Card.LUNA) && HalleyClientConfig.lessUsedOpen()) {
+            return flip("evac", () -> HalleyClientConfig.setEvacLift(!HalleyClientConfig.evacLift()), true);
+        }
+        // the card's own
+        if (card == Card.NONE || card == Card.LOCKED) {
+            return false;
+        }
+        if (key == KEY_0 && hasLessUsed(card)) {
+            HalleyClientConfig.setLessUsedOpen(!HalleyClientConfig.lessUsedOpen());
             click(true);
             return true;
         }
-        if (key == KEY_STACK) {
-            HalleyClientConfig.setStackMusic(!HalleyClientConfig.stackMusic());
-            stackFlippedAt = Util.getMillis();
-            click(true);
-            return true;
-        }
-        if (key == KEY_UNITS) {
-            HalleyClientConfig.setImperial(!HalleyClientConfig.imperial());
-            unitsFlippedAt = Util.getMillis();
-            click(true);
-            return true;
-        }
-        if (key == KEY_COOLDOWN || key == 'c') {
-            if (!allowedHere()) {
-                click(false);
-                return true;
+        if (card == Card.HALLEY) {
+            switch (key - KEY_0) {
+                case 1:
+                    return flip("sky", () -> HalleyClientConfig.setSky(!HalleyClientConfig.sky()), false);
+                case 2:
+                    return flip("darken_land", () -> HalleyClientConfig.setDarkenLand(!HalleyClientConfig.darkenLand()), false);
+                case 3:
+                    return flip("extra_effects", () -> HalleyClientConfig.setExtraEffects(!HalleyClientConfig.extraEffects()), false);
+                case 4:
+                    return flip("world_flashes", () -> HalleyClientConfig.setWorldFlashes(!HalleyClientConfig.worldFlashes()), false);
+                case 5:
+                    return flip("comet_marker", () -> HalleyClientConfig.setCometMarker(!HalleyClientConfig.cometMarker()), false);
+                default:
+                    break;
             }
-            HalleyClientConfig.setNoCooldown(!HalleyClientConfig.noCooldown());
-            cooldownFlippedAt = Util.getMillis();
-            sendChoice();
+        }
+        if (key == KEY_0 + 6 && hasLessUsed(card) && HalleyClientConfig.lessUsedOpen()) {
+            HalleyClientConfig.PackMode[] modes = HalleyClientConfig.PackMode.values();
+            HalleyClientConfig.setShaderPacks(modes[(HalleyClientConfig.shaderPacks().ordinal() + 1) % modes.length]);
+            hint("shader_packs");
             click(true);
             return true;
         }
         return false;
+    }
+
+    private static boolean flip(String id, Runnable change, boolean tellServer) {
+        change.run();
+        FLIPPED.put(id, Util.getMillis());
+        hint(id);
+        if (tellServer) {
+            sendChoice();
+        }
+        click(true);
+        return true;
+    }
+
+    private static void hint(String id) {
+        lastHint = id;
+        lastHintAt = Util.getMillis();
+    }
+
+    private static boolean hasLessUsed(Card card) {
+        return card == Card.HALLEY || card == Card.LUNA || card == Card.PROXIMA;
     }
 
     /** Tells the server this player's own switches (as they join, and whenever they flip one). */
@@ -141,10 +215,17 @@ public final class AdditionPanel {
 
     /**
      * The plate's symbol keys, as printed on them. (Main shows each by the keyboard layout's own name; 26.3's input
-     * API differs, so its two symbol keys keep their US labels here.)
+     * API differs, so they keep their US labels here.)
      */
     private static String keyName(int key) {
-        return key == KEY_STACK ? "=" : key == KEY_UNITS ? "-" : "?";
+        return switch (key) {
+            case KEY_STACK -> "=";
+            case KEY_UNITS -> "-";
+            case KEY_TITLES -> ".";
+            case KEY_CLOSE -> "[";
+            case KEY_FOLD -> "Backspace";
+            default -> "?";
+        };
     }
 
     public static void click(boolean ok) {
@@ -160,13 +241,61 @@ public final class AdditionPanel {
 
     // ---- Drawing. -------------------------------------------------------------------------------------------------
 
-    public static void draw(GuiGraphicsExtractor g) {
+    /** The plates: the general one and, under it, the selected skill's card ({@code body} draws SA-00's or a locked one's). */
+    public static void draw(GuiGraphicsExtractor g, Card card, CardBody body) {
         Minecraft minecraft = Minecraft.getInstance();
         Font font = minecraft.font;
-        boolean music = HalleyClientConfig.lunaMusic();
+        g.nextStratum();
+        g.pose().pushMatrix();
+        // over the menu, in its top left corner
+        g.pose().translate(8.0F, 8.0F);
+        // never below one screen pixel per font pixel (smaller text turns to mush)
+        float scale = Math.max(Mth.clamp(g.guiWidth() / 860.0F, MIN_SCALE, MAX_SCALE) * SIZE, 1.0F / (float) minecraft.getWindow().getGuiScale());
+        g.pose().scale(scale, scale);
+        if (HalleyClientConfig.platesFolded()) {
+            folded(g, font);
+        } else {
+            int w = width(font);
+            int h = general(g, font, w);
+            int top = h + 6;
+            switch (card) {
+                case HALLEY -> halley(g, font, top, w);
+                case LUNA -> luna(g, font, top, w);
+                case PROXIMA -> proxima(g, font, top, w);
+                case CONVERGENCE, LOCKED -> body.draw(g, font, top, w);
+                default -> {
+                }
+            }
+        }
+        g.pose().popMatrix();
+    }
+
+    private static int width(Font font) {
+        int w = WIDTH;
+        for (String key : new String[] {"no_cooldown.disabled", "no_cooldown.not_survival", "card.help"}) {
+            w = Math.max(w, font.width(Component.translatable("gui.shooting_star_addition." + key)) + 22);
+        }
+        return w;
+    }
+
+    private static void folded(GuiGraphicsExtractor g, Font font) {
+        Component title = Component.translatable("gui.shooting_star_addition.panel.short").withStyle(ChatFormatting.BOLD);
+        Component show = Component.translatable("gui.shooting_star_addition.fold.show");
+        String cap = keyName(KEY_FOLD);
+        int w = 11 + font.width(title) + 8 + font.width(show) + 8 + capWidth(font, cap) + 10;
+        plate(g, 2, 3, w + 2, 23, 0x26000000);
+        plate(g, 0, 0, w, 20, 0xF4000000 | PLATE);
+        g.fill(0, 2, 3, 18, 0xFF000000 | GOLD);
+        g.text(font, title, 11, 6, 0xFF000000 | INK, false);
+        int x = 11 + font.width(title) + 8;
+        g.text(font, show, x, 6, 0xFF000000 | GREY, false);
+        keyCap(g, font, x + font.width(show) + 8, 5, cap, true);
+    }
+
+    /** The general plate; returns its height. */
+    private static int general(GuiGraphicsExtractor g, Font font, int w) {
         boolean allowed = allowedHere();
         boolean cooldownOff = allowed && HalleyClientConfig.noCooldown();
-
         Component status;
         int statusColor = GREY;
         if (!ServerSettings.known()) {
@@ -181,104 +310,232 @@ public final class AdditionPanel {
                 ? "gui.shooting_star_addition.no_cooldown.everyone" : "gui.shooting_star_addition.no_cooldown.creative"));
             statusColor = INK;
         }
-
-        Component title = Component.translatable("gui.shooting_star_addition.panel").withStyle(ChatFormatting.BOLD);
-        int w = Math.max(WIDTH, Math.max(Math.max(font.width(status), font.width(title)),
-            font.width(Component.translatable("gui.shooting_star_addition.no_cooldown.disabled"))) + 22);
-        int h = cooldownOff ? 296 : 284;
-        // over the menu, in its top left corner
-        g.nextStratum();
-        g.pose().pushMatrix();
-        g.pose().translate(8.0F, 8.0F);
-        float scale = Math.max(Mth.clamp(g.guiWidth() / 860.0F, MIN_SCALE, MAX_SCALE) * SIZE, 1.0F / (float) minecraft.getWindow().getGuiScale());
-        g.pose().scale(scale, scale);
-        // a soft shadow, the plate, its gold edge and title rule
+        int h = 26 + 6 * LINE + 14 + 13;
         plate(g, 2, 3, w + 2, h + 3, 0x26000000);
         plate(g, 0, 0, w, h, 0xF4000000 | PLATE);
         g.fill(0, 2, 3, h - 2, 0xFF000000 | GOLD);
-        g.text(font, title, 11, 7, 0xFF000000 | INK, false);
+        g.text(font, Component.translatable("gui.shooting_star_addition.panel").withStyle(ChatFormatting.BOLD), 11, 7, 0xFF000000 | INK, false);
+        String cap = keyName(KEY_FOLD);
+        Component fold = Component.translatable("gui.shooting_star_addition.fold");
+        int capX = w - 10 - capWidth(font, cap);
+        keyCap(g, font, capX, 6, cap, true);
+        g.text(font, fold, capX - 4 - font.width(fold), 7, 0xFF000000 | GREY, false);
         g.fill(11, 19, w - 10, 20, 0xFF000000 | RULE);
 
-        // the skills' music
-        row(g, font, 26, Component.translatable("gui.shooting_star_addition.music"), "M", music, true, musicFlippedAt, w);
-        g.text(font, Component.translatable("gui.shooting_star_addition.music.hint"), 11, 38, 0xFF000000 | GREY, false);
-        g.fill(11, 51, w - 10, 52, 0xFF000000 | RULE);
+        int y = 26;
+        row(g, font, y, "music", "M", HalleyClientConfig.lunaMusic(), true, w);
+        y += LINE;
+        row(g, font, y, "stack_music", keyName(KEY_STACK), HalleyClientConfig.stackMusic(), true, w);
+        y += LINE;
+        row(g, font, y, "units", keyName(KEY_UNITS), HalleyClientConfig.imperial(), true, w, "units.miles", "units.km");
+        y += LINE;
+        row(g, font, y, "title_cards", keyName(KEY_TITLES), HalleyClientConfig.titleCards(), true, w);
+        y += LINE;
+        row(g, font, y, "close_on_pick", keyName(KEY_CLOSE), HalleyClientConfig.closeMenuOnPick(), true, w);
+        y += LINE;
+        row(g, font, y, "no_cooldown", "C", cooldownOff, allowed, w);
+        y += LINE;
+        g.text(font, status, 11, y, 0xFF000000 | statusColor, false);
+        // 1.9.0 (Adam: "make it say somewhere in a good spot that u can right click to see a description of the skill"):
+        // RimuLib's menu shows a skill's description on a right click, which its own hint bar only mentions in passing
+        g.fill(11, y + 11, w - 10, y + 12, 0xFF000000 | RULE);
+        g.text(font, Component.translatable("gui.shooting_star_addition.right_click"), 11, y + 15, 0xFF000000 | GOLD, false);
+        return h;
+    }
 
-        // strikes' music stacking, or the newest taking over
-        row(g, font, 58, Component.translatable("gui.shooting_star_addition.stack_music"), keyName(KEY_STACK),HalleyClientConfig.stackMusic(), true,
-            stackFlippedAt, w);
-        g.text(font, Component.translatable("gui.shooting_star_addition.stack_music.hint"), 11, 70, 0xFF000000 | GREY, false);
-        g.fill(11, 83, w - 10, 84, 0xFF000000 | RULE);
+    /** A card's frame and title (in the skill's colour); returns the y its rows start at. */
+    private static int cardTop(GuiGraphicsExtractor g, Font font, int top, int w, int h, String titleKey, int color) {
+        plate(g, 2, top + 3, w + 2, top + h + 3, 0x26000000);
+        plate(g, 0, top, w, top + h, 0xF4000000 | PLATE);
+        g.fill(0, top + 2, 3, top + h - 2, 0xFF000000 | color);
+        g.text(font, Component.translatable(titleKey).withStyle(ChatFormatting.BOLD), 11, top + 7, 0xFF000000 | INK, false);
+        g.text(font, Component.translatable("gui.shooting_star_addition.card.only"), 11, top + 18, 0xFF000000 | GREY, false);
+        g.fill(11, top + 30, w - 10, top + 31, 0xFF000000 | RULE);
+        return top + 36;
+    }
 
-        // Luna's Epic mode: a slower fall, for everyone watching
-        row(g, font, 90, Component.translatable("gui.shooting_star_addition.epic"), "Z", HalleyClientConfig.epicMode(), true, epicFlippedAt, w);
-        g.text(font, Component.translatable("gui.shooting_star_addition.epic.hint"), 11, 102, 0xFF000000 | GREY, false);
-        g.fill(11, 115, w - 10, 116, 0xFF000000 | RULE);
-
-        // keep Luna's moon model after it lands
-        row(g, font, 122, Component.translatable("gui.shooting_star_addition.keep_moon"), "L", HalleyClientConfig.keepMoon(), true,
-            keepMoonFlippedAt, w);
-        g.text(font, Component.translatable("gui.shooting_star_addition.keep_moon.hint"), 11, 134, 0xFF000000 | GREY, false);
-        g.fill(11, 147, w - 10, 148, 0xFF000000 | RULE);
-
-        // the impact frames: full or soft (on), or off
-        HalleyClientConfig.ImpactFrames frames = HalleyClientConfig.impactFrames();
-        row(g, font, 154, Component.translatable("gui.shooting_star_addition.frames"), "F", frames != HalleyClientConfig.ImpactFrames.OFF,
-            true, framesFlippedAt, w, frames == HalleyClientConfig.ImpactFrames.SOFT ? "gui.shooting_star_addition.frames.soft"
-                : "gui.shooting_star_addition.frames.full", "gui.shooting_star_addition.off");
-        g.text(font, Component.translatable("gui.shooting_star_addition.frames.hint"), 11, 166, 0xFF000000 | GREY, false);
-        g.fill(11, 179, w - 10, 180, 0xFF000000 | RULE);
-
-        // where the evac takes you: up (the switch on) or to the edge
-        row(g, font, 186, Component.translatable("gui.shooting_star_addition.evac"), "E", HalleyClientConfig.evacLift(), true,
-            evacFlippedAt, w, "gui.shooting_star_addition.evac.up", "gui.shooting_star_addition.evac.edge");
-        g.text(font, Component.translatable("gui.shooting_star_addition.evac.hint"), 11, 198, 0xFF000000 | GREY, false);
-        g.fill(11, 211, w - 10, 212, 0xFF000000 | RULE);
-
-        // the films' distances: kilometres (off) or miles (on)
-        row(g, font, 218, Component.translatable("gui.shooting_star_addition.units"), keyName(KEY_UNITS),HalleyClientConfig.imperial(), true,
-            unitsFlippedAt, w, "gui.shooting_star_addition.units.miles", "gui.shooting_star_addition.units.km");
-        g.text(font, Component.translatable("gui.shooting_star_addition.units.hint"), 11, 230, 0xFF000000 | GREY, false);
-        g.fill(11, 243, w - 10, 244, 0xFF000000 | RULE);
-
-        // no cooldown, and what the server allows
-        row(g, font, 250, Component.translatable("gui.shooting_star_addition.no_cooldown"), "C", cooldownOff, allowed, cooldownFlippedAt, w);
-        g.text(font, Component.translatable("gui.shooting_star_addition.no_cooldown.hint"), 11, 262, 0xFF000000 | GREY, false);
-        g.text(font, status, 11, 273, 0xFF000000 | statusColor, false);
-        if (cooldownOff) {
-            g.text(font, Component.translatable("gui.shooting_star_addition.no_cooldown.careful"), 11, 284, 0xFF000000 | WARN, false);
+    /** A group's heading; {@code fold} is its key when it folds (0), else null. Returns the y under it. */
+    private static int group(GuiGraphicsExtractor g, Font font, int y, int w, String nameKey, String fold, int count) {
+        Component name = Component.translatable(nameKey).withStyle(ChatFormatting.BOLD);
+        g.text(font, name, 11, y, 0xFF000000 | GREY, false);
+        if (fold != null) {
+            boolean open = HalleyClientConfig.lessUsedOpen();
+            Component state = Component.translatable(open ? "gui.shooting_star_addition.group.open" : "gui.shooting_star_addition.group.closed", count);
+            int capX = w - 10 - capWidth(font, fold);
+            keyCap(g, font, capX, y - 1, fold, true);
+            g.text(font, state, capX - 4 - font.width(state), y, 0xFF000000 | GREY, false);
         }
-        g.pose().popMatrix();
+        return y + 12;
     }
 
-    private static void row(GuiGraphicsExtractor g, Font font, int y, Component label, String key, boolean on, boolean enabled, long flippedAt, int w) {
-        row(g, font, y, label, key, on, enabled, flippedAt, w, "gui.shooting_star_addition.on", "gui.shooting_star_addition.off");
+    /** The card's last line: what the last flipped setting does, else how the card works. */
+    private static void footer(GuiGraphicsExtractor g, Font font, int y, int w) {
+        g.fill(11, y - 3, w - 10, y - 2, 0xFF000000 | RULE);
+        boolean recent = lastHint != null && Util.getMillis() - lastHintAt < HINT_MILLIS;
+        Component line = Component.translatable(recent ? "gui.shooting_star_addition." + lastHint + ".hint" : "gui.shooting_star_addition.card.help");
+        g.text(font, line, 11, y + 1, 0xFF000000 | (recent ? INK : GREY), false);
     }
 
-    /** A label, a key cap and a switch, on one line; {@code onText}/{@code offText} name its two states. */
-    private static void row(GuiGraphicsExtractor g, Font font, int y, Component label, String key, boolean on, boolean enabled, long flippedAt, int w,
-                            String onText, String offText) {
-        g.text(font, label.copy().withStyle(ChatFormatting.BOLD), 11, y + 1, 0xFF000000 | (enabled ? INK : GREY), false);
+    private static int lessUsedRows(Card card) {
+        return card == Card.PROXIMA ? 1 : 2;
+    }
+
+    private static void halley(GuiGraphicsExtractor g, Font font, int top, int w) {
+        boolean less = HalleyClientConfig.lessUsedOpen();
+        int h = 36 + 12 + 5 * LINE + 4 + 12 + LINE + 4 + BAR + (less ? 2 * LINE : 0) + 18;
+        int y = cardTop(g, font, top, w, h, "gui.shooting_star_addition.card.halley", 0x8FD8FF);
+        y = group(g, font, y, w, "gui.shooting_star_addition.group.look", null, 0);
+        row(g, font, y, "sky", "1", HalleyClientConfig.sky(), true, w);
+        y += LINE;
+        row(g, font, y, "darken_land", "2", HalleyClientConfig.darkenLand(), true, w);
+        y += LINE;
+        row(g, font, y, "extra_effects", "3", HalleyClientConfig.extraEffects(), true, w);
+        y += LINE;
+        row(g, font, y, "world_flashes", "4", HalleyClientConfig.worldFlashes(), true, w);
+        y += LINE;
+        row(g, font, y, "comet_marker", "5", HalleyClientConfig.cometMarker(), true, w);
+        y += LINE + 4;
+        y = group(g, font, y, w, "gui.shooting_star_addition.group.impact", null, 0);
+        frames(g, font, y, w);
+        y += LINE + 4;
+        y = lessUsed(g, font, y, w, Card.HALLEY);
+        footer(g, font, top + h - 14, w);
+    }
+
+    private static void luna(GuiGraphicsExtractor g, Font font, int top, int w) {
+        boolean less = HalleyClientConfig.lessUsedOpen();
+        int h = 36 + 12 + 2 * LINE + 4 + 12 + LINE + 4 + BAR + (less ? 2 * LINE : 0) + 18;
+        int y = cardTop(g, font, top, w, h, "gui.shooting_star_addition.card.luna", 0xFF8A3D);
+        y = group(g, font, y, w, "gui.shooting_star_addition.group.fall", null, 0);
+        row(g, font, y, "epic", "Z", HalleyClientConfig.epicMode(), true, w);
+        y += LINE;
+        row(g, font, y, "keep_moon", "L", HalleyClientConfig.keepMoon(), true, w);
+        y += LINE + 4;
+        y = group(g, font, y, w, "gui.shooting_star_addition.group.impact", null, 0);
+        frames(g, font, y, w);
+        y += LINE + 4;
+        y = lessUsed(g, font, y, w, Card.LUNA);
+        footer(g, font, top + h - 14, w);
+    }
+
+    private static void proxima(GuiGraphicsExtractor g, Font font, int top, int w) {
+        boolean less = HalleyClientConfig.lessUsedOpen();
+        int h = 36 + 2 * 11 + 6 + BAR + (less ? LINE : 0) + 18;
+        int y = cardTop(g, font, top, w, h, "gui.shooting_star_addition.card.proxima", 0xFF2E63);
+        g.text(font, Component.translatable("gui.shooting_star_addition.card.proxima.general"), 11, y, 0xFF000000 | GREY, false);
+        g.text(font, Component.translatable("gui.shooting_star_addition.card.proxima.general2"), 11, y + 11, 0xFF000000 | GREY, false);
+        y += 2 * 11 + 6;
+        y = lessUsed(g, font, y, w, Card.PROXIMA);
+        footer(g, font, top + h - 14, w);
+    }
+
+    private static int lessUsed(GuiGraphicsExtractor g, Font font, int y, int w, Card card) {
+        y = lessUsedBar(g, font, y, w, lessUsedRows(card));
+        if (!HalleyClientConfig.lessUsedOpen()) {
+            return y;
+        }
+        valueRow(g, font, y, "shader_packs", "6", "gui.shooting_star_addition.shader_packs."
+            + HalleyClientConfig.shaderPacks().name().toLowerCase(java.util.Locale.ROOT), w);
+        y += LINE;
+        if (card != Card.PROXIMA) {
+            row(g, font, y, "evac", "E", HalleyClientConfig.evacLift(), true, w, "evac.up", "evac.edge");
+            y += LINE;
+        }
+        return y;
+    }
+
+    private static void frames(GuiGraphicsExtractor g, Font font, int y, int w) {
+        HalleyClientConfig.ImpactFrames frames = HalleyClientConfig.impactFrames();
+        row(g, font, y, "frames", "F", frames != HalleyClientConfig.ImpactFrames.OFF, true, w,
+            frames == HalleyClientConfig.ImpactFrames.SOFT ? "frames.soft" : "frames.full", "off");
+    }
+
+    private static void row(GuiGraphicsExtractor g, Font font, int y, String id, String key, boolean on, boolean enabled, int w) {
+        row(g, font, y, id, key, on, enabled, w, "on", "off");
+    }
+
+    /** A label, its state, a key cap and a switch, on one line; {@code onText}/{@code offText} name its two states. */
+    private static void row(GuiGraphicsExtractor g, Font font, int y, String id, String key, boolean on, boolean enabled, int w, String onText,
+                            String offText) {
+        g.text(font, Component.translatable("gui.shooting_star_addition." + id), 11, y + 1, 0xFF000000 | (enabled ? INK : GREY), false);
         int sw = 26;
         int sx = w - 12 - sw;
-        keyCap(g, font, sx - 18, y, key, enabled);
+        int capX = sx - 6 - capWidth(font, key);
+        keyCap(g, font, capX, y, key, enabled);
         // the switch: its knob slides across as it is flipped
-        float k = Mth.clamp((Util.getMillis() - flippedAt) / SLIDE_MILLIS, 0.0F, 1.0F);
+        float k = Mth.clamp((Util.getMillis() - FLIPPED.getOrDefault(id, 0L)) / SLIDE_MILLIS, 0.0F, 1.0F);
         k = k * k * (3.0F - 2.0F * k);
         float at = on ? k : 1.0F - k;
         int track = !enabled ? RULE : lerp(0xC9CDD4, GOLD, at);
         plate(g, sx, y, sx + sw, y + 10, 0xFF000000 | track);
         int knob = sx + 1 + Math.round((sw - 10) * at);
         plate(g, knob, y + 1, knob + 8, y + 9, 0xFF000000 | (enabled ? 0xFFFFFF : 0xF0F1F3));
-        Component state = Component.translatable(on ? onText : offText);
-        g.text(font, state, sx - 22 - font.width(state), y + 1, 0xFF000000 | (on ? GOLD : GREY), false);
+        Component state = Component.translatable("gui.shooting_star_addition." + (on ? onText : offText));
+        g.text(font, state, capX - 4 - font.width(state), y + 1, 0xFF000000 | (on ? GOLD : GREY), false);
+        describe(g, font, y, id);
     }
 
-    /** A key's cap, 12 wide, its top at {@code y - 1}. */
+    /** 1.9.0: what a row's setting does, small and grey under it (its hint). */
+    public static void describe(GuiGraphicsExtractor g, Font font, int y, String id) {
+        g.pose().pushMatrix();
+        g.pose().translate(11.0F, y + 12.0F);
+        g.pose().scale(0.8F, 0.8F);
+        g.text(font, Component.translatable("gui.shooting_star_addition." + id + ".hint"), 0, 0, 0xFF000000 | GREY, false);
+        g.pose().popMatrix();
+    }
+
+    /**
+     * 1.9.0 (Adam: "make it more obvious ... so people dont miss it"): the less-used settings behind a gold bar with an
+     * arrow, how many there are and the key that opens it; it breathes gently while closed.
+     */
+    private static int lessUsedBar(GuiGraphicsExtractor g, Font font, int y, int w, int count) {
+        boolean open = HalleyClientConfig.lessUsedOpen();
+        Component name = Component.literal(open ? "▼ " : "▶ ")
+            .append(Component.translatable("gui.shooting_star_addition.group.less").withStyle(ChatFormatting.BOLD));
+        Component state = Component.translatable(open ? "gui.shooting_star_addition.group.open" : "gui.shooting_star_addition.group.closed", count);
+        return goldBar(g, font, y, w, name, state, "0", !open);
+    }
+
+    /**
+     * A gold bar across the card with a name on the left and, on the right, what its key does and the key (the Less used
+     * bar; Stellar Convergence's pages, 1.9.0); it breathes gently while it asks to be pressed. Returns the y under it.
+     */
+    public static int goldBar(GuiGraphicsExtractor g, Font font, int y, int w, Component name, Component state, String key, boolean breathe) {
+        float breath = breathe ? 0.5F + 0.5F * (float) Math.sin(Util.getMillis() / 320.0) : 0.0F;
+        plate(g, 8, y - 3, w - 7, y + BAR - 4, 0xFF000000 | lerp(0xFFF4DA, 0xFFE2A0, breath));
+        g.fill(8, y - 2, 10, y + BAR - 5, 0xFF000000 | GOLD);
+        g.text(font, name, 14, y + 1, 0xFF000000 | INK, false);
+        int capX = w - 12 - capWidth(font, key);
+        keyCap(g, font, capX, y, key, true);
+        g.text(font, state, capX - 4 - font.width(state), y + 1, 0xFF000000 | (breathe ? INK : GREY), false);
+        return y + BAR;
+    }
+
+    /** The height of a {@link #goldBar}. */
+    public static int goldBarHeight() {
+        return BAR;
+    }
+
+    /** A label, a key cap and a value (no switch: more than two values). */
+    private static void valueRow(GuiGraphicsExtractor g, Font font, int y, String id, String key, String valueKey, int w) {
+        g.text(font, Component.translatable("gui.shooting_star_addition." + id), 11, y + 1, 0xFF000000 | INK, false);
+        int capX = w - 10 - capWidth(font, key);
+        keyCap(g, font, capX, y, key, true);
+        Component value = Component.translatable(valueKey);
+        g.text(font, value, capX - 4 - font.width(value), y + 1, 0xFF000000 | GOLD, false);
+        describe(g, font, y, id);
+    }
+
+    private static int capWidth(Font font, String key) {
+        return Math.max(12, font.width(key) + 6);
+    }
+
+    /** A key's cap, at least 12 wide (wider for a name like Backspace), its top at {@code y - 1}. */
     public static void keyCap(GuiGraphicsExtractor g, Font font, int x, int y, String key, boolean enabled) {
-        plate(g, x, y - 1, x + 12, y + 11, 0xFF000000 | (enabled ? INK : GREY));
-        plate(g, x + 1, y, x + 11, y + 10, 0xFF000000 | PLATE);
-        g.text(font, key, x + 6 - font.width(key) / 2, y + 2, 0xFF000000 | (enabled ? INK : GREY), false);
+        int w = capWidth(font, key);
+        plate(g, x, y - 1, x + w, y + 11, 0xFF000000 | (enabled ? INK : GREY));
+        plate(g, x + 1, y, x + w - 1, y + 10, 0xFF000000 | PLATE);
+        g.text(font, key, x + w / 2 - font.width(key) / 2, y + 2, 0xFF000000 | (enabled ? INK : GREY), false);
     }
 
     /** A rectangle with its corners cut by a pixel (the menu's own plates are rounded). */

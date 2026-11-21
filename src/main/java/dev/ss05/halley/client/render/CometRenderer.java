@@ -73,18 +73,20 @@ public final class CometRenderer {
             eye, left, up, far);
 
         for (HalleyFx fx : HalleyFx.active()) {
-            if (!fx.finished()) {
+            if (!fx.finished() && dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.HALLEY)) {
                 fx.render(worldBatch, glareBatch, partial, landRange, land);
             }
         }
         for (ProximaFx fx : ProximaFx.active()) {
-            if (!fx.finished(partial)) {
+            if (!fx.finished(partial) && dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.PROXIMA)) {
                 fx.render(worldBatch, glareBatch, partial, level);
             }
         }
         // Stellar Convergence's own effect uses the same glow shapes
         for (ConvergenceView view : ConvergenceView.active(level.getGameTime())) {
-            view.render(worldBatch, level.getGameTime() + partial);
+            if (dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.CONVERGENCE)) {
+                view.render(worldBatch, level.getGameTime() + partial);
+            }
         }
 
         // both uploaded before the pass opens (uploads aren't allowed inside one)
@@ -142,18 +144,20 @@ public final class CometRenderer {
             GlowBatch world = new GlowBatch(quads(GlowAtlas.sink(out, matrix), false), eye, left, up, far);
             GlowBatch glare = new GlowBatch(quads(GlowAtlas.sink(out, matrix), true), eye, left, up, far);
             for (HalleyFx fx : HalleyFx.active()) {
-                if (!fx.finished()) {
+                if (!fx.finished() && dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.HALLEY)) {
                     fx.render(world, glare, partial, landRange, land);
                 }
             }
             for (ProximaFx fx : ProximaFx.active()) {
-                if (!fx.finished(partial)) {
+                if (!fx.finished(partial) && dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.PROXIMA)) {
                     fx.render(world, glare, partial, level);
                 }
             }
             // Stellar Convergence's own effect uses the same glow shapes
             for (ConvergenceView view : ConvergenceView.active(level.getGameTime())) {
-                view.render(world, level.getGameTime() + partial);
+                if (dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.CONVERGENCE)) {
+                    view.render(world, level.getGameTime() + partial);
+                }
             }
         });
     }
