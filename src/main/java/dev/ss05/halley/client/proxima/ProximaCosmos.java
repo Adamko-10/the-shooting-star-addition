@@ -141,10 +141,13 @@ public final class ProximaCosmos {
         if (minecraft.level == null || ProximaFx.active().isEmpty()) {
             return;
         }
+        if (!dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.PROXIMA)) {
+            return;
+        }
         ProximaFx fx = ProximaFx.active().getLast();
         float partial = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(true);
         double t = fx.time(partial) / 20.0;
-        if (fx.plan.params.natural() || fx.filmWeight() > 0.5F || t < T_LENS - 0.3 || t > T_FLASH + 0.5) {
+        if (fx.plan.params.natural() || fx.filmWeight() > 0.5F && !dev.ss05.halley.client.ConvergenceView.any() || t < T_LENS - 0.3 || t > T_FLASH + 0.5) {
             return;
         }
         Vec3 gate = gatePosition(fx.plan);

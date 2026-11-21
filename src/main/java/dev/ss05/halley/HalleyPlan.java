@@ -34,8 +34,8 @@ public final class HalleyPlan {
     public static final int TOUCHDOWN = 300;
     /** How fast the nucleus ploughs along the trench, in blocks per tick. */
     public static final double PLOUGH_SPEED = 8.0;
-    /** How long the spell keeps running after the detonation (the remote's other skills run ~200 ticks past impact). */
-    public static final int AFTERMATH = 196;
+    /** How long the spell keeps running after the detonation (1.9.0: 4 s longer, so the heart's beam lasts; Adam). */
+    public static final int AFTERMATH = 276;
 
     // ---- The approach. ---------------------------------------------------------------------------------------------
     /** How far along its path the comet is when it is first sighted, in blocks. */

@@ -1,17 +1,20 @@
 package dev.ss05.halley.client;
 
+import dev.ss05.halley.HalleyAddon;
 import dev.ss05.halley.HalleyParams;
 import dev.ss05.halley.HalleyPlan;
 import dev.ss05.halley.client.render.CometExtras;
 import dev.ss05.halley.client.render.CometVisuals;
 import dev.ss05.halley.client.render.GlowBatch;
 import dev.ss05.halley.client.render.GroundMarks;
+import dev.ss05.halley.client.render.SkyPass;
 import dev.ss05.halley.client.sky.SkyLook;
 import dev.ss05.halley.content.HalleyContent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.IntFunction;
+import java.util.function.IntToDoubleFunction;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -53,6 +56,14 @@ public final class HalleyFx {
     private static final int SKY_SOUND = 12;
     /** The heart's hum repeats this often (the sound is a little longer, so it never drops out). */
     private static final int HUM_EVERY = 100;
+    /** 1.9.0: the inhale before the impact, as long as its sound (0.65 s), ending on it. */
+    private static final int INHALE = 13;
+    /** 1.9.0: the HALLEY title card's sound, as the card comes in (FilmTitle.HALLEY_IN). */
+    private static final int TITLE_AT = 74;
+    private static final SoundEvent TITLE_SOUND = SoundEvent.createVariableRangeEvent(HalleyAddon.id("halley_title"));
+    private static final SoundEvent INHALE_SOUND = SoundEvent.createVariableRangeEvent(HalleyAddon.id("halley_inhale"));
+    /** Ticks the shock front takes to cross the land (as the server's blast and CometVisuals). */
+    private static final int BLAST_TICKS = 36;
     /** Sound crosses about 17 blocks a tick (340 m/s), so far-off booms land after their flash... */
     private static final double SOUND_SPEED = 17.0;
     /** ...but never more than this late. */
@@ -343,6 +354,10 @@ public final class HalleyFx {
         if (t == HalleyPlan.SIGHT) {
             this.play(HalleyContent.SIGHT, sky(camera, p.comet(t)), 1.0F, 1.0F, film);
         }
+        if (t == TITLE_AT && film && HalleyClientConfig.titleCards()) {
+            // 1.9.0: the HALLEY title card streaking in and sublimating away (FilmTitle.halley)
+            this.play(TITLE_SOUND, camera, 1.0F, 1.0F, true);
+        }
         if (t == APPROACH_SOUND) {
             this.follow(HalleyContent.APPROACH, 1.4F, film, age -> age > HalleyPlan.TOUCHDOWN + 10 ? null : sky(camera(), p.comet(Math.min(age, HalleyPlan.TOUCHDOWN))));
         }
@@ -355,8 +370,22 @@ public final class HalleyFx {
             this.boom(HalleyContent.TOUCHDOWN, at, near(camera, at, p.trenchHalfWidth(p.params.trenchLength()) * 3.0), 2.4F, film, 0.7F, 800.0);
         }
         if (t == HalleyPlan.TOUCHDOWN + 1) {
-            this.follow(HalleyContent.PLOUGH, 2.0F, film, age -> age > p.impact + 4 ? null
+            Follow plough = new Follow(HalleyContent.PLOUGH, 2.0F, film, age -> age > p.impact + 4 ? null
                 : near(camera(), p.comet(Math.min(age, p.impact)), p.trenchHalfWidth(p.frontAlong(age)) * 1.5));
+            // 1.9.0: the hush before the hit, the grinding all but gone for the last half second (as Luna's rumble)
+            plough.gain = age -> 1.0 - 0.88 * CometVisuals.smooth((age - (p.impact - INHALE - 2)) / 6.0);
+            this.start(plough);
+        }
+        if (t == p.impact - INHALE) {
+            // out of the hush, the air rushing in: it ends as the impact is heard, so it is as late as the impact's sound
+            int delay = film ? 0 : (int) Math.min(MAX_SOUND_DELAY, camera.distanceTo(p.target) / SOUND_SPEED);
+            Runnable inhale = () -> this.play(INHALE_SOUND, near(camera(), p.target, p.params.craterRadius() * 1.5), 2.0F, 1.0F,
+                film && this.inFilm());
+            if (delay <= 0) {
+                inhale.run();
+            } else {
+                this.later.add(new Later(t + delay, inhale));
+            }
         }
         if (t > HalleyPlan.TOUCHDOWN && t < p.impact && t % 3 == 0) {
             this.host.shake(p.comet(t), 0.12F, 420.0);
@@ -408,8 +437,11 @@ public final class HalleyFx {
 
     /** A sound that moves with something (the comet in the sky, the nucleus down the trench). */
     private void follow(SoundEvent event, float volume, boolean film, IntFunction<Vec3> where) {
-        Follow sound = new Follow(event, volume, film, where);
-        if (film) {
+        this.start(new Follow(event, volume, film, where));
+    }
+
+    private void start(Follow sound) {
+        if (sound.film) {
             this.filmSounds.add(sound);
         }
         Minecraft.getInstance().getSoundManager().play(sound);
@@ -425,12 +457,16 @@ public final class HalleyFx {
     private final class Follow extends AbstractTickableSoundInstance {
         private final IntFunction<Vec3> where;
         private final boolean film;
+        private final float loudness;
+        /** Its volume over the strike's ticks, 0..1 (1.9.0: the plough's hush before the impact). */
+        IntToDoubleFunction gain = age -> 1.0;
 
         Follow(SoundEvent event, float volume, boolean film, IntFunction<Vec3> where) {
             super(event, SoundSource.PLAYERS, SoundInstance.createUnseededRandom());
             this.where = where;
             this.film = film;
             this.volume = film ? Math.min(1.0F, volume) : volume * 16.0F;
+            this.loudness = this.volume;
             this.relative = film;
             this.attenuation = film ? SoundInstance.Attenuation.NONE : SoundInstance.Attenuation.LINEAR;
             this.pitch = HalleyFx.this.pitch;
@@ -457,6 +493,7 @@ public final class HalleyFx {
                 return;
             }
             this.place();
+            this.volume = this.loudness * (float) Mth.clamp(this.gain.applyAsDouble(HalleyFx.this.age), 0.0, 1.0);
         }
     }
 
@@ -506,18 +543,33 @@ public final class HalleyFx {
             this.ploughSpray(level, t);
         }
         if (t == p.impact) {
-            this.burst(level, mark, p.params.craterRadius(), 3.2F);
+            this.burst(level, mark, p.params.craterRadius(), 4.4F);
         }
-        if (t > p.impact && t <= p.impact + 28) {
-            // dust and snow lifted along the shock front as it crosses the land
+        if (t > p.impact && t <= p.impact + BLAST_TICKS) {
+            // dust and snow lifted along the shock front as it crosses the land (as many per block of front however
+            // far it has got), the ground's own blocks kicked up with it
             double radius = p.params.craterRadius();
             double reach = radius * p.params.blastReach();
-            double front = radius + (reach - radius) * Math.pow((t - p.impact) / 28.0, 0.6);
-            for (int i = 0; i < this.count(40); i++) {
+            double front = radius + (reach - radius) * Math.pow((t - p.impact) / (double) BLAST_TICKS, 0.6);
+            int n = this.count((int) Math.min(160.0, front * 0.42));
+            for (int i = 0; i < n; i++) {
                 double a = r.nextDouble() * Math.PI * 2.0;
                 Vec3 at = this.ground(level, mark.x + Math.cos(a) * front, mark.z + Math.sin(a) * front, mark.y);
-                particle(level, i % 3 == 0 ? ParticleTypes.CLOUD : ParticleTypes.SNOWFLAKE, at.add(0.0, 0.5, 0.0),
-                    Math.cos(a) * 0.6, 0.15 + r.nextDouble() * 0.35, Math.sin(a) * 0.6);
+                if (i % 4 == 3) {
+                    particle(level, new BlockParticleOption(ParticleTypes.BLOCK, this.groundState(level, at)), at.add(0.0, 0.5, 0.0),
+                        Math.cos(a) * 0.9, 0.5 + r.nextDouble() * 0.9, Math.sin(a) * 0.9);
+                } else {
+                    particle(level, i % 4 == 0 ? ParticleTypes.CLOUD : ParticleTypes.SNOWFLAKE, at.add(0.0, 0.5, 0.0),
+                        Math.cos(a) * 0.9, 0.2 + r.nextDouble() * 0.45, Math.sin(a) * 0.9);
+                }
+            }
+            // a few big puffs riding the front, so it reads from far off
+            if ((t - p.impact) % 2 == 0) {
+                for (int i = 0; i < this.count(10); i++) {
+                    double a = r.nextDouble() * Math.PI * 2.0;
+                    Vec3 at = this.ground(level, mark.x + Math.cos(a) * front, mark.z + Math.sin(a) * front, mark.y);
+                    particle(level, ParticleTypes.EXPLOSION, at.add(0.0, 1.5, 0.0), 0.0, 0.0, 0.0);
+                }
             }
         }
         if (t > p.impact && t < p.duration - 20) {
@@ -600,10 +652,12 @@ public final class HalleyFx {
         HalleyPlan p = this.plan;
         RandomSource r = this.random;
         double radius = p.params.craterRadius();
+        // 1.9.0: snow drifting down over the whole blast zone, not only the crater
+        double over = radius * Math.max(1.6, p.params.blastReach() * 0.8);
         float fade = 1.0F - (float) (t - p.impact) / (p.duration - p.impact);
-        for (int i = 0; i < this.count((int) (26 * fade) + 1); i++) {
+        for (int i = 0; i < this.count((int) (26 * fade * over / (radius * 1.6)) + 1); i++) {
             double a = r.nextDouble() * Math.PI * 2.0;
-            double d = Math.sqrt(r.nextDouble()) * radius * 1.6;
+            double d = Math.sqrt(r.nextDouble()) * over;
             particle(level, ParticleTypes.SNOWFLAKE, p.target.add(Math.cos(a) * d, 30.0 + r.nextDouble() * 50.0, Math.sin(a) * d),
                 this.gauss(0.05), -0.1 - r.nextDouble() * 0.15, this.gauss(0.05));
         }
@@ -666,11 +720,31 @@ public final class HalleyFx {
 
     public void render(GlowBatch world, GlowBatch light, float partial, double landRange, CometVisuals.Land land) {
         double t = this.time(partial);
-        this.visuals.draw(world, light, t, this.marks, landRange, land, this.host.filmWeight());
+        // 1.9.0: above a shader pack's clouds the comet is drawn in the sky instead (SkyPass, renderSky)
+        int parts = this.cometInSky(world.camera(), t) ? CometVisuals.GROUND : CometVisuals.ALL;
+        this.visuals.draw(world, light, t, this.marks, landRange, land, this.host.filmWeight(), parts);
         if (HalleyClientConfig.extraEffects()) {
             float glitter = this.veil(t) * this.skyReach(world.camera());
-            this.extras.draw(world, light, t, land, glitter, this.visuals.heartTip());
+            this.extras.draw(world, light, t, land, glitter, this.visuals.heartTip(), parts);
         }
+    }
+
+    /** 1.9.0: the comet, its tails and what it sheds, from inside the game's sky drawing while it is above a pack's clouds. */
+    public void renderSky(GlowBatch world, GlowBatch light, float partial) {
+        double t = this.time(partial);
+        if (!this.cometInSky(world.camera(), t)) {
+            return;
+        }
+        CometVisuals.Land none = (x, z) -> false;
+        this.visuals.draw(world, light, t, null, 0.0, none, this.host.filmWeight(), CometVisuals.SKY);
+        if (HalleyClientConfig.extraEffects()) {
+            this.extras.draw(world, light, t, none, 0.0F, null, CometVisuals.SKY);
+        }
+    }
+
+    /** Whether the comet is drawn in the sky pass now: a pack on, the camera under the clouds, the comet well above them. */
+    private boolean cometInSky(Vec3 camera, double t) {
+        return !SkyPass.broken() && t >= HalleyPlan.SIGHT && t <= HalleyPlan.TOUCHDOWN && SkyPass.above(camera, this.plan.comet(t).y - 40.0);
     }
 
     // ---- The sky (drawn by client/sky). ---------------------------------------------------------------------------

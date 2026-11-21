@@ -219,13 +219,29 @@ final class Harness {
             }
             finalTicks++;
             String view = HarnessParams.FINAL_VIEWS[finalView].trim();
-            if (view.equals("menu") || view.equals("skills")) {
+            // menu:<skill id>+<glfw key>+...: those keys pressed for real (through the game's keyboard handler, as a
+            // player would) once the menu is open, before its screenshot (1.9.0: the plates' keys against skill keys)
+            String[] keys = new String[0];
+            if (view.contains("+")) {
+                keys = view.substring(view.indexOf('+') + 1).split("\\+");
+                view = view.substring(0, view.indexOf('+'));
+            }
+            if ((view.equals("menu") || view.startsWith("menu:")) && finalTicks == 10) {
+                for (String code : keys) {
+                    int key = Integer.parseInt(code.trim());
+                    pressInMenu(mc, key, org.lwjgl.glfw.GLFW.GLFW_PRESS);
+                    pressInMenu(mc, key, org.lwjgl.glfw.GLFW.GLFW_RELEASE);
+                    log("pressed key " + key + " in the menu");
+                }
+            }
+            if (view.equals("menu") || view.startsWith("menu:") || view.equals("skills")) {
                 // the remote's menu (H), through the caster's own eyes: opened once, filmed once it has opened fully;
                 // "skills" scrolls its list to the end first, where Halley and Luna are (with their sliders)
                 if (finalTicks == 1) {
                     mc.setCameraEntity(mc.player);
                     // -Dss05.clienttest.select=<skill id>: that skill selected first (e.g. Stellar Convergence's plate)
-                    String select = System.getProperty("ss05.clienttest.select");
+                    // menu:<skill id> picks that skill for this view (several cards in one run)
+                    String select = view.startsWith("menu:") ? view.substring(5) : System.getProperty("ss05.clienttest.select");
                     if (select != null) {
                         cyou.rimuru.rimulib.skill.SkillSet.all().stream().flatMap(set -> set.skills.stream())
                             .filter(skill -> skill.id().equals(select)).findFirst()
@@ -240,7 +256,7 @@ final class Harness {
                 }
                 if (finalTicks > 20 && System.currentTimeMillis() - finalSince > (view.equals("skills") ? 7000L : 4000L)) {
                     shotPending = true;
-                    pendingShot = "final_" + view;
+                    pendingShot = "final_" + view.replace(':', '-');
                     finalView++;
                     finalSince = System.currentTimeMillis();
                     finalTicks = 0;
@@ -259,6 +275,34 @@ final class Harness {
         done = true;
         log("done");
         mc.stop();
+    }
+
+    private static java.lang.reflect.Method keyPress;
+
+    /**
+     * A key event through the game's own keyboard handler (1.21.11: its keyPress(long, int, KeyEvent) is private, so it
+     * is found by its parameter types, which hold in the dev names and in a player's game alike).
+     */
+    private static void pressInMenu(Minecraft mc, int key, int action) {
+        try {
+            if (keyPress == null) {
+                for (java.lang.reflect.Method m : net.minecraft.client.KeyboardHandler.class.getDeclaredMethods()) {
+                    Class<?>[] p = m.getParameterTypes();
+                    if (p.length == 3 && p[0] == long.class && p[1] == int.class && p[2] == net.minecraft.client.input.KeyEvent.class) {
+                        m.setAccessible(true);
+                        keyPress = m;
+                        break;
+                    }
+                }
+            }
+            if (keyPress == null) {
+                log("no keyboard handler method to press keys with");
+                return;
+            }
+            keyPress.invoke(mc.keyboardHandler, mc.getWindow().handle(), action, new net.minecraft.client.input.KeyEvent(key, 0, 0));
+        } catch (ReflectiveOperationException | RuntimeException failed) {
+            log("couldn't press key " + key + ": " + failed);
+        }
     }
 
     /** Whether this client has every chunk within {@link HarnessParams#LAND} blocks of the mark. */

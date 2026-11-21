@@ -202,12 +202,16 @@ public final class FilmPanels {
         return k * k * (3.0F - 2.0F * k);
     }
 
-    /** One frozen frame: a texture the frame is copied into, registered under a name so the GUI can draw it. */
-    private static final class Frame extends AbstractTexture {
+    /** One frozen frame: a texture the frame is copied into, registered under a name so the GUI can draw it (FilmSplit's parts too). */
+    static final class Frame extends AbstractTexture {
         final Identifier location;
+        final int width;
+        final int height;
 
         Frame(Identifier location, int width, int height) {
             this.location = location;
+            this.width = width;
+            this.height = height;
             GpuDevice device = RenderSystem.getDevice();
             this.texture = device.createTexture(location::toString, GpuTexture.USAGE_COPY_DST | GpuTexture.USAGE_TEXTURE_BINDING,
                 TextureFormat.RGBA8, width, height, 1, 1);

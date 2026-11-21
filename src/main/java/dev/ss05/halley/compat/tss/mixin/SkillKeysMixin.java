@@ -40,7 +40,8 @@ abstract class SkillKeysMixin {
             // an equal record, as registering it again would throw)
             KeyMapping.Category category = new KeyMapping.Category(set.id);
             for (Skill skill : set.skills) {
-                if (skill.selectWarning() != null && !KEYS.containsKey(skill)) {
+                // not TON 618 Addition's locked skills (1.9.0): they only say what to install
+                if (skill.selectWarning() != null && !(skill instanceof dev.ss05.halley.compat.tss.LockedSkill) && !KEYS.containsKey(skill)) {
                     KeyMapping key = ClientPlatform.get().registerKey(new KeyMapping(set.keyName(skill), InputConstants.Type.KEYSYM,
                         InputConstants.UNKNOWN.getValue(), category));
                     KEYS.put(skill, key);

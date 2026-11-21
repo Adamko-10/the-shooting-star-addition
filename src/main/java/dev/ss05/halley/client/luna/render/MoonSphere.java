@@ -14,6 +14,7 @@ import dev.ss05.halley.client.render.DynamicMesh;
 import dev.ss05.halley.client.render.Gfx;
 import dev.ss05.halley.client.render.HalleyPipelines;
 import dev.ss05.halley.client.render.ShaderPacks;
+import dev.ss05.halley.client.render.SkyPass;
 import java.util.ArrayList;
 import java.util.List;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
@@ -123,7 +124,9 @@ public final class MoonSphere {
         Vec3 drawCentre = camera.add(dir.scale(distance));
 
         Vec3 axis = new Vec3(-p.travel.z, 0.0, p.travel.x);
-        float flicker = 0.85F + 0.15F * (float) Math.sin(t * 1.7 + (p.seed & 0xFF));
+        // its molten cracks flicker while it falls and settle down as it comes to rest (1.9.0, Adam: after landing its
+        // texture "starts flashing like the burny texture": the flicker, ~5 a second, never stopped)
+        float flicker = 0.85F + 0.15F * (float) (1.0 - MoonPlan.settle(t)) * (float) Math.sin(t * 1.7 + (p.seed & 0xFF));
         float approach = (float) MoonPlan.fall(t);
         int handover = fx.handoverAt();
         float cooling = handover < 0 ? 0.0F : (float) Mth.clamp(1.0 - (t - handover) / MoonFx.COOLING_TICKS, 0.0, 1.0);
@@ -160,7 +163,8 @@ public final class MoonSphere {
     private static List<Placement> placements(Vec3 camera, double maxDistance, float partial) {
         List<Placement> out = new ArrayList<>();
         for (MoonFx fx : MoonFx.active()) {
-            if (fx.finished()) {
+            // (above a shader pack's clouds it is drawn in the sky instead: SkyPass)
+            if (fx.finished() || inSky(fx, camera, partial) || !dev.ss05.halley.client.FilmView.shows(dev.ss05.halley.client.FilmView.LUNA)) {
                 continue;
             }
             Placement placement = placement(fx, camera, maxDistance, partial);
@@ -169,6 +173,23 @@ public final class MoonSphere {
             }
         }
         return out;
+    }
+
+    /**
+     * 1.9.0: whether this moon is drawn in the sky this frame, not the world pass (main: a shader pack on, the camera
+     * under the clouds and the moon wholly above them, see {@link SkyPass}). Never on this branch: its sky pass isn't
+     * built (SkyPass), so the moon is drawn in the world pass as in 1.8.3.
+     */
+    public static boolean inSky(MoonFx fx, Vec3 camera, float partial) {
+        return inSkyAt(fx, camera, fx.time(partial));
+    }
+
+    /** {@link #inSky} at the strike's time {@code t}. */
+    public static boolean inSkyAt(MoonFx fx, Vec3 camera, double t) {
+        if (SkyPass.broken() || t >= MoonPlan.CONTACT) {
+            return false;
+        }
+        return SkyPass.above(camera, fx.plan.centre(t).y - fx.plan.params.moonRadius() - MoonFx.restOversizeAt(t));
     }
 
     /** Whether its surface is drawn solid (writing depth) or blending (crumbling away, or kept behind the clouds). */

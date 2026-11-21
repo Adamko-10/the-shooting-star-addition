@@ -124,6 +124,13 @@ straight away, as their timing isn't known.
 - **No limits**: everything at once at high power can freeze a server. Aim far away: the biggest weapons reach
   hundreds of blocks.
 
+## TON 618 Addition's skills
+
+**TON 618 Addition** (by the same author, with rimuru_dev's TON 618) adds TA-01 · Last Light and TA-02 · Quasar Jets
+to the Stellar Remote. Without it they are listed at the end of the remote's menu as **locked**, greyed out with a
+padlock: picking one says what to install (TON 618 Addition and TON 618; Quasar Jets also SS-21 Quasar) and its card
+shows which of those you already have. Once TON 618 Addition is installed its own real skills take their place.
+
 ## Sliders
 
 Halley and Luna have the same three sliders as The Shooting Star's own skills, under them in the remote's menu
@@ -214,12 +221,13 @@ aim at the ground and right-click. The keys can be changed in Controls or from t
 | skill    | `cooldown_seconds`         | 60      | Recharge time (the remote's own skills use 60). |
 | skill    | `reach`                    | 420     | How far away the crosshair can place the mark. |
 | impact   | `trench_length`            | 240     | Length of the trench ploughed toward the mark. |
-| impact   | `trench_width`             | 30      | Width of the trench where it meets the crater. |
-| impact   | `trench_depth`             | 22      | Depth of the trench. |
-| impact   | `crater_radius`            | 56      | Radius of the crater; everything inside dies. |
-| impact   | `crater_depth`             | 24      | Depth of the crater. |
-| impact   | `blast_reach`              | 2.6     | Shock wave reach, in crater radii (throws, hurts, freezes). |
+| impact   | `trench_width`             | 40      | Width of the trench where it meets the crater. |
+| impact   | `trench_depth`             | 28      | Depth of the trench. |
+| impact   | `crater_radius`            | 84      | Radius of the crater; everything inside dies. |
+| impact   | `crater_depth`             | 32      | Depth of the crater. |
+| impact   | `blast_reach`              | 3.4     | Shock wave reach, in crater radii (throws, hurts, freezes). |
 | impact   | `chunks_per_tick`          | 12      | Chunks of the trench cut per tick (the crater does twice as many); lower is gentler on a busy server. |
+| impact   | `defaults_version`         | 1       | Set by the addon (leave it): in 1.9.0 a file still holding 1.8's Halley sizes untouched was moved to the bigger ones once. |
 | world    | `carve_terrain`            | true    | `false` = the strike only hurts creatures, the land is untouched. |
 | world    | `leave_comet_heart`        | true    | The glowing heart crystal and the frozen trail down the trench. |
 | world    | `frost_rays`               | true    | Rays of snow painted out from the crater. |
@@ -276,20 +284,38 @@ And your switches from the remote's menu (**H**), in the `[stellar_remote]` sect
 
 | Setting          | Default | What it does |
 |------------------|---------|--------------|
-| `luna_music`     | true    | Luna's music while the moon comes down (**M** in the menu). It follows Minecraft's Music volume. |
-| `stack_music`    | false   | Let strike soundtracks overlap (**=** in the menu). |
-| `imperial_units` | false   | Show the film's distances in miles instead of kilometres (**-** in the menu). |
-| `epic_mode`      | false   | Luna falls slower, 24 s instead of 16, for everyone watching (**G**). |
+| `luna_music`     | true    | Luna's and Proxima's strike music (**M** in the menu). It follows Minecraft's Music volume. |
+| `stack_music`    | false   | Allow several strikes' music to play at once (**=**). |
+| `imperial_units` | false   | Show miles instead of kilometres in the films' readouts (**-**). |
+| `epic_mode`      | false   | Luna falls slower, 20 s instead of 16, for everyone watching (**G**). |
 | `keep_moon`      | false   | Luna's moon model stays after it lands (**L**). |
 | `impact_frames`  | FULL    | Halley's and Luna's impact frames: `FULL`, `SOFT` or `OFF` (**F**). |
 | `evac_lift`      | true    | In creative, standing where your own strike lands: `true` lifts you straight up, `false` takes you to the crater's edge (**E**). |
 | `no_cooldown`    | true    | Cast without cooldowns where the server allows it (**C**). |
+| `close_menu_on_pick` | false | `true` = clicking a skill in the remote's menu picks it and closes the menu (**[**, shown by your keyboard's own name for that key). |
 | `convergence`    | all but Gravitia | The weapons Stellar Convergence fires (**1-9** on its panel). |
 | `convergence_ring` | false | `true` = spread them in a ring round the crosshair (**R**). |
 | `convergence_shake` | CAPPED | Its camera shake: `CAPPED`, `FULL` or `OFF` (**X**). |
+| `convergence_film` | PANELS | Its film: `PANELS` (each weapon's shot frozen into a comic panel) or `SPLIT` (the screen split into a live part per weapon, each shaking in its colours) (**F**). |
 | `convergence_plate` | true  | Its panel shown in full (`false` folds it to its name; **V**). |
 | `convergence_plate_old` | false | Its panel's older look, always shown (**T**). |
 | `menu_plates`    | true    | Show this addon's settings plate and Stellar Convergence's plate in the remote's menu (**H**). `false` hides them and their keys; the settings still apply, edit them in this file. |
+
+## Your own music
+
+Luna's and Proxima's music can be swapped for your own. Put an Ogg Vorbis file (`.ogg`) in
+`config/shooting_star_addition/music/` (the folder appears, with a README, once you've joined a world) under one of
+these names; it plays in place of ours from then on (no restart). Delete it to get ours back.
+
+| File            | Plays for                      | Starts                | Its drop should be at |
+|-----------------|--------------------------------|-----------------------|-----------------------|
+| `luna.ogg`      | SA-02 Luna                     | at the alarm          | 16.0 s (the impact)   |
+| `luna_epic.ogg` | SA-02 Luna in Epic mode        | at the alarm          | 20.0 s                |
+| `proxima.ogg`   | SA-04 Proxima                  | as the gate opens     | 22.5 s                |
+
+It is kept in step with the strike as it plays, follows the Speed slider and Minecraft's Music volume, and only plays
+while Music (**M**) is on. A file that won't open is logged and ours plays. Only use music you have the right to use.
+(A resource pack replacing `assets/shooting_star_addition/sounds/luna_music.ogg` and the others works too.)
 
 ## Will it work with future versions of The Shooting Star?
 
@@ -377,8 +403,9 @@ de-obfuscation map of The Shooting Star.
      `compat/tss/mixin/CastingMixin` (`syncCooldowns` and the cast request); The Shooting Star's own skills still saying
      "already on its way" → `StarCastMixin` and `SpellsMixin` (also `/ssa strike ... at`, through `aimGround`);
    - Stellar Convergence's film showing the weapons' own films → `CutsceneDirectorMixin` (RimuLib);
-   - Gravitia without a key → `SkillKeysMixin` (RimuLib). The plates in the menu use RimuLib's public API
-     (`UiApi`, `MenuApi`), no mixin;
+   - Gravitia without a key → `SkillKeysMixin` (RimuLib); the menu not closing on a pick (`close_menu_on_pick`) →
+     `WhiteSpaceMixin` (RimuLib's `WhiteSpace.commit`). The plates in the menu use RimuLib's public API (`UiApi`,
+     `MenuApi`), no mixin;
    - the caster's arm not raising (vanilla target, very unlikely to change) → `compat/mixin/PlayerModelMixin`;
    - the land not dimming under the dark sky (vanilla target, very unlikely to change) → `compat/mixin/ClientLevelMixin`;
    - with a shader pack on, the sky not going to night (vanilla target, very unlikely to change) →

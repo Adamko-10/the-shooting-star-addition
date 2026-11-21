@@ -204,6 +204,11 @@ public final class ConfigFile {
             return this.value;
         }
 
+        /** The value this key has in a new file. */
+        public T getDefault() {
+            return this.fallback;
+        }
+
         /** Sets the value from the game (e.g. a switch flipped in the remote's menu); call {@link ConfigFile#save()} after. */
         public void set(T value) {
             this.value = value;

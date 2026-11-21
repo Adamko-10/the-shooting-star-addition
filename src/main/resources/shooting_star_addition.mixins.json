@@ -16,7 +16,10 @@
     "MoonHideMixin",
     "PlayerModelMixin",
     "SkyRendererMixin",
-    "ToastManagerMixin"
+    "ToastManagerMixin",
+    "SoundListenerMixin",
+    "QuasarFxMixin",
+    "QuasarHudMixin"
   ],
   "injectors": {
     "defaultRequire": 0

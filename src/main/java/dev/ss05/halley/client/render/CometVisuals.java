@@ -56,7 +56,7 @@ public final class CometVisuals {
     /** How far apart the trench's afterglow pieces are. */
     private static final double TRENCH_STEP = 5.0;
     /** Ticks the shock front takes to cross the land (the server's blast takes the same time). */
-    private static final int BLAST_TICKS = 28;
+    private static final int BLAST_TICKS = 36;
 
     private final HalleyPlan plan;
     private final int minY;
@@ -134,15 +134,28 @@ public final class CometVisuals {
      * @param film      how much of the screen the caster's cutscene has (0..1): outside it the comet is drawn bigger,
      *                  since nobody is framing it with a long lens
      */
+    /** 1.9.0: which parts to draw: the comet in the sky ({@code SKY}: SkyPass, above a shader pack's clouds), the rest. */
+    public static final int SKY = 1;
+    public static final int GROUND = 2;
+    public static final int ALL = SKY | GROUND;
+
     public void draw(GlowBatch world, GlowBatch light, double t, @Nullable GroundMarks marks, double markRange, Land land, float film) {
+        this.draw(world, light, t, marks, markRange, land, film, ALL);
+    }
+
+    public void draw(GlowBatch world, GlowBatch light, double t, @Nullable GroundMarks marks, double markRange, Land land, float film,
+                     int parts) {
         if (t < 0.0 || t > this.plan.duration) {
+            return;
+        }
+        if ((parts & SKY) != 0 && t >= HalleyPlan.SIGHT && t <= HalleyPlan.TOUCHDOWN) {
+            this.approach(world, light, t, 1.0 + 0.9 * (1.0 - film));
+        }
+        if ((parts & GROUND) == 0) {
             return;
         }
         if (marks != null && t >= HalleyPlan.MARK && t < this.plan.impact + 4) {
             this.marks(world, t, marks, markRange, land);
-        }
-        if (t >= HalleyPlan.SIGHT && t <= HalleyPlan.TOUCHDOWN) {
-            this.approach(world, light, t, 1.0 + 0.9 * (1.0 - film));
         }
         if (t > HalleyPlan.TOUCHDOWN) {
             this.skyTrail(world, t);
@@ -273,15 +286,18 @@ public final class CometVisuals {
         double d = head.distanceTo(world.camera());
         float on = smooth((t - HalleyPlan.SIGHT) / 30.0);
         float near = (float) Mth.clamp(1.0 - d / 5000.0, 0.0, 1.0);
-        double coma = Math.max(COMA * this.size, d * COMA_MIN_ANGLE * boost * this.tailSize);
-        double nucleus = Math.max(NUCLEUS * this.size, d * NUCLEUS_MIN_ANGLE * boost * this.tailSize);
-        double glint = Math.max(COMA * 1.2 * this.size, d * GLINT_MIN_ANGLE * boost * this.tailSize);
+        // 1.9.0 (Adam: "a little bit bigger in the sky when u first see it"): 30% bigger while far off, back to its own
+        // size by the time it hits the air
+        double early = 1.0 + 0.3 * (1.0 - smooth((t - (HalleyPlan.SIGHT + 60.0)) / (HalleyPlan.ENTRY - HalleyPlan.SIGHT - 60.0)));
+        double coma = Math.max(COMA * this.size, d * COMA_MIN_ANGLE * boost * this.tailSize * early);
+        double nucleus = Math.max(NUCLEUS * this.size, d * NUCLEUS_MIN_ANGLE * boost * this.tailSize * early);
+        double glint = Math.max(COMA * 1.2 * this.size, d * GLINT_MIN_ANGLE * boost * this.tailSize * early);
 
         // the tails, which thin out once the comet is inside the atmosphere
         float tails = on * (1.0F - smooth((t - (HalleyPlan.ENTRY - 10)) / 35.0));
         if (tails > 0.003F) {
-            double ion = Math.max(ION_LENGTH * this.tailSize, d * ION_MIN_SHARE);
-            double dust = Math.max(DUST_LENGTH * this.tailSize, d * DUST_MIN_SHARE);
+            double ion = Math.max(ION_LENGTH * this.tailSize, d * ION_MIN_SHARE * early);
+            double dust = Math.max(DUST_LENGTH * this.tailSize, d * DUST_MIN_SHARE * early);
             Vec3 bend = this.dustBend.scale(dust / DUST_LENGTH);
             world.ribbon(head, head.add(this.ionDir.scale(ion)), Vec3.ZERO, coma * 0.6, coma * 0.6 + ion * 0.1, 24,
                 Shapes.STREAK, Shapes.ION, ION, 0.9F * tails);
@@ -435,11 +451,18 @@ public final class CometVisuals {
     private void detonation(GlowBatch world, GlowBatch light, double t, Land land) {
         double a = t - this.plan.impact;
         double radius = this.plan.params.craterRadius();
+        double blast = radius * this.plan.params.blastReach();
         Vec3 c = this.plan.target;
 
-        // the flash, and the fireball of vaporised ice
+        // the flash, and the fireball of vaporised ice (1.9.0: the flash as wide as the blast, and a slower bloom of
+        // icy light after it that lingers over the whole blast zone)
+        if (a < 60.0) {
+            light.billboard(c.add(0.0, radius * 0.3, 0.0), Math.max(radius * 3.0, blast * 1.1), Shapes.GLOW, 0, PALE,
+                1.7F * (float) Math.exp(-a / 4.0), 0.0);
+            light.billboard(c.add(0.0, radius * 0.6, 0.0), blast * 0.9, Shapes.GLOW, Shapes.HAZE, ICE,
+                0.55F * smooth(a / 3.0) * (float) Math.exp(-a / 16.0), 0.0);
+        }
         if (a < 40.0) {
-            light.billboard(c.add(0.0, radius * 0.3, 0.0), radius * 3.0, Shapes.GLOW, 0, PALE, 1.6F * (float) Math.exp(-a / 4.0), 0.0);
             light.rect(c.add(0.0, radius * 0.3, 0.0), radius * 26.0, radius * 0.32, Shapes.FLARE, 0, PALE, 1.3F * (float) Math.exp(-a / 6.0));
             double ball = radius * (0.35 + 0.95 * (1.0 - Math.exp(-a / 5.0)));
             Vec3 middle = c.add(0.0, ball * 0.35, 0.0);
@@ -466,7 +489,7 @@ public final class CometVisuals {
             return;
         }
         // the shock front over the land, keeping pace with the server's blast
-        double reach = radius * this.plan.params.blastReach();
+        double reach = blast;
         if (a < BLAST_TICKS + 14.0) {
             double k = Math.pow(Mth.clamp(a / BLAST_TICKS, 0.0, 1.0), 0.6);
             double front = radius + (reach - radius) * k + Math.max(0.0, a - BLAST_TICKS) * 0.6;
@@ -479,6 +502,21 @@ public final class CometVisuals {
             double rim = radius * (0.3 + 0.8 * Math.sqrt(Mth.clamp(a / 6.0, 0.0, 1.0)));
             world.flat(c.add(0.0, 1.0, 0.0), this.plan.dir, rim / 0.9, rim / 0.9, Shapes.SHOCK, 2, WHITE,
                 0.8F * (1.0F - smooth(a / 10.0)));
+            // 1.9.0: a ring of dust and condensation riding the front, standing up off the land so it reads from far
+            // off and from the film's high shots (the flat rings above only show from above)
+            int puffs = 36;
+            double size = 8.0 + front * 0.1;
+            for (int i = 0; i < puffs; i++) {
+                double ang = i * Math.PI * 2.0 / puffs + this.spin * 0.4;
+                double x = c.x + Math.cos(ang) * front;
+                double z = c.z + Math.sin(ang) * front;
+                if (!land.has(x, z)) {
+                    continue;
+                }
+                double y = land.surface(x, z);
+                Vec3 at = new Vec3(x, (Double.isNaN(y) ? c.y : y) + size * 0.35, z);
+                world.billboard(at, size, Shapes.GLOW, Shapes.HAZE, i % 3 == 0 ? PALE : FROST, 0.34F * s, ang);
+            }
         }
 
         // frost settling round the rim

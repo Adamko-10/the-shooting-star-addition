@@ -3,6 +3,9 @@ package dev.ss05.halley.client.render;
 import dev.ss05.halley.HalleyPlan;
 import java.util.SplittableRandom;
 import org.jspecify.annotations.Nullable;
+import net.minecraft.client.CloudStatus;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
@@ -55,7 +58,7 @@ public final class CometExtras {
     /** Blocks per tick per tick, for the ice thrown out of the crater. */
     static final double GRAVITY = 0.08;
     /** Ticks the shock front takes to cross the land (the same as CometVisuals and the server). */
-    private static final int BLAST_TICKS = 28;
+    private static final int BLAST_TICKS = 36;
     /** The glittering ice in the air: one glint per cell of this size round the camera, about half the cells. */
     private static final double GLITTER_CELL = 4.5;
 
@@ -99,7 +102,8 @@ public final class CometExtras {
             double from = Math.sqrt(r.nextDouble()) * radius * 0.35;
             Vec3 launch = plan.target.add(Math.cos(angle) * from, 2.0 + r.nextDouble() * 4.0, Math.sin(angle) * from);
             double heading = angle + r.nextGaussian() * 0.3;
-            double out = 0.9 + r.nextDouble() * 1.8;
+            // 1.9.0: thrown as far as the blast reaches (1.8: 0.9-2.7 at its 2.6)
+            double out = (0.9 + r.nextDouble() * 1.8) * Math.sqrt(Math.max(1.0, plan.params.blastReach()) / 2.6);
             double up = 1.6 + r.nextDouble() * 2.0;
             double drop = launch.y - (plan.target.y - 1.0);
             double flight = (up + Math.sqrt(up * up + 2.0 * GRAVITY * drop)) / GRAVITY;
@@ -130,11 +134,21 @@ public final class CometExtras {
      * @param heartTip the top of the comet heart, or null when there is none
      */
     public void draw(GlowBatch world, GlowBatch light, double t, CometVisuals.Land land, float glitter, @Nullable Vec3 heartTip) {
-        if (t >= HalleyPlan.ENTRY - 50.0 && t <= HalleyPlan.TOUCHDOWN + 40.0) {
-            this.fragments(world, light, t);
+        this.draw(world, light, t, land, glitter, heartTip, CometVisuals.ALL);
+    }
+
+    /** {@code parts}: the comet's own (fragments, sparks: {@code CometVisuals.SKY}), the rest ({@code GROUND}). */
+    public void draw(GlowBatch world, GlowBatch light, double t, CometVisuals.Land land, float glitter, @Nullable Vec3 heartTip, int parts) {
+        if ((parts & CometVisuals.SKY) != 0) {
+            if (t >= HalleyPlan.ENTRY - 50.0 && t <= HalleyPlan.TOUCHDOWN + 40.0) {
+                this.fragments(world, light, t);
+            }
+            if (t >= HalleyPlan.ENTRY - 8.0 && t <= HalleyPlan.TOUCHDOWN + 24.0) {
+                this.sparks(world, t);
+            }
         }
-        if (t >= HalleyPlan.ENTRY - 8.0 && t <= HalleyPlan.TOUCHDOWN + 24.0) {
-            this.sparks(world, t);
+        if ((parts & CometVisuals.GROUND) == 0) {
+            return;
         }
         if (t >= this.plan.impact) {
             this.shards(world, t);
@@ -276,7 +290,7 @@ public final class CometExtras {
         double reach = radius * this.plan.params.blastReach();
         double k = Math.pow(Mth.clamp(a / BLAST_TICKS, 0.0, 1.0), 0.6);
         double front = radius * 0.6 + (reach - radius * 0.6) * k + Math.max(0.0, a - BLAST_TICKS) * 0.6;
-        double height = 8.0 + radius * 0.5 * (1.0 - CometVisuals.smooth(a / 26.0));
+        double height = 8.0 + radius * 0.5 * (1.0 - CometVisuals.smooth(a / (BLAST_TICKS - 2.0)));
         float s = 0.7F * CometVisuals.smooth(a / 2.0) * (1.0F - CometVisuals.smooth((a - 4.0) / (BLAST_TICKS + 8.0)));
         Vec3 c = this.plan.target;
         Vec3 prev = null;
@@ -300,15 +314,36 @@ public final class CometExtras {
             return;
         }
         float pulse = 0.8F + 0.2F * (float) Math.sin(t * 0.21);
-        world.column(tip, 420.0, 0.9, Shapes.STREAK, Shapes.ION, CometVisuals.PALE, 0.75F * on * pulse);
-        world.column(tip, 260.0, 4.5, Shapes.STREAK, Shapes.DUST, CometVisuals.ICE, 0.22F * on);
+        // 1.9.0 (Adam: "make it not display above clouds"): seen from under the clouds, it goes up into them, lighting
+        // them from below, instead of shining on over them
+        double top = 420.0;
+        double clouds = cloudHeight();
+        if (!Double.isNaN(clouds) && world.camera().y < clouds && tip.y < clouds) {
+            top = Math.max(8.0, clouds - tip.y);
+            world.billboard(tip.add(0.0, top, 0.0), 22.0, Shapes.GLOW, Shapes.HAZE, CometVisuals.ICE, 0.35F * on * pulse, 0.0);
+        }
+        world.column(tip, top, 0.9, Shapes.STREAK, Shapes.ION, CometVisuals.PALE, 0.75F * on * pulse);
+        world.column(tip, Math.min(260.0, top), 4.5, Shapes.STREAK, Shapes.DUST, CometVisuals.ICE, 0.22F * on);
         for (int i = 0; i < BEAM_MOTES; i++) {
-            double rise = (since * 0.9 + i * 31.0) % 240.0;
+            double rise = (since * 0.9 + i * 31.0) % Math.min(240.0, top);
             double ang = since * 0.07 + i * 0.628;
             double r = 2.5 + 1.5 * Math.sin(since * 0.05 + i);
             Vec3 p = tip.add(Math.cos(ang) * r, rise, Math.sin(ang) * r);
             world.billboard(p, 0.9, Shapes.GLOW, 0, CometVisuals.PALE, 0.8F * on * (float) (1.0 - rise / 240.0), 0.0);
         }
+    }
+
+    /**
+     * The cloud layer's height, or NaN where there is none (another dimension, or clouds off without a shader pack: a
+     * pack draws its own clouds at about the game's height whatever the game's cloud setting says).
+     */
+    static double cloudHeight() {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level == null || !ShaderPacks.active() && minecraft.options.getCloudsType() == CloudStatus.OFF) {
+            return Double.NaN;
+        }
+        // 1.21.11 has no DimensionSpecialEffects cloud height: the camera's environment attribute instead
+        return Gfx.camera().attributeProbe().getValue(EnvironmentAttributes.CLOUD_HEIGHT, 1.0F);
     }
 
     /** Ice glittering in the air round the camera once the haze is up: tiny glints that catch the light and fall. */

@@ -1,6 +1,6 @@
 package dev.ss05.halley.compat.tss.client;
 
-import cyou.rimuru.rimulib.client.cinematic.CutsceneDirector;
+import dev.ss05.halley.client.HalleyClientConfig;
 import cyou.rimuru.rimulib.client.text.TessType;
 import dev.ss05.halley.MoonPlan;
 import dev.ss05.halley.ProximaPlan;
@@ -20,7 +20,8 @@ import org.joml.Matrix3x2fStack;
  * The skill's name across its film at the moment it is revealed, the way The Shooting Star 1.5's films title their
  * own skills (asked for on CurseForge): HALLEY as the comet first hangs over the horizon (shot 4), LUNA as the moon
  * cracks open (shot 2). Letter by letter in RimuLib's display type, the remote's own lettering; none of The Shooting
- * Star's assets. Off in RimuLib's legacy film style, as The Shooting Star's titles are. Overlay units (710 high).
+ * Star's assets. Their own setting, title_cards (on by default; RimuLib's legacy film style used to hide them, as it
+ * hides The Shooting Star's titles: the user plays with it on). Overlay units (710 high).
  */
 final class FilmTitle {
     /** The display face's cap height at scale 1 (RimuLib: its size 16 x 0.7). */
@@ -66,7 +67,7 @@ final class FilmTitle {
     static void halley(GuiGraphics g, HalleyFx fx, float partial, int w, int h, HalleyHud.Projector project) {
         float ct = fx.filmTime(partial);
         float fade = fade(fx.filmWeight());
-        if (Float.isNaN(ct) || ct < HALLEY_IN || ct > HALLEY_END || fade <= 0.01F || CutsceneDirector.legacy()) {
+        if (Float.isNaN(ct) || ct < HALLEY_IN || ct > HALLEY_END || fade <= 0.01F || !HalleyClientConfig.titleCards()) {
             return;
         }
         float cap = h * 0.1F;
@@ -134,7 +135,7 @@ final class FilmTitle {
     static void luna(GuiGraphics g, MoonFx fx, float partial, int w, int h, HalleyHud.@Nullable Projector project) {
         float ct = fx.filmTime(partial);
         float fade = fade(fx.filmWeight());
-        if (Float.isNaN(ct) || ct < LUNA_IN || ct > LUNA_END || fade <= 0.01F || CutsceneDirector.legacy()) {
+        if (Float.isNaN(ct) || ct < LUNA_IN || ct > LUNA_END || fade <= 0.01F || !HalleyClientConfig.titleCards()) {
             return;
         }
         float cap = h * 0.11F;
@@ -220,7 +221,7 @@ final class FilmTitle {
         float ct = fx.filmTime(partial);
         float fade = fade(fx.filmWeight());
         float in = ProximaPlan.SPACE + 6.0F;
-        if (Float.isNaN(ct) || ct < in || ct > in + 41.0F || fade <= 0.01F || CutsceneDirector.legacy()) {
+        if (Float.isNaN(ct) || ct < in || ct > in + 41.0F || fade <= 0.01F || !HalleyClientConfig.titleCards()) {
             return;
         }
         float cap = h * 0.07F;
@@ -255,7 +256,7 @@ final class FilmTitle {
         float ct = fx.filmTime(partial);
         float fade = fade(fx.filmWeight());
         float in = ProximaPlan.IRIS + 7.0F;
-        if (Float.isNaN(ct) || ct < in || ct > in + 36.0F || fade <= 0.01F || CutsceneDirector.legacy()) {
+        if (Float.isNaN(ct) || ct < in || ct > in + 36.0F || fade <= 0.01F || !HalleyClientConfig.titleCards()) {
             return;
         }
         float cap = h * 0.08F;
@@ -289,7 +290,7 @@ final class FilmTitle {
         float fade = fade(fx.filmWeight());
         float in = ProximaPlan.BEAM - 18.0F;
         float tearAt = ProximaPlan.BEAM;
-        if (Float.isNaN(ct) || ct < in || ct > in + 28.0F || fade <= 0.01F || CutsceneDirector.legacy()) {
+        if (Float.isNaN(ct) || ct < in || ct > in + 28.0F || fade <= 0.01F || !HalleyClientConfig.titleCards()) {
             return;
         }
         float cap = h * 0.07F;
@@ -326,7 +327,7 @@ final class FilmTitle {
         float ct = fx.filmTime(partial);
         float fade = fade(fx.filmWeight());
         float in = ProximaPlan.FLASH + 5;
-        if (Float.isNaN(ct) || ct < in || ct > ProximaPlan.FRONT || fade <= 0.01F || CutsceneDirector.legacy()) {
+        if (Float.isNaN(ct) || ct < in || ct > ProximaPlan.FRONT || fade <= 0.01F || !HalleyClientConfig.titleCards()) {
             return;
         }
         float cap = h * 0.12F;
