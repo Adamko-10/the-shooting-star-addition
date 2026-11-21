@@ -162,6 +162,29 @@ place; the dated sections under it are the history (read them by `grep`, not in 
 - RimuLib's `CameraPose(position, look, fov, roll)` takes a look-at point. SS-21 Quasar has its own effect engine
   (`dev.ss21.quasar.<mc>.compat.client.fx`), not TSS's FxManager.
 
+### >>> RESUME HERE (2026-11-21, Adam's PC): the 1.9.0 port briefs are ready; waiting for his Luna check <<<
+
+He came back to the older 2026-11-13 conversation instead of a fresh one (his pick, clickable: "Continue here").
+- **His answers (2026-11-21, clickable)**: Luna's resting-moon flicker in polish 11: **"Haven't tested yet"**; the
+  ports: **"Astra 4, Claude 2"** (Astra ports forge-1.21.1, fabric-1.21.1, forge-1.20.1, fabric-1.20.1; Claude ports
+  fabric-1.21.11 and fabric-26.3 by hand; he was told it's likely too much for his usage this week and picked it).
+  Nothing starts until he has checked Luna's moon (main-first rule): if it still flashes, fix main, remake the base.
+- **Port base**: `port-1.9.0` = `4b5aec1` (parent origin/main `3624717`, tree = main `eb14508`; 67 src files).
+- **Briefs**: `..\ports\make-briefs-1.9.0.js` (set `PORT`, run with node) wrote `..\ports\<branch>\BRIEF.md` for the
+  four Astra branches (cherry-pick the base, conflict rules, the 1.9.0 parts, per-branch hooks: Forge 52's missing
+  `RenderGuiEvent` -> `GameRendererMixin`, `HudRescueMixin`'s `Gui.render` target per version, the music stream hook
+  per loader, 1.20.1 API and plural data folders, `StellarQuartet.REQUIRED` false on 1.20.1, SS-21 Quasar's class
+  names per loader). The old 1.8.x `REPORT.md`/`CHECK.md` and 26.3/1.21.11's 1.8.0 `BRIEF.md` moved to
+  `..\ports\old reports (1.8.x)\<branch>\` (out of the worktrees, so a `git add -A` can't pick them up); all six
+  worktrees clean.
+- **SS-21 Quasar's classes per loader** (checked 2026-11-21): Forge `dev.ss21.quasar.mc1211.client.QuasarFx/QuasarHud`
+  and `...mc1201...` (one jar holds both: `..\other mods\quasar\ss-21-quasar-1.8.0-forge.jar`, copied from his Forge
+  instance); Fabric `dev.ss21.quasar.client.*` (no version tag; the multi jar's nested per-MC jars extracted to
+  `..\other mods\quasar\nested (Fabric, extracted)\`, 1.20.1, 1.21.1, 1.21.11, 26.3).
+- **Next**: his Luna check -> Codex runs the four briefs (two at a time, GPT-6.2 Astra, High; Claude starts them by
+  computer use or he pastes "Read BRIEF.md in this folder and do exactly what it says") -> meanwhile Claude ports
+  fabric-1.21.11 and fabric-26.3 -> review, Forge builds here, CI, screenshot checks (step 6), test jars, release.
+
 ### >>> RESUME HERE (2026-11-20 ~20:10, Adam's PC): polish 10 in his instance for his test; then the six ports <<<
 
 - **His test of polish 9 (2026-11-20 evening)**, his words: "still laggy but some of them feel better, luna appears in
