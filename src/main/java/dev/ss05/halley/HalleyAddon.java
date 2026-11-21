@@ -49,7 +49,7 @@ public final class HalleyAddon implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        HalleyConfig.SPEC.load();
+        HalleyConfig.load();
         HalleyContent.register();
         AddonNetwork.register();
 
@@ -58,7 +58,7 @@ public final class HalleyAddon implements ModInitializer {
         // or, on a dedicated server, in HalleyServer.
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
-            HalleyConfig.SPEC.load();
+            HalleyConfig.load();
             StarBridge.install();
         });
         CommandRegistrationCallback.EVENT.register((dispatcher, registry, environment) -> StarBridge.registerCommands(dispatcher));

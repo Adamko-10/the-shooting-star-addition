@@ -1,5 +1,6 @@
 package dev.ss05.halley.client;
 
+import com.mojang.blaze3d.shaders.BlendMode;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.ss05.halley.HalleyAddon;
@@ -28,6 +29,8 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
 import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL14;
 
 /**
  * The client side of SA-01 and SA-02: their shaders, their renderers (the comet, the moon, the sky), their config, and
@@ -42,14 +45,24 @@ public final class HalleyClient implements ClientModInitializer {
         HalleyClientConfig.SPEC.load();
         CoreShaderRegistrationCallback.EVENT.register(context -> {
             try {
-                context.register(HalleyAddon.id("halley_glow"), DefaultVertexFormat.POSITION_TEX_COLOR, HalleyRenderTypes::setShader);
+                context.register(HalleyAddon.id("halley_glow"), DefaultVertexFormat.POSITION_TEX_COLOR, shader -> {
+                    if (shader.blend.isOpaque()) {
+                        shader.blend = new BlendMode(GL11.GL_ONE, GL11.GL_ONE, GL14.GL_FUNC_ADD);
+                    }
+                    HalleyRenderTypes.setShader(shader);
+                });
             } catch (Exception failed) {
                 // the skill still works, it just isn't drawn
                 HalleyAddon.LOG.error("Halley's glow shader didn't load, so the comet won't be drawn", failed);
                 HalleyRenderTypes.setShader(null);
             }
             try {
-                context.register(HalleyAddon.id("halley_sky"), DefaultVertexFormat.POSITION, HalleySky::setShader);
+                context.register(HalleyAddon.id("halley_sky"), DefaultVertexFormat.POSITION, shader -> {
+                    if (shader.blend.isOpaque()) {
+                        shader.blend = new BlendMode(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA, GL14.GL_FUNC_ADD);
+                    }
+                    HalleySky.setShader(shader);
+                });
             } catch (Exception failed) {
                 HalleyAddon.LOG.error("Halley's sky shader didn't load, so the sky won't change during a strike", failed);
                 HalleySky.setShader(null);
@@ -83,6 +96,7 @@ public final class HalleyClient implements ClientModInitializer {
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             HalleyClientConfig.SPEC.load();
             ProximaCosmos.preload();
+            StrikeMusic.ensureFolder();
         });
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             HalleyFx.clearAll();
@@ -114,6 +128,7 @@ public final class HalleyClient implements ClientModInitializer {
      */
     public static void frameStart(float partial) {
         ShaderPacks.update();
+        FilmView.runFrameStart();
         HalleySky.update(partial);
         if (ShaderPacks.active() && Minecraft.getInstance().level != null
             && (!HalleyFx.active().isEmpty() || !MoonFx.active().isEmpty() || !ProximaFx.active().isEmpty()
@@ -121,6 +136,8 @@ public final class HalleyClient implements ClientModInitializer {
             GlowAtlas.paint(HalleyRenderTypes.shader());
             HalleySky.paint(partial);
         }
+        // Proxima's gate behind a pack's clouds (1.9.0): painted now, drawn in the sky pass (or nothing this frame)
+        ProximaCosmos.paintSkyCard(partial);
     }
 
     /** From compat/mixin, right after the vanilla sky: the strike's sky dome. */

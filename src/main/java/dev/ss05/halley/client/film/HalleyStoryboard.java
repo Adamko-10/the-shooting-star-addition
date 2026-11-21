@@ -81,11 +81,12 @@ public final class HalleyStoryboard {
             return new Pose(frame(x, feet, 1.1, 2.1, -3.2), mark.add(0.0, l(k, 18.0, 2.0), 0.0), (float) l(k, 60.0, 34.0), 0.0F);
         }));
 
-        // 3. Down the corridor from the mark, to the horizon the comet is about to rise over.
+        // 3. Down the corridor from the mark, to the horizon the comet is about to rise over: craning up over the trees
+        //    (1.9.0: it was low among them) as the view opens out.
         takes.add(Take.cut(30, 64, (x, p, k) -> {
-            Vec3 pos = mark.add(home.scale(l(k, 10.0, 16.0) * z)).add(side.scale(s * 3.0 * z)).add(0.0, l(k, 2.2, 5.0) * z, 0.0);
+            Vec3 pos = mark.add(home.scale(l(k, 10.0, 18.0) * z)).add(side.scale(s * 3.0 * z)).add(0.0, l(k, 4.0, 14.0) * z, 0.0);
             Vec3 look = touchdown.add(dir.scale(200.0 * z)).add(0.0, l(k, 10.0, 60.0) * z, 0.0);
-            return new Pose(pos, look, (float) l(k, 72.0, 64.0), (float) (l(k, 0.0, -3.0) * s));
+            return new Pose(kept(x, p, pos), look, (float) l(k, 72.0, 64.0), (float) (l(k, 0.0, -3.0) * s));
         }));
 
         // 4. Telephoto: the comet over the horizon, its tails reaching up across the sky.
@@ -93,28 +94,32 @@ public final class HalleyStoryboard {
             Vec3 comet = plan.comet(x.time(p));
             Vec3 pos = mark.add(home.scale(36.0 * z)).add(side.scale(-s * 10.0 * z)).add(0.0, 3.2 * z, 0.0);
             Vec3 look = comet.add(visuals.tailDirection().scale(comet.distanceTo(pos) * 0.05));
-            return new Pose(pos, look, (float) l(k, 15.0, 10.0), 0.0F);
+            return new Pose(kept(x, p, pos), look, (float) l(k, 15.0, 10.0), 0.0F);
         }));
 
-        // 5. Wide, from high up behind the caster: the corridor laid out on the land, the comet hanging over it.
+        // 5. Wide, from high up behind the caster: the corridor laid out on the land, the comet hanging over it (1.9.0:
+        //    a crane up and a slow turn round the mark, so the land slides under the comet; it stood still for 3 s).
         takes.add(Take.cut(122, 186, (x, p, k) -> {
             Vec3 feet = x.feet(p);
-            Vec3 pos = feet.add(home.scale(l(k, 44.0, 36.0) * z)).add(side.scale(-s * 30.0 * z)).add(0.0, l(k, 34.0, 28.0) * z, 0.0);
-            Vec3 look = lerp(mark.add(dir.scale(length * 0.6)), plan.comet(x.time(p)), 0.3);
-            return new Pose(pos, look, (float) l(k, 76.0, 72.0), 0.0F);
+            float e = ease(k);
+            Vec3 base = feet.add(home.scale(l(e, 50.0, 38.0) * z)).add(side.scale(-s * 30.0 * z)).add(0.0, l(e, 24.0, 42.0) * z, 0.0);
+            Vec3 pos = orbit(base, mark, l(e, -9.0, 9.0) * s);
+            Vec3 look = lerp(mark.add(dir.scale(length * 0.6)), plan.comet(x.time(p)), l(e, 0.25, 0.4));
+            return new Pose(kept(x, p, pos), look, (float) l(e, 74.0, 68.0), (float) (l(e, 1.5, -1.5) * s));
         }));
 
-        // 6. Under the tail: from beside the mark, looking up at it as it grows.
+        // 6. Under the tail: from beside the mark, looking up at it as it grows (1.9.0: tracking sideways under it and
+        //    pushing in on it; it pulled out).
         takes.add(Take.cut(186, 238, (x, p, k) -> {
-            Vec3 pos = mark.add(side.scale(-s * 5.0 * z)).add(home.scale(6.0 * z)).add(0.0, 1.6 * z, 0.0);
-            return new Pose(pos, plan.comet(x.time(p)), (float) l(k, 76.0, 84.0), (float) (l(k, 0.0, 4.0) * s));
+            Vec3 pos = mark.add(side.scale(-s * l(k, 2.0, 10.0) * z)).add(home.scale(6.0 * z)).add(0.0, 1.6 * z, 0.0);
+            return new Pose(kept(x, p, pos), plan.comet(x.time(p)), (float) l(k, 82.0, 66.0), (float) (l(k, 0.0, 4.0) * s));
         }));
 
         // 7. It comes: entry, the fireball crossing the sky toward the land.
         takes.add(Take.cut(238, 272, (x, p, k) -> {
             Vec3 pos = mark.add(home.scale(24.0 * z)).add(side.scale(s * 14.0 * z)).add(0.0, 2.5 * z, 0.0);
             Vec3 look = lerp(plan.comet(x.time(p)), touchdown.add(0.0, 8.0 * z, 0.0), k * 0.6);
-            return new Pose(pos, look, (float) l(k, 74.0, 70.0), 0.0F);
+            return new Pose(kept(x, p, pos), look, (float) l(k, 74.0, 70.0), 0.0F);
         }));
 
         // 8. Touchdown, from behind the caster: the fireball coming down over the land to the horizon. (From here
@@ -124,45 +129,53 @@ public final class HalleyStoryboard {
             Vec3 feet = x.feet(p);
             Vec3 pos = feet.add(home.scale(14.0 * z)).add(side.scale(-s * 6.0 * z)).add(0.0, 5.0 * z, 0.0);
             Vec3 look = lerp(plan.comet(x.time(p)), touchdown.add(0.0, 12.0 * z, 0.0), 0.35 + 0.65 * k);
-            return new Pose(pos, look, (float) l(k, 60.0, 48.0), 0.0F);
+            return new Pose(kept(x, p, pos), look, (float) l(k, 60.0, 48.0), 0.0F);
         }));
 
-        // 9. The plough, from low down just behind the mark: the nucleus coming straight down the trench at us.
+        // 9. The plough, from low down just behind the mark: the nucleus coming straight down the trench at us (1.9.0:
+        //    no further back than at the old crater's size, and kept out of the hills: it ended up in one).
         takes.add(Take.cut(HalleyPlan.TOUCHDOWN, impact - 2, (x, p, k) -> {
-            Vec3 pos = mark.add(home.scale(radius * 0.9)).add(side.scale(-s * radius * 0.25)).add(0.0, 2.5 * z, 0.0);
-            return new Pose(pos, plan.comet(x.time(p)).add(0.0, 1.0 * z, 0.0), (float) l(k, 56.0, 64.0), 0.0F);
+            double back = Math.min(radius * 0.9, 52.0 * z);
+            Vec3 pos = mark.add(home.scale(back)).add(side.scale(-s * back * 0.28)).add(0.0, 3.5 * z, 0.0);
+            return new Pose(kept(x, p, pos), plan.comet(x.time(p)).add(0.0, 1.0 * z, 0.0), (float) l(k, 56.0, 64.0), 0.0F);
         }));
 
-        // 10. The detonation, watched from a safe distance. (The aftermath is filmed from the caster's side: the
-        //     client only has the land round the player, and cameras near the player see its far edge fogged over
-        //     the way the game's own horizon is.)
-        takes.add(Take.cut(impact - 2, impact + 24, (x, p, k) -> {
-            Vec3 pos = between(x, p, mark, 0.4).add(side.scale(s * 15.0 * z)).add(0.0, 10.0 * z, 0.0);
-            return new Pose(pos, mark.add(0.0, radius * l(k, 0.3, 0.5), 0.0), (float) l(k, 62.0, 68.0), (float) l(k, -3.0, 0.0));
+        // 10. The detonation, watched from a safe distance: the flash.
+        takes.add(Take.cut(impact - 2, impact + 8, (x, p, k) -> {
+            Vec3 pos = between(x, p, mark, 0.4).add(side.scale(s * 15.0 * z)).add(0.0, Math.max(10.0 * z, radius * 0.2), 0.0);
+            return new Pose(kept(x, p, pos), mark.add(0.0, radius * l(k, 0.3, 0.4), 0.0), (float) l(k, 62.0, 66.0), (float) l(k, -3.0, -1.0));
         }));
 
-        // 11. The plume climbing into a glowing cloud of ice.
-        takes.add(Take.sweep(impact + 24, impact + 70, 6, (x, p, k) -> {
-            Vec3 pos = between(x, p, mark, l(k, 0.25, 0.32)).add(side.scale(-s * 25.0 * z)).add(0.0, 8.0 * z, 0.0);
-            return new Pose(pos, mark.add(0.0, radius * l(k, 0.3, 0.9), 0.0), (float) l(k, 66.0, 70.0), 0.0F);
+        // 11. (1.9.0) The blast, from high over the crater: the shock ring racing out across the land and under the
+        //     camera, rising as it goes.
+        takes.add(Take.cut(impact + 8, impact + 36, (x, p, k) -> {
+            float e = ease(k);
+            Vec3 pos = mark.add(home.scale(radius * l(e, 1.05, 1.45))).add(side.scale(s * radius * 0.35)).add(0.0, radius * l(e, 0.95, 1.5), 0.0);
+            return new Pose(kept(x, p, pos), mark.add(dir.scale(radius * 0.2)), (float) l(e, 72.0, 82.0), (float) (l(e, -2.0, 1.0) * s));
         }));
 
-        // 12. The comet heart, from the crater floor below it, standing against the sky.
+        // 12. The plume climbing into a glowing cloud of ice.
+        takes.add(Take.sweep(impact + 36, impact + 70, 6, (x, p, k) -> {
+            Vec3 pos = between(x, p, mark, l(k, 0.25, 0.32)).add(side.scale(-s * 25.0 * z)).add(0.0, Math.max(8.0 * z, radius * 0.15), 0.0);
+            return new Pose(kept(x, p, pos), mark.add(0.0, radius * l(k, 0.3, 0.9), 0.0), (float) l(k, 66.0, 70.0), 0.0F);
+        }));
+
+        // 13. The comet heart, from the crater floor below it, standing against the sky.
         takes.add(Take.cut(impact + 70, impact + 106, (x, p, k) -> {
             Vec3 toward = towardCaster(x, p, mark, home);
             Vec3 across = new Vec3(-toward.z, 0.0, toward.x);
             Vec3 pos = heart.add(toward.scale(radius * l(k, 0.36, 0.3))).add(across.scale(s * radius * 0.1)).add(0.0, -6.0 * z, 0.0);
-            return new Pose(pos, heart.add(0.0, l(k, 6.0, 10.0) * z, 0.0), (float) l(k, 62.0, 56.0), 0.0F);
+            return new Pose(kept(x, p, pos), heart.add(0.0, l(k, 6.0, 10.0) * z, 0.0), (float) l(k, 62.0, 56.0), 0.0F);
         }));
 
-        // 13. Back to the caster, looking out over what they called down.
+        // 14. Back to the caster, looking out over what they called down.
         takes.add(Take.sweep(impact + 106, impact + 128, 10, (x, p, k) -> {
             Vec3 feet = x.feet(p);
             Vec3 away = new Vec3(feet.x - mark.x, 0.0, feet.z - mark.z);
             Vec3 h = away.lengthSqr() < 1.0 ? home : away.normalize();
             Vec3 across = new Vec3(-h.z, 0.0, h.x);
             Vec3 pos = feet.add(h.scale(l(k, 4.0, 9.0))).add(across.scale(l(k, 2.0, 4.0))).add(0.0, l(k, 10.0, 24.0), 0.0);
-            return new Pose(pos, mark.add(0.0, -radius * 0.15, 0.0), (float) l(k, 62.0, 70.0), 0.0F);
+            return new Pose(kept(x, p, pos), mark.add(0.0, -radius * 0.15, 0.0), (float) l(k, 62.0, 70.0), 0.0F);
         }));
         return takes;
     }
@@ -171,6 +184,15 @@ public final class HalleyStoryboard {
 
     private static double l(float k, double a, double b) {
         return a + (b - a) * k;
+    }
+
+    private static float ease(float k) {
+        return k * k * (3.0F - 2.0F * k);
+    }
+
+    /** 1.9.0: the camera kept over land this game has, out of the ground and over the trees ({@link FilmLand#keep}). */
+    private static Vec3 kept(Stage x, float p, Vec3 pos) {
+        return FilmLand.keep(pos, x.feet(p));
     }
 
     /** A point {@code k} of the way from the caster's feet to {@code to}, at ground height. */

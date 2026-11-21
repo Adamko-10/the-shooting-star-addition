@@ -31,6 +31,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
@@ -56,6 +57,8 @@ public final class MoonFx {
     private static final int MAX_SOUND_DELAY = 30;
     /** How long luna_inhale.ogg is (0.65 s), so it ends on the impact. */
     private static final int INHALE = 13;
+    private static final SoundEvent TITLE_IN = SoundEvent.createVariableRangeEvent(HalleyAddon.id("luna_title_in"));
+    private static final SoundEvent TITLE_OUT = SoundEvent.createVariableRangeEvent(HalleyAddon.id("luna_title_out"));
     /**
      * When Luna's music starts: with the alarm, sixteen seconds before the impact - {@code luna_music.ogg} is the track
      * cut so that its drop comes sixteen seconds in (the original's drop is at 24.45 s, so it starts 8.45 s in).
@@ -461,6 +464,11 @@ public final class MoonFx {
             Vec3 at = p.centre(t);
             this.play(HalleyContent.MOON_CRACK, sky(camera, at), 1.2F, 1.0F, film);
         }
+        // 1.9.0: the LUNA title card cracking in and breaking away (FilmTitle.LUNA_IN, LUNA_OUT); two sounds, as Epic
+        // mode stretches the time between them
+        if ((t == MoonPlan.BREAK + 4 || t == MoonPlan.FALL + 2) && film && HalleyClientConfig.titleCards()) {
+            this.play(t == MoonPlan.FALL + 2 ? TITLE_OUT : TITLE_IN, camera, 1.0F, 1.0F, true);
+        }
         if (t == MoonPlan.FALL) {
             Vec3 at = p.centre(t);
             this.play(HalleyContent.MOON_TEAR, sky(camera, at), 1.6F, 1.0F, film);
@@ -535,7 +543,7 @@ public final class MoonFx {
         if (this.music != null || !HalleyClientConfig.lunaMusic() || !film && camera.distanceTo(this.plan.target) > MUSIC_RANGE) {
             return;
         }
-        // Epic mode: the long cut (its drop 24 s on), kept in step with the clock, not the slowed plan
+        // Epic mode: the long cut (its drop 20 s on), kept in step with the clock, not the slowed plan
         this.music = StrikeMusic.play(this.plan.params.epic() ? "luna_music_epic" : "luna_music", this.host, MUSIC_AT,
             () -> this.plan.unwarp(this.realTime(0.0F)), () -> this.removed);
     }
@@ -567,8 +575,40 @@ public final class MoonFx {
         }
     }
 
+    /**
+     * 1.9.0 (Adam: "with epic mode its completely desynced"): in Epic mode the fall runs at {@link MoonPlan#EPIC_FALL}'s
+     * pace, slower than the sounds were cut for, so those played inside it (the alarm, the build-up, the crack, the
+     * tear, the fall's roar, the entry) are slowed by the same amount, and end where the moon has got to. The rumble and
+     * the inhale are placed by the clock to end on the impact, so stay as they are.
+     */
+    private float fallStretch(SoundEvent event) {
+        if (!this.plan.params.epic()) {
+            return 1.0F;
+        }
+        boolean inFall = event == HalleyContent.MOON_ALARM || event == HalleyContent.MOON_BUILDUP
+            || event == HalleyContent.MOON_CRACK || event == HalleyContent.MOON_TEAR
+            || event == HalleyContent.MOON_FALL || event == HalleyContent.MOON_ENTRY;
+        return inFall ? (float) (MoonPlan.CONTACT - MoonPlan.ALARM) / MoonPlan.EPIC_FALL : 1.0F;
+    }
+
+    /**
+     * 1.9.0 (Adam: the new sounds of the fall "fit more for epic mode while the old ones fit for main one"): in Epic
+     * mode the fall's sounds are its own cuts ({@code luna_epic_*}, the Sonniss set), otherwise the earlier ones.
+     */
+    private SoundEvent forMode(SoundEvent event) {
+        if (!this.plan.params.epic() || !event.getLocation().getNamespace().equals(HalleyAddon.MOD_ID)) {
+            return event;
+        }
+        String path = event.getLocation().getPath();
+        return EPIC_CUTS.contains(path) ? SoundEvent.createVariableRangeEvent(HalleyAddon.id("luna_epic_" + path.substring(5))) : event;
+    }
+
+    private static final java.util.Set<String> EPIC_CUTS = java.util.Set.of("luna_uplink", "luna_alarm", "luna_buildup", "luna_crack",
+        "luna_tear", "luna_fall", "luna_entry", "luna_rumble");
+
     private void play(SoundEvent event, Vec3 at, float volume, float pitch, boolean film) {
-        pitch *= this.pitch;
+        pitch *= this.pitch * this.fallStretch(event);
+        event = this.forMode(event);
         SoundInstance instance;
         if (film) {
             // deep and drawn out while the film runs in slow motion
@@ -584,7 +624,7 @@ public final class MoonFx {
     }
 
     private void follow(SoundEvent event, float volume, boolean film, IntFunction<Vec3> where) {
-        Follow sound = new Follow(event, volume, film, where);
+        Follow sound = new Follow(this.forMode(event), this.fallStretch(event), volume, film, where);
         if (film) {
             this.filmSounds.add(sound);
         }
@@ -602,14 +642,14 @@ public final class MoonFx {
         private final IntFunction<Vec3> where;
         private final boolean film;
 
-        Follow(SoundEvent event, float volume, boolean film, IntFunction<Vec3> where) {
+        Follow(SoundEvent event, float stretch, float volume, boolean film, IntFunction<Vec3> where) {
             super(event, SoundSource.PLAYERS, SoundInstance.createUnseededRandom());
             this.where = where;
             this.film = film;
             this.volume = film ? Math.min(1.0F, volume) : volume * 16.0F;
             this.relative = film;
             this.attenuation = film ? SoundInstance.Attenuation.NONE : SoundInstance.Attenuation.LINEAR;
-            this.pitch = MoonFx.this.pitch;
+            this.pitch = MoonFx.this.pitch * stretch;
             this.place();
         }
 
@@ -674,6 +714,24 @@ public final class MoonFx {
                 double out = 0.6 + 1.4 * k;
                 particle(level, i % 3 == 0 ? ParticleTypes.POOF : ParticleTypes.CLOUD, mark.add(Math.cos(a) * d, 0.4, Math.sin(a) * d),
                     Math.cos(a) * out, 0.03 + r.nextDouble() * 0.12, Math.sin(a) * out);
+            }
+            // 1.9.0: the pressure wave ahead of it tearing leaves, grass and soil off the land and blowing them out
+            for (int i = 0; i < this.count((int) (6 + 22 * k)); i++) {
+                double a = r.nextDouble() * Math.PI * 2.0;
+                double d = radius * (0.4 + r.nextDouble() * (0.8 + 2.4 * k));
+                int x = Mth.floor(mark.x + Math.cos(a) * d);
+                int z = Mth.floor(mark.z + Math.sin(a) * d);
+                if (!level.hasChunk(x >> 4, z >> 4)) {
+                    continue;
+                }
+                int top = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
+                BlockState state = level.getBlockState(new BlockPos(x, top - 1, z));
+                if (state.isAir() || !state.getFluidState().isEmpty()) {
+                    continue;
+                }
+                double out = 0.8 + 1.6 * k;
+                particle(level, new BlockParticleOption(ParticleTypes.BLOCK, state), new Vec3(x + 0.5, top + 0.3, z + 0.5),
+                    Math.cos(a) * out, 0.15 + r.nextDouble() * 0.4, Math.sin(a) * out);
             }
         }
         if (t == MoonPlan.CONTACT) {

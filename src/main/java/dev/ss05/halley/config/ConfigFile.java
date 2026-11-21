@@ -77,6 +77,14 @@ public final class ConfigFile {
         this.save();
     }
 
+    /** Restores related settings together during a defaults migration. */
+    public void resetDefaults(Value<?>... values) {
+        for (Value<?> value : values) {
+            value.reset();
+        }
+        this.save();
+    }
+
     public Path path() {
         return FabricLoader.getInstance().getConfigDir().resolve(this.fileName);
     }

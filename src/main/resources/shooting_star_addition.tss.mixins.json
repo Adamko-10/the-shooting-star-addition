@@ -12,8 +12,10 @@
   "client": [
     "CutsceneDirectorMixin",
     "FxManagerMixin",
+    "HudRescueMixin",
     "PostFxRendererMixin",
-    "SkillKeysMixin"
+    "SkillKeysMixin",
+    "WhiteSpaceMixin"
   ],
   "injectors": {
     "defaultRequire": 0

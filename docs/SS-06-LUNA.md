@@ -52,14 +52,16 @@ with Proxima) and the switch is "Music" for both skills.
 default): a slower, more ominous fall that everyone watching sees, with the long cut of the music. The switch travels to
 the server in `ChoicePayload` (network version 3; `EpicMode` holds each player's), `MoonCasting` sets
 `MoonParams.FLAG_EPIC`, and the flag rides in the effect packet. The plan is not retimed: `MoonPlan.warp(clock)` maps the
-strike's clock to plan ticks, the alarm-to-impact stretch (320 plan ticks) taking `EPIC_FALL` = 480 clock ticks (24 s,
-the whole lead of the track before its drop), so everything in it runs at two thirds; before ALARM and after CONTACT
-the clock runs as usual (impact at clock 490, end at DURATION + 160). Applied in three places: the server spell
+strike's clock to plan ticks, the alarm-to-impact stretch (320 plan ticks) taking `EPIC_FALL` = 400 clock ticks (20 s;
+480 = 24 s until 1.9.0, Adam: "make epic mode last a little less long like 4 seconds less"), so everything in it runs
+at four fifths; before ALARM and after CONTACT the clock runs as usual (impact at clock 410, end at DURATION + 80).
+The sounds played inside the fall (alarm, build-up, crack, tear, the fall's roar, entry) are slowed by the same 0.8
+(`MoonFx.fallStretch`, 1.9.0: Adam found Epic mode "completely desynced": the fixed-length sounds ended early). Applied in three places: the server spell
 (`Spell.planClock`, `MoonSpell`), the client effect (`MoonFxAdapter`: its clock, the film's time, plan ticks dispatched
 one by one, `duration()` unwarped) and the film's shots (`MoonCutscene`: each take's start and end unwarped, so the
 fall's shots last longer). The rumble and the inhale are placed by clock time (`MoonFx.beforeContact`) so they still end
 on the impact. Music: `luna_music_epic.ogg` (`art/make_luna_epic_music.sh`), the full track rebuilt from Video Project
-48 + luna_music.ogg (CLAUDE.md), from 0.445 s, its drop 24 s on (measured: 5 ms late); `StrikeMusic` keeps it in step
+48 + luna_music.ogg (CLAUDE.md), from 4.445 s, its drop 20 s on (1.9.0; 0.445 s and 24 s before); `StrikeMusic` keeps it in step
 with the unwarped clock. Stellar Convergence times Luna's impact by the caster's switch (`MoonPlan.contactClock`).
 
 ## Rules
@@ -170,29 +172,3 @@ surface textures for the sky moon: `assets/shooting_star_addition/textures/luna/
 | The rim, slabs, cracks, debris; the floor's veins | `world/MoonLand`, `world/MoonVeins` |
 | Client effects | `client/luna/` (`MoonFx`, rendering, HUD), `client/film/MoonStoryboard` (+ `FilmLand`), `compat/tss/client/MoonFxAdapter`, `MoonCutscene` |
 | Blocks, items, effect, sounds | `content/` |
-
-## Fabric 1.20.1
-
-Ported from `fabric-1.21.11` (the Fabric version of `main`) back to Minecraft 1.20.1, for 1.4.0. What's different
-from `main`:
-
-- **The Shooting Star's Fabric download is one bundle**, with a jar nested in it for every Minecraft version it
-  supports. The build takes this version's (`tssNested` in `build.gradle`) by its whole name - `+mc1.21.1` is also
-  the start of `+mc1.21.11`, and picking that one compiles against the wrong build.
-- **Loom 1.18 runs on JDK 25**; the code itself is compiled for Java 17 through a Gradle toolchain.
-- **Mojang's names**, through `loom.officialMojangMappings()`: the code reads like `main`'s; Loom remaps the release
-  jar to intermediary names, the descriptors in the mixins into The Shooting Star included.
-- **`RenderType.create` isn't public** in vanilla (NeoForge widens it): an access widener does it here
-  (`shooting_star_addition.accesswidener`, declared in `fabric.mod.json`).
-- **The creative tabs' fields are private** in vanilla: the tabs are looked up by `ResourceKey` from their ids.
-- **`javax.annotation.Nullable`** comes from JSR-305 (`compileOnly`): Fabric's Minecraft classpath doesn't carry it.
-- **Fabric API's `WorldRenderContext`** on 1.20.1: `matrixStack()` and `tickDelta()`.
-- **The Shooting Star's own 1.20.1 networking** is Fabric API's `FabricPacket`/`PacketType`; `StarClientBridge` hooks
-  into that.
-- **1.20.1's vanilla differences** are the ones `forge-1.20.1` has too: `Entity.setSecondsOnFire` (whole seconds) in
-  place of `igniteForSeconds`; no `MobEffect.onEffectStarted`, so Molten Might heals to the new full health in
-  `addAttributeModifiers`; an effect's amplifier saved as a byte, so Strength 255 is put back right after a reload
-  (see `MoltenMightEffect`).
-- **Loom on 1.20.1** can stop the very first build with "Cannot mutate content repository descriptor": the readable
-  copy of The Shooting Star is made while the project configures, and Loom's LWJGL upgrade trips over it. Run the
-  build again (the CI does).
