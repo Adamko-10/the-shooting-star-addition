@@ -181,6 +181,15 @@ He came back to the older 2026-11-13 conversation instead of a fresh one (his pi
   and `...mc1201...` (one jar holds both: `..\other mods\quasar\ss-21-quasar-1.8.0-forge.jar`, copied from his Forge
   instance); Fabric `dev.ss21.quasar.client.*` (no version tag; the multi jar's nested per-MC jars extracted to
   `..\other mods\quasar\nested (Fabric, extracted)\`, 1.20.1, 1.21.1, 1.21.11, 26.3).
+- **Luna checked by Claude (his ask, "u test", 2026-11-21)**: `test scriptsautotest34.sh` (his setup, keep_moon on, flat
+  world, aerial, a frame every tick at 560-575 and 800-811; `test builds6-11-21 auto test 39 luna flicker polish 11`):
+  the moon area's brightness fades smoothly 67.4 -> 67.1, then holds 174.34 +- 0.01: **no flash**. Seen from above, far.
+- **Ports STARTED 2026-11-21 ~21:10 (his picks: "Start now", Codex chats started by Claude by computer use, Claude's two
+  through "Opus helpers")**: Codex project **"SA Series 1.9.0 ports"** on the `ports` folder (trusted); chats "Follow
+  Forge 1.21.1 brief" and "Follow fabric port brief" (GPT-6.2 Astra, High; prompt: work only in `<branch>`, read
+  `<branch>/BRIEF.md`); the 1.20.1 pair starts when one finishes (a background watch for `REPORT.md`). Two Opus
+  background helpers port fabric-1.21.11 and fabric-26.3 from their BRIEF.md (now made by the same script, with an
+  order of work and CI: they may push `dev/ci/push-wip.sh` to `wip/<branch>` only, up to five rounds).
 - **Next**: his Luna check -> Codex runs the four briefs (two at a time, GPT-6.2 Astra, High; Claude starts them by
   computer use or he pastes "Read BRIEF.md in this folder and do exactly what it says") -> meanwhile Claude ports
   fabric-1.21.11 and fabric-26.3 -> review, Forge builds here, CI, screenshot checks (step 6), test jars, release.
