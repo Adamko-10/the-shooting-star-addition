@@ -181,8 +181,8 @@ He came back to the older 2026-11-13 conversation instead of a fresh one (his pi
   and `...mc1201...` (one jar holds both: `..\other mods\quasar\ss-21-quasar-1.8.0-forge.jar`, copied from his Forge
   instance); Fabric `dev.ss21.quasar.client.*` (no version tag; the multi jar's nested per-MC jars extracted to
   `..\other mods\quasar\nested (Fabric, extracted)\`, 1.20.1, 1.21.1, 1.21.11, 26.3).
-- **Luna checked by Claude (his ask, "u test", 2026-11-21)**: `test scriptsautotest34.sh` (his setup, keep_moon on, flat
-  world, aerial, a frame every tick at 560-575 and 800-811; `test builds6-11-21 auto test 39 luna flicker polish 11`):
+- **Luna checked by Claude (his ask, "u test", 2026-11-21)**: `test scripts\autotest34.sh` (his setup, keep_moon on, flat
+  world, aerial, a frame every tick at 560-575 and 800-811; `test builds\2026-11-21 auto test 39 luna flicker polish 11\`):
   the moon area's brightness fades smoothly 67.4 -> 67.1, then holds 174.34 +- 0.01: **no flash**. Seen from above, far.
 - **Ports STARTED 2026-11-21 ~21:10 (his picks: "Start now", Codex chats started by Claude by computer use, Claude's two
   through "Opus helpers")**: Codex project **"SA Series 1.9.0 ports"** on the `ports` folder (trusted); chats "Follow
