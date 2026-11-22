@@ -191,6 +191,8 @@ place; the dated sections under it are the history (read them by `grep`, not in 
   and `3fd78af` (CI only: films captured by film time, the full TSS bundle). 1.21.11's `BlockTags.DIRT` still holds
   grass (checked in its Minecraft jar), so 26.3's grass bug isn't there. CI re-runs pushed for 1.21.11 and 26.3;
   fabric-1.20.1's check started (chat "Compare 1.20.1 port CI shots").
+- **~23:50: CI green with the check fixes**: fabric-1.21.11 #266 (`3fd78af`; its Convergence panels now hold the
+  real frozen shots, seen in `other_film_24.59.png`), fabric-26.3 #267 (`7dbc3bd`). Waiting: the 1.21.1 and 1.20.1 checks.
 - Release texts done (main `5646c89`): `dev/publish/changelog_190.js` (written to `..\releases\1.9.0\changelogs\`),
   `github_190.sh`.
 - **Next** (asked him, clickable): screenshot checks by Codex (`..\ports\check-prompt.txt`) or skip; the test jars
