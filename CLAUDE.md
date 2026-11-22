@@ -162,6 +162,18 @@ place; the dated sections under it are the history (read them by `grep`, not in 
 - RimuLib's `CameraPose(position, look, fov, roll)` takes a look-at point. SS-21 Quasar has its own effect engine
   (`dev.ss21.quasar.<mc>.compat.client.fx`), not TSS's FxManager.
 
+### >>> RESUME HERE (2026-11-23 ~00:45, Adam's PC): checks done, camera fix everywhere; two CI runs were pending <<<
+
+He shut the PC down ("u got like 2 mins"). All four Codex screenshot checks are DONE (each `CHECK.md` in its worktree).
+Heads now: main `ecd0e43` (+ notes; CI #268 ok), forge-1.21.1 `627f13e`, forge-1.20.1 `193bd73` (both built here),
+fabric-1.21.1 `7865302` (#269 ok; Proxima's last shot shows the crater now), fabric-1.21.11 `bb3798d` (#270 ok),
+fabric-26.3 `56f297d` (#271 ok but Proxima refused on its random world: **re-run pushed, read its result**),
+fabric-1.20.1 `15feae8` (camera fix + CI-only `d403f37`; **CI pushed, read its result**, and look at its Convergence
+frames `other_film_23-25` for the panel grid: its check couldn't see it, maybe only CI capture timing).
+**Next**: those two results -> `mod_version=1.9.0` + READMEs on all seven -> final CI round -> test jars to
+`..\test builds\` (his pick: no game test) -> `..\releases\1.9.0\RELEASE-PROMPT.md` -> release only on his word.
+Changelog (`changelog_190.js`) may add: the film camera fix (all), 26.3's Proxima grass fix, 1.21.11's panels/cracks.
+
 ### >>> RESUME HERE (2026-11-22 ~19:10, Adam's PC): ALL SIX 1.9.0 PORTS DONE <<<
 
 - **fabric-1.20.1 done**: `5821469` (Codex, resumed 18:36; close-on-pick in, the sky pass built, Quasar's
