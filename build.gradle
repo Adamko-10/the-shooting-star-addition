@@ -59,8 +59,8 @@ loom {
 }
 
 // The Shooting Star is downloaded as one jar for several Minecraft versions, with its 26.3 build nested inside
-// (META-INF/jars/...+mc26.3.jar): that inner jar is what the addon is compiled against and what the dev runs load
-// (gradle/tss.gradle takes it out). The inner jar on its own in libs/ works too. libs/ holds one such jar per version of
+// (META-INF/jars/...+mc26.3.jar). Compile against its readable inner jar. At runtime the outer mod also supplies
+// shared resources, including 1.6.0's remote and skill textures. libs/ holds one such jar per version of
 // The Shooting Star the addon supports; none is ever shipped inside this jar (its licence is All Rights Reserved).
 def shootingStarJars = fileTree(dir: 'libs', include: 'the-shooting-star*.jar')
 
@@ -88,6 +88,10 @@ dependencies {
 
     compileOnly tssNamed
     localRuntime tssNamed
+    // The readable mod already supplies the nested mod ID. Also load its resource-bearing parent when present.
+    if (tssVersions && tssVersions[0].distribution != tssVersions[0].jar) {
+        localRuntime files(tssVersions[0].distribution)
+    }
     compileOnly rimulib
     localRuntime rimulib
     clienttestCompileOnly rimulib
