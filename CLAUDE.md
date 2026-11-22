@@ -162,6 +162,18 @@ place; the dated sections under it are the history (read them by `grep`, not in 
 - RimuLib's `CameraPose(position, look, fov, roll)` takes a look-at point. SS-21 Quasar has its own effect engine
   (`dev.ss21.quasar.<mc>.compat.client.fx`), not TSS's FxManager.
 
+### >>> RESUME HERE (2026-11-22 ~19:10, Adam's PC): ALL SIX 1.9.0 PORTS DONE <<<
+
+- **fabric-1.20.1 done**: `5821469` (Codex, resumed 18:36; close-on-pick in, the sky pass built, Quasar's
+  `dev.ss21.quasar.client.*`, `StellarQuartet.REQUIRED` false, no `AGENTS.md`), **CI #263 all `ok:`** (proxima 76
+  frames, convergence 60). Its `REPORT.md` in the worktree.
+- So the seven heads: main `eb14508` (+ notes), forge-1.21.1 `609a3d8`, forge-1.20.1 `686171d`, fabric-1.21.1
+  `ca8913b` (#262), fabric-1.20.1 `5821469` (#263), fabric-1.21.11 `801c3a0` (#260), fabric-26.3 `87b527a` (#261).
+  Nothing pushed but `wip/*`. Changelog note: fabric-1.21.11 and fabric-26.3 lack the sky pass behind a pack's clouds.
+- **Next** (asked him, clickable): screenshot checks by Codex (`..\ports\check-prompt.txt`) or skip; the test jars
+  (Forge ones into `Forge 1.21.1` / `Forge 1.20.1 (1)`; the Fabric instances need TSS 1.6.0 + RimuLib 1.3.0 Fabric,
+  download only with his OK) and who tests; then version 1.9.0, `changelog_190.js`, `github_190.sh`, release prompt.
+
 ### >>> RESUME HERE (2026-11-22 ~18:40, Adam's PC): five of six 1.9.0 ports done and CI-green; fabric-1.20.1 running <<<
 
 - **Done (local `port/<branch>`, not pushed)**:
