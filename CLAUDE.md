@@ -175,6 +175,12 @@ place; the dated sections under it are the history (read them by `grep`, not in 
   Prompts: `..\ports\check-prompt-1.9.0.txt` -> `check-<branch>.txt`. Running since ~20:08: Codex chats "Review 1.9.0
   port screenshots" (fabric-1.21.11) and "Compare fabric-26.3 CI screenshots"; next fabric-1.21.1 (#262) and fabric-1.20.1
   (#263). Then: one CI round on any fixes, `mod_version=1.9.0` + READMEs on all seven, final CI, release prompt.
+- **~23:05 (the user: "they ran out of usage again, tell them to continue")**: both check chats got "The usage limit has
+  reset. Continue ...". Found so far: **fabric-1.21.11: Convergence's film panels solid white** (main shows the frozen
+  weapon shots; a real port bug, being fixed in FilmPanels/FilmSplit/MoonSphere/HalleyPipelines/halley_moon.vsh) and
+  magenta remote icons in CI (its launcher loads TSS's inner jar without the outer jar's textures: CI setup only);
+  fabric-26.3: a build.gradle/gradle/tss.gradle change so local runs load TSS's textures (told to say if the release
+  jar needs it). Asked both to keep CI-only changes apart from port fixes.
 - Release texts done (main `5646c89`): `dev/publish/changelog_190.js` (written to `..\releases\1.9.0\changelogs\`),
   `github_190.sh`.
 - **Next** (asked him, clickable): screenshot checks by Codex (`..\ports\check-prompt.txt`) or skip; the test jars
