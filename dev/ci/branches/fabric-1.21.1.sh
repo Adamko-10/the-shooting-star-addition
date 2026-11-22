@@ -23,7 +23,9 @@ ci_tests() {
   client_test moon prodClientTest -Dss05.clienttest.skill=moon -Dss05.clienttest.shots=20,70,140,215,290,320,340,370,430,480 -Dss05.clienttest.view=aerial -Dss05.clienttest.film=true -Dss05.clienttest.hud=true -Dss05.clienttest.final=aerial,rim,cheese,menu -Dss05.clienttest.time=6000
   client_test tuned prodClientTest -Dss05.clienttest.skill=moon -Dss05.clienttest.shots=150,324,342,380 -Dss05.clienttest.view=aerial -Dss05.clienttest.final=rim,skills -Dss05.clienttest.time=6000 -Dss05.clienttest.power=0.4 -Dss05.clienttest.speed=3 -Dss05.clienttest.damage=20
   # SA-04 Proxima's whole film on real land, a frame every half second of film time (film_<seconds>.png)
-  client_test proxima prodClientTest -Dss05.clienttest.skill=other -Dss05.clienttest.world=normal -Dss05.clienttest.time=6000 -Dss05.clienttest.shots=0,900 -Dss05.clienttest.film=true -Dss05.clienttest.hud=true -Dss05.clienttest.filmlog=true "-Dss05.clienttest.command=ssa strike proxima at 150 ~ 0"
+  # Aim at the surface at the mark. On random hills the caster's Y can put the mark underground or in the sky.
+  local surface="execute positioned 150 0 0 positioned over motion_blocking_no_leaves run"
+  client_test proxima prodClientTest -Dss05.clienttest.skill=other -Dss05.clienttest.world=normal -Dss05.clienttest.time=6000 -Dss05.clienttest.shots=0,900 -Dss05.clienttest.film=true -Dss05.clienttest.hud=true -Dss05.clienttest.filmlog=true "-Dss05.clienttest.command=$surface ssa strike proxima at ~ ~ ~"
   # SA-00 Stellar Convergence film (every default weapon), frames by film time: its panels must show the frozen shots
-  client_test convergence prodClientTest -Dss05.clienttest.skill=other -Dss05.clienttest.world=normal -Dss05.clienttest.time=6000 -Dss05.clienttest.shots=0,900 -Dss05.clienttest.film=true -Dss05.clienttest.hud=true -Dss05.clienttest.filmlog=true "-Dss05.clienttest.command=ssa strike stellar_convergence at 150 ~ 0"
+  client_test convergence prodClientTest -Dss05.clienttest.skill=other -Dss05.clienttest.world=normal -Dss05.clienttest.time=6000 -Dss05.clienttest.shots=0,900 -Dss05.clienttest.film=true -Dss05.clienttest.hud=true -Dss05.clienttest.filmlog=true "-Dss05.clienttest.command=$surface ssa strike stellar_convergence at ~ ~ ~"
 }
