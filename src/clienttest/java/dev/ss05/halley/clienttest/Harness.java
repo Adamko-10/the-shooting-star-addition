@@ -7,6 +7,7 @@ import cyou.rimuru.rimulib.client.magic.WhiteSpace;
 import cyou.rimuru.shootingstardemo.magic.Casting;
 import cyou.rimuru.rimulib.skill.Skill;
 import cyou.rimuru.rimulib.skill.Tuning;
+import dev.ss05.halley.client.FilmPanels;
 import dev.ss05.halley.client.HalleyFx;
 import dev.ss05.halley.client.luna.MoonFx;
 import dev.ss05.halley.compat.StarBridge;
@@ -579,6 +580,7 @@ public final class Harness {
 
     private static int lastFilmTick = Integer.MIN_VALUE;
     private static int lastFilmFrame = Integer.MIN_VALUE;
+    private static int lastPanelCount = -1;
 
     /**
      * -Dss05.clienttest.filmlog=true: while any film plays (another mod's too, e.g. TSS's Railgun), the camera once a
@@ -600,6 +602,12 @@ public final class Harness {
         int frame = (int) Math.floor(seconds * 2.0F);
         if (frame != lastFilmFrame) {
             lastFilmFrame = frame;
+            int panels = FilmPanels.frame == null ? -1 : FilmPanels.frozen();
+            if (panels != lastPanelCount) {
+                log(String.format(java.util.Locale.ROOT, "Convergence film at %.2f s: %s", seconds,
+                    panels < 0 ? "panel hook released" : panels + " frozen panels"));
+                lastPanelCount = panels;
+            }
             takeScreenshot(mc, String.format(java.util.Locale.ROOT, "film_%05.2f", seconds));
         }
     }
