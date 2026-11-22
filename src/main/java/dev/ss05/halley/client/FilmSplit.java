@@ -4,6 +4,7 @@ import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTexture;
 import dev.ss05.halley.HalleyAddon;
+import dev.ss05.halley.client.render.HalleyPipelines;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -11,7 +12,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import org.joml.Matrix3x2fStack;
@@ -30,8 +30,7 @@ import org.joml.Matrix3x2fStack;
  * on the GPU, as {@link FilmPanels}' frames (1.21.11 copies without scaling), and drawn into the deferred GUI by name.
  * The picture is kept just before the HUD is gathered (ConvergenceFilm.beforeHud, from HudRescueMixin), when the main
  * target holds the finished world and nothing of the GUI yet (the GUI, this split with it, is drawn into it later in the
- * frame), as main keeps it before its HUD. Drawn opaque, as this branch's panels: the screen's own alpha would show
- * through, so a picture doesn't fade in or out with its part (its frame and the dark behind it do).
+ * frame), as main keeps it before its HUD. Only the animation controls the opacity of the copied picture.
  */
 public final class FilmSplit {
     /** Ticks the split takes to come in, and to fly apart at the hit. */
@@ -86,7 +85,7 @@ public final class FilmSplit {
         if (source == null) {
             return;
         }
-        // whole size (a GPU copy doesn't scale); the screen's alpha is ignored when it is drawn (opaque, see the class)
+        // whole size (a GPU copy doesn't scale); the screen's alpha is ignored when it is drawn
         FilmPanels.Frame frame = FRAMES.get(i);
         if (frame == null || frame.width != main.width || frame.height != main.height) {
             if (frame != null) {
@@ -289,8 +288,8 @@ public final class FilmSplit {
         // a frame buffer's rows run bottom up: v1 at the top, v0 at the bottom (a negative region height)
         int regionW = Math.max(1, Math.round((u1 - u0) * UV));
         int regionH = Math.max(1, Math.round((v1 - v0) * UV));
-        g.blit(RenderPipelines.GUI_OPAQUE_TEXTURED_BACKGROUND, frame.location, 0, 0, u0 * UV, v1 * UV, 64, 64, regionW, -regionH, UV, UV,
-            argb(0xFFFFFF, 1.0F));
+        g.blit(HalleyPipelines.FILM_FRAME, frame.location, 0, 0, u0 * UV, v1 * UV, 64, 64, regionW, -regionH, UV, UV,
+            argb(0xFFFFFF, alpha));
         pose.popMatrix();
     }
 

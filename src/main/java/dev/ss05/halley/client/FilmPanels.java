@@ -7,12 +7,12 @@ import com.mojang.blaze3d.textures.FilterMode;
 import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.textures.TextureFormat;
 import dev.ss05.halley.HalleyAddon;
+import dev.ss05.halley.client.render.HalleyPipelines;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
@@ -179,8 +179,7 @@ public final class FilmPanels {
         pose.translate(x0, y0);
         pose.scale((x1 - x0) / 64.0F, (y1 - y0) / 64.0F);
         // a frame buffer's rows run bottom up: v from 1 at the top to 0 at the bottom (a texture "height" of -64)
-        // drawn opaque: the screen's alpha copied with the frame would let the white panel behind show through
-        g.blit(RenderPipelines.GUI_OPAQUE_TEXTURED_BACKGROUND, frame.location, 0, 0, 0.0F, -64.0F, 64, 64, 64, -64, fade(0xFFFFFFFF, alpha));
+        g.blit(HalleyPipelines.FILM_FRAME, frame.location, 0, 0, 0.0F, -64.0F, 64, 64, 64, -64, fade(0xFFFFFFFF, alpha));
         pose.popMatrix();
     }
 

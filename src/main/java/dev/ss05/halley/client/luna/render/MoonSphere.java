@@ -2,6 +2,7 @@ package dev.ss05.halley.client.luna.render;
 
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
@@ -218,14 +219,15 @@ public final class MoonSphere {
 
         BufferBuilder base = new BufferBuilder(BASE_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
         BufferBuilder blend = new BufferBuilder(BLEND_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-        BufferBuilder seam = new BufferBuilder(SEAM_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        BufferBuilder seam = new BufferBuilder(SEAM_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL);
         BufferBuilder heat = new BufferBuilder(HEAT_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
         BufferBuilder seamGlow = new BufferBuilder(SEAM_GLOW_BYTES, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-        Sink baseSink = (x, y, z, u, v, r, g, b, a) -> base.addVertex(x, y, z).setUv(u, v).setColor(r, g, b, a);
-        Sink blendSink = (x, y, z, u, v, r, g, b, a) -> blend.addVertex(x, y, z).setUv(u, v).setColor(r, g, b, a);
-        Sink seamSink = (x, y, z, u, v, r, g, b, a) -> seam.addVertex(x, y, z).setUv(u, v).setColor(r, g, b, a);
-        Sink heatSink = (x, y, z, u, v, r, g, b, a) -> heat.addVertex(x, y, z).setUv(u, v).setColor(r, g, b, a);
-        Sink seamGlowSink = (x, y, z, u, v, r, g, b, a) -> seamGlow.addVertex(x, y, z).setUv(u, v).setColor(r, g, b, a);
+        Sink baseSink = (point, u, v, r, g, b, a) -> base.addVertex(point.x(), point.y(), point.z()).setUv(u, v).setColor(r, g, b, a);
+        Sink blendSink = (point, u, v, r, g, b, a) -> blend.addVertex(point.x(), point.y(), point.z()).setUv(u, v).setColor(r, g, b, a);
+        Sink seamSink = (point, u, v, r, g, b, a) -> seam.addVertex(point.x(), point.y(), point.z()).setUv(u, v).setColor(r, g, b, a)
+            .setNormal((float) point.normal().x, (float) point.normal().y, (float) point.normal().z);
+        Sink heatSink = (point, u, v, r, g, b, a) -> heat.addVertex(point.x(), point.y(), point.z()).setUv(u, v).setColor(r, g, b, a);
+        Sink seamGlowSink = (point, u, v, r, g, b, a) -> seamGlow.addVertex(point.x(), point.y(), point.z()).setUv(u, v).setColor(r, g, b, a);
         for (Placement placement : placements) {
             // its own pipelines have culling off already, so one winding is enough here - unlike submitForShaderPack's
             // vanilla types, which are one-sided
@@ -248,6 +250,7 @@ public final class MoonSphere {
         // halley_moon.fsh never reads the Fog uniform (see the class doc), so nothing here needs to be switched off to
         // keep the pulled-in sphere from fogging out
         try (RenderPass pass = Gfx.levelPass("SS-06 Luna moon")) {
+            RenderSystem.bindDefaultUniforms(pass);
             pass.setUniform("DynamicTransforms", transforms);
             if (drawBase) {
                 pass.setPipeline(HalleyPipelines.MOON);
@@ -326,10 +329,12 @@ public final class MoonSphere {
         context.commandQueue().submitCustomGeometry(context.matrices(), type, (pose, out) -> {
             // (the beacon-beam vertex format, DefaultVertexFormat.BLOCK, has no overlay channel)
             Sink sink = part == Part.BASE
-                ? (x, y, z, u, v, r, g, b, a) -> out.addVertex(pose, x, y, z).setColor(r, g, b, a).setUv(u, v)
-                    .setLight(LightTexture.FULL_BRIGHT).setNormal(0.0F, 1.0F, 0.0F)
-                : (x, y, z, u, v, r, g, b, a) -> out.addVertex(pose, x, y, z).setColor(r, g, b, a).setUv(u, v)
-                    .setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightTexture.FULL_BRIGHT).setNormal(0.0F, 1.0F, 0.0F);
+                ? (point, u, v, r, g, b, a) -> out.addVertex(pose, point.x(), point.y(), point.z()).setColor(r, g, b, a).setUv(u, v)
+                    .setLight(LightTexture.FULL_BRIGHT)
+                    .setNormal((float) point.normal().x, (float) point.normal().y, (float) point.normal().z)
+                : (point, u, v, r, g, b, a) -> out.addVertex(pose, point.x(), point.y(), point.z()).setColor(r, g, b, a).setUv(u, v)
+                    .setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightTexture.FULL_BRIGHT)
+                    .setNormal((float) point.normal().x, (float) point.normal().y, (float) point.normal().z);
             Sinks sinks = switch (part) {
                 case BASE -> new Sinks(sink, Sink.NONE, Sink.NONE, Sink.NONE);
                 case SEAM -> new Sinks(Sink.NONE, sink, Sink.NONE, Sink.NONE);
@@ -345,9 +350,9 @@ public final class MoonSphere {
 
     /** A camera-relative vertex: position, uv on the sphere's own textures, colour (the baked lighting/alpha). */
     private interface Sink {
-        void vertex(float x, float y, float z, float u, float v, float r, float g, float b, float a);
+        void vertex(Vertex point, float u, float v, float r, float g, float b, float a);
 
-        Sink NONE = (x, y, z, u, v, r, g, b, a) -> {
+        Sink NONE = (point, u, v, r, g, b, a) -> {
         };
     }
 
@@ -525,7 +530,7 @@ public final class MoonSphere {
         float red = Math.min(1.0F, Mth.lerp(glowing, light, 1.0F));
         float green = Math.min(1.0F, Mth.lerp(glowing, light * 0.98F, 0.5F + 0.25F * glowing));
         float blue = Mth.lerp(glowing, light * 0.95F, 0.18F + 0.1F * glowing);
-        out.base().vertex(v.x(), v.y(), v.z(), v.u(), v.v(), red, green, blue, left);
+        out.base().vertex(v, v.u(), v.v(), red, green, blue, left);
 
         // the crack mask tiles several times over the sphere, so the molten network spreads over the whole visible
         // surface instead of showing once (see SEAM_TILE_U/V); it blazes as it burns
@@ -536,11 +541,11 @@ public final class MoonSphere {
         // pick, 2026-11-04); otherwise it crumbles away long before
         float embers = MoonFx.kept() ? 1.0F - CometVisuals.smooth((time - (MoonPlan.DURATION - 300.0)) / 300.0) : 1.0F;
         float soot = 0.25F + 0.75F * embers;
-        out.seam().vertex(v.x(), v.y(), v.z(), su, sv, soot, soot, soot, crack * left);
+        out.seam().vertex(v, su, sv, soot, soot, soot, crack * left);
         float throb = 0.85F + 0.15F * (float) Math.sin(time * 0.9 + v.lon() * 3.0);
         float seamGlow = Mth.clamp(crack * (0.3F + 0.25F * approach + 0.7F * burn * (0.5F + 0.5F * lead) * throb) + cooling * 0.6F,
             0.0F, 1.0F) * left * embers;
-        out.seamGlow().vertex(v.x(), v.y(), v.z(), su, sv, seamGlow, seamGlow * 0.72F, seamGlow * 0.38F, 1.0F);
+        out.seamGlow().vertex(v, su, sv, seamGlow, seamGlow * 0.72F, seamGlow * 0.38F, 1.0F);
 
         // a shell of fire round its leading edge: strongest at its outline on the side it leads with, a gentle warmth
         // over the face itself (head-on it is a ring of fire round dark-glowing rock, side-on a burning crescent); before
@@ -551,7 +556,7 @@ public final class MoonSphere {
         float shell = Mth.clamp(fire + air + cooling * 0.35F * (0.4F + edge), 0.0F, 1.0F) * left;
         float white = Math.max(0.0F, burn - 0.6F) * 1.8F * lead;
         float cool = 1.0F - burn;
-        out.heat().vertex(v.x(), v.y(), v.z(), 0.5F, 0.5F, shell, shell * Math.min(1.0F, 0.5F + 0.35F * white + 0.4F * cool),
+        out.heat().vertex(v, 0.5F, 0.5F, shell, shell * Math.min(1.0F, 0.5F + 0.35F * white + 0.4F * cool),
             shell * Math.min(1.0F, 0.18F + 0.5F * white * white + 0.5F * cool), 1.0F);
     }
 

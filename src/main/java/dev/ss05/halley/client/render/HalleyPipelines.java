@@ -24,6 +24,17 @@ public final class HalleyPipelines {
     /** Premultiplied "over": the new sky's colour plus the old one times what it leaves showing. */
     private static final BlendFunction OVER = new BlendFunction(SourceFactor.ONE, DestFactor.ONE_MINUS_SRC_ALPHA);
 
+    /** A frozen film frame supplies RGB. Its opacity comes from the panel animation. */
+    public static final RenderPipeline FILM_FRAME = RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
+        .withLocation(HalleyAddon.id("pipeline/film_frame"))
+        .withVertexShader("core/position_tex_color")
+        .withFragmentShader(HalleyAddon.id("core/film_frame"))
+        .withSampler("Sampler0")
+        .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
+        .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+        .withBlend(BlendFunction.TRANSLUCENT)
+        .build();
+
     /** The light, hidden behind terrain like anything else in the world. */
     public static final RenderPipeline GLOW = glow("glow", true, false);
     /** The light seen through everything: only for the short, blinding flashes. */
@@ -116,16 +127,18 @@ public final class HalleyPipelines {
             .withLocation(HalleyAddon.id("pipeline/halley_" + name))
             .withVertexShader(HalleyAddon.id("core/halley_moon"))
             .withFragmentShader(HalleyAddon.id("core/halley_moon"))
-            // reads a texture, no lightmap, no fog: the moon's own baked-in shading is all it needs
+            // The emissive seam uses the two world lights, as on main. All passes omit the lightmap and fog.
             .withSampler("Sampler0")
-            .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
+            .withVertexFormat(emissive ? DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL : DefaultVertexFormat.POSITION_TEX_COLOR,
+                VertexFormat.Mode.QUADS)
             .withDepthTestFunction(DepthTestFunction.LEQUAL_DEPTH_TEST)
             .withDepthWrite(base)
             .withCull(false);
         if (base) {
             b.withoutBlend().withColorWrite(true, false);
         } else if (emissive) {
-            b.withBlend(BlendFunction.TRANSLUCENT).withColorWrite(true, false).withShaderDefine("EMISSIVE");
+            b.withUniform("Lighting", UniformType.UNIFORM_BUFFER)
+                .withBlend(BlendFunction.TRANSLUCENT).withColorWrite(true, false).withShaderDefine("EMISSIVE");
         } else {
             b.withBlend(BlendFunction.ADDITIVE).withColorWrite(true, false);
         }

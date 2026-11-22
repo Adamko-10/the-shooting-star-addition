@@ -4,6 +4,11 @@
 #moj_import <minecraft:dynamictransforms.glsl>
 #moj_import <minecraft:projection.glsl>
 
+#ifdef EMISSIVE
+#moj_import <minecraft:light.glsl>
+in vec3 Normal;
+#endif
+
 in vec3 Position;
 in vec2 UV0;
 in vec4 Color;
@@ -14,5 +19,9 @@ out vec4 vertexColor;
 void main() {
     gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
     texCoord0 = UV0;
+#ifdef EMISSIVE
+    vertexColor = minecraft_mix_light(Light0_Direction, Light1_Direction, Normal, Color);
+#else
     vertexColor = Color;
+#endif
 }
