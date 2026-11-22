@@ -170,6 +170,13 @@ place; the dated sections under it are the history (read them by `grep`, not in 
 - So the seven heads: main `eb14508` (+ notes), forge-1.21.1 `609a3d8`, forge-1.20.1 `686171d`, fabric-1.21.1
   `ca8913b` (#262), fabric-1.20.1 `5821469` (#263), fabric-1.21.11 `801c3a0` (#260), fabric-26.3 `87b527a` (#261).
   Nothing pushed but `wip/*`. Changelog note: fabric-1.21.11 and fabric-26.3 lack the sky pass behind a pack's clouds.
+- **His picks (2026-11-22 ~19:15, clickable)**: "Run the checks" (Codex screenshot checks) and "No test, CI is enough"
+  (no game test of the port jars). Main reference CI #265 (all `ok:`; #264 had Proxima refuse on its random world).
+  Prompts: `..\ports\check-prompt-1.9.0.txt` -> `check-<branch>.txt`. Running since ~20:08: Codex chats "Review 1.9.0
+  port screenshots" (fabric-1.21.11) and "Compare fabric-26.3 CI screenshots"; next fabric-1.21.1 (#262) and fabric-1.20.1
+  (#263). Then: one CI round on any fixes, `mod_version=1.9.0` + READMEs on all seven, final CI, release prompt.
+- Release texts done (main `5646c89`): `dev/publish/changelog_190.js` (written to `..\releases\1.9.0\changelogs\`),
+  `github_190.sh`.
 - **Next** (asked him, clickable): screenshot checks by Codex (`..\ports\check-prompt.txt`) or skip; the test jars
   (Forge ones into `Forge 1.21.1` / `Forge 1.20.1 (1)`; the Fabric instances need TSS 1.6.0 + RimuLib 1.3.0 Fabric,
   download only with his OK) and who tests; then version 1.9.0, `changelog_190.js`, `github_190.sh`, release prompt.
