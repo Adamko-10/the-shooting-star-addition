@@ -190,6 +190,22 @@ He came back to the older 2026-11-13 conversation instead of a fresh one (his pi
   `<branch>/BRIEF.md`); the 1.20.1 pair starts when one finishes (a background watch for `REPORT.md`). Two Opus
   background helpers port fabric-1.21.11 and fabric-26.3 from their BRIEF.md (now made by the same script, with an
   order of work and CI: they may push `dev/ci/push-wip.sh` to `wip/<branch>` only, up to five rounds).
+- **2026-11-22 ~11:45 status** (the user: "continue working and ask gpt if u need gpt to finish some ports that arent
+  done yet"): forge-1.21.1 **done** (`609a3d8`, built here, 40 references; Codex had committed its own `AGENTS.md`:
+  uncommitted again, and `AGENTS.md` is now in the shared `.git/info/exclude`); fabric-1.21.1 **done** (`d1b2021`,
+  CI #259 all `ok:` incl. proxima and convergence; it left close-on-pick out). Codex's two 1.20.1 chats hit Codex's
+  usage limit at ~23:58 mid-port (cherry-picks in progress): both sent "The usage limit has reset. Continue where you
+  left off" at 11:45, running. **The two Opus helpers (fabric-1.21.11, fabric-26.3) died on Claude's 5-hour limit**
+  (~23:49, cherry-picks in progress, ~77 files resolved, nothing committed): they go to **Codex** next (his ask), two
+  at a time, after the 1.20.1 pair (a background watch for their `REPORT.md`); the message must say a previous agent
+  started the cherry-pick and was cut off.
+- **Close-on-pick on every version** (the user, 2026-11-22, clickable: "Yes, all versions"): main's `WhiteSpaceMixin`
+  (RimuLib `client.magic.WhiteSpace.commit` TAIL -> `leave()`), `close_menu_on_pick`, the `[` row on the plate. Forge
+  1.21.1 and Forge 1.20.1 have it (Astra verified both methods in RimuLib 1.3.0 Forge); **still to add: fabric-1.21.1,
+  fabric-1.20.1, fabric-1.21.11, fabric-26.3** (tell each Codex chat; fabric-1.21.1 as a small follow-up in its own
+  finished chat "Follow fabric port brief").
+- Forge 1.20.1's Codex also changed the packer (`tools/tss`) so `HudRescueMixin`'s Forge method mappings follow it into
+  the release jar: review that change.
 - **Next**: his Luna check -> Codex runs the four briefs (two at a time, GPT-6.2 Astra, High; Claude starts them by
   computer use or he pastes "Read BRIEF.md in this folder and do exactly what it says") -> meanwhile Claude ports
   fabric-1.21.11 and fabric-26.3 -> review, Forge builds here, CI, screenshot checks (step 6), test jars, release.
