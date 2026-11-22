@@ -193,6 +193,14 @@ place; the dated sections under it are the history (read them by `grep`, not in 
   fabric-1.20.1's check started (chat "Compare 1.20.1 port CI shots").
 - **~23:50: CI green with the check fixes**: fabric-1.21.11 #266 (`3fd78af`; its Convergence panels now hold the
   real frozen shots, seen in `other_film_24.59.png`), fabric-26.3 #267 (`7dbc3bd`). Waiting: the 1.21.1 and 1.20.1 checks.
+- **2026-11-23 ~00:20: fabric-1.21.1 checked**: Proxima's closing shot showed only clouds (the camera over land the
+  client doesn't have). Cause, **on every version incl. main**: `ClientLevel.hasChunk` always returns true in 1.21.1
+  (javap: `iconst_1; ireturn`, NeoForge too), so `FilmLand.keep` never pulled a camera back. Codex's fix `375d2ea` asks
+  `ClientChunkCache.hasChunk` and keeps the camera inside the render distance; `7865302` = CI only (full TSS bundle, film
+  strikes aimed at the surface). **His pick (clickable): "Fix it everywhere now"** (ships without his game test):
+  main `ecd0e43` (built), forge-1.21.1 `627f13e`, forge-1.20.1 `193bd73` (both built here), fabric-1.21.11 `bb3798d`,
+  fabric-26.3 `56f297d`; fabric-1.20.1 gets it after its own check (still running). CI round started ~00:25 for main,
+  fabric-1.21.1 (`7865302`), fabric-1.21.11, fabric-26.3.
 - Release texts done (main `5646c89`): `dev/publish/changelog_190.js` (written to `..\releases\1.9.0\changelogs\`),
   `github_190.sh`.
 - **Next** (asked him, clickable): screenshot checks by Codex (`..\ports\check-prompt.txt`) or skip; the test jars
