@@ -3,6 +3,7 @@ package dev.ss05.halley.client.film;
 import dev.ss05.halley.client.render.ShaderPacks;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientChunkCache;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
@@ -21,24 +22,34 @@ public final class FilmLand {
     }
 
     public static Vec3 keep(Vec3 pos, Vec3 home) {
-        ClientLevel level = Minecraft.getInstance().level;
+        Minecraft minecraft = Minecraft.getInstance();
+        ClientLevel level = minecraft.level;
         if (level == null) {
             return pos;
         }
+        // ClientLevel.hasChunk always returns true in 1.21.1. Only the cache knows what actually arrived.
+        ClientChunkCache chunks = level.getChunkSource();
+        // The cache has a padding of chunks beyond the player's render grid. A detached camera there can see only sky.
+        Vec3 viewer = minecraft.player != null ? minecraft.player.position() : home;
+        int viewRadius = minecraft.options.getEffectiveRenderDistance() - 1;
         Vec3 at = pos;
-        for (int i = 0; i < 16 && !loadedAround(level, at); i++) {
-            at = at.lerp(home, 0.12);
+        for (int i = 0; !loadedAround(chunks, at, viewer, viewRadius); i++) {
+            if (i == 16) {
+                at = viewer;
+                break;
+            }
+            at = at.lerp(viewer, 0.12);
         }
         int x = Mth.floor(at.x);
         int z = Mth.floor(at.z);
         BlockPos block = BlockPos.containing(at);
-        if (level.hasChunk(x >> 4, z >> 4) && !level.getBlockState(block).getCollisionShape(level, block).isEmpty()) {
+        if (chunks.hasChunk(x >> 4, z >> 4) && !level.getBlockState(block).getCollisionShape(level, block).isEmpty()) {
             double ground = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
             at = new Vec3(at.x, Math.max(at.y, ground + 1.6), at.z);
         }
         // 1.9.0: under water (seen on a coast): just over its surface instead
         BlockPos wet = BlockPos.containing(at);
-        if (level.hasChunk(x >> 4, z >> 4) && !level.getFluidState(wet).isEmpty()) {
+        if (chunks.hasChunk(x >> 4, z >> 4) && !level.getFluidState(wet).isEmpty()) {
             at = new Vec3(at.x, Math.max(at.y, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) + 1.2), at.z);
         }
         // 1.9.0: in the air under a tree's crown, or right beside one, the leaves fill the shot (seen in both films):
@@ -48,7 +59,7 @@ public final class FilmLand {
             for (int dz = -4; dz <= 4; dz += 2) {
                 int cx = Mth.floor(at.x) + dx;
                 int cz = Mth.floor(at.z) + dz;
-                if (!level.hasChunk(cx >> 4, cz >> 4)) {
+                if (!chunks.hasChunk(cx >> 4, cz >> 4)) {
                     continue;
                 }
                 int top = level.getHeight(Heightmap.Types.MOTION_BLOCKING, cx, cz);
@@ -76,10 +87,12 @@ public final class FilmLand {
     }
 
     /** Whether the chunk under the camera and the ones next to it are loaded. */
-    private static boolean loadedAround(ClientLevel level, Vec3 at) {
+    private static boolean loadedAround(ClientChunkCache chunks, Vec3 at, Vec3 viewer, int viewRadius) {
         int cx = Mth.floor(at.x) >> 4;
         int cz = Mth.floor(at.z) >> 4;
-        return level.hasChunk(cx, cz) && level.hasChunk(cx + 1, cz) && level.hasChunk(cx - 1, cz)
-            && level.hasChunk(cx, cz + 1) && level.hasChunk(cx, cz - 1);
+        return Math.abs(cx - (Mth.floor(viewer.x) >> 4)) <= viewRadius
+            && Math.abs(cz - (Mth.floor(viewer.z) >> 4)) <= viewRadius
+            && chunks.hasChunk(cx, cz) && chunks.hasChunk(cx + 1, cz) && chunks.hasChunk(cx - 1, cz)
+            && chunks.hasChunk(cx, cz + 1) && chunks.hasChunk(cx, cz - 1);
     }
 }
