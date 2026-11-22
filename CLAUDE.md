@@ -162,6 +162,29 @@ place; the dated sections under it are the history (read them by `grep`, not in 
 - RimuLib's `CameraPose(position, look, fov, roll)` takes a look-at point. SS-21 Quasar has its own effect engine
   (`dev.ss21.quasar.<mc>.compat.client.fx`), not TSS's FxManager.
 
+### >>> RESUME HERE (2026-11-22 ~12:15, Adam's PC): the 1.9.0 ports, three done, three running <<<
+
+Written before a compaction (the user: "real quick make claude md changes since im gonna compact"). Details in the
+2026-11-21 section under this one.
+- **Done (local, not pushed)**: forge-1.21.1 `609a3d8` (built here), fabric-1.21.1 `d1b2021` (CI #259 all `ok:`),
+  forge-1.20.1 `686171d` (built here). Each is one commit "1.9.0 port base" on its `port/<branch>` in `..\ports\<branch>`.
+- **Running**:
+  - **fabric-1.20.1**: Codex (GPT-6.2 Astra, High), chat "Follow Fabric port brief" in the Codex project "SA Series
+    1.9.0 ports" (resumed after Codex's usage limit). Tell it close-on-pick too when it finishes (if it hasn't added it).
+  - **fabric-1.21.1 close-on-pick follow-up**: Codex, the other "Follow Fabric port brief" chat (commit, no push);
+    then CI for it (`bash dev/ci/push-wip.sh fabric-1.21.1 port/fabric-1.21.1` from its worktree).
+  - **fabric-1.21.11 and fabric-26.3**: two Opus background helpers of this session (resumed with SendMessage at ~12:00;
+    agent ids `a2159f215e37c1849` = 1.21.11, `a2857f430b2da4a36` = 26.3; they run their own CI rounds through
+    `dev/ci/push-wip.sh`, write `REPORT.md`, and report back). If they stop on a usage limit again: SendMessage them
+    "continue" after the reset. Codex's 1.21.11 chat ("Continue Fabric 1.21.11 port") was stopped and must stay idle.
+  - A background watch prints when `REPORT.md` appears in fabric-1.20.1 or fabric-1.21.11.
+- **Decided today**: close-on-pick on every version (his pick); the hard two by Opus (his pick, his usage week 17%).
+  Codex keeps committing its own `AGENTS.md`: it's now in `.git/info/exclude`; check each port's commits for it.
+- **Next**: each port done -> review (its `REPORT.md`, `git diff port-1.9.0 HEAD -- src`, greps for `mc1211`/
+  `net.neoforged`/conflict markers), Forge builds here, Fabric CI from its worktree (read `summary.txt` with
+  `gh release download ci-<branch>-<n> -p summary.txt`) -> close-on-pick on all four Fabric -> START HERE steps 6-8
+  (Codex screenshot checks, test jars into his instances, changelog_190.js, release prompt; release only on his word).
+
 ### >>> RESUME HERE (2026-11-21, Adam's PC): the 1.9.0 port briefs are ready; waiting for his Luna check <<<
 
 He came back to the older 2026-11-13 conversation instead of a fresh one (his pick, clickable: "Continue here").
