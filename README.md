@@ -294,6 +294,7 @@ And your switches from the remote's menu (**H**), in the `[stellar_remote]` sect
 | `impact_frames`  | FULL    | Halley's and Luna's impact frames: `FULL`, `SOFT` or `OFF` (**F**). |
 | `evac_lift`      | true    | In creative, standing where your own strike lands: `true` lifts you straight up, `false` takes you to the crater's edge (**E**). |
 | `no_cooldown`    | true    | Cast without cooldowns where the server allows it (**C**). |
+| `close_menu_on_pick` | false | `true` = clicking a skill in the remote's menu picks it and closes the menu (**[**, shown by your keyboard's own name for that key). |
 | `convergence`    | all but Gravitia | The weapons Stellar Convergence fires (**1-9** on its panel). |
 | `convergence_ring` | false | `true` = spread them in a ring round the crosshair (**R**). |
 | `convergence_shake` | CAPPED | Its camera shake: `CAPPED`, `FULL` or `OFF` (**X**). |

@@ -35,6 +35,7 @@ public final class HalleyClientConfig {
     private static final ConfigFile.BoolValue KEEP_MOON;
     private static final ConfigFile.BoolValue EPIC_MODE;
     private static final ConfigFile.BoolValue IMPERIAL;
+    private static final ConfigFile.BoolValue CLOSE_ON_PICK;
     private static final ConfigFile.BoolValue STACK_MUSIC;
     private static final ConfigFile.EnumValue<ImpactFrames> IMPACT_FRAMES;
     private static final ConfigFile.StringListValue CONVERGENCE;
@@ -128,6 +129,9 @@ public final class HalleyClientConfig {
         STACK_MUSIC = b.define("stack_music", false,
             "Strikes cast one after another each keep their own music playing (true), or the newest one's music",
             "takes over (false). The = key in the remote's menu.");
+        CLOSE_ON_PICK = b.define("close_menu_on_pick", false,
+            "Clicking a skill in the remote's menu picks it and closes the menu (true), or the menu stays open",
+            "(false, as before). The [ key in the remote's menu.");
         IMPACT_FRAMES = b.defineEnum("impact_frames", ImpactFrames.FULL,
             "Halley's and Luna's impact frames (the screen flashing to negative at an impact): FULL, SOFT",
             "(fainter) or OFF. F in the remote's menu.");
@@ -285,6 +289,15 @@ public final class HalleyClientConfig {
 
     public static void setStackMusic(boolean on) {
         set(STACK_MUSIC, on);
+    }
+
+    /** Whether picking a skill in the remote's menu closes it. */
+    public static boolean closeMenuOnPick() {
+        return CLOSE_ON_PICK.get();
+    }
+
+    public static void setCloseMenuOnPick(boolean on) {
+        set(CLOSE_ON_PICK, on);
     }
 
     /** Your keep-the-moon switch: Luna's moon model stays after it lands. */

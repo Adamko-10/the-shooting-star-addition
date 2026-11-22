@@ -19,7 +19,7 @@ import net.minecraft.util.Mth;
 /**
  * The addon's settings in the Stellar Remote's menu (H), "look B" of 1.9.0 (the user's pick of 2026-11-12, built after
  * his OK of the mock-up on 2026-11-19): in the menu's top left, a plate with the general settings (music, stacking,
- * units, title cards, no cooldown), and under it a card with only the selected skill's own settings,
+ * units, title cards, close on pick, no cooldown), and under it a card with only the selected skill's own settings,
  * grouped, the less used ones folded into a group of their own (0 opens it). Stellar Convergence's card is drawn by
  * {@code compat/tss/client/ConvergencePlate} in the same place. Backspace folds everything to a small tag (the
  * in-game switch players asked for on CurseForge; {@code menu_plates = false} still hides it all).
@@ -67,6 +67,8 @@ public final class AdditionPanel {
     /** - and =: every free letter is taken in the menu (WASD move, Q drops, P is Stellar Quartet's, the rest skills). */
     public static final int KEY_UNITS = 45;
     public static final int KEY_STACK = 61;
+    /** [ : close the menu when a skill is picked. */
+    public static final int KEY_CLOSE = 91;
     /** . : the films' title cards. */
     public static final int KEY_TITLES = 46;
     /** Backspace folds the plates (RimuLib uses it only while a key is being rebound, when ours stand aside). */
@@ -113,6 +115,9 @@ public final class AdditionPanel {
         }
         if (key == KEY_TITLES) {
             return flip("title_cards", () -> HalleyClientConfig.setTitleCards(!HalleyClientConfig.titleCards()), false);
+        }
+        if (key == KEY_CLOSE) {
+            return flip("close_on_pick", () -> HalleyClientConfig.setCloseMenuOnPick(!HalleyClientConfig.closeMenuOnPick()), false);
         }
         if (key == KEY_COOLDOWN) {
             if (!allowedHere()) {
@@ -294,7 +299,7 @@ public final class AdditionPanel {
                 ? "gui.shooting_star_addition.no_cooldown.everyone" : "gui.shooting_star_addition.no_cooldown.creative"));
             statusColor = INK;
         }
-        int h = 26 + 5 * LINE + 14 + 13;
+        int h = 26 + 6 * LINE + 14 + 13;
         plate(g, 2, 3, w + 2, h + 3, 0x26000000);
         plate(g, 0, 0, w, h, 0xF4000000 | PLATE);
         g.fill(0, 2, 3, h - 2, 0xFF000000 | GOLD);
@@ -314,6 +319,8 @@ public final class AdditionPanel {
         row(g, font, y, "units", keyName(KEY_UNITS), HalleyClientConfig.imperial(), true, w, "units.miles", "units.km");
         y += LINE;
         row(g, font, y, "title_cards", keyName(KEY_TITLES), HalleyClientConfig.titleCards(), true, w);
+        y += LINE;
+        row(g, font, y, "close_on_pick", keyName(KEY_CLOSE), HalleyClientConfig.closeMenuOnPick(), true, w);
         y += LINE;
         row(g, font, y, "no_cooldown", "C", cooldownOff, allowed, w);
         y += LINE;
