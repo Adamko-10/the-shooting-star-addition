@@ -163,7 +163,7 @@ final class ProximaLand {
                     BlockState ground = this.ground(was, x, y, z, charred, r);
                     if (ground != null) {
                         blocks.put(at.immutable(), ground);
-                        if (charred && this.level.getBlockState(at.below()).is(BlockTags.DIRT)) {
+                        if (charred && this.level.getBlockState(at.below()).is(BlockTags.SUBSTRATE_OVERWORLD)) {
                             blocks.put(at.below().immutable(), Blocks.COARSE_DIRT.defaultBlockState());
                         }
                         // a thin layer of ash settles over it: thick over the charred ring, thinning out toward the edge
@@ -192,7 +192,7 @@ final class ProximaLand {
 
     /** What the top of the ground becomes, or null to leave it. */
     private BlockState ground(BlockState was, int x, int y, int z, boolean charred, double r) {
-        boolean soil = was.is(BlockTags.DIRT) || was.is(Blocks.DIRT_PATH) || was.is(Blocks.FARMLAND);
+        boolean soil = was.is(BlockTags.SUBSTRATE_OVERWORLD) || was.is(Blocks.DIRT_PATH) || was.is(Blocks.FARMLAND);
         float n = this.plan.noise(x, y, z);
         if (charred) {
             if (!soil && !was.is(BlockTags.SAND) && !was.is(Blocks.GRAVEL) && !was.is(BlockTags.BASE_STONE_OVERWORLD)) {
