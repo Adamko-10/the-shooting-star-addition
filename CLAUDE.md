@@ -186,6 +186,11 @@ place; the dated sections under it are the history (read them by `grep`, not in 
   `7dbc3bd` (test/dev runs only: load The Shooting Star's outer jar for its textures; magenta remote icons in CI).
   Not seen by CI: an addon skill's own card, the split screen (CI uses PANELS). fabric-1.21.1's check started (chat
   "Check Fabric 1.21.1 port screenshots"); fabric-1.21.11's still running; fabric-1.20.1 next.
+- **~23:25: fabric-1.21.11 checked**: fixes `b987997` (release jar: Convergence's frozen panels drawn white, Luna's
+  cracks far too bright; `FilmPanels`, `FilmSplit`, `MoonSphere`, `HalleyPipelines`, `film_frame.fsh`, `halley_moon.vsh`)
+  and `3fd78af` (CI only: films captured by film time, the full TSS bundle). 1.21.11's `BlockTags.DIRT` still holds
+  grass (checked in its Minecraft jar), so 26.3's grass bug isn't there. CI re-runs pushed for 1.21.11 and 26.3;
+  fabric-1.20.1's check started (chat "Compare 1.20.1 port CI shots").
 - Release texts done (main `5646c89`): `dev/publish/changelog_190.js` (written to `..\releases\1.9.0\changelogs\`),
   `github_190.sh`.
 - **Next** (asked him, clickable): screenshot checks by Codex (`..\ports\check-prompt.txt`) or skip; the test jars
