@@ -206,6 +206,13 @@ He came back to the older 2026-11-13 conversation instead of a fresh one (his pi
   finished chat "Follow fabric port brief").
 - Forge 1.20.1's Codex also changed the packer (`tools/tss`) so `HudRescueMixin`'s Forge method mappings follow it into
   the release jar: review that change.
+- **2026-11-22 ~12:00**: forge-1.20.1 **done** (`686171d`, built here, close-on-pick included; its Codex changed
+  `tools/tss/TssPack.java` so each packed version's mixin config gets its own refmap, for Forge's SRG HUD hooks).
+  **The hard two went back to Opus** (the user asked "do u think its a good idea to have codex finish the 2 hard
+  ports"; his usage then: week 17%, 5-hour 24%; his pick, clickable: "Opus finishes both"): Codex's fabric-1.21.11
+  chat ("Continue Fabric 1.21.11 port") was stopped after a few minutes (it says: no edits; 17 unmerged paths, conflict
+  markers only in README.md and Harness.java); both Opus helpers resumed with SendMessage, close-on-pick added to their
+  task. Codex: fabric-1.20.1 still running; the fabric-1.21.1 chat got the close-on-pick follow-up (commit, no push).
 - **Next**: his Luna check -> Codex runs the four briefs (two at a time, GPT-6.2 Astra, High; Claude starts them by
   computer use or he pastes "Read BRIEF.md in this folder and do exactly what it says") -> meanwhile Claude ports
   fabric-1.21.11 and fabric-26.3 -> review, Forge builds here, CI, screenshot checks (step 6), test jars, release.
