@@ -67,13 +67,11 @@ import net.minecraft.world.level.storage.ValueInput;
  * Shooting Star, and screenshots it at the requested ticks. Entirely driven by {@link HarnessParams}; see that
  * class for what each property does.
  *
- * <p>One client-side event hook drives it ({@link Ss05ClientTestMod}): {@link #onClientTick}, both the slow state
- * machine (create world, wait for it, place the player, settle, cast) and the screenshots. Fabric 26.3 has no
- * per-rendered-frame client event; a screenshot requested when {@code gameTime} first reaches a shot's tick is
- * actually grabbed one tick later, by when Minecraft's main loop has rendered at least one frame of that tick's
- * state (close enough for eyeballing an effect - this harness was never meant for pixel-exact regression tests).
+ * <p>{@link #onClientTick} drives world setup, casting and the fixed-tick screenshots. It grabs a requested
+ * tick on the next client tick so the game has had a chance to render it. The film recorder captures the
+ * completed frame in FilmCaptureMixin instead, with the film time of that render.
  */
-final class Harness {
+public final class Harness {
     private static final String LEVEL_ID = "ss05test";
     private static final double SPAWN_X = 0.5;
     private static final double SPAWN_Z = 0.5;
@@ -672,6 +670,21 @@ final class Harness {
     }
 
     // ---- Screenshots. ----------------------------------------------------------------------------------------
+
+    private static int lastFilmFrame = -1;
+
+    /** Record the completed frame under its film time. Cast ticks drift during heavy strikes. */
+    public static void captureFilmFrame(float partial) {
+        if (done || castGameTime < 0 || !HarnessParams.FILM_LOG || !CutsceneDirector.active()) {
+            return;
+        }
+        float seconds = CutsceneDirector.seconds(partial);
+        int frame = (int) Math.floor(seconds * 2.0F);
+        if (frame != lastFilmFrame) {
+            lastFilmFrame = frame;
+            takeScreenshot(Minecraft.getInstance(), String.format(java.util.Locale.ROOT, "film_%05.2f", seconds));
+        }
+    }
 
     private static void takeScreenshot(Minecraft mc, String name) {
         String fileName = HarnessParams.SKILL + "_" + name + ".png";

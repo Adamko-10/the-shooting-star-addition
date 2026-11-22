@@ -117,7 +117,7 @@ ext.tssVersionTag = { String v -> 'v' + v.split(/[-+ ]/, 2)[0].toLowerCase(Local
 ext.tssVersions = tssObf.files.collect { File file ->
     File jar = tssNested ? tssNestedNow(file, tssNested) : file
     String version = tssVersionIn(jar)
-    [version: version, tag: tssVersionTag(version), jar: jar, mapping: tssMappingFor(jar)]
+    [version: version, tag: tssVersionTag(version), jar: jar, bundle: file, mapping: tssMappingFor(jar)]
 }.sort { a, b -> tssCompare(b.version, a.version) }
 tssVersions.groupBy { it.tag }.each { tag, same ->
     if (same.size() > 1) throw new GradleException("libs/ has more than one The Shooting Star ${tag}: ${same*.jar*.name} - keep one")
@@ -137,7 +137,8 @@ if (tssTestVersion != null && tssTest == null) {
     throw new GradleException("-PtssTest=${tssTestVersion}: libs/ has no supported The Shooting Star ${tssTestVersion} (it has ${tssSupported*.version})")
 }
 def tssLatest = files(tssVersions ? [tssVersions[0].jar] : [])
-ext.tssTestJar = files(tssTest ? [tssTest.jar] : [])
+// The production client needs the bundled assets as well as the version-specific code.
+ext.tssTestJar = files(tssTest ? [tssTest.bundle] : [])
 
 // For neoforge.mods.toml / mods.toml: "[1.3.3,1.3.5),[1.4.0,1.4.2)" (each version up to its next patch).
 ext.tssVersionRange = {

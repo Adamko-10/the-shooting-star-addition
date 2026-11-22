@@ -100,6 +100,9 @@ final class HarnessParams {
         };
     }
 
+    /** Record each rendered half second of film time in the screenshot set. */
+    static final boolean FILM_LOG = Boolean.getBoolean(PREFIX + ".filmlog");
+
     /** Whether the caster's own cutscene is allowed to take over the camera. */
     static final boolean FILM = Boolean.parseBoolean(System.getProperty(PREFIX + ".film", "false"));
 
