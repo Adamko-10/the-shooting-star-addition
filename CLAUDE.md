@@ -162,6 +162,29 @@ place; the dated sections under it are the history (read them by `grep`, not in 
 - RimuLib's `CameraPose(position, look, fov, roll)` takes a look-at point. SS-21 Quasar has its own effect engine
   (`dev.ss21.quasar.<mc>.compat.client.fx`), not TSS's FxManager.
 
+### >>> RESUME HERE (2026-11-22 ~18:40, Adam's PC): five of six 1.9.0 ports done and CI-green; fabric-1.20.1 running <<<
+
+- **Done (local `port/<branch>`, not pushed)**:
+  - forge-1.21.1 `609a3d8`, forge-1.20.1 `686171d` (both built here, close-on-pick in);
+  - fabric-1.21.1 `ca8913b` (= `d1b2021` + Codex's close-on-pick commit), **CI #262 all `ok:`**;
+  - fabric-1.21.11 `801c3a0` (Opus helper), **CI #260 all `ok:`** (halley, moon, tuned, proxima, convergence);
+  - fabric-26.3 `87b527a` (Opus helper), **CI #261 all `ok:`** (proxima 75 frames, convergence 60).
+  The wip heads' `src` equals each local head. Both Opus helpers then died on Claude's 5-hour limit before writing
+  `REPORT.md` (not resumed: their work was done; their commit messages say what's in it). **Not built on 1.21.11 and
+  26.3: the sky pass behind a shader pack's clouds** (`SkyPass` is a stub with `TODO(port)`; neither has
+  `LevelRenderer.renderSky`/`getStarBrightness`), so there the moon, comet and Proxima's gate draw as in 1.8.3, over a
+  pack's clouds: say so in those two changelogs. Close-on-pick is in both. No conflict markers or NeoForge names.
+- **Running**: fabric-1.20.1, Codex chat "Follow fabric port brief" (the lowercase one; the capital-F "Follow Fabric
+  port brief" is fabric-1.21.1's). It stopped on Codex's usage limit at ~11:55 mid cherry-pick (16 conflicts open);
+  sent "The usage limit has reset. Continue ..." at 18:36 with close-on-pick added (as `ca8913b`); it's working. A
+  background watch prints when its `REPORT.md` appears. Then: review its diff, CI (`bash dev/ci/push-wip.sh
+  fabric-1.20.1 port/fabric-1.20.1` from its worktree), check it didn't commit `AGENTS.md`.
+- **Then** START HERE steps 6-8: Codex screenshot checks (`..\ports\check-prompt.txt`, main needs one CI run),
+  test jars into his instances (Fabric ones need TSS 1.6.0 Fabric + RimuLib 1.3.0 Fabric: download only with his OK),
+  `mod_version=1.9.0`, `changelog_190.js` (1.21.11/26.3: no sky pass), `github_190.sh`, the release prompt. Release
+  only on his word.
+- Usage at 18:40: Claude 5-hour 19%, week 30% (resets 2026-11-24 15:00 UTC).
+
 ### >>> RESUME HERE (2026-11-22 ~12:15, Adam's PC): the 1.9.0 ports, three done, three running <<<
 
 Written before a compaction (the user: "real quick make claude md changes since im gonna compact"). Details in the
