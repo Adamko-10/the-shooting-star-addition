@@ -181,6 +181,11 @@ place; the dated sections under it are the history (read them by `grep`, not in 
   magenta remote icons in CI (its launcher loads TSS's inner jar without the outer jar's textures: CI setup only);
   fabric-26.3: a build.gradle/gradle/tss.gradle change so local runs load TSS's textures (told to say if the release
   jar needs it). Asked both to keep CI-only changes apart from port fixes.
+- **~23:15: fabric-26.3 checked** (`CHECK.md` in its worktree): fix `e89f999` (release jar: Proxima left grass green
+  round its bowl, because 26.3's `BlockTags.DIRT` no longer holds grass: now `BlockTags.SUBSTRATE_OVERWORLD`), and
+  `7dbc3bd` (test/dev runs only: load The Shooting Star's outer jar for its textures; magenta remote icons in CI).
+  Not seen by CI: an addon skill's own card, the split screen (CI uses PANELS). fabric-1.21.1's check started (chat
+  "Check Fabric 1.21.1 port screenshots"); fabric-1.21.11's still running; fabric-1.20.1 next.
 - Release texts done (main `5646c89`): `dev/publish/changelog_190.js` (written to `..\releases\1.9.0\changelogs\`),
   `github_190.sh`.
 - **Next** (asked him, clickable): screenshot checks by Codex (`..\ports\check-prompt.txt`) or skip; the test jars
