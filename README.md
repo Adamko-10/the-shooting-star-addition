@@ -341,7 +341,7 @@ Shooting Star it knows, and uses the one for the version you have:
 
 ## Plans
 
-This is version 1.8.3. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
+This is version 1.9.0. If people enjoy it and there's support for it, I'll keep it updated for new versions of The
 Shooting Star and keep improving it: more skills for the Stellar Remote, balancing and polish from your feedback,
 and versions for other loaders and Minecraft versions if there's demand. Bug reports, ideas and feedback are very
 welcome in the issues.
