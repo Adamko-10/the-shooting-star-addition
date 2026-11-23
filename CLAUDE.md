@@ -162,6 +162,20 @@ place; the dated sections under it are the history (read them by `grep`, not in 
 - RimuLib's `CameraPose(position, look, fov, roll)` takes a look-at point. SS-21 Quasar has its own effect engine
   (`dev.ss21.quasar.<mc>.compat.client.fx`), not TSS's FxManager.
 
+### >>> RESUME HERE (2026-11-23 ~13:30, Adam's PC): 1.9.0 READY TO RELEASE, waiting for his word <<<
+
+- **Final CI all `ok:`**: main #274, forge-1.21.1 #275, forge-1.20.1 #276, fabric-1.21.1 #277, fabric-1.20.1 #278
+  (Proxima refused on its random world, 2 screenshots: same code as #272, which filmed it), fabric-1.21.11 #279,
+  fabric-26.3 #280. The release prompt's A1 checks run here on all seven: clean, fast-forward, built code = head.
+- **`..\releases\1.9.0\RELEASE-PROMPT.md`** written (from 1.8.3's; A0 = the heads in the section below + those runs;
+  B2 = the description's two version lines only). Codex runs it in the project "Shooting Star Addition" (project folder).
+- **Final jars**: `..\test builds\2026-11-23 1.9.0 final (CI)\The Shooting Star Addition SA Series 1.9.0 TEST [...].jar`;
+  in his instances `NeoForge 1.21.1 (1)` (polish 11 `.disabled`), `Forge 1.21.1`, `Forge 1.20.1 (1)` (the 1.8.2 TEST jars
+  `.disabled`). PowerShell trap: jar names have `[ ]`, use `-LiteralPath`. Fabric instances untouched (need TSS 1.6.0 +
+  RimuLib 1.3.0 Fabric: download only with his OK). gh on Windows: `-O "$(cygpath -w <path>)"`.
+- **After release**: check origin heads, the 7 releases, CurseForge files via the API; the announcement; then a fresh
+  session (his 2026-11-20 wish) with a `HANDOFF PROMPT`.
+
 ### >>> RESUME HERE (2026-11-23 ~12:50, Adam's PC): 1.9.0 on all seven, final CI round running <<<
 
 - The two pending runs were green: fabric-1.20.1 #272 (its Convergence panel grid draws: it was only CI's capture
