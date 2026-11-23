@@ -162,6 +162,21 @@ place; the dated sections under it are the history (read them by `grep`, not in 
 - RimuLib's `CameraPose(position, look, fov, roll)` takes a look-at point. SS-21 Quasar has its own effect engine
   (`dev.ss21.quasar.<mc>.compat.client.fx`), not TSS's FxManager.
 
+### >>> RESUME HERE (2026-11-23 ~12:50, Adam's PC): 1.9.0 on all seven, final CI round running <<<
+
+- The two pending runs were green: fabric-1.20.1 #272 (its Convergence panel grid draws: it was only CI's capture
+  timing), fabric-26.3 #273 (Proxima 76 frames). All four Codex checks done, every fix in.
+- **Version 1.9.0** committed on all seven (gradle.properties, READMEs' "This is version", main's
+  `curseforge-description.md` two version lines): main `b3efc44` + changelog `9fe7865` (the film camera fix for all,
+  26.3's Proxima grass), forge-1.21.1 `5dff6a5`, forge-1.20.1 `45a3f8f`, fabric-1.21.1 `570f694`, fabric-1.20.1
+  `8e1bfa8`, fabric-1.21.11 `76da57b`, fabric-26.3 `c0ef929`. Changelogs regenerated in `..\releases\1.9.0\changelogs\`.
+- **Final CI round** pushed ~12:45 for all seven (expected #274-280 in that order). Then: `..\releases\1.9.0\
+  RELEASE-PROMPT.md` (made by the scratchpad's `make-prompt-190.js` from 1.8.3's: version swaps, intro, A0 rows =
+  heads above + those runs), test jars from the CI drafts into `..\test builds\2026-11-23 1.9.0 final (CI)\` (and his
+  NeoForge/Forge instances if no javaw), then his word to release (Codex runs the prompt).
+- The CurseForge description gets only its two version lines (as 1.8.2/1.8.3); the reworked description draft still
+  waits for his OK (`..\releases\description rework\`).
+
 ### >>> RESUME HERE (2026-11-23 ~00:45, Adam's PC): checks done, camera fix everywhere; two CI runs were pending <<<
 
 He shut the PC down ("u got like 2 mins"). All four Codex screenshot checks are DONE (each `CHECK.md` in its worktree).
