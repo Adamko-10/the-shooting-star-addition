@@ -173,6 +173,10 @@ place; the dated sections under it are the history (read them by `grep`, not in 
   in his instances `NeoForge 1.21.1 (1)` (polish 11 `.disabled`), `Forge 1.21.1`, `Forge 1.20.1 (1)` (the 1.8.2 TEST jars
   `.disabled`). PowerShell trap: jar names have `[ ]`, use `-LiteralPath`. Fabric instances untouched (need TSS 1.6.0 +
   RimuLib 1.3.0 Fabric: download only with his OK). gh on Windows: `-O "$(cygpath -w <path>)"`.
+- **RELEASE STARTED 2026-11-23 ~13:10 (his word: "Yes, release it")**: the old Codex project "Shooting Star Addition"
+  was gone, so a new one was made on the project folder (same name); chat "Follow the 1.9.0 release prompt" (GPT-6.2
+  Astra, High) got "Read releases\1.9.0\RELEASE-PROMPT.md ... do exactly what it says". He was in a full-screen game
+  (Where Winds Meet) and minimised it for this. If Codex hits its usage limit: the usual "continue" message.
 - **After release**: check origin heads, the 7 releases, CurseForge files via the API; the announcement; then a fresh
   session (his 2026-11-20 wish) with a `HANDOFF PROMPT`.
 
