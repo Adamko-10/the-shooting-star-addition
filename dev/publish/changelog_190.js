@@ -61,6 +61,10 @@ ${only(b, NO_SKY_PASS, `- Not on this version yet: Luna's moon, Halley's comet a
 - **TON 618**: it hides the HUD during its films, which hid our film overlays, title cards and Proxima's space part. They're drawn again.
 - **TON 618 Addition**: its skills show in the remote, locked, when it isn't installed, so you know what it adds.
 
+### Fixed
+- Film cameras no longer end up over land your game hasn't loaded (a far shot could show only sky, mostly at low render distances).${only(b, ["fabric-26.3"], `
+- Proxima's scorch burns the grass around its bowl again (it stayed green on 26.3).`)}
+
 ### Your own music
 - Put your own \`luna.ogg\`, \`luna_epic.ogg\` or \`proxima.ogg\` in \`config/shooting_star_addition/music/\` to replace ours. A README there says where each one's drop should land.
 `;
