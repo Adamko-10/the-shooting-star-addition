@@ -37,9 +37,9 @@ abstract class CastingMixin {
      * The cast request: (player, the skill's index, power, damage, speed, width, play the film for everyone). Its name
      * is obfuscated since The Shooting Star 1.5.0 (and not mapped to a readable one), so it is named as it is.
      */
-    @Inject(method = "liiillli1l(Lnet/minecraft/server/level/ServerPlayer;IFFFFZ)V", at = @At("HEAD"), cancellable = true, require = 0, remap = false)
+    @Inject(method = "liiillli1l(Lnet/minecraft/server/level/ServerPlayer;IFFFFZI)V", at = @At("HEAD"), cancellable = true, require = 0, remap = false)
     private static void ss05halley$limit(ServerPlayer player, int index, float power, float damage, float speed, float width,
-                                         boolean everyone, CallbackInfo ci) {
+                                         boolean everyone, int choice, CallbackInfo ci) {
         if (player != null && NoCooldown.appliesTo(player)) {
             TssLink.clearCooldowns(player);
         }
@@ -52,7 +52,7 @@ abstract class CastingMixin {
         float heldSpeed = held[2];
         if (heldPower != power || heldDamage != damage || heldSpeed != speed) {
             ci.cancel();
-            Casting.liiillli1l(player, index, heldPower, heldDamage, heldSpeed, width, everyone);
+            Casting.liiillli1l(player, index, heldPower, heldDamage, heldSpeed, width, everyone, choice);
         }
     }
 }
