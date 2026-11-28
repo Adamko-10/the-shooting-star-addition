@@ -137,7 +137,7 @@ public final class StarClientBridge {
      */
     static il11ill1iil payload(StrikeFx s) {
         return new il11ill1iil(s.skill(), s.casterId(), s.origin().x, s.origin().y, s.origin().z, s.target().x, s.target().y,
-            s.target().z, s.yaw(), s.seed(), s.targets(), s.flags(), s.power(), s.speed(), 1.0F);
+            s.target().z, s.yaw(), s.seed(), s.targets(), s.flags(), s.power(), s.speed(), 1.0F, 0);
     }
 
     /** Whether this client plays the strike's film: the caster's own, or anyone's when they play it for everyone. */
