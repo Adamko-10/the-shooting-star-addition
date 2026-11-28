@@ -127,11 +127,12 @@ public final class StarClientBridge {
     /**
      * The Shooting Star's own effect packet for a strike, which its effects are built from: (skill, caster, origin,
      * target, yaw, seed, targets, flags, power, speed, width). Its class name is obfuscated since 1.5.0 and unmapped
-     * (1.5.0: {@code l1l1i1lii1}; 1.5.1: {@code ll1lil1iill}; 1.5.2: {@code ll1i111l11}, same fields).
+     * (1.5.0: {@code l1l1i1lii1}; 1.5.1: {@code ll1lil1iill}; 1.5.2: {@code ll1i111l11}, same fields; 1.6.1 added a last int,
+     * the caster's choice the cast request carries: 0, the default, for ours).
      */
     static ll1i111l11 payload(StrikeFx s) {
         return new ll1i111l11(s.skill(), s.casterId(), s.origin().x, s.origin().y, s.origin().z, s.target().x, s.target().y,
-            s.target().z, s.yaw(), s.seed(), s.targets(), s.flags(), s.power(), s.speed(), 1.0F);
+            s.target().z, s.yaw(), s.seed(), s.targets(), s.flags(), s.power(), s.speed(), 1.0F, 0);
     }
 
     /** Whether this client plays the strike's film: the caster's own, or anyone's when they play it for everyone. */

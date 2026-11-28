@@ -16,7 +16,7 @@ An **unofficial**, fan-made addon for **[The Shooting Star \[Demo\]](https://www
 
 ## ⚠️ Compatibility — please read
 
-Version **1.9.0** works with **The Shooting Star \[Demo\] 1.6.0** and needs **RimuLib 1.3.0** or newer (The Shooting Star needs it too). On The Shooting Star 1.5.2, keep version 1.8.1 of this addon; on 1.5.0, version 1.6.0; on 1.4.x, version 1.5.1.
+Version **1.9.1** works with **The Shooting Star \[Demo\] 1.6.1** and needs **RimuLib 1.3.1** or newer (The Shooting Star needs it too). On The Shooting Star 1.6.0, keep version 1.9.0 of this addon; on 1.5.2, keep version 1.8.1 of this addon; on 1.5.0, version 1.6.0; on 1.4.x, version 1.5.1.
 
 ### Available builds
 
@@ -125,7 +125,7 @@ Not without an update of this addon. The Shooting Star has no official way for o
 
 ## Plans
 
-This is version **1.9.0**. SA-03 is planned. More skills for the Stellar Remote are planned, along with balancing and polish. Comments, bug reports and ideas are very welcome!
+This is version **1.9.1**. SA-03 is planned. More skills for the Stellar Remote are planned, along with balancing and polish. Comments, bug reports and ideas are very welcome!
 
 ## Credits
 
